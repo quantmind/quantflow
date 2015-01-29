@@ -1,4 +1,3 @@
-from pulsar import in_loop
 from pulsar.apps import Application
 from pulsar.apps.http import HttpClient
 from pulsar.apps.ws import WS
@@ -24,17 +23,4 @@ class BitCoin(object):
         a = res.get_content()
         b = 1
 
-
-class MtGox(WS):
-
-    def on_message(self, websocket, message):
-        print(message)
-
-
-class Robot(Application):
-
-    def worker_start(self, worker):
-        http = HttpClient()
-        b = BitCoin(http)
-        b.mtgox()
 

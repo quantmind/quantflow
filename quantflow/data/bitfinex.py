@@ -1,0 +1,4 @@
+
+
+class Bitfinex(CurrencyData):
+
