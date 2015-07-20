@@ -1,16 +1,8 @@
-from __future__ import division
-
 import abc
-
 import math
-
 from copy import copy
 from functools import partial
 
-from six import with_metaclass
-
-from zipline.protocol import DATASOURCE_TYPE
-import zipline.utils.math_utils as zp_math
 
 SELL = 1 << 0
 BUY = 1 << 1
@@ -141,7 +133,7 @@ def create_transaction(event, order, price, amount):
     return transaction
 
 
-class SlippageModel(with_metaclass(abc.ABCMeta)):
+class SlippageModel(metaclass=abc.ABCMeta):
 
     @property
     def volume_for_bar(self):
@@ -176,10 +168,7 @@ class SlippageModel(with_metaclass(abc.ABCMeta)):
 
 class VolumeShareSlippage(SlippageModel):
 
-    def __init__(self,
-                 volume_limit=.25,
-                 price_impact=0.1):
-
+    def __init__(self, volume_limit=.25, price_impact=0.1):
         self.volume_limit = volume_limit
         self.price_impact = price_impact
 

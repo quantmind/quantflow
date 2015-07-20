@@ -1,34 +1,34 @@
 #!/usr/bin/env python
 import sys
 import os
-from multiprocessing import current_process
-
-try:
-    from pulsar.utils.path import Path
-except ImportError:
-    # pulsar not available, we are in dev
-    path = os.path.join(os.path.dirname(os.getcwd()), 'pulsar')
-    if os.path.isdir(path):
-        sys.path.append(path)
-
-from pulsar.apps.test import TestSuite
-from pulsar.apps.test.plugins import bench, profile
 
 
-def run(**params):
-    args = params.get('argv', sys.argv)
-    if '--coverage' in args or params.get('coverage'):
-        import coverage
-        p = current_process()
-        p._coverage = coverage.coverage(data_suffix=True)
-        p._coverage.start()
-    runtests(**params)
+def run():
+    from pulsar.apps.test import TestSuite
+    from pulsar.apps.test.plugins import bench, profile
 
+    args = sys.argv
+    if '--coveralls' in args:
+        import quantflow
+        from pulsar.utils.path import Path
+        from pulsar.apps.test.cov import coveralls
 
-def runtests(**params):
-    suite = TestSuite(modules=['tests'],
-                      plugins=(bench.BenchMark(), profile.Profile()),
-                      **params).start()
+        repo_token = None
+        strip_dirs = [Path(quantflow.__file__).parent.parent, os.getcwd()]
+        if os.path.isfile('.coveralls-repo-token'):
+            with open('.coveralls-repo-token') as f:
+                repo_token = f.read().strip()
+        code = coveralls(strip_dirs=strip_dirs,
+                         repo_token=repo_token)
+        sys.exit(0)
+    # Run the test suite
+    #
+    TestSuite(description='quantflow asynchronous test suite',
+              modules=['tests'],
+              plugins=(bench.BenchMark(),
+                       profile.Profile()),
+              pidfile='test.pid',
+              config='tests/config.py').start()
 
 
 if __name__ == '__main__':

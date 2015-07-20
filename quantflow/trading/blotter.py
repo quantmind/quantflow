@@ -24,22 +24,7 @@ class Blotter(object):
         # event.
         self.new_orders = []
         self.current_dt = None
-        self.max_shares = int(1e+11)
-
-    def __repr__(self):
-        return """
-{class_name}(
-    transact_partial={transact_partial},
-    open_orders={open_orders},
-    orders={orders},
-    new_orders={new_orders},
-    current_dt={current_dt})
-""".strip().format(class_name=self.__class__.__name__,
-                   transact_partial=self.transact.args,
-                   open_orders=self.open_orders,
-                   orders=self.orders,
-                   new_orders=self.new_orders,
-                   current_dt=self.current_dt)
+        self.max_orders = int(1e+11)
 
     def set_date(self, dt):
         self.current_dt = dt

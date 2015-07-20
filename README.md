@@ -1,5 +1,6 @@
-
 # Requirements
+
+Python 3.4 or above
 
 * [numpy][]
 * [pandas][]

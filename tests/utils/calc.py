@@ -2,10 +2,10 @@ import math
 
 from unittest import TestCase
 
-from qa.utils.calc import round_for_minimum_price_variation
+from quantflow.utils.calc import round_for_minimum_price_variation
 
 
-class BlotterTestCase(TestCase):
+class UtilsTestCase(TestCase):
 
     def test_round_for_minimum_price_variation_buy(self):
         vals = [(0.00, 0.00),

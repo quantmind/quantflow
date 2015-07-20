@@ -1,13 +1,16 @@
+import abc
 
 
-class Commission(object):
-    pass
+class Commission(metaclass=abc.ABCMeta):
+
+    @abc.abstractproperty
+    def calculate(self, transaction):
+        pass
 
 
-class PerShare(Commission):
+class PerSize(Commission):
     """
-    Calculates a commission for a transaction based on a per
-    share cost.
+    Calculates a commission for a transaction based on a per size cost.
     """
 
     def __init__(self, cost=0.03):
@@ -17,11 +20,6 @@ class PerShare(Commission):
         (quite high) for per share costs.
         """
         self.cost = float(cost)
-
-    def __repr__(self):
-        return "{class_name}(cost={cost})".format(
-            class_name=self.__class__.__name__,
-            cost=self.cost)
 
     def calculate(self, transaction):
         """
