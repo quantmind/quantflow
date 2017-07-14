@@ -21,7 +21,7 @@ class PerSize(Commission):
         """
         self.cost = float(cost)
 
-    def calculate(self, transaction):
+    def calculate(self, transaction) -> float:
         """
         returns a tuple of:
         (per share commission, total transaction commission)

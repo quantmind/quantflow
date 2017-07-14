@@ -1,9 +1,6 @@
+.idea
 .DS_Store
 *.log
-
-#eclipse
-.project
-.pydevproject
 
 #coverage
 .coveralls-repo-token
@@ -12,6 +9,7 @@ htmlcov
 
 #python
 *.pyc
+.eggs
 __pycache__
 odm.egg-info
 build
