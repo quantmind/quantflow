@@ -5,7 +5,13 @@ ENDPOINT = 'https://api.betfair.com/exchange/betting/json-rpc/v1'
 LOGIN_URL = 'https://identitysso.betfair.com/api/certlogin'
 
 
+class BetFairError(RuntimeError):
+    pass
+
+
 class BetFair(JsonProxy):
+    """Client to Betfair JSON-RPC API
+    """
 
     def __init__(self, key, username, password, **kwargs):
         super().__init__(ENDPOINT, **kwargs)
@@ -13,15 +19,20 @@ class BetFair(JsonProxy):
         self.password = password
         self._http.headers['X-Application'] = key
 
-    def login(self):
+    async def login(self):
         headers = [('content-type', 'application/x-www-form-urlencoded')]
         body = dict(username=self.username, password=self.password)
-        response = yield from self._http.post(LOGIN_URL, data=body)
+        response = await self._http.post(LOGIN_URL, data=body, headers=headers)
         response.raise_for_status()
         data = response.json()
-        if data.get('loginStatus') == 'SUCCESS':
+        status = data['loginStatus']
+        if status == 'SUCCESS':
             token = data['sessionToken']
             self._http.headers['X-Authentication'] = token
             return token
         else:
-            raise ValueError
+            raise BetFairError(status)
+
+    def __getattr__(self, name):
+        name = 'SportsAPING/v1.0/%s' % name
+        return super().__getattr__(name)

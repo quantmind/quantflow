@@ -17,3 +17,5 @@ odm.egg-info
 build
 dist
 tests/config.py
+tests/betfair.crt
+tests/betfair.key
