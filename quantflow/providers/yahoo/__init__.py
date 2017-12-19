@@ -1,31 +1,37 @@
+import re
+import time
+from datetime import date, timedelta
+from io import StringIO
+
+import pandas as pd
+
 from pulsar.apps.http import HttpClient
 
 from .share import Share
 from .currency import Currency
 
-# Yahoo! YQL API
-PUBLIC_API_URL = 'https://query.yahooapis.com/v1/public/yql'
-OAUTH_API_URL = 'https://query.yahooapis.com/v1/yql'
-DATATABLES_URL = 'store://datatables.org/alltableswithkeys'
 
 
 class Yahoo:
+    """Yahoo Finance client
+    
+    Build with Yahoo Query Language - YQL
+    
+    https://developer.yahoo.com/yql/
+    
+    and yahoo Finance API
+    
+    
+    """
 
     def __init__(self, http=None):
         self.http = http or HttpClient()
+        self._symbols = {}
 
-    async def share(self, symbol):
-        return await Share.get(self, symbol)
-
-    async def execute(self, yql, token=None):
-        response = await self.get(
-            PUBLIC_API_URL,
-            params=dict(
-                q=yql,
-                format='json',
-                env=DATATABLES_URL
-            )
-        )
-        response.raise_for_status()
-        data = response.json()
-        return data
+    def symbol(self, symbol):
+        """"Share price information
+        """
+        symbol = symbol.upper()
+        if symbol not in self._symbols:
+            self._symbols[symbol] = Share(self, symbol)
+        return self._symbols[symbol]

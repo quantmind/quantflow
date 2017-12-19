@@ -10,10 +10,12 @@ htmlcov
 #python
 *.pyc
 .eggs
+quantflow.egg-info
 __pycache__
 odm.egg-info
 build
 dist
+venv
 tests/config.py
 tests/betfair.crt
 tests/betfair.key

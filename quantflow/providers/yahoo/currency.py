@@ -1,7 +1,7 @@
-from .base import Base
+from .yql import Yql
 
 
-class Currency(Base):
+class Currency(Yql):
     _table = 'xchange'
     _key = 'pair'
 
