@@ -1,4 +1,0 @@
-numpy
-pandas
-ccy
--e git+git://github.com/quantmind/pulsar.git@dev#egg=pulsar

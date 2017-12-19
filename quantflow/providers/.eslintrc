@@ -1,0 +1,6 @@
+globals:
+    describe: true
+    expect: true
+    beforeEach: true
+    it: true,
+    spyOn: true
