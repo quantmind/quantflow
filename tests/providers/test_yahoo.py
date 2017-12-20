@@ -1,9 +1,9 @@
 import unittest
 
-from quantflow.providers import Yahoo
+from providers import Yahoo
 
 
-class TestBetfair(unittest.TestCase):
+class TestYahoo(unittest.TestCase):
 
     @classmethod
     def setUpClass(cls):

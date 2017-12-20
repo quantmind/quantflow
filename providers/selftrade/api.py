@@ -1,9 +1,11 @@
 import os
 import time
 from math import floor
+from datetime import date
 from itertools import chain
 
 from dateutil.parser import parse as parse_date
+from dateutil.relativedelta import relativedelta
 
 import bs4
 
@@ -42,7 +44,8 @@ class Selftrade:
             config_file=config_file,
             entry='selftrade')
         self.headers = headers or {}
-        self.http = http or HttpClient()
+        self.http = http or requests.Session()
+        # self.http = http or HttpClient()
         if 'user-agent' not in self.headers:
             self.headers['user-agent'] = (
                 'selftrade-client/%s%s' % (self.version, user_agent_info())
@@ -50,7 +53,7 @@ class Selftrade:
 
     async def login(self):
         dob = parse_date(self.auth['dob']).date()
-        response = requests.get(LOGIN_URL, headers=self.headers)
+        response = self.http.get(LOGIN_URL, headers=self.headers)
         response.raise_for_status()
         bs = bs4.BeautifulSoup(response.content, 'html.parser')
         form = bs.find('form', id='LoginForm')
@@ -92,7 +95,7 @@ class Selftrade:
         cookies = dict(((key, data[key]) for key in self.cookie_form_keys))
         #
         # Perform login
-        response = requests.post(
+        response = self.http.post(
             LOGIN_URL,
             headers=headers,
             data=data,
@@ -109,6 +112,20 @@ class Selftrade:
         assert key != self.api_key
         response = await self.inbox_message_count()
         return response
+
+    async def cash_statement(self, currency=None, fromdate=None, todate=None):
+        todate = todate or date.today()
+        fromdate = fromdate or todate - relativedelta(months=3)
+        response = await self.api_request(
+            'GET',
+            'CashStatementApi/GetCashStatementData',
+            params=dict(
+                currency=currency or 'GBP',
+                fromDate=fromdate,
+                toDate=todate
+            )
+        )
+        return response.json()
 
     async def inbox_message_count(self):
         response = await self.api_request(
@@ -128,7 +145,7 @@ class Selftrade:
             apiKey=self.api_key,
             _=floor(time.time() * 1000)
         )
-        response = requests.request(
+        response = self.http.request(
             method, url, headers=headers, params=params, **kwargs
         )
         response.raise_for_status()
