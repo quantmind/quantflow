@@ -1,18 +1,25 @@
+#
+# IDEs
 .idea
+*.sublime-workspace
+
+#
+# Files
 .DS_Store
 *.log
 
-#coverage
+#
+# Coverage
 .coveralls-repo-token
 .coverage
 htmlcov
 
-#python
+#
+# Python
 *.pyc
 .eggs
-quantflow.egg-info
+*.egg-info
 __pycache__
-odm.egg-info
 build
 dist
 venv

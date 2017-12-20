@@ -1,0 +1,12 @@
+{
+	"folders":
+	[
+		{
+			"path": "."
+		}
+	],
+    "settings": {
+        "python_interpreter": "./venv/bin/python",
+        "index_exclude_patterns": ["venv/*"]
+    }
+}

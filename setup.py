@@ -38,7 +38,7 @@ meta = dict(
     url="https://github.com/quantmind/quantflow",
     zip_safe=False,
     license='BSD',
-    long_description=read('README.rst'),
+    long_description=read('readme.md'),
     setup_requires=['pulsar', 'wheel'],
     install_requires=requirements('requirements/hard.txt')[0],
     packages=find_packages(include=['quantflow', 'quantflow.*']),

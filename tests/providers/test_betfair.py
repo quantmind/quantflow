@@ -1,6 +1,6 @@
 import unittest
 
-from bots.betfair import BetFair
+from providers.betfair import BetFair
 
 
 class TestBetfair(unittest.TestCase):
