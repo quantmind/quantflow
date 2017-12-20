@@ -11,14 +11,14 @@ from pulsar.apps.http import HttpClient
 
 from ..utils import from_config, user_agent_info
 
+import requests
 
 LOGIN_URL = (
     "https://selftrade.co.uk/transactional/anonymous/login"
 )
 
-LOGIN_URL_2 = (
-    "https://selftrade.co.uk/api/LoginApi/GetPinFormat"
-)
+API_URL = "https://selftrade.co.uk/api"
+
 
 API_KEY_START = "var  /* -transactional-anonymous-login */ apiKey = '"
 
@@ -29,6 +29,8 @@ class AuthenticationError(ValueError):
 
 class Selftrade:
     version = '0.1.0'
+    api_key = None
+    cookie_form_keys = ('__RequestVerificationToken',)
 
     def __init__(self, an=None, dob=None, pin=None, config_file=None,
                  headers=None, http=None):
@@ -48,7 +50,7 @@ class Selftrade:
 
     async def login(self):
         dob = parse_date(self.auth['dob']).date()
-        response = await self.http.get(LOGIN_URL, headers=self.headers)
+        response = requests.get(LOGIN_URL, headers=self.headers)
         response.raise_for_status()
         bs = bs4.BeautifulSoup(response.content, 'html.parser')
         form = bs.find('form', id='LoginForm')
@@ -68,27 +70,66 @@ class Selftrade:
                 value = dob.year
             if value:
                 data[name] = value
-        key = self.get_api_key(bs.find_all('script', type='text/javascript'))
-        if not key:
+        self.api_key = self.get_api_key(
+            bs.find_all('script', type='text/javascript')
+        )
+        if not self.api_key:
             raise AuthenticationError('cannot find api key')
-        response = await self.http.get(
-            LOGIN_URL_2, headers=self.headers,
-            params=dict(
-                apiKey=key,
-                username=data['Username'],
-                _=floor(time.time()*1000)
-            )
+        response = await self.api_request(
+            'GET',
+            'LoginApi/GetPinFormat',
+            headers=self.headers,
+            params=dict(username=data['Username'])
         )
         response.raise_for_status()
         data.update(response.json())
         pin = str(self.auth['pin'])
-        data['PasswordCharacter1'] = pin[data['Character1Index']]
-        data['PasswordCharacter2'] = pin[data['Character2Index']]
-        data['PasswordCharacter3'] = pin[data['Character3Index']]
-        response = await self.http.post(
+        data['PasswordCharacter1'] = pin[data['Character1Index']-1]
+        data['PasswordCharacter2'] = pin[data['Character2Index']-1]
+        data['PasswordCharacter3'] = pin[data['Character3Index']-1]
+        headers = self.headers.copy()
+        headers['content-type'] = 'multipart/form-data'
+        cookies = dict(((key, data[key]) for key in self.cookie_form_keys))
+        #
+        # Perform login
+        response = requests.post(
             LOGIN_URL,
-            headers=self.headers,
-            data=data
+            headers=headers,
+            data=data,
+            cookies=cookies
+        )
+        response.raise_for_status()
+        #
+        # get the new API key
+        bs = bs4.BeautifulSoup(response.content, 'html.parser')
+        key = self.api_key
+        self.api_key = self.get_api_key(
+            bs.find_all('script', type='text/javascript')
+        )
+        assert key != self.api_key
+        response = await self.inbox_message_count()
+        return response
+
+    async def inbox_message_count(self):
+        response = await self.api_request(
+            'GET',
+            'SecureInboxApi/GetSecureInboxMessageCount'
+        )
+        response.raise_for_status()
+        return response
+
+    async def api_request(self, method, path, params=None,
+                          headers=None, **kwargs):
+        headers = headers or self.headers
+        url = '%s/%s' % (API_URL, path)
+        if not params:
+            params = {}
+        params.update(
+            apiKey=self.api_key,
+            _=floor(time.time() * 1000)
+        )
+        response = requests.request(
+            method, url, headers=headers, params=params, **kwargs
         )
         response.raise_for_status()
         return response
