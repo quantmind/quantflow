@@ -3,10 +3,7 @@ import unittest
 from providers import Figi
 
 
-class TestAlphaVantage(unittest.TestCase):
-    """https://www.alphavantage.co/documentation/
-    """
-    BASE_URL = 'https://www.alphavantage.co/query'
+class TestFigi(unittest.TestCase):
 
     @classmethod
     async def setUpClass(cls):

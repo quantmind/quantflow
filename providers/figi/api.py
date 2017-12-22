@@ -11,6 +11,8 @@ class FigiError(ValueError):
 
 class Figi:
     """The OpenFIGI REST API Client
+
+    https://openfigi.com
     """
     Error = FigiError
     BASE_URL = 'https://api.openfigi.com/v1/mapping'

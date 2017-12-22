@@ -4,9 +4,6 @@ from providers import AlphaVantage
 
 
 class TestAlphaVantage(unittest.TestCase):
-    """https://www.alphavantage.co/documentation/
-    """
-    BASE_URL = 'https://www.alphavantage.co/query'
 
     @classmethod
     async def setUpClass(cls):
