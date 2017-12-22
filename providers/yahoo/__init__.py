@@ -14,14 +14,11 @@ from .currency import Currency
 
 class Yahoo:
     """Yahoo Finance client
-    
     Build with Yahoo Query Language - YQL
-    
+
     https://developer.yahoo.com/yql/
-    
+
     and yahoo Finance API
-    
-    
     """
 
     def __init__(self, http=None):

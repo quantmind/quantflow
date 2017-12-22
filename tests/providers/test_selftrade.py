@@ -11,7 +11,9 @@ class TestBetfair(unittest.TestCase):
         # await cls.st.login()
 
     async def test_auth(self):
-        await self.st.login()
+        await self.st.get_data()
+        accounts = await self.st.accounts()
+        pass
         # self.assertTrue(bf.auth)
         # self.assertTrue(bf.auth['username'])
         # self.assertTrue(bf.auth['password'])

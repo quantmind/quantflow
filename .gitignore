@@ -26,3 +26,7 @@ venv
 tests/config.py
 tests/betfair.crt
 tests/betfair.key
+
+#
+# Javascript
+node_modules
