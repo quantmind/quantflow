@@ -73,17 +73,18 @@ class TrueFXSession:
             self.api.BASE_URL, params=dict(id=self.id)
         )
         response.raise_for_status()
-        updated = 0
+        updated = {}
         for row in response.text.split('\n'):
             bits = row.split(',')
             if len(bits) != 9:
                 break
-            updated += 1
-            self.data[bits[0]] = dict(
+            entry = dict(
                 timestap=self.update_timestamp(bits[1]),
                 bid=float(bits[2]+bits[3]),
                 offer=float(bits[4] + bits[5])
             )
+            self.data[bits[0]] = entry
+            updated[bits[0]] = entry
         return updated
 
     def update_timestamp(self, timestamp):

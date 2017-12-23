@@ -1,3 +1,5 @@
 coverage
 flake8
 codecov
+twine
+pyslink
