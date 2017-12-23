@@ -7,6 +7,9 @@ from pulsar.apps.http import HttpClient
 from ..utils import from_config
 
 
+ORDERS = set(('buy', 'sell'))
+
+
 class BitstampRest:
     """Rest Clinet for Bitstamp.
 
@@ -23,31 +26,33 @@ class BitstampRest:
                 api_secret=api_secret or os.environ.get('BITSTAMP_API_SECRET')
             ),
             config_file=config_file,
-            entry='truefx'
+            entry='bitstamp'
         )
         self.nonce = int(1000000000000000*time.monotonic())
 
-    def request_unauth(self, url):
+    async def request_unauth(self, path):
         """Perform unauthorized request."""
-        response = yield from self.http.get(self.endpoint + url)
+        url = '%s/%s' % (self.endpoint, path)
+        response = await self.http.get(url)
         response.raise_for_status()
         return response.json()
 
-    async def request(self, url, **data):
+    async def request(self, path, **data):
         """Performs request with authorization."""
         auth = self.auth
         self.nonce += 1
         payload = (
                 str(self.nonce) + auth['client_id'] + auth['api_key']
         ).encode('utf-8')
-        signer = hmac.new(auth['api_key'].encode('ascii'),
+        signer = hmac.new(auth['api_secret'].encode('ascii'),
                           msg=payload, digestmod='SHA256')
         signature = signer.hexdigest().upper()
 
         data.update(key=auth['api_key'], signature=signature,
                     nonce=self.nonce)
 
-        response = await self.client.post(self.endpoint + url, data=data)
+        url = '%s/%s' % (self.endpoint, path)
+        response = await self.http.post(url, data=data)
         response.raise_for_status()
         return response.json()
 
@@ -79,36 +84,21 @@ class BitstampRest:
         descending). Default: desc.
         """
         assert(offset >= 0)
-        assert(limit >= 0 and limit <= 1000)
+        assert(0 <= limit <= 1000)
         assert(sort in ('asc', 'desc'))
-
-        params_dict = {
-            'offset': offset,
-            'limit': limit,
-            'sort': sort
-            }
-
-        return self.request('/user_transactions/', params_dict)
+        return self.request('user_transactions/',
+                            offset=offset, limit=limit, sort=sort)
 
     def orders(self):
         """List of open orders."""
-
-        return self.request('/open_orders/')
+        return self.request('open_orders/')
 
     def order_cancel(self, order_id):
         """Cancel order."""
-
-        return self.request('/cancel_order/', {'id': order_id})
+        return self.request('cancel_order/', id=order_id)
 
     def order_new(self, side, amount, price, limit_price):
         """Buy limit order"""
-
-        assert(side in ['buy', 'sell'])
-
-        params_dict = {
-            'amount': amount,
-            'price': price,
-            'limit_price': limit_price
-            }
-
-        return self.request('/{}/'.format(side), params_dict)
+        assert(side in ORDERS)
+        return self.request('%s/' % side, amount=amount, price=price,
+                            limit_price=limit_price)
