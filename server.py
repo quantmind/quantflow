@@ -7,6 +7,7 @@ def app():
     return PulsarQueue(
         consumers=[
             'pq.api:Tasks',
+            'providers.bitstamp:Aggregator',
             'providers.truefx:Aggregator'
         ],
         description='Pulsar queue with twitter streaming'

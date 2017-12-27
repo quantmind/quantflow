@@ -4,10 +4,13 @@ import hmac
 
 from pulsar.apps.http import HttpClient
 
+from .utils import bitstamp_pairs
 from ..utils import from_config
 
 
 ORDERS = set(('buy', 'sell'))
+CCYS = ('bch', 'btc', 'eth', 'ltc')
+PAIRS = frozenset(bitstamp_pairs(CCYS))
 
 
 class BitstampRest:

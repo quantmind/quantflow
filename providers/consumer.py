@@ -1,6 +1,8 @@
 import asyncio
 import abc
 
+from quantflow.orderbook import store
+
 from pq import api
 
 
@@ -69,7 +71,29 @@ class Consumer(api.ConsumerAPI):
     def _done(self, fut):
         if not fut.cancelled():
             exc = fut.exception()
-            self.logger.exception(
-                'Critical exception',
-                exc_info=(exc.__class__, exc, exc.__traceback__)
-            )
+            if exc:
+                self.logger.exception(
+                    'Critical exception',
+                    exc_info=(exc.__class__, exc, exc.__traceback__)
+                )
+
+
+class Trade:
+
+    def __init__(self, exchange, security):
+        self.exchange = exchange
+        self.security = security
+
+    def __call__(self, data, **kwargs):
+        trade = self.trade(data)
+        trades = store(self.security, self.exchange, 'trade', mode='w')
+        trades.add(trade)
+        trades.flush()
+        self.publish('trade', {
+            'exchange': self.exchange,
+            'security': self.security,
+            'trade': trade
+        })
+
+    def trades(self):
+        pass

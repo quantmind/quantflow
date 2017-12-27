@@ -1,5 +1,4 @@
-from pulsar.apps.http import HttpClient
-
+from .rest import PAIRS
 from ..pusher import Pusher
 
 
