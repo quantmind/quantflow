@@ -1,0 +1,25 @@
+[tool.poetry]
+name = "quantflow"
+version = "0.1.0"
+description = "quantitative analysis"
+authors = ["Luca <luca@quantmind.com>"]
+license = "BSD-3-Clause"
+
+[tool.poetry.dependencies]
+python = "^3.8"
+numpy = "^1.22.3"
+scipy = "^1.8.0"
+
+[tool.poetry.dev-dependencies]
+pytest = "black"
+black = "^22.3.0"
+flake8 = "^4.0.1"
+isort = "^5.10.1"
+flake8-blind-except = "^0.2.1"
+flake8-builtins = "^1.5.3"
+flake8-commas = "^2.1.0"
+pytest-cov = "^3.0.0"
+
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"

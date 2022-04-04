@@ -1,7 +1,0 @@
-bs4
-numpy
-pandas
-tables
-ccy
-greenlet
-pulsar
