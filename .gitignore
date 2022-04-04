@@ -1,6 +1,7 @@
 #
 # IDEs
 .idea
+.vscode
 *.sublime-workspace
 
 #
@@ -27,6 +28,7 @@ tests/config.py
 tests/betfair.crt
 tests/betfair.key
 
-#
-# Javascript
-node_modules
+# Jupyter
+*.ipynb
+.ipynb_checkpoints
+_build

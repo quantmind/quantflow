@@ -1,0 +1,5 @@
+#!/usr/bin/env bash
+
+isort . $1
+black . --exclude "build|dev|notebooks|.venv|.jupyter|.ipynb_checkpoints" $1
+flake8

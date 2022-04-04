@@ -1,0 +1,8 @@
+{
+  "ServerApp": {
+    "password": "sha1:f0ac62b893bc:1d3d98395d095914c994e1a84f767e47a6d3b4a4"
+  },
+  "@jupyterlab/apputils-extension:themes": {
+    "theme": "JupyterLab Dark"
+  }
+}

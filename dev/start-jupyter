@@ -1,0 +1,6 @@
+#!/usr/bin/env bash
+set -e
+
+PORT=$1
+
+jupyter lab --ip 0.0.0.0 --port ${PORT} --allow-root --config /dev/notebook_config.json
