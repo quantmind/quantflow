@@ -31,6 +31,8 @@ jobs:
         run: make lint
       - name: run tests
         run: make tests
+      - name: build book
+        run: make book
       - name: publish
         if: ${{ matrix.python-version == '3.10' && github.event.head_commit.message == 'release' }}
         run: make publish
