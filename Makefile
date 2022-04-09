@@ -12,7 +12,7 @@ lint:				## Build architecture diagrams
 
 
 install-dev:			## Install development dependencies
-	@poetry install -E notebook
+	@./dev/install
 
 notebook:			## Run Jupyter notebook server
 	@poetry run ./dev/start-jupyter 9090
