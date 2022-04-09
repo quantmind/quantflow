@@ -1,4 +1,5 @@
 from typing import Callable
+
 try:
     from IPython.display import Markdown
 except ImportError:
@@ -16,7 +17,7 @@ def doc(method: Callable) -> str:
     """
     if Markdown is None:
         raise RuntimeError("IPython is required to display markdown docs")
-    return Markdown(trim_docstring(method.__doc__))
+    return trim_docstring(method.__doc__)
 
 
 def trim_docstring(docstring: str) -> str:

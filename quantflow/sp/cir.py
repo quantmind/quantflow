@@ -3,7 +3,7 @@ from numpy.random import normal
 
 from ..utils.param import Param, Parameters
 from ..utils.types import Vector
-from .base import Im, IntensityProcess
+from .base import Im, IntensityProcess, StochasticProcess1DMarginal
 
 
 class CIR(IntensityProcess):
@@ -46,6 +46,9 @@ class CIR(IntensityProcess):
             self.kappa.value * self.theta.value
             >= 0.5 * self.sigma.value * self.sigma.value
         )
+
+    def marginal(self, t: float, N: int) -> StochasticProcess1DMarginal:
+        return None
 
     def cdf(self, t: float, n: Vector) -> Vector:
         pass

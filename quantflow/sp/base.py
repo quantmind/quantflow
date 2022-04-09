@@ -3,6 +3,7 @@ from typing import Tuple
 
 import numpy as np
 
+from ..utils.marginal import Marginal1D
 from ..utils.param import Param, Parameters
 from ..utils.paths import Paths
 from ..utils.types import Vector
@@ -58,10 +59,28 @@ class StochasticProcess(ABC):
         raise NotImplementedError
 
 
+class StochasticProcess1DMarginal(Marginal1D):
+    def __init__(self, process: "StochasticProcess1D", t: float, N: int) -> None:
+        self.process = process
+        self.t = t
+        self.N = N
+
+    def std_norm(self) -> float:
+        """Standard deviation at a time horizon normalized by the time"""
+        return np.sqrt(self.variance() / self.t)
+
+    def characteristic(self, u: Vector) -> Vector:
+        return self.process.characteristic(self.t, u)
+
+
 class StochasticProcess1D(StochasticProcess):
     """
     Base class for 1D stochastic process in continuous time
     """
+
+    @abstractmethod
+    def marginal(self, t: float) -> StochasticProcess1DMarginal:
+        """Marginal at time t"""
 
     def pdf(self, t: float, n: Vector) -> Vector:
         """

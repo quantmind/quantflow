@@ -2,8 +2,20 @@ import numpy as np
 
 from ..utils.param import Param, Parameters
 from ..utils.types import Vector
-from .base import StochasticProcess1D
+from .base import StochasticProcess1D, StochasticProcess1DMarginal
 from .cir import CIR
+
+
+class HestonMarginal(StochasticProcess1DMarginal):
+    def cdf(self, n: Vector) -> Vector:
+        """
+        Compute the cumulative distribution function of the process.
+
+        :param t: time horizon
+        :param n: Location in the stochastic process domain space. If a numpy array,
+            the output should have the same shape as the input.
+        """
+        return n
 
 
 class Heston(StochasticProcess1D):
@@ -38,6 +50,9 @@ class Heston(StochasticProcess1D):
         params = self.variance_process.parameters
         params.append(self.rho)
         return params
+
+    def marginal(self, t: float, N: int = 128) -> StochasticProcess1DMarginal:
+        return HestonMarginal(self, t, N)
 
     def characteristic(self, t: float, u: Vector) -> Vector:
         rho = self.rho.value

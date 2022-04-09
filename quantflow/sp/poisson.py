@@ -36,7 +36,7 @@ class PoissonProcess(CountingProcess1D):
         It's given by
 
         \begin{equation}
-            f_{X}\left(n\right)=\frac{\lambda^{n}e^{-\lambda}}{n!}
+           f_{X}\left(n\right)=\frac{\lambda^{n}e^{-\lambda}}{n!}
         \end{equation}
         """
         return poisson.pmf(n, t * self.rate.value)
