@@ -1,6 +1,6 @@
 
 
-.PHONY: lint notebook book
+.PHONY: lint notebook book tests
 
 help:
 	@echo ================================================================================
@@ -21,3 +21,7 @@ notebook:			## Run Jupyter notebook server
 book:				## Build static jupyter {book}
 	poetry run jupytext --to notebook notebooks/*.py
 	poetry run jupyter-book build notebooks --all
+
+
+tests:				## unit tests
+	poetry run pytest

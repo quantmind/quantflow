@@ -1,0 +1,31 @@
+name: update
+
+on:
+  schedule:
+    - cron: "0 6 * * 5"
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: checkout repo
+        uses: actions/checkout@v2
+      - name: Set up Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: "3.10"
+      - name: install poetry
+        run: pip install -U pip poetry
+      - name: update dependencies
+        run: poetry update
+      - name: Create Pull Request
+        uses: peter-evans/create-pull-request@v3
+        with:
+          token: ${{ secrets.QMBOT_GITHUB_TOKEN }}
+          author: qmbot <bot@quantmind.com>
+          commit-message: update dependencies
+          title: Automated Dependency Updates
+          body: This is an auto-generated PR with dependency updates.
+          branch: ci-poetry-update
+          labels: ci, automated pr, automerge
