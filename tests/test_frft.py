@@ -1,7 +1,7 @@
 import numpy as np
 import pytest
 
-from quantflow.utils.frft import frft
+from quantflow.utils.transforms import frft
 
 
 @pytest.fixture

@@ -8,5 +8,7 @@ chapters:
 - file: notebooks
 - file: markdown-notebooks
 - file: levy
+- file: inversion
+- file: option_pricing
 - file: dsp
 - file: constributing

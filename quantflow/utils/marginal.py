@@ -4,21 +4,8 @@ from typing import Optional
 import numpy as np
 import pandas as pd
 
-from .frft import frft
+from .transforms import Transform, grid
 from .types import Vector
-
-
-def trapezoid(N: int) -> np.ndarray:
-    h = np.ones(N)
-    h[0] = 0.5
-    return h
-
-
-def simpson(N: int) -> np.ndarray:
-    h = np.ones(N)
-    h[1::2] = 4
-    h[2::2] = 2
-    return h / 3
 
 
 class Marginal1D(ABC):
@@ -65,48 +52,37 @@ class Marginal1D(ABC):
         return self.cdf(n) - self.cdf(n - 1)
 
     def frequency_space(self, N: int, max_frequency: float = 10.0) -> np.ndarray:
-        return 2 * max_frequency * np.fft.rfftfreq(N)
+        return max_frequency * grid(N) / N
 
-    def pdf_from_fft(
-        self, N: int, max_frequency: float = 10.0, simpson_rule: bool = False
+    def pdf_from_characteristic(
+        self,
+        N: int,
+        max_frequency: float = 10.0,
+        delta_x: Optional[float] = None,
+        simpson_rule: bool = False,
     ) -> np.ndarray:
-        h = simpson(N // 2 + 1) if simpson_rule else trapezoid(N // 2 + 1)
-        freq = self.frequency_space(N, max_frequency)
-        dx = np.pi / max_frequency
-        b = N * dx / 2
-        f = (
-            max_frequency
-            * h
-            * np.exp(1j * freq * b)
-            * self.characteristic(freq)
-            / np.pi
-        )
-        y = np.fft.irfft(f)
-        return pd.DataFrame(dict(x=dx * np.linspace(0, N, N + 1)[:-1] - b, y=y))
+        t = Transform(N, max_frequency, simpson_rule)
+        return pd.DataFrame(t(self.characteristic(t.freq), delta_x))
 
-    def pdf_from_frft(
-        self, N: int, max_frequency: float, domain: Optional[float] = None
-    ) -> np.ndarray:
-        """Calculate the PDF using the fractional FFT"""
-        g = np.arange(0, N, 1.0)
-        delta_u = max_frequency / N
-        if domain:
-            delta_x = domain / N
-        else:
-            domain = 2 * np.pi / delta_u
-            delta_x = domain / N
-        zeta = delta_u * delta_x
-        b = 0.5 * domain
-        u = delta_u * g
-        f = (
-            N
-            * delta_u
-            * trapezoid(N)
-            * np.exp(1j * u * b)
-            * self.characteristic(u)
-            / np.pi
-        )
-        return frft.calculate(f, zeta)
+    def call_option(
+        self,
+        N: int,
+        max_frequency: float = 10.0,
+        delta_x: Optional[float] = None,
+        alpha: float = 0.5,
+        simpson_rule: bool = False,
+    ):
+        t = Transform(N, max_frequency, simpson_rule)
+        phi = self.call_option_transform(t.freq - 1j * alpha)
+        result = t(phi, delta_x)
+        x = result["x"]
+        y = result["y"]
+        return pd.DataFrame(dict(x=x, y=y * np.exp(-alpha * x)))
+
+    def call_option_transform(self, u: Vector) -> Vector:
+        """Call option transfrom"""
+        uj = 1j * u
+        return self.characteristic(u - 1j) / (uj * uj + uj)
 
     @abstractmethod
     def cdf(self, n: Vector) -> Vector:
@@ -123,7 +99,3 @@ class Marginal1D(ABC):
         """
         Compute the characteristic function on support points `n`.
         """
-
-
-def frft_coef(zeta: float, g: np.ndarray) -> np.ndarray:
-    return np.exp(1j * np.pi * g * g * zeta)
