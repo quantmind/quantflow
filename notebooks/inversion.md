@@ -15,18 +15,17 @@ kernelspec:
 # From Characteristic Function to PDF
 
 * [Fourier Transfrom and Characteristic Functions](https://faculty.baruch.cuny.edu/lwu/890/ADP_Transform.pdf)
-* [Option Pricing using the Fractional FFT](https://faculty.baruch.cuny.edu/lwu/890/ChourdakisFRFT_JCF2005.pdf)
 * [Fourier Transforms Methods](https://www.uv.es/bfc/TFM2014/008-014.pdf)
 
 +++
 
-To obtain the PDF from a characteristic function one uses the inverse Fourier transfrom formula
+To obtain the probability density function (PDF) from a characteristic function one uses the inverse Fourier transfrom formula
 
 \begin{equation}
   f(x) = \frac{1}{2\pi}\int_{-\infty}^\infty e^{-iux} \Phi_x\left(u\right) du = \frac{1}{\pi} {\mathcal R} \int_0^\infty e^{-iux} \Phi_u du
 \end{equation}
 
-The last equivalence is due to the fact that the PDF is a real valued.
+The last equivalence is due to the fact that the PDF is a real valued. In this doc we follow
 
 +++ {"tags": []}
 
@@ -94,7 +93,7 @@ fig.show()
 ```
 
 ## FRFT
-Compared to the FFT, this method relaxes the constraint $\zeta=2\pi/N$ so that frequency domain and strike domains can be discretized independently.
+Compared to the FFT, this method relaxes the constraint $\zeta=2\pi/N$ so that frequency domain and strike domains can be discretized independently. We use the methodology from {cite:p}`frft`
 
 \begin{align}
 y &= \left(\left[e^{-i j^2 \zeta/2}\right]_{j=0}^{N-1}, \left[0\right]_{j=0}^{N-1}\right) \\
