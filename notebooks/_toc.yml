@@ -8,4 +8,5 @@ chapters:
 - file: inversion
 - file: option_pricing
 - file: dsp
-- file: constributing
+- file: test
+- file: contributing
