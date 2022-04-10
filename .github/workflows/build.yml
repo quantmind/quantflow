@@ -33,6 +33,8 @@ jobs:
         run: make tests
       - name: build book
         run: make book
+      - name: publish book
+        run: make publish-book
       - name: publish
         if: ${{ matrix.python-version == '3.10' && github.event.head_commit.message == 'release' }}
         run: make publish

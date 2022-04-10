@@ -37,3 +37,9 @@ parse:
     # including those that are enabled by default!
     - dollarmath
     - amsmath
+
+sphinx:
+  config:
+    html_js_files:
+    # required by plotly charts
+    - https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js
