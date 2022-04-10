@@ -1,9 +1,25 @@
-# Markdown Files
+---
+jupytext:
+  formats: ipynb,md:myst
+  text_representation:
+    extension: .md
+    format_name: myst
+    format_version: 0.13
+    jupytext_version: 1.13.8
+kernelspec:
+  display_name: Python 3 (ipykernel)
+  language: python
+  name: python3
+---
 
-Whether you write your book's content in Jupyter Notebooks (`.ipynb`) or
-in regular markdown files (`.md`), you'll write in the same flavor of markdown
-called **MyST Markdown**.
-This is a simple file to help you get started and show off some syntax.
+# Contributing
+
+Collection of notebook for research and e2e testing of client libraries.
+
+* Check in MyST markdown files only
+* To convert a `.ipynb` file into a valid markdown format
+  * Activate Command Palette from the `View` menu or `Ctrl-Shift-C`
+  * Search for `Pair Notebook with MyST Markdown`
 
 ## What is MyST?
 
@@ -12,7 +28,9 @@ is a slight variation on a flavor of markdown called "CommonMark" markdown,
 with small syntax extensions to allow you to write **roles** and **directives**
 in the Sphinx ecosystem.
 
-For more about MyST, see [the MyST Markdown Overview](https://jupyterbook.org/content/myst.html).
+For more about MyST, see [the MyST Markdown Overview](https://jupyterbook.org/content/myst.html) or [the Jupyter Book documentation](https://jupyterbook.org) for more information.
+
+
 
 ## Sample Roles and Directivs
 
@@ -53,3 +71,7 @@ then the bibliography is inserted with:
 
 This is just a simple starter to get you started.
 You can learn a lot more at [jupyterbook.org](https://jupyterbook.org).
+
+```{code-cell} ipython3
+
+```
