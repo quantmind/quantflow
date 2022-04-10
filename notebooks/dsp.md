@@ -24,8 +24,6 @@ The aim is to identify a stochastic process for simulating the goal arrival whic
 
 Before we dive into the details of the DSP process, lets take a quick tour of what Lévy processes are, how a time chage can open the doors to a vast array of models and why they are important in the context of DSP.
 
-
-
 +++
 
 ## DSP process

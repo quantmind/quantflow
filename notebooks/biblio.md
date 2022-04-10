@@ -12,9 +12,11 @@ kernelspec:
   name: python3
 ---
 
-# Quantflow
+# Bibliography
 
-A library for quantitative analysis and pricing.
+```{bibliography}
+```
 
-```{tableofcontents}
+```{code-cell} ipython3
+
 ```

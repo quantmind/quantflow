@@ -65,3 +65,7 @@ r = m.call_option(N, M, dx, alpha=alpha)
 fig = px.line(r, x="x", y="y", markers=True)
 fig.show()
 ```
+
+```{code-cell} ipython3
+
+```
