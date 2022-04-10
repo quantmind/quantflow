@@ -22,7 +22,7 @@ book:				## Build static jupyter {book}
 	poetry run jupyter-book build notebooks --all
 
 publish-book:			## publish the book to github pages
-	ghp-import -n -p -f _build/html
+	poetry run ghp-import -n -p -f notebooks/_build/html
 
 tests:				## unit tests
 	poetry run pytest
