@@ -25,6 +25,8 @@ This means that the shocks to the process are independent, while the stationarit
 Thanks to almost sure right continuity of paths, one may show in addition that Lévy processes are also
 Strong Markov processes. See ([Markov property](https://en.wikipedia.org/wiki/Markov_property)).
 
+## Characteristic function
+
 The independence and stationarity of the increments of the Lévy process implies that the [characteristic function](https://en.wikipedia.org/wiki/Characteristic_function_(probability_theory)) of $x_t$ has the form
 
 \begin{equation}
@@ -64,7 +66,7 @@ display(doc(poi.cdf))
 
 ## Time Changed Lévy Processes
 
-We defined a continuous time changed Lévy process $y_t$ as
+We follow the paper by Carr and Wu {cite:p}`carr_wu` to defined a continuous time changed Lévy process $y_t$ as
 
 \begin{align}
 y_t &= x_{\tau_t}\\

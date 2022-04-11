@@ -36,14 +36,15 @@ from quantflow.sp.heston import Heston
 ```
 
 ```{code-cell} ipython3
-pri = Heston.create(vol=0.5, kappa=1, sigma=0.2, rho=-0.5)
+pri = Heston.create(vol=0.5, kappa=0.5, sigma=0.5, rho=-0.7)
+# check that the variance CIR process is positive
+pri.variance_process.is_positive
 ```
 
-```{code-cell} ipython3
-pri.std_norm(1)
-```
+## Marginal Distribution
 
 ```{code-cell} ipython3
+# Marginal at time 1
 m = pri.marginal(1)
 ```
 
@@ -52,64 +53,33 @@ m.std()
 ```
 
 ```{code-cell} ipython3
-m.characteristic(1)
-```
-
-```{code-cell} ipython3
-m = p.marginal(1)
-m.characteristic(0)
-```
-
-```{code-cell} ipython3
-m.std()
-```
-
-```{code-cell} ipython3
-import numpy as np
-```
-
-```{code-cell} ipython3
+import plotly.graph_objects as go
 import plotly.express as px
-N = 128*2*2
-du = 0.1
-delta = m.std()/50
-freq = np.fft.rfftfreq(N)
-freq
-```
+from scipy.stats import norm
+import numpy as np
 
-```{code-cell} ipython3
-psi = m.characteristic(freq)
-fig = px.line(psi)
+N = 128
+M = 20
+dx = 4/N
+r = m.pdf_from_characteristic(N, M, dx)
+n = norm.pdf(r["x"], scale=m.std())
+fig = px.line(r, x="x", y="y", markers=True)
+fig.add_trace(go.Scatter(x=r["x"], y=n, name="normal", line=dict()))
 fig.show()
 ```
 
-```{code-cell} ipython3
-len(freq)
-```
-
-```{code-cell} ipython3
-d = np.ones(N//2+1)
-d[0] = 0.5
-d
-```
-
-```{code-cell} ipython3
--np.linspace(-0.5*N*delta, 0.5*N*delta, N, False)
-```
-
-```{code-cell} ipython3
-psi = d*m.characteristic(freq)
-psi
-```
-
-```{code-cell} ipython3
-d = np.fft.irfft(psi)
-d
-```
+## Option pricing
 
 ```{code-cell} ipython3
 import plotly.express as px
-fig = px.line(d)
+import plotly.graph_objects as go
+from quantflow.utils.bs import black_call
+N, M = 128, 10
+dx = 10/N
+r = m.call_option(N, M, dx, alpha=0.2)
+b = black_call(r["x"], m.std(), 1)
+fig = px.line(r, x="x", y="y", markers=True)
+fig.add_trace(go.Scatter(x=r["x"], y=b, name="normal", line=dict()))
 fig.show()
 ```
 

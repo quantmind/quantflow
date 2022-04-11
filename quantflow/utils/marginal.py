@@ -82,7 +82,11 @@ class Marginal1D(ABC):
     def call_option_transform(self, u: Vector) -> Vector:
         """Call option transfrom"""
         uj = 1j * u
-        return self.characteristic(u - 1j) / (uj * uj + uj)
+        return self.characteristic_corrected(u - 1j) / (uj * uj + uj)
+
+    def characteristic_corrected(self, u: Vector) -> Vector:
+        convexity = np.log(self.characteristic(-1j))
+        return self.characteristic(u) * np.exp(-1j * u * convexity)
 
     @abstractmethod
     def cdf(self, n: Vector) -> Vector:

@@ -14,14 +14,39 @@ kernelspec:
 
 # Option Pricing
 
-We ca use the tooling for characteristic function inversion to price european call options on an underlying $S_t = S_0 e^{x_t}$. A call option is defined as
+
+We can use the tooling from characteristic function inversion to price european call options on an underlying $S_t = S_0 e^{s_t}$, where $S_0$ is the spot price at time 0.
+
+## Convexity Correction
+
+We assume interest rate 0, so that the forward price is equal the spot price. This assumtion leads to the following no arbitrage condition
 
 \begin{align}
-F &= S_0{\mathbb E}_0\left[e^{x_t}\right] \\
-C &= F c_k \\
-k &= \ln\frac{K}{F}\\ 
-c_k &= {\mathbb E}\left[\left(e^x_t - e^k\right)1_{x_t\ge k}\right]
+s_t &= x_t - c \\
+{\mathbb E}_0\left[e^{s_t} \right] &= {\mathbb E}_0\left[e^{x_t - c} \right] = e^{-c} {\mathbb E}_0\left[e^{x_t} \right] = e^{-c} \Phi_x\left(-i\right) = 1
 \end{align}
+
+Therefore, c represents the so called convextity correction term and it is equal to
+
+\begin{equation}
+  c = \ln{\Phi_x\left(-i\right)}
+\end{equation}
+
+The characteristic function of $s_t$ is given by
+
+\begin{equation}
+ \Phi_{s_t}\left(u\right) = \Phi_x\left(u\right) e^{-i u c}
+\end{equation}
+
+## Call option
+
+A call option is defined as
+\begin{align}
+C &= S_0 c_k \\
+k &= \ln\frac{K}{S_0}\\ 
+c_k &= {\mathbb E}\left[\left(e^s_t - e^k\right)1_{s_t\ge k}\right]
+\end{align}
+
 
 We follow {cite:p}`carr_madan` and write the Fourier transform of the the call option as
 
@@ -45,27 +70,28 @@ c_k &= \int_0^{\infty} e^{-iuk} \Psi\left(u\right) du \\
 The analytical expression of $\phi_k$ is given by
 
 \begin{equation}
-\Psi\left(u\right) = \frac{\Phi\left(u-i\right)}{iu \left(iu + 1\right)}
+\Psi\left(u\right) = \frac{\Phi_{s_t}\left(u-i\right)}{iu \left(iu + 1\right)}
 \end{equation}
+
+To integrate we use the same approach as the PDF integration.
 
 ```{code-cell} ipython3
 from quantflow.sp.weiner import Weiner
+ttm=1
 p = Weiner(0.5)
-m = p.marginal(1)
+m = p.marginal(ttm)
 m.std()
 ```
 
 ```{code-cell} ipython3
 import plotly.express as px
-N = 64
-M = 8
-dx = 4/N
-alpha = 0.5
-r = m.call_option(N, M, dx, alpha=alpha)
+import plotly.graph_objects as go
+from quantflow.utils.bs import black_call
+N, M = 128, 10
+dx = 10/N
+r = m.call_option(N, M, dx, alpha=0.2)
+b = black_call(r["x"], p.sigma.value, ttm)
 fig = px.line(r, x="x", y="y", markers=True)
+fig.add_trace(go.Scatter(x=r["x"], y=b, name="analytical", line=dict()))
 fig.show()
-```
-
-```{code-cell} ipython3
-
 ```

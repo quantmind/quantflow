@@ -67,7 +67,7 @@ which means $\delta_u$ and $\delta_x$ cannot be chosen indipendently.
 ```{code-cell} ipython3
 from quantflow.sp.weiner import Weiner
 p = Weiner(0.5)
-m = p.marginal(1)
+m = p.marginal(0.2)
 m.std()
 ```
 
@@ -108,8 +108,8 @@ import plotly.express as px
 from scipy.stats import norm
 import numpy as np
 
-N = 64
-M = 8
+N = 128
+M = 20
 dx = 4/N
 r = m.pdf_from_characteristic(N, M, dx)
 n = norm.pdf(r["x"], scale=m.std())
