@@ -9,5 +9,6 @@ chapters:
 - file: option_pricing
 - file: heston
 - file: dsp
+- file: calibration
 - file: contributing
 - file: biblio

@@ -14,9 +14,6 @@ kernelspec:
 
 # From Characteristic Function to PDF
 
-* [Fourier Transfrom and Characteristic Functions](https://faculty.baruch.cuny.edu/lwu/890/ADP_Transform.pdf)
-* [Fourier Transforms Methods](https://www.uv.es/bfc/TFM2014/008-014.pdf)
-
 +++
 
 To obtain the probability density function (PDF) from a characteristic function one uses the inverse Fourier transfrom formula
@@ -37,14 +34,15 @@ FFT is an efficient algorithm for computing discrete Fourier coefficients $d$ fr
 d_j = \frac{1}{N}\sum_{m=0}^{N-1} f_m e^{-jm\frac{2\pi}{N} i}\ \ j=0, 1, \dots, N-1
 \end{equation}
 
-The PDF integration can be approximated using the trapezoidal rule:
+For full details follow {cite:p}`carr_madan`, {cite:p}`frft`, {cite:p}`saez`.
+The PDF integration can be approximated as:
 
 \begin{align}
 u_m &= \delta_u m \\ 
 f(x) &\approx \frac{1}{\pi}\sum_{m=0}^{N-1} h_m e^{-i u_m x} \Phi_x\left(u_m\right) \delta_u
 \end{align}
 
-Where $h_m$ is given by the integration methodology, either trapezoidal or simpson rule.
+Where $h_m$ is given by the integration methodology, either trapezoidal or simpson rule (the library support both, with trapezoidal as default).
 The approximation can be rewritten as
 
 \begin{align}
@@ -92,6 +90,14 @@ fig.add_trace(go.Scatter(x=r["x"], y=n, name="analytical", line=dict()))
 fig.show()
 ```
 
+**Note** the amount of unecessary discretization points in the frequency domain (the characteristic function is zero after 15 or so). However the strike domain is poorly represented because of the FFT constraints
+
+\begin{equation}
+\delta_x = \frac{2 \pi}{N} \delta_u
+\end{equation}
+
++++
+
 ## FRFT
 Compared to the FFT, this method relaxes the constraint $\zeta=2\pi/N$ so that frequency domain and strike domains can be discretized independently. We use the methodology from {cite:p}`frft`
 
@@ -117,6 +123,11 @@ fig = px.line(r, x="x", y="y", markers=True)
 fig.add_trace(go.Scatter(x=r["x"], y=n, name="analytical", line=dict()))
 fig.show()
 ```
+
+## Additional References
+
+
+* [Fourier Transfrom and Characteristic Functions](https://faculty.baruch.cuny.edu/lwu/890/ADP_Transform.pdf) - useful but lots of typos
 
 ```{code-cell} ipython3
 

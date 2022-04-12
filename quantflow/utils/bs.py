@@ -29,6 +29,12 @@ def black_vega(k: Vector, sigma: float, t: float) -> Vector:
 def implied_black_volatility(
     k: Vector, price: Vector, t: float, initial_sigma: float = 0.5
 ):
+    """Calculate the implied block volatility from
+    1) a vector of log strikes/spot
+    2) a corresponding vector of call prices
+    3) time to maturity and
+    4) initial volatility guess
+    """
     sigma_0 = initial_sigma * np.ones(np.shape(price))
     return newton(
         lambda x: black_call(k, x, t) - price,
