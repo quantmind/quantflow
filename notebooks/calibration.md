@@ -14,6 +14,10 @@ kernelspec:
 
 # Calibration
 
+Early pointers
+
+* https://github.com/rlabbe/filterpy
+* [filterpy book](https://github.com/rlabbe/Kalman-and-Bayesian-Filters-in-Python)
 
 ```{code-cell} ipython3
 import numpy as np
