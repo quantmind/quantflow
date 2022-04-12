@@ -33,22 +33,20 @@ This means that the characteristic function of $y_t=x_{\tau_t}$ can be represent
 
 ```{code-cell} ipython3
 from quantflow.sp.heston import Heston
+pr = Heston.create(vol=0.6, kappa=1.3, sigma=0.9, rho=-0.6)
+# check that the variance CIR process is positive
+pr.variance_process.is_positive
 ```
 
 ```{code-cell} ipython3
-pri = Heston.create(vol=0.5, kappa=0.5, sigma=0.5, rho=-0.7)
-# check that the variance CIR process is positive
-pri.variance_process.is_positive
+[p for p in pr.parameters]
 ```
 
 ## Marginal Distribution
 
 ```{code-cell} ipython3
 # Marginal at time 1
-m = pri.marginal(1)
-```
-
-```{code-cell} ipython3
+m = pr.marginal(1)
 m.std()
 ```
 
@@ -68,6 +66,14 @@ fig.add_trace(go.Scatter(x=r["x"], y=n, name="normal", line=dict()))
 fig.show()
 ```
 
+Using log scale on the y axis highlighs the probability on the tails much better
+
+```{code-cell} ipython3
+fig = px.line(r, x="x", y="y", markers=True, log_y=True)
+fig.add_trace(go.Scatter(x=r["x"], y=n, name="normal", line=dict()))
+fig.show()
+```
+
 ## Option pricing
 
 ```{code-cell} ipython3
@@ -75,8 +81,8 @@ import plotly.express as px
 import plotly.graph_objects as go
 from quantflow.utils.bs import black_call
 N, M = 128, 10
-dx = 10/N
-r = m.call_option(N, M, dx, alpha=0.2)
+dx = 3/N
+r = m.call_option(N, M, dx, alpha=0.5)
 b = black_call(r["x"], m.std(), 1)
 fig = px.line(r, x="x", y="y", markers=True)
 fig.add_trace(go.Scatter(x=r["x"], y=b, name="normal", line=dict()))
@@ -84,5 +90,8 @@ fig.show()
 ```
 
 ```{code-cell} ipython3
-
+from quantflow.utils.bs import implied_black_volatility
+s = implied_black_volatility(r["x"], r["y"], 1, initial_sigma=m.std())
+fig = px.line(x=r["x"], y=s, markers=True, labels=dict(x="moneyness", y="implied vol"))
+fig.show()
 ```

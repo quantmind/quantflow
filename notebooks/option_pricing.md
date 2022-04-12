@@ -44,7 +44,7 @@ A call option is defined as
 \begin{align}
 C &= S_0 c_k \\
 k &= \ln\frac{K}{S_0}\\ 
-c_k &= {\mathbb E}\left[\left(e^s_t - e^k\right)1_{s_t\ge k}\right]
+c_k &= {\mathbb E}\left[\left(e^{s_t} - e^k\right)1_{s_t\ge k}\right]
 \end{align}
 
 
@@ -91,7 +91,11 @@ N, M = 128, 10
 dx = 10/N
 r = m.call_option(N, M, dx, alpha=0.2)
 b = black_call(r["x"], p.sigma.value, ttm)
-fig = px.line(r, x="x", y="y", markers=True)
+fig = px.line(r, x="x", y="y", markers=True, labels=dict(x="moneyness", y="call price"))
 fig.add_trace(go.Scatter(x=r["x"], y=b, name="analytical", line=dict()))
 fig.show()
+```
+
+```{code-cell} ipython3
+
 ```
