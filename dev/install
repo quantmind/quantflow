@@ -1,6 +1,4 @@
-
-joshua2709
 #!/usr/bin/env bash
 
 pip install -U pip poetry
-poetry install -E notebook
+poetry install -E notebook -E data

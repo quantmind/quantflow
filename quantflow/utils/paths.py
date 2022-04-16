@@ -6,12 +6,12 @@ from scipy.integrate import cumtrapz
 
 
 class Paths:
-    def __init__(self, t: float, data: np.array) -> None:
+    def __init__(self, t: float, data: np.ndarray) -> None:
         self.t = t
         self.data = data
 
     @property
-    def dt(self) -> int:
+    def dt(self) -> float:
         return self.t / self.steps
 
     @property
@@ -23,7 +23,7 @@ class Paths:
         return self.data.shape[0] - 1
 
     @property
-    def time(self) -> np.array:
+    def time(self) -> np.ndarray:
         return np.linspace(0.0, self.t, num=self.steps + 1)
 
     @property

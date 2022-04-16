@@ -1,5 +1,5 @@
 from dataclasses import dataclass, field
-from typing import Collection, Generator, Sequence
+from typing import Collection, Dict, Generator, Sequence
 
 import numpy as np
 from scipy.optimize import Bounds
@@ -19,7 +19,7 @@ class Param:
 
 class Parameters(Collection[Param]):
     def __init__(self, *params: Param) -> None:
-        self.param_dict = {}
+        self.param_dict: Dict[str, Param] = {}
         self.extend(params)
 
     def extend(self, params: Sequence[Param]) -> None:
@@ -35,7 +35,7 @@ class Parameters(Collection[Param]):
     def __len__(self) -> int:
         return len(self.param_dict)
 
-    def __contains__(self, name: str) -> bool:
+    def __contains__(self, name: object) -> bool:
         return name in self.param_dict
 
     def __iter__(self) -> Generator[Param, None, None]:

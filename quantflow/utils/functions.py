@@ -7,7 +7,7 @@ _factorial = [math.factorial(k) for k in range(51)]
 
 
 @np.vectorize
-def factorial(n: int) -> int:
+def factorial(n: int) -> float:
     """Cached factorial function"""
     if n < 0:
         return np.inf

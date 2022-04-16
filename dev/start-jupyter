@@ -3,4 +3,6 @@ set -e
 
 PORT=$1
 
+export $(cat .env | xargs)
+
 jupyter lab --ip 0.0.0.0 --port ${PORT} --allow-root --config /dev/notebook_config.json

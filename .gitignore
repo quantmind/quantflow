@@ -8,6 +8,7 @@
 # Files
 .DS_Store
 *.log
+.env
 
 #
 # Coverage
@@ -23,10 +24,9 @@ htmlcov
 __pycache__
 build
 dist
-venv
-tests/config.py
-tests/betfair.crt
-tests/betfair.key
+.venv
+.mypy_cache
+.pytest_cache
 
 # Jupyter
 *.ipynb

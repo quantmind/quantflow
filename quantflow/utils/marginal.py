@@ -1,9 +1,11 @@
 from abc import ABC, abstractmethod
-from typing import Optional
+from typing import Optional, cast
 
 import numpy as np
 import pandas as pd
+from scipy.optimize import Bounds
 
+from .param import default_bounds
 from .transforms import Transform, grid
 from .types import Vector
 
@@ -25,7 +27,7 @@ class Marginal1D(ABC):
         """Calculate mean as first derivative of characteristic function at 0"""
         d = 0.001
         m = -0.5 * 1j * (self.characteristic(d) - self.characteristic(-d)) / d
-        return m.real
+        return cast(complex, m).real
 
     def variance_from_characteristic(self) -> float:
         """Calculate variance as second derivative of characteristic function at 0"""
@@ -35,7 +37,7 @@ class Marginal1D(ABC):
         c2 = self.characteristic(-d)
         m = -0.5 * 1j * (c1 - c2) / d
         s = -(c1 - 2 * c0 + c2) / (d * d) - m * m
-        return s.real
+        return cast(float, s.real)
 
     def pdf(self, n: Vector) -> Vector:
         """
@@ -60,9 +62,10 @@ class Marginal1D(ABC):
         max_frequency: float = 10.0,
         delta_x: Optional[float] = None,
         simpson_rule: bool = False,
-    ) -> np.ndarray:
-        t = Transform(N, max_frequency, simpson_rule)
-        return pd.DataFrame(t(self.characteristic(t.freq), delta_x))
+    ) -> pd.DataFrame:
+        t = Transform(N, max_frequency, self.domain_range(), simpson_rule)
+        psi = cast(np.ndarray, self.characteristic(t.freq))
+        return pd.DataFrame(t(psi, delta_x))
 
     def call_option(
         self,
@@ -71,9 +74,9 @@ class Marginal1D(ABC):
         delta_x: Optional[float] = None,
         alpha: float = 0.5,
         simpson_rule: bool = False,
-    ):
-        t = Transform(N, max_frequency, simpson_rule)
-        phi = self.call_option_transform(t.freq - 1j * alpha)
+    ) -> pd.DataFrame:
+        t = Transform(N, max_frequency, self.domain_range(), simpson_rule)
+        phi = cast(np.ndarray, self.call_option_transform(t.freq - 1j * alpha))
         result = t(phi, delta_x)
         x = result["x"]
         y = result["y"]
@@ -88,7 +91,9 @@ class Marginal1D(ABC):
         convexity = np.log(self.characteristic(-1j))
         return self.characteristic(u) * np.exp(-1j * u * convexity)
 
-    @abstractmethod
+    def domain_range(self) -> Bounds:
+        return default_bounds()
+
     def cdf(self, n: Vector) -> Vector:
         """
         Compute the cumulative distribution function of the process.
@@ -97,6 +102,7 @@ class Marginal1D(ABC):
         :param n: Location in the stochastic process domain space. If a numpy array,
             the output should have the same shape as the input.
         """
+        raise NotImplementedError
 
     @abstractmethod
     def characteristic(self, n: Vector) -> Vector:

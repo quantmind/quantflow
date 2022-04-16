@@ -1,5 +1,3 @@
-
-
 .PHONY: lint notebook book tests
 
 help:

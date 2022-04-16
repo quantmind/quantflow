@@ -1,4 +1,4 @@
-from typing import Callable
+from typing import Callable, Optional
 
 try:
     from IPython.display import Markdown
@@ -20,7 +20,7 @@ def doc(method: Callable) -> str:
     return trim_docstring(method.__doc__)
 
 
-def trim_docstring(docstring: str) -> str:
+def trim_docstring(docstring: Optional[str] = None) -> str:
     """Uniformly trims leading/trailing whitespace from docstrings.
     Based on
     http://www.python.org/peps/pep-0257.html#handling-docstring-indentation

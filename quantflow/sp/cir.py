@@ -1,9 +1,11 @@
 import numpy as np
 from numpy.random import normal
+from scipy import special
 
-from ..utils.param import Param, Parameters
+from ..utils.param import Bounds, Param, Parameters
+from ..utils.paths import Paths
 from ..utils.types import Vector
-from .base import Im, IntensityProcess, StochasticProcess1DMarginal
+from .base import Im, IntensityProcess
 
 
 class CIR(IntensityProcess):
@@ -47,11 +49,20 @@ class CIR(IntensityProcess):
             >= 0.5 * self.sigma.value * self.sigma.value
         )
 
-    def marginal(self, t: float, N: int) -> StochasticProcess1DMarginal:
-        return None
-
-    def cdf(self, t: float, n: Vector) -> Vector:
-        pass
+    def pdf(self, t: float, x: Vector) -> Vector:
+        k = self.kappa.value
+        s2 = self.sigma.value * self.sigma.value
+        ekt = np.exp(-k * t)
+        c = 2 * k / (1 - ekt) / s2
+        q = 2 * k * self.theta.value / s2 - 1
+        u = c * ekt * self.rate.value
+        v = c * x
+        return (
+            c
+            * np.exp(-v - u)
+            * np.power(v / u, 0.5 * q)
+            * special.iv(q, 2 * np.sqrt(u * v))
+        )
 
     def mean(self, t: float) -> float:
         ekt = np.exp(-self.kappa.value * t)
@@ -68,7 +79,7 @@ class CIR(IntensityProcess):
             / kappa
         )
 
-    def sample(self, n: int, t: float = 1, steps: int = 0) -> np.array:
+    def sample(self, n: int, t: float = 1, steps: int = 0) -> Paths:
         size, dt = self.sample_dt(t, steps)
         kappa = self.kappa.value
         theta = self.theta.value
@@ -81,7 +92,7 @@ class CIR(IntensityProcess):
                 x = paths[i, p]
                 dx = kappa * (theta - x) * dt + np.sqrt(x) * w[i]
                 paths[i + 1, p] = x + dx
-        return paths
+        return Paths(t=t, data=paths)
 
     def characteristic(self, t: float, u: Vector) -> Vector:
         iu = Im * u
@@ -108,3 +119,6 @@ class CIR(IntensityProcess):
         a = 2 * self.theta.value * kappa * np.log(-d / c) / sigma2
         b = 2 * iu * (1 - egt) / c
         return np.exp(a + b * self.rate.value)
+
+    def domain_range(self) -> Bounds:
+        return Bounds(0, np.inf)

@@ -2,9 +2,10 @@ from abc import ABC, abstractmethod
 from typing import Tuple
 
 import numpy as np
+from scipy.optimize import Bounds
 
 from ..utils.marginal import Marginal1D
-from ..utils.param import Param, Parameters
+from ..utils.param import Param, Parameters, default_bounds
 from ..utils.paths import Paths
 from ..utils.types import Vector
 
@@ -65,6 +66,9 @@ class StochasticProcess1DMarginal(Marginal1D):
         self.t = t
         self.N = N
 
+    def pdf(self, n: Vector) -> Vector:
+        return self.process.pdf(self.t, n)
+
     def std_norm(self) -> float:
         """Standard deviation at a time horizon normalized by the time"""
         return np.sqrt(self.variance() / self.t)
@@ -72,15 +76,17 @@ class StochasticProcess1DMarginal(Marginal1D):
     def characteristic(self, u: Vector) -> Vector:
         return self.process.characteristic(self.t, u)
 
+    def domain_range(self) -> Bounds:
+        return self.process.domain_range()
+
 
 class StochasticProcess1D(StochasticProcess):
     """
     Base class for 1D stochastic process in continuous time
     """
 
-    @abstractmethod
-    def marginal(self, t: float) -> StochasticProcess1DMarginal:
-        """Marginal at time t"""
+    def marginal(self, t: float, N: int = 128) -> StochasticProcess1DMarginal:
+        return StochasticProcess1DMarginal(self, t, N)
 
     def pdf(self, t: float, n: Vector) -> Vector:
         """
@@ -96,7 +102,6 @@ class StochasticProcess1D(StochasticProcess):
         """
         return self.cdf(t, n) - self.cdf(t, n - 1)
 
-    @abstractmethod
     def cdf(self, t: float, n: Vector) -> Vector:
         """
         Compute the cumulative distribution function of the process.
@@ -105,6 +110,7 @@ class StochasticProcess1D(StochasticProcess):
         :param n: Location in the stochastic process domain space. If a numpy array,
             the output should have the same shape as the input.
         """
+        raise NotImplementedError("Analytical CFD not available")
 
     def pdf_jacobian(self, t: float, n: Vector) -> np.array:
         """
@@ -169,6 +175,9 @@ class StochasticProcess1D(StochasticProcess):
         m = -0.5 * Im * (c1 - c2) / d
         s = -(c1 - 2 * c0 + c2) / (d * d) - m * m
         return s.real
+
+    def domain_range(self) -> Bounds:
+        return default_bounds()
 
 
 class CountingProcess1D(StochasticProcess1D):

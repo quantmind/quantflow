@@ -1,12 +1,12 @@
 from decimal import Decimal
-from typing import Optional, TypeVar, Union
+from typing import Optional, Union
 
 import numpy as np
 
 Number = Decimal
 Numbers = Union[int, float, np.number]
 NumberType = Union[float, int, str, Number]
-Vector = TypeVar("Vector", int, float, np.number, np.ndarray)
+Vector = Union[int, float, complex, np.ndarray]
 
 
 def as_number(num: Optional[NumberType] = None) -> Number:
