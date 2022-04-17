@@ -90,12 +90,14 @@ X_{t+1} &= \left[\begin{matrix}\kappa\left(\theta\right) dt \\ 0\end{matrix}\rig
 
 ```
 
-# Calibration against historical timeseries
+## Calibration against historical timeseries
 
 We calibrate the Heston model agais historical time series, in this case the measurement is the log change for a given frequency.
 
 \begin{align}
-z_t &= d s_t = -\frac{\nu_t}{2}dt + \sqrt{\nu_t} d w_t
+F_t &= \left[\begin{matrix}1 - \kappa\theta dt \\ 0\end{matrix}\right] \\
+Q_t &= \left[\begin{matrix}1 - \kappa\theta dt \\ 0\end{matrix}\right]  \\
+z_t &= d s_t
 \end{align}
 
 The observation vector is given by
@@ -106,24 +108,64 @@ x_t &= \left[\begin{matrix}\nu_t && w_t && z_t\end{matrix}\right]^T \\
 
 ```{code-cell} ipython3
 from quantflow.data.fmp import FMP
-frequency = "1hour"
+frequency = "1min"
 async with FMP() as cli:
-    d = await cli.prices("ETHUSD", frequency)
-d
+    df = await cli.prices("ETHUSD", frequency)
+df = df.sort_values("date").reset_index(drop=True)
+df
 ```
 
 ```{code-cell} ipython3
 import plotly.express as px
-fig = px.line(d, x="date", y="close", markers=True)
+fig = px.line(df, x="date", y="close", markers=True)
 fig.show()
 ```
 
 ```{code-cell} ipython3
 import numpy as np
-ds = np.log(d["close"]).diff()
-ds = np.asarray(ds[1:])
+from quantflow.utils.volatility import parkinson_estimator, GarchEstimator
+df["returns"] = np.log(df["close"]) - np.log(df["open"])
+df["pk"] = parkinson_estimator(df["high"], df["low"])
+ds = df.dropna()
 dt = cli.historical_frequencies_annulaized()[frequency]
-dt
+fig = px.line(ds["returns"], markers=True)
+fig.show()
+```
+
+```{code-cell} ipython3
+import plotly.express as px
+from quantflow.utils.bins import pdf
+df = pdf(ds["returns"], num=20)
+fig = px.bar(df, x="x", y="f")
+fig.show()
+```
+
+```{code-cell} ipython3
+g1 = GarchEstimator.returns(ds["returns"], dt)
+g2 = GarchEstimator.pk(ds["returns"], ds["pk"], dt)
+```
+
+```{code-cell} ipython3
+import pandas as pd
+yf = pd.DataFrame(dict(returns=g2.y2, pk=g2.p))
+fig = px.line(yf, markers=True)
+fig.show()
+```
+
+```{code-cell} ipython3
+r1 = g1.fit()
+r1
+```
+
+```{code-cell} ipython3
+r2 = g2.fit()
+r2
+```
+
+```{code-cell} ipython3
+sig2 = pd.DataFrame(dict(returns=np.sqrt(g2.filter(r1["params"])), pk=np.sqrt(g2.filter(r2["params"]))))
+fig = px.line(sig2, markers=False, title="Stochastic volatility")
+fig.show()
 ```
 
 ```{code-cell} ipython3
@@ -145,6 +187,10 @@ class HestonCalibration:
 ```
 
 ```{code-cell} ipython3
+
+```
+
+```{code-cell} ipython3
 c = HestonCalibration(dt)
 c.x0
 ```
@@ -155,8 +201,4 @@ c.prediction(c.x0)
 
 ```{code-cell} ipython3
 c.state_jacobian()
-```
-
-```{code-cell} ipython3
-
 ```
