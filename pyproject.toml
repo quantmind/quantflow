@@ -29,12 +29,14 @@ data = ["aiohttp"]
 optional = true
 
 [tool.poetry.group.book.dependencies]
-jupyterlab = "^3.3.2"
-jupyter-book = "^0.12.3"
+jupyter-book = "^0.13.1"
 nbconvert = "^6.4.5"
 jupytext = "^1.13.8"
 plotly = "^5.7.0"
 ipython = "^8.7.0"
+jsonschema = "<4.0"
+jupyterlab = "^3.5.2"
+jupyter-server = "<2.0"
 
 
 [build-system]

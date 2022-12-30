@@ -7,5 +7,5 @@ Quantitative analysis and pricing tools.
 
 ## Modules
 
-* [sp](./sp) stochastic process primitives
-* [data](./data) data APIs (requires `quantflow[data]`)
+* [quantflow.sp](./sp) stochastic process primitives
+* [quantflow.data](./data) data APIs (requires `quantflow[data]`)

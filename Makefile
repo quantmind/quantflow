@@ -13,7 +13,7 @@ install-dev:			## Install development dependencies
 	@./dev/install
 
 notebook:			## Run Jupyter notebook server
-	@poetry run ./dev/start-jupyter 9090
+	@poetry run ./dev/start-jupyter 9095
 
 
 book:				## Build static jupyter {book}
@@ -27,4 +27,4 @@ tests:				## unit tests
 
 
 outdated:			## Show outdated packages
-	poetry show -o
+	poetry show -o -a

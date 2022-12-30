@@ -3,6 +3,9 @@ set -e
 
 PORT=$1
 
-export $(cat .env | xargs)
+export PYTHONPATH=${PWD}:${PYTHONPATH}
+ENV_FILE="${PWD}/.env"
+touch ${ENV_FILE}
+export $(grep -v '^#' ${ENV_FILE} | xargs)
 
-jupyter lab --ip 0.0.0.0 --port ${PORT} --allow-root --config /dev/notebook_config.json
+jupyter-lab --port=${PORT}
