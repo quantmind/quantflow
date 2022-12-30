@@ -4,12 +4,12 @@ from typing import Tuple
 import numpy as np
 from scipy.optimize import Bounds
 
-from ..utils.marginal import Marginal1D
-from ..utils.param import Param, Parameters, default_bounds
-from ..utils.paths import Paths
-from ..utils.types import Vector
+from quantflow.utils.marginal import Marginal1D
+from quantflow.utils.param import Param, Parameters, default_bounds
+from quantflow.utils.paths import Paths
+from quantflow.utils.types import Vector
 
-Im = np.complex(0, 1)
+Im = 1j
 
 
 class StochasticProcess(ABC):
@@ -19,7 +19,7 @@ class StochasticProcess(ABC):
 
     parameters: Parameters = Parameters()
 
-    def sample(self, n: int, t: float = 1, steps: int = 0) -> np.array:
+    def sample(self, n: int, t: float = 1, steps: int = 0) -> np.ndarray:
         """Generate random paths from the process
 
         :param n: Number of paths
@@ -50,14 +50,11 @@ class StochasticProcess(ABC):
         """
         return Paths(t, self.sample(n, t, steps))
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return f"{type(self).__name__} {self.parameters}"
 
-    def __str__(self):
+    def __str__(self) -> str:
         return self.__repr__()
-
-    def to_proto(self):
-        raise NotImplementedError
 
 
 class StochasticProcess1DMarginal(Marginal1D):
@@ -112,7 +109,7 @@ class StochasticProcess1D(StochasticProcess):
         """
         raise NotImplementedError("Analytical CFD not available")
 
-    def pdf_jacobian(self, t: float, n: Vector) -> np.array:
+    def pdf_jacobian(self, t: float, n: Vector) -> np.ndarray:
         """
         Jacobian of the pdf with respect to the parameters of the process.
         It has a base implementation that computes it from the
@@ -121,7 +118,7 @@ class StochasticProcess1D(StochasticProcess):
         """
         return self.cdf_jacobian(t, n) - self.cdf_jacobian(t, n - 1)
 
-    def cdf_jacobian(self, t: float, n: Vector) -> np.array:
+    def cdf_jacobian(self, t: float, n: Vector) -> np.ndarray:
         """
         Jacobian of the cdf with respect to the parameters of the process.
         It is useful for optimization purposes if necessary.

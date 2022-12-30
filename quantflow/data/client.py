@@ -1,6 +1,6 @@
 import json
 import os
-from typing import Any, Dict, Optional
+from typing import Any
 
 from aiohttp import ClientResponse, ClientSession
 from aiohttp.client_exceptions import ContentTypeError
@@ -13,9 +13,9 @@ def compact(**kwargs: Any) -> dict:
 
 
 class HttpResponseError(RuntimeError):
-    def __init__(self, response: ClientResponse, data: dict) -> None:
+    def __init__(self, response: ClientResponse, data: ResponseType) -> None:
         self.response = response
-        self.data = data
+        self.data: dict[str, Any] = data if isinstance(data, dict) else {"data": data}
         self.data["request_url"] = str(response.url)
         self.data["request_method"] = response.method
         self.data["response_status"] = response.status
@@ -29,10 +29,10 @@ class HttpResponseError(RuntimeError):
 
 
 class HttpClient:
-    session: Optional[ClientSession] = None
+    session: ClientSession | None = None
     user_agent: str = os.getenv("HTTP_USER_AGENT", "quantflow/data")
     content_type: str = "application/json"
-    ResponseError: HttpResponseError = HttpResponseError
+    ResponseError: type[HttpResponseError] = HttpResponseError
     ok_status = frozenset((200, 201))
 
     def get_session(self) -> ClientSession:
@@ -52,30 +52,29 @@ class HttpClient:
         await self.close()
 
     async def get(self, url: str, **kwargs: Any) -> ResponseType:
-        kwargs["method"] = "GET"
-        return await self.execute(url, **kwargs)
+        return await self.request("GET", url, **kwargs)
 
-    async def execute(
+    async def request(
         self,
+        method: str,
         url: str,
         *,
-        method: str = "",
-        headers: Optional[dict] = None,
+        headers: dict | None = None,
         **kw: Any,
     ) -> ResponseType:
         session = self.get_session()
         _headers = self.default_headers()
         _headers.update(headers or ())
-        method = method or "GET"
         response = await session.request(method, url, headers=_headers, **kw)
         if response.status in self.ok_status:
             return await self.response_data(response)
         elif response.status == 204:
             return {}
         else:
-            return await self.response_error(response)
+            data = await self.response_error(response)
+            raise self.ResponseError(response, data)
 
-    def default_headers(self) -> Dict[str, str]:
+    def default_headers(self) -> dict[str, str]:
         return {"user-agent": self.user_agent, "accept": self.content_type}
 
     def mock(self) -> None:
@@ -84,10 +83,9 @@ class HttpClient:
     @classmethod
     async def response_error(cls, response: ClientResponse) -> ResponseType:
         try:
-            data = await cls.response_data(response)
+            return await cls.response_data(response)
         except ContentTypeError:
-            data = dict(message=await response.text())
-        raise cls.ResponseError(response, data)
+            return dict(message=await response.text())
 
     @classmethod
     async def response_data(cls, response: ClientResponse) -> ResponseType:

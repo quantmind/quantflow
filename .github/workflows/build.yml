@@ -17,7 +17,7 @@ jobs:
       PYPI_PASSWORD: ${{ secrets.PYPI_PASSWORD }}
     strategy:
       matrix:
-        python-version: ["3.8", "3.9", "3.10"]
+        python-version: ["3.10", "3.11"]
 
     steps:
       - uses: actions/checkout@v2
@@ -32,16 +32,16 @@ jobs:
       - name: run tests
         run: make tests
       - name: build book
-        if: ${{ matrix.python-version == '3.10' }}
+        if: ${{ matrix.python-version == '3.11' }}
         run: make book
       - name: publish book
-        if: ${{ matrix.python-version == '3.10' }}
+        if: ${{ matrix.python-version == '3.11' }}
         run: make publish-book
       - name: publish
-        if: ${{ matrix.python-version == '3.10' && github.event.head_commit.message == 'release' }}
+        if: ${{ matrix.python-version == '3.11' && github.event.head_commit.message == 'release' }}
         run: make publish
       - name: create github release
-        if: ${{ matrix.python-version == '3.11' && github.event.head_commit.message == 'release' }}
+        if: ${{ matrix.python-version == '3.12' && github.event.head_commit.message == 'release' }}
         uses: ncipollo/release-action@v1
         with:
           artifacts: "dist/*"

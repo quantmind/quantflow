@@ -1,4 +1,4 @@
 #!/usr/bin/env bash
 
 pip install -U pip poetry
-poetry install -E notebook -E data
+poetry install --all-extras --with book

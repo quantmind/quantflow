@@ -1,5 +1,5 @@
 import os
-from typing import Dict, List, Optional
+from typing import Any, cast
 
 import pandas as pd
 
@@ -7,7 +7,7 @@ from .client import HttpClient, compact
 
 
 class FMP(HttpClient):
-    url = "https://financialmodelingprep.com/api"
+    url: str = "https://financialmodelingprep.com/api"
 
     def __init__(
         self,
@@ -15,41 +15,41 @@ class FMP(HttpClient):
     ) -> None:
         self.key = key or os.environ.get("FMP_API_KEY")
 
-    async def stocks(self, **kw) -> List[Dict]:
+    async def stocks(self, **kw: Any) -> list[dict]:
         return await self.get_path("v3/stock/list", **kw)
 
-    async def etfs(self, **kw) -> List[Dict]:
+    async def etfs(self, **kw: Any) -> list[dict]:
         return await self.get_path("v3/etf/list", **kw)
 
-    async def indices(self, **kw) -> List[Dict]:
+    async def indices(self, **kw: Any) -> list[dict]:
         return await self.get_path("v3/quotes/index", **kw)
 
-    async def profile(self, *tickers: str, **kw) -> List[Dict]:
+    async def profile(self, *tickers: str, **kw: Any) -> list[dict]:
         """Company profile - minute"""
         return await self.get_path(f"v3/profile/{self.join(*tickers)}", **kw)
 
-    async def quote(self, *tickers: str, **kw) -> List[Dict]:
+    async def quote(self, *tickers: str, **kw: Any) -> list[dict]:
         """Company quote - real time"""
         return await self.get_path(f"v3/quote/{self.join(*tickers)}", **kw)
 
-    async def executives(self, ticker: str, **kw) -> List[Dict]:
+    async def executives(self, ticker: str, **kw: Any) -> list[dict]:
         """Company quote - real time"""
         return await self.get_path(f"v3/key-executives/{ticker}", **kw)
 
-    async def rating(self, ticker: str, **kw) -> List[Dict]:
+    async def rating(self, ticker: str, **kw: Any) -> list[dict]:
         """Company quote - real time"""
         return await self.get_path(f"v3/rating/{ticker}", **kw)
 
-    async def etf_holders(self, ticker: str, **kw) -> List[Dict]:
+    async def etf_holders(self, ticker: str, **kw: Any) -> list[dict]:
         return await self.get_path(f"v3/etf-holder/{ticker}", **kw)
 
     async def ratios(
         self,
         ticker: str,
-        period: Optional[str] = None,
-        limit: Optional[int] = None,
-        **kw,
-    ) -> List[Dict]:
+        period: str | None = None,
+        limit: int | None = None,
+        **kw: Any,
+    ) -> list[dict]:
         """Company financial ratios - if period not provided it is for
         the trailing 12 months"""
         path = "ratios" if period else "ratios-ttm"
@@ -58,13 +58,13 @@ class FMP(HttpClient):
             **self.params(compact(period=period, limit=limit), **kw),
         )
 
-    async def peers(self, *tickers: str, **kw) -> List[Dict]:
+    async def peers(self, *tickers: str, **kw: Any) -> list[dict]:
         """Stock peers based on sector, exchange and market cap"""
         kwargs = self.params(**kw)
         kwargs["params"]["symbol"] = self.join(*tickers)
         return await self.get_path("v4/stock_peers", **kwargs)
 
-    async def news(self, *tickers: str, **kw) -> List[Dict]:
+    async def news(self, *tickers: str, **kw: Any) -> list[dict]:
         """Company quote - real time"""
         kwargs = self.params(**kw)
         if tickers:
@@ -75,18 +75,18 @@ class FMP(HttpClient):
         self,
         query: str,
         *,
-        exchange: Optional[str] = None,
-        limit: Optional[int] = None,
+        exchange: str | None = None,
+        limit: int | None = None,
         ticker: bool = False,
-        **kw,
-    ) -> List[Dict]:
+        **kw: Any,
+    ) -> list[dict]:
         path = "v3/search-ticker" if ticker else "v3/search"
         return await self.get_path(
             path,
             **self.params(compact(query=query, exchange=exchange, limit=limit), **kw),
         )
 
-    async def prices(self, ticker: str, frequency: str = "", **kw) -> pd.DataFrame:
+    async def prices(self, ticker: str, frequency: str = "", **kw: Any) -> pd.DataFrame:
         base = (
             "historical-price-full/"
             if not frequency
@@ -116,8 +116,9 @@ class FMP(HttpClient):
         return {k: v / one_year for k, v in self.historical_frequencies().items()}
 
     # Internals
-    def get_path(self, path: str, **kw) -> List[Dict]:
-        return self.get(f"{self.url}/{path}", **self.params(**kw))
+    async def get_path(self, path: str, **kw: Any) -> list[dict]:
+        result = await self.get(f"{self.url}/{path}", **self.params(**kw))
+        return cast(list[dict], result)
 
     def join(self, *tickers: str) -> str:
         value = ",".join(tickers)
@@ -125,7 +126,7 @@ class FMP(HttpClient):
             raise TypeError("at least one ticker must be provided")
         return value
 
-    def params(self, params: Optional[Dict] = None, **kwargs) -> Dict:
+    def params(self, params: dict | None = None, **kw: Any) -> dict:
         params = params.copy() if params is not None else {}
         params["apikey"] = self.key
-        return {"params": params, **kwargs}
+        return {"params": params, **kw}

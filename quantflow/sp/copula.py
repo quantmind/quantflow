@@ -4,9 +4,9 @@ from typing import Union
 
 import numpy as np
 
-from ..utils.functions import debye
-from ..utils.param import Param, Parameters
-from ..utils.types import Vector
+from quantflow.utils.functions import debye
+from quantflow.utils.param import Param, Parameters
+from quantflow.utils.types import Vector
 
 
 class Copula(ABC):
@@ -19,7 +19,7 @@ class Copula(ABC):
 
     parameters: Parameters = Parameters()
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return f"{type(self).__name__} {self.parameters}"
 
     @abstractmethod
@@ -42,9 +42,6 @@ class Copula(ABC):
         parameters of the copula.
         Optional to implement.
         """
-        raise NotImplementedError
-
-    def to_proto(self):
         raise NotImplementedError
 
 
@@ -109,7 +106,7 @@ class FrankCopula(Copula):
             return 0
         return 1 - 12 * (debye(2, -k) - debye(1, -k)) / k
 
-    def jacobian(self, u: Vector, v: Vector) -> np.array:
+    def jacobian(self, u: Vector, v: Vector) -> np.ndarray:
         k = self.parameters.kappa
         if isclose(k, 0.0):
             return np.array([v, u, v * 0])

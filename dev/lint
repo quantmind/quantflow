@@ -3,4 +3,4 @@
 isort . $1
 black . --exclude "build|dev|.venv|.jupyter|.ipynb_checkpoints" $1
 flake8
-mypy quantflow/utils
+mypy quantflow/utils quantflow/data

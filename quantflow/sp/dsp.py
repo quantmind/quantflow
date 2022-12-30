@@ -57,6 +57,3 @@ class DSP(PoissonProcess):
     def arrivals(self, t: float = 1) -> List[float]:
         paths = self.intensity.paths(1, t).integrate()
         return super().arrivals(paths.data[-1, 0])
-
-    def to_proto(self):
-        return self.intensity.to_proto()

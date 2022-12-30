@@ -24,3 +24,7 @@ publish-book:			## publish the book to github pages
 
 tests:				## unit tests
 	poetry run pytest
+
+
+outdated:			## Show outdated packages
+	poetry show -o
