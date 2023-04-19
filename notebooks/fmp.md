@@ -5,7 +5,7 @@ jupytext:
     extension: .md
     format_name: myst
     format_version: 0.13
-    jupytext_version: 1.13.8
+    jupytext_version: 1.14.4
 kernelspec:
   display_name: Python 3 (ipykernel)
   language: python
@@ -23,5 +23,38 @@ cli.url
 ```
 
 ```{code-cell} ipython3
+stock = "KNOS.L"
+```
 
+## Company Profile
+
+```{code-cell} ipython3
+d = await cli.profile(stock)
+d
+```
+
+```{code-cell} ipython3
+c = await cli.peers(stock)
+c
+```
+
+## Executive trading
+
+```{code-cell} ipython3
+stock = "KNOS.L"
+```
+
+```{code-cell} ipython3
+await cli.executives(stock)
+```
+
+```{code-cell} ipython3
+await cli.insider_trading(stock)
+```
+
+## News
+
+```{code-cell} ipython3
+c = await cli.news(stock)
+c
 ```

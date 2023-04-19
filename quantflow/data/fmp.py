@@ -1,9 +1,11 @@
 import os
+from datetime import date, timedelta
 from typing import Any, cast
 
 import pandas as pd
 
 from .client import HttpClient, compact
+from .utils import isoformat
 
 
 class FMP(HttpClient):
@@ -32,9 +34,35 @@ class FMP(HttpClient):
         """Company quote - real time"""
         return await self.get_path(f"v3/quote/{self.join(*tickers)}", **kw)
 
+    # calendars
+
+    async def dividends(
+        self,
+        from_date: str | date = "",
+        to_date: str | date = "",
+        **kw: Any,
+    ) -> list[dict]:
+        """Dividend calendar"""
+        if not from_date:
+            from_date = date.today()
+        if not to_date:
+            to_date = date.today() + timedelta(days=7)
+        params = {"from": isoformat(from_date), "to": isoformat(to_date)}
+        return await self.get_path("v3/stock_dividend_calendar", params=params, **kw)
+
+    # Executives
+
     async def executives(self, ticker: str, **kw: Any) -> list[dict]:
         """Company quote - real time"""
         return await self.get_path(f"v3/key-executives/{ticker}", **kw)
+
+    async def insider_trading(self, ticker: str, **kw: Any) -> list[dict]:
+        """Company Insider Trading"""
+        return await self.get_path(
+            "v4/insider-trading", **self.params(dict(symbol=ticker), **kw)
+        )
+
+    # Rating
 
     async def rating(self, ticker: str, **kw: Any) -> list[dict]:
         """Company quote - real time"""
