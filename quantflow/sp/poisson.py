@@ -1,5 +1,3 @@
-from typing import List, Tuple
-
 import numpy as np
 from scipy.stats import poisson, skellam
 
@@ -22,7 +20,7 @@ class PoissonProcess(CountingProcess1D):
             "lambda", rate, bounds=(0, None), description="intensity rate"
         )
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return f"{self.__class__.__name__} {self.rate}"
 
     @property
@@ -78,7 +76,7 @@ class PoissonProcess(CountingProcess1D):
     def characteristic(self, t: float, u: Vector) -> Vector:
         return np.exp(t * self.characteristic_exponent(u))
 
-    def sample(self, n: int, t: float = 1, steps: int = 0) -> np.array:
+    def sample(self, n: int, t: float = 1, steps: int = 0) -> np.ndarray:
         size, dt = self.sample_dt(t, steps)
         paths = np.zeros((size + 1, n))
         for p in range(n):
@@ -95,18 +93,22 @@ class PoissonProcess(CountingProcess1D):
                 paths[i:, p] = y
         return paths
 
-    def arrivals(self, t: float = 1) -> List[float]:
+    def arrivals(self, t: float = 1) -> list[float]:
         """Generate a list of jump arrivals times up to time t"""
         exp_rate = 1.0 / self.rate.value
         arrivals = []
-        tt = 0
+        tt = 0.0
         while tt <= t:
             arrivals.append(tt)
             dt = np.random.exponential(scale=exp_rate)
             tt += dt
         return arrivals
 
-    def jumps(self, n: int) -> np.array:
+    def jumps(self, n: int) -> np.ndarray:
+        """Generate a list of jump sizes
+
+        For a poisson process this is just a list of 1s
+        """
         return np.ones((n,))
 
 
@@ -152,7 +154,7 @@ class SkellamProcess(CountingProcess1D):
         """
         return skellam.pmf(n, t * self.rate_left, t * self.rate_right)
 
-    def sample(self, n: int, t: float = 1, steps: int = 0) -> np.array:
+    def sample(self, n: int, t: float = 1, steps: int = 0) -> np.ndarray:
         raise NotImplementedError
 
 
@@ -178,7 +180,7 @@ class DoubleIndependentPoisson(CountingProcess2D):
         self.rate_left = rate_left
         self.rate_right = rate_right
 
-    def pdf(self, t: float, n: Tuple[Vector, Vector]) -> Vector:
+    def pdf(self, t: float, n: tuple[Vector, Vector]) -> Vector:
         """
         PDF of the process. It's just the product of two
         poisson pdfs :eq:`poisson_pdf`.
@@ -187,7 +189,7 @@ class DoubleIndependentPoisson(CountingProcess2D):
             n[1], t * self.rate_right
         )
 
-    def cdf(self, t: float, n: Tuple[Vector, Vector]) -> Vector:
+    def cdf(self, t: float, n: tuple[Vector, Vector]) -> Vector:
         """
         CDF of the process. It's just the product of two
         poisson cdfs :eq:`poisson_cdf`.
@@ -196,7 +198,7 @@ class DoubleIndependentPoisson(CountingProcess2D):
             n[1], t * self.rate_right
         )
 
-    def marginals(self) -> Tuple[CountingProcess1D, CountingProcess1D]:
+    def marginals(self) -> tuple[CountingProcess1D, CountingProcess1D]:
         """
         Returns the marginal poisson processes of each of the two random variables
         """
@@ -216,6 +218,6 @@ class DoubleIndependentPoisson(CountingProcess2D):
         """
         return SkellamProcess(self.rate_left, self.rate_right)
 
-    def sample(self, n: int, t: float = 1, steps: int = 0) -> np.array:
+    def sample(self, n: int, t: float = 1, steps: int = 0) -> np.ndarray:
         """require implementation"""
         raise NotImplementedError

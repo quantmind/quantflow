@@ -1,13 +1,15 @@
 """Weibull model"""
 from functools import lru_cache
 from math import floor
+from typing import cast
 
 import numpy as np
 from numpy import arange, array, exp, power
 from numpy import sum as npsum
 from scipy.special import gamma, gammaln
 
-from ..utils.types import Vector
+from quantflow.utils.types import Vector
+
 from .base import CountingProcess1D
 
 
@@ -68,13 +70,16 @@ class WeibullProcess(CountingProcess1D):
         """
         if isinstance(n, np.ndarray):
             return np.array([self.pdf(t, i) for i in n.ravel()]).reshape(n.shape)
-        j = arange(n, self.N)
-        return npsum(
-            power(-1, j + n)
-            * power(self.la * power(t, self.c), j)
-            * self.alpha(n)
-            / gamma(self.c * j + 1)
-        )
+        elif isinstance(n, int):
+            j = arange(n, self.N)
+            return npsum(
+                power(-1, j + n)
+                * power(self.la * power(t, self.c), j)
+                * self.alpha(n)
+                / gamma(self.c * j + 1)
+            )
+        else:
+            raise TypeError("n must be an integer or array of integers")
 
     def cdf(self, t: float, n: Vector) -> Vector:
         r"""
@@ -84,10 +89,13 @@ class WeibullProcess(CountingProcess1D):
         """
         if isinstance(n, np.ndarray):
             return np.array([self.cdf(t, i) for i in n.ravel()]).reshape(n.shape)
-        return self.pdf(t, np.arange(0, floor(n) + 1)).sum()
+        elif isinstance(n, int):
+            return cast(np.ndarray, self.pdf(t, np.arange(0, floor(n) + 1))).sum()
+        else:
+            raise TypeError("n must be an integer or array of integers")
 
     @lru_cache(maxsize=None)
-    def alpha(self, n: int) -> array:
+    def alpha(self, n: int) -> np.ndarray:
         """Calculate the alpha coefficients for n events"""
         J = arange(n, self.N)
         if n == 0:

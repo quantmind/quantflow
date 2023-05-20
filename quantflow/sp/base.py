@@ -1,5 +1,7 @@
+from __future__ import annotations
+
 from abc import ABC, abstractmethod
-from typing import Tuple
+from typing import Generic, Tuple, TypeVar
 
 import numpy as np
 from scipy.optimize import Bounds
@@ -17,7 +19,9 @@ class StochasticProcess(ABC):
     Base class for stochastic processes in continuous time
     """
 
-    parameters: Parameters = Parameters()
+    @property
+    def parameters(self) -> Parameters:
+        return Parameters()
 
     def sample(self, n: int, t: float = 1, steps: int = 0) -> np.ndarray:
         """Generate random paths from the process
@@ -55,26 +59,6 @@ class StochasticProcess(ABC):
 
     def __str__(self) -> str:
         return self.__repr__()
-
-
-class StochasticProcess1DMarginal(Marginal1D):
-    def __init__(self, process: "StochasticProcess1D", t: float, N: int) -> None:
-        self.process = process
-        self.t = t
-        self.N = N
-
-    def pdf(self, n: Vector) -> Vector:
-        return self.process.pdf(self.t, n)
-
-    def std_norm(self) -> float:
-        """Standard deviation at a time horizon normalized by the time"""
-        return np.sqrt(self.variance() / self.t)
-
-    def characteristic(self, u: Vector) -> Vector:
-        return self.process.characteristic(self.t, u)
-
-    def domain_range(self) -> Bounds:
-        return self.process.domain_range()
 
 
 class StochasticProcess1D(StochasticProcess):
@@ -177,6 +161,29 @@ class StochasticProcess1D(StochasticProcess):
         return default_bounds()
 
 
+P = TypeVar("P", bound=StochasticProcess1D)
+
+
+class StochasticProcess1DMarginal(Marginal1D, Generic[P]):
+    def __init__(self, process: P, t: float, N: int) -> None:
+        self.process = process
+        self.t = t
+        self.N = N
+
+    def pdf(self, n: Vector) -> Vector:
+        return self.process.pdf(self.t, n)
+
+    def std_norm(self) -> float:
+        """Standard deviation at a time horizon normalized by the time"""
+        return np.sqrt(self.variance() / self.t)
+
+    def characteristic(self, u: Vector) -> Vector:
+        return self.process.characteristic(self.t, u)
+
+    def domain_range(self) -> Bounds:
+        return self.process.domain_range()
+
+
 class CountingProcess1D(StochasticProcess1D):
     pass
 
@@ -238,7 +245,7 @@ class CountingProcess2D(StochasticProcess):
         variables of the process.
         """
 
-    def cdf_square(self, t: float, n: int) -> np.array:
+    def cdf_square(self, t: float, n: int) -> np.ndarray:
         """Cumulative distribution function on a n x n square support"""
         raise NotImplementedError
 

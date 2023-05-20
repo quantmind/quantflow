@@ -1,6 +1,14 @@
 #!/usr/bin/env bash
+set -e
 
-isort . $1
-black . --exclude "build|dev|.venv|.jupyter|.ipynb_checkpoints" $1
-flake8
-mypy quantflow/utils quantflow/data
+BLACK_ARG="--check"
+RUFF_ARG=""
+
+if [ "$1" = "fix" ] ; then
+    BLACK_ARG=""
+    RUFF_ARG="--fix"
+fi
+
+black quantflow tests ${BLACK_ARG}
+ruff quantflow tests ${RUFF_ARG}
+mypy quantflow

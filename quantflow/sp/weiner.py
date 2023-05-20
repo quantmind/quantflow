@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from functools import lru_cache
 
 import numpy as np
@@ -6,31 +8,6 @@ from scipy.stats import norm
 from ..utils.param import Param, Parameters
 from ..utils.types import Vector
 from .base import StochasticProcess1D, StochasticProcess1DMarginal
-
-
-class WeinerMarginal(StochasticProcess1DMarginal):
-    def variance(self) -> float:
-        s = self.process.sigma.value
-        return s * s * self.t
-
-    @lru_cache
-    def create_pdf(self) -> Vector:
-        u = -2 * np.pi * np.fft.rfftfreq(self.N)
-        psi = self.characteristic(u)
-        return np.fft.irfft(psi)
-
-    def pdf(self, n: Vector) -> Vector:
-        return norm.pdf(n, scale=self.std())
-
-    def cdf(self, n: Vector) -> Vector:
-        """
-        Compute the cumulative distribution function of the process.
-
-        :param t: time horizon
-        :param n: Location in the stochastic process domain space. If a numpy array,
-            the output should have the same shape as the input.
-        """
-        return n
 
 
 class Weiner(StochasticProcess1D):
@@ -62,5 +39,27 @@ class Weiner(StochasticProcess1D):
         su = self.sigma.value * u
         return np.exp(-0.5 * su * su * t)
 
-    def cdf(self):
-        pass
+
+class WeinerMarginal(StochasticProcess1DMarginal[Weiner]):
+    def variance(self) -> float:
+        s = self.process.sigma.value
+        return s * s * self.t
+
+    @lru_cache
+    def create_pdf(self) -> Vector:
+        u = -2 * np.pi * np.fft.rfftfreq(self.N)
+        psi = self.characteristic(u)
+        return np.fft.irfft(psi)
+
+    def pdf(self, n: Vector) -> Vector:
+        return norm.pdf(n, scale=self.std())
+
+    def cdf(self, n: Vector) -> Vector:
+        """
+        Compute the cumulative distribution function of the process.
+
+        :param t: time horizon
+        :param n: Location in the stochastic process domain space. If a numpy array,
+            the output should have the same shape as the input.
+        """
+        return n

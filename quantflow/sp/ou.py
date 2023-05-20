@@ -59,7 +59,7 @@ class OU(IntensityProcess):
         )
         return np.exp(c0 + c1 * self.rate.value)
 
-    def sample(self, n: int, t: float = 1, steps: int = 0) -> np.array:
+    def sample(self, n: int, t: float = 1, steps: int = 0) -> np.ndarray:
         size, dt = self.sample_dt(t, steps)
         jump_process = self.jump_process
         paths = np.zeros((size + 1, n))
