@@ -22,7 +22,7 @@ class DSP(PoissonProcess):
         super().__init__(1)
         self.intensity = intensity
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return f"{type(self).__name__} {self.intensity}"
 
     @property

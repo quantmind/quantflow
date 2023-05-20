@@ -79,7 +79,7 @@ class OU(IntensityProcess):
         return paths
 
     def _advance(
-        self, i: int, pp: np.array, dt: float, arrival: float = 0, jump: float = 0
+        self, i: int, pp: np.ndarray, dt: float, arrival: float = 0, jump: float = 0
     ) -> int:
         x = pp[i - 1]
         kappa = self.kappa.value

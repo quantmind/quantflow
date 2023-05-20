@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from abc import ABC, abstractmethod
-from typing import Generic, Tuple, TypeVar
+from typing import Generic, Tuple, TypeVar, cast
 
 import numpy as np
 from scipy.optimize import Bounds
@@ -145,7 +145,7 @@ class StochasticProcess1D(StochasticProcess):
         """Calculate mean as first derivative of characteristic function at 0"""
         d = 0.001
         m = -0.5 * Im * (self.characteristic(t, d) - self.characteristic(t, -d)) / d
-        return m.real
+        return cast(float, m.real)
 
     def variance_from_characteristic(self, t: float) -> float:
         """Calculate variance as second derivative of characteristic function at 0"""
@@ -155,7 +155,7 @@ class StochasticProcess1D(StochasticProcess):
         c2 = self.characteristic(t, -d)
         m = -0.5 * Im * (c1 - c2) / d
         s = -(c1 - 2 * c0 + c2) / (d * d) - m * m
-        return s.real
+        return cast(float, s.real)
 
     def domain_range(self) -> Bounds:
         return default_bounds()

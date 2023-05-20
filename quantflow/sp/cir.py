@@ -2,9 +2,9 @@ import numpy as np
 from numpy.random import normal
 from scipy import special
 
-from ..utils.param import Bounds, Param, Parameters
-from ..utils.paths import Paths
-from ..utils.types import Vector
+from quantflow.utils.param import Bounds, Param, Parameters
+from quantflow.utils.types import Vector
+
 from .base import Im, IntensityProcess
 
 
@@ -79,7 +79,7 @@ class CIR(IntensityProcess):
             / kappa
         )
 
-    def sample(self, n: int, t: float = 1, steps: int = 0) -> Paths:
+    def sample(self, n: int, t: float = 1, steps: int = 0) -> np.ndarray:
         size, dt = self.sample_dt(t, steps)
         kappa = self.kappa.value
         theta = self.theta.value
@@ -92,7 +92,7 @@ class CIR(IntensityProcess):
                 x = paths[i, p]
                 dx = kappa * (theta - x) * dt + np.sqrt(x) * w[i]
                 paths[i + 1, p] = x + dx
-        return Paths(t=t, data=paths)
+        return paths
 
     def characteristic(self, t: float, u: Vector) -> Vector:
         iu = Im * u

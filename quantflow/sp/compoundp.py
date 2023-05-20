@@ -1,10 +1,6 @@
-from typing import Callable
-
 import numpy as np
 
 from .poisson import Param, PoissonProcess
-
-JumpSampler = Callable[[int], np.array]
 
 
 class CompoundPoissonProcess(PoissonProcess):
@@ -23,13 +19,13 @@ class ExponentialPoissonProcess(CompoundPoissonProcess):
         The arrival rate of events. Must be positive.
     """
 
-    def __init__(self, rate: float, decay: float):
+    def __init__(self, rate: float, decay: float) -> None:
         super().__init__(rate)
         self.decay = Param(
             "decay", decay, bounds=(0, None), description="Jump size decay rate"
         )
 
-    def jumps(self, n: int) -> np.array:
+    def jumps(self, n: int) -> np.ndarray:
         """Sample jump sizes from an exponential distribution with rate
         parameter :class:b
         """
