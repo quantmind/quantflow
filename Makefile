@@ -5,9 +5,12 @@ help:
 	@fgrep -h "##" $(MAKEFILE_LIST) | fgrep -v fgrep | sed -e 's/\\$$//' | sed -e 's/##//'
 	@echo ================================================================================
 
-lint:				## Build architecture diagrams
+lint:				## Lint and fix
 	@poetry run ./dev/lint
 
+
+lint-check:			## Lint check only
+	@poetry run ./dev/lint --check
 
 install-dev:			## Install development dependencies
 	@./dev/install
