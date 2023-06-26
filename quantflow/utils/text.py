@@ -3,7 +3,7 @@ from typing import Callable, Optional
 try:
     from IPython.display import Markdown
 except ImportError:
-    Markdown = None
+    Markdown = None  # type: ignore
 
 
 def shift(text: str, n: int) -> str:

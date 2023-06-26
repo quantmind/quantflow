@@ -39,3 +39,39 @@ jupyter-server = "<2.0"
 [build-system]
 requires = ["poetry-core>=1.0.0"]
 build-backend = "poetry.core.masonry.api"
+
+[tool.pytest.ini_options]
+testpaths = [
+    "tests"
+]
+
+[tool.isort]
+profile = "black"
+
+[tool.ruff]
+select = ["E", "F"]
+extend-exclude = ["fluid_apps/db/migrations"]
+line-length = 88
+
+
+[tool.mypy]
+disallow_untyped_calls = false
+disallow_untyped_defs = true
+warn_no_return = true
+exclude = [
+    "quantflow/sp/cached.py",
+    "quantflow/sp/combined.py",
+    "quantflow/sp/derived.py"
+]
+
+[[tool.mypy.overrides]]
+module = "IPython.*"
+ignore_missing_imports = true
+
+[[tool.mypy.overrides]]
+module = "pandas.*"
+ignore_missing_imports = true
+
+[[tool.mypy.overrides]]
+module = "scipy.*"
+ignore_missing_imports = true

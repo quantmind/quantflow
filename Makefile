@@ -6,11 +6,11 @@ help:
 	@echo ================================================================================
 
 lint:				## Lint and fix
-	@poetry run ./dev/lint
+	@poetry run ./dev/lint fix
 
 
 lint-check:			## Lint check only
-	@poetry run ./dev/lint --check
+	@poetry run ./dev/lint
 
 install-dev:			## Install development dependencies
 	@./dev/install
