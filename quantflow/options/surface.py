@@ -3,7 +3,7 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
 from decimal import Decimal
-from typing import Any, Generic, Iterator, NamedTuple, TypeVar
+from typing import Any, Generic, Iterator, TypeVar
 
 import numpy as np
 import pandas as pd
@@ -21,13 +21,6 @@ def time_to_maturity(maturity: datetime, ref_date: datetime) -> float:
     return (delta.days + delta.seconds / 86400) / 365
 
 
-class BsInput(NamedTuple):
-    monenyness: float
-    ttm: float
-    price: float
-    vol: float
-
-
 @dataclass
 class Price(Generic[S]):
     security: S
@@ -42,12 +35,18 @@ class Price(Generic[S]):
 @dataclass
 class OptionPrice:
     price: Decimal
+    """Price of the option divided by the forward price"""
     strike: Decimal
+    """Strike price"""
     call: bool
-    side: str = "bid"
+    """True if call, False if put"""
     forward: Decimal = ZERO
+    """Forward price of the underlying"""
     implied_vol: float = 0
+    """Implied Black volatility"""
     ttm: float = 0
+    """Time to maturity in years"""
+    side: str = "bid"
 
     @property
     def moneyness(self) -> float:
