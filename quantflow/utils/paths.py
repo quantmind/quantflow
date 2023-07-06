@@ -1,3 +1,4 @@
+import os
 from typing import Any, Self
 
 import numpy as np
@@ -9,6 +10,8 @@ try:
     import plotly.express as px  # type: ignore
 except ImportError:
     px = None
+
+PLOTLY_THEME = os.environ.get("PLOTLY_THEME", "plotly_dark")
 
 
 class Paths(BaseModel):
@@ -54,7 +57,7 @@ class Paths(BaseModel):
             t=self.t, data=cumtrapz(self.data, dx=self.dt, axis=0, initial=0)
         )
 
-    def plot(self) -> Any:
+    def plot(self, template: str = PLOTLY_THEME) -> Any:
         if px is None:
             raise ImportError("plotly is not installed")
-        return px.line(self.data, title="Paths")
+        return px.line(self.data, title="Paths", template=template)

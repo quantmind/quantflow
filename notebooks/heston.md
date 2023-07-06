@@ -32,15 +32,27 @@ This means that the characteristic function of $y_t=x_{\tau_t}$ can be represent
 ```{code-cell} ipython3
 from quantflow.sp.heston import Heston
 pr = Heston.create(vol=0.6, kappa=1.3, sigma=0.9, rho=-0.6)
+pr
+```
+
+```{code-cell} ipython3
 # check that the variance CIR process is positive
 pr.variance_process.is_positive
 ```
 
+## Characteristic Function
+
 ```{code-cell} ipython3
-[p for p in pr.parameters]
+from notebooks.utils import chracteristic_fig
+N = 128
+M = 30
+m = pr.marginal(1)
+chracteristic_fig(m, N, M).show()
 ```
 
 ## Marginal Distribution
+
+Here we compare the marginal distribution at a time in the future $t=1$ with a normal distribution with the same standard deviation.
 
 ```{code-cell} ipython3
 # Marginal at time 1
@@ -55,9 +67,9 @@ from scipy.stats import norm
 import numpy as np
 
 N = 128
-M = 20
+M = 30
 dx = 4/N
-r = m.pdf_from_characteristic(N, M, dx)
+r = m.pdf_from_characteristic(N, M, delta_x=4/N)
 n = norm.pdf(r["x"], scale=m.std())
 fig = px.line(r, x="x", y="y", markers=True)
 fig.add_trace(go.Scatter(x=r["x"], y=n, name="normal", line=dict()))
@@ -92,4 +104,8 @@ from quantflow.utils.bs import implied_black_volatility
 s = implied_black_volatility(r["x"], r["y"], 1, initial_sigma=m.std())
 fig = px.line(x=r["x"], y=s, markers=True, labels=dict(x="moneyness", y="implied vol"))
 fig.show()
+```
+
+```{code-cell} ipython3
+
 ```

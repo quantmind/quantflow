@@ -63,9 +63,12 @@ class Marginal1D(ABC):
         self,
         N: int,
         max_frequency: float = 10.0,
-        delta_x: Optional[float] = None,
+        delta_x: float | None = None,
         simpson_rule: bool = False,
     ) -> pd.DataFrame:
+        """
+        Compute the probability density function from the characteristic function.
+        """
         t = Transform(N, max_frequency, self.domain_range(), simpson_rule)
         psi = cast(np.ndarray, self.characteristic(t.freq))
         return pd.DataFrame(t(psi, delta_x))

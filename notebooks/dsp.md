@@ -18,13 +18,13 @@ kernelspec:
 
 ```{code-cell} ipython3
 from quantflow.sp.poisson import PoissonProcess
-
 pr = PoissonProcess(rate=2)
 pr
 ```
 
 ```{code-cell} ipython3
-
+p = pr.paths(10, t=1, steps=1000)
+p.plot()
 ```
 
 ## Compound Poisson Process
@@ -87,6 +87,10 @@ The intensity function of a DSPP is given by:
 \begin{equation}
 {\mathbb P}\left(N_T - N_t = n\right) = {\mathbb E}_t\left[e^{-\Lambda_{t,T}} \frac{\Lambda_{t, T}^n}{n!}\right] = \frac{1}{n!}
 \end{equation}
+
+```{code-cell} ipython3
+
+```
 
 ```{code-cell} ipython3
 

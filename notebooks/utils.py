@@ -16,7 +16,12 @@
 # %%
 import pandas as pd
 import plotly.express as px
+import plotly.io as pio
+
 from quantflow.utils.marginal import Marginal1D
+from quantflow.utils.paths import PLOTLY_THEME
+
+pio.templates.default = PLOTLY_THEME
 
 
 def chracteristic_fig(m: Marginal1D, N: int, max_frequency: float):
@@ -28,7 +33,13 @@ def chracteristic_fig(m: Marginal1D, N: int, max_frequency: float):
             pd.DataFrame(dict(frequency=f, characteristic=c.imag, name="iamg")),
         )
     )
-    return px.line(df, x="frequency", y="characteristic", color="name", markers=True)
+    return px.line(
+        df,
+        x="frequency",
+        y="characteristic",
+        color="name",
+        markers=True,
+    )
 
 
 # %%
