@@ -1,4 +1,4 @@
-from typing import Self
+from __future__ import annotations
 
 import numpy as np
 from pydantic import Field
@@ -23,7 +23,7 @@ class OU(IntensityProcess):
     @classmethod
     def create(
         cls, rate: float = 1, kappa: float = 1, a: float = 1, decay: float | None = None
-    ) -> Self:
+    ) -> OU:
         return cls(rate=rate, kappa=kappa, a=a, decay=decay or a / rate)
 
     @property

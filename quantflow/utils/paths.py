@@ -1,5 +1,7 @@
+from __future__ import annotations
+
 import os
-from typing import Any, Self
+from typing import Any
 
 import numpy as np
 import pandas as pd
@@ -51,7 +53,7 @@ class Paths(BaseModel):
         """Paths as list of list (for visualization tools)"""
         return self.data.transpose().tolist()
 
-    def integrate(self) -> Self:
+    def integrate(self) -> Paths:
         """Integrate paths"""
         return self.__class__(
             t=self.t, data=cumtrapz(self.data, dx=self.dt, axis=0, initial=0)

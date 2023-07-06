@@ -1,4 +1,4 @@
-from typing import Self
+from __future__ import annotations
 
 import numpy as np
 from pydantic import Field
@@ -25,7 +25,7 @@ class Heston(StochasticProcess1D):
     rho: float = Field(default=0, ge=-1, le=1, description="Correlation")
 
     @classmethod
-    def create(cls, vol: float, kappa: float, sigma: float, rho: float) -> Self:
+    def create(cls, vol: float, kappa: float, sigma: float, rho: float) -> Heston:
         return cls(
             variance_process=CIR(
                 rate=vol * vol, kappa=kappa, sigma=sigma, theta=vol * vol
