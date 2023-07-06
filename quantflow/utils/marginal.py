@@ -5,9 +5,12 @@ import numpy as np
 import pandas as pd
 from scipy.optimize import Bounds
 
-from .param import default_bounds
 from .transforms import Transform, grid
 from .types import Vector
+
+
+def default_bounds() -> Bounds:
+    return Bounds(-np.inf, np.inf)
 
 
 class Marginal1D(ABC):

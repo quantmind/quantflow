@@ -5,7 +5,7 @@ jupytext:
     extension: .md
     format_name: myst
     format_version: 0.13
-    jupytext_version: 1.13.8
+    jupytext_version: 1.14.7
 kernelspec:
   display_name: Python 3 (ipykernel)
   language: python
@@ -37,7 +37,7 @@ The model has a close-form solution for the mean and the variance
 
 ```{code-cell} ipython3
 from quantflow.sp.cir import CIR
-pr = CIR(1, kappa=0.8, sigma=0.8, theta=1.2)
+pr = CIR(kappa=0.8, sigma=0.8, theta=1.2)
 pr.is_positive
 ```
 

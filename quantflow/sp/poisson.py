@@ -1,8 +1,8 @@
 import numpy as np
+from pydantic import Field
 from scipy.stats import poisson, skellam
 
 from ..utils.functions import factorial
-from ..utils.param import Param, Parameters
 from ..utils.types import Vector
 from .base import CountingProcess1D, CountingProcess2D, Im
 
@@ -14,18 +14,7 @@ class PoissonProcess(CountingProcess1D):
     It's point process where the inter-arrival time is exponentially distributed
     with rate $\lambda$
     """
-
-    def __init__(self, rate: float) -> None:
-        self.rate = Param(
-            "lambda", rate, bounds=(0, None), description="intensity rate"
-        )
-
-    def __repr__(self) -> str:
-        return f"{self.__class__.__name__} {self.rate}"
-
-    @property
-    def parameters(self) -> Parameters:
-        return Parameters(self.rate)
+    rate: float = Field(default=1.0, ge=0, description="intensity rate")
 
     def pdf(self, t: float, n: Vector = 0) -> Vector:
         r"""
@@ -37,7 +26,7 @@ class PoissonProcess(CountingProcess1D):
            f_{X}\left(n\right)=\frac{\lambda^{n}e^{-\lambda}}{n!}
         \end{equation}
         """
-        return poisson.pmf(n, t * self.rate.value)
+        return poisson.pmf(n, t * self.rate)
 
     def cdf(self, t: float, n: Vector) -> Vector:
         r"""
@@ -53,7 +42,7 @@ class PoissonProcess(CountingProcess1D):
 
         where :math:`\Gamma` is the upper incomplete gamma function.
         """
-        return poisson.cdf(n, t * self.rate.value)
+        return poisson.cdf(n, t * self.rate)
 
     def cdf_jacobian(self, t: float, n: Vector) -> np.ndarray:
         r"""
@@ -67,11 +56,11 @@ class PoissonProcess(CountingProcess1D):
             n\right\rfloor }e^{-\lambda}}{\left\lfloor n\right\rfloor !}
         """
         k = np.floor(n).astype(int)
-        rate = self.rate.value
+        rate = self.rate
         return np.array([-(rate**k) * np.exp(-rate)]) / factorial(k)
 
     def characteristic_exponent(self, u: Vector) -> Vector:
-        return self.rate.value * (np.exp(Im * u) - 1)
+        return self.rate * (np.exp(Im * u) - 1)
 
     def characteristic(self, t: float, u: Vector) -> Vector:
         return np.exp(t * self.characteristic_exponent(u))
@@ -95,7 +84,7 @@ class PoissonProcess(CountingProcess1D):
 
     def arrivals(self, t: float = 1) -> list[float]:
         """Generate a list of jump arrivals times up to time t"""
-        exp_rate = 1.0 / self.rate.value
+        exp_rate = 1.0 / self.rate
         arrivals = []
         tt = 0.0
         while tt <= t:
@@ -202,14 +191,14 @@ class DoubleIndependentPoisson(CountingProcess2D):
         """
         Returns the marginal poisson processes of each of the two random variables
         """
-        return PoissonProcess(self.rate_left), PoissonProcess(self.rate_right)
+        return PoissonProcess(rate=self.rate_left), PoissonProcess(rate=self.rate_right)
 
     def sum_process(self) -> CountingProcess1D:
         """
         The sum process, which is just a :class:`PoissonProcess` with
         rate ``rate_left + rate_right``.
         """
-        return PoissonProcess(self.rate_left + self.rate_right)
+        return PoissonProcess(rate=self.rate_left + self.rate_right)
 
     def difference_process(self) -> CountingProcess1D:
         """
@@ -221,3 +210,28 @@ class DoubleIndependentPoisson(CountingProcess2D):
     def sample(self, n: int, t: float = 1, steps: int = 0) -> np.ndarray:
         """require implementation"""
         raise NotImplementedError
+
+
+class CompoundPoissonProcess(PoissonProcess):
+    pass
+
+
+class ExponentialPoissonProcess(CompoundPoissonProcess):
+    r"""
+    1D Poisson process.
+
+    It's a process where the inter-arrival time is exponentially distributed
+    with rate :math:`\lambda`
+
+    .. attribute:: rate
+
+        The arrival rate of events. Must be positive.
+    """
+    decay: float = Field(default=1.0, ge=0, description="Jump size decay rate")
+
+    def jumps(self, n: int) -> np.ndarray:
+        """Sample jump sizes from an exponential distribution with rate
+        parameter :class:b
+        """
+        exp_rate = 1.0 / self.decay
+        return np.random.exponential(scale=exp_rate, size=n)
