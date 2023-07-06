@@ -5,10 +5,12 @@ format: jb-book
 root: index
 chapters:
 - file: levy
+- file: poisson
 - file: inversion
 - file: option_pricing
 - file: heston
 - file: dsp
 - file: calibration
+- file: volatility_surface
 - file: contributing
 - file: biblio
