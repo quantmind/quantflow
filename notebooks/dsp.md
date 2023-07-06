@@ -16,7 +16,16 @@ kernelspec:
 
 ## Poisson Process
 
-+++
+```{code-cell} ipython3
+from quantflow.sp.poisson import PoissonProcess
+
+pr = PoissonProcess(rate=2)
+pr
+```
+
+```{code-cell} ipython3
+
+```
 
 ## Compound Poisson Process
 

@@ -1,9 +1,14 @@
-from typing import Self
+from typing import Any, Self
 
 import numpy as np
 import pandas as pd
 from pydantic import BaseModel, ConfigDict, Field
 from scipy.integrate import cumtrapz
+
+try:
+    import plotly.express as px  # type: ignore
+except ImportError:
+    px = None
 
 
 class Paths(BaseModel):
@@ -48,3 +53,8 @@ class Paths(BaseModel):
         return self.__class__(
             t=self.t, data=cumtrapz(self.data, dx=self.dt, axis=0, initial=0)
         )
+
+    def plot(self) -> Any:
+        if px is None:
+            raise ImportError("plotly is not installed")
+        return px.line(self.data, title="Paths")

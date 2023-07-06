@@ -37,7 +37,7 @@ The model has a close-form solution for the mean and the variance
 
 ```{code-cell} ipython3
 from quantflow.sp.cir import CIR
-pr = CIR(kappa=0.7, sigma=0.8, theta=1.2)
+pr = CIR(sigma=0.8)
 pr
 ```
 
@@ -46,23 +46,18 @@ pr.is_positive
 ```
 
 ```{code-cell} ipython3
-import plotly.express as px
-import plotly.graph_objects as go
-import pandas as pd
 p = pr.paths(10, t=1, steps=1000)
-fig = px.line(p.data)
-fig.show()
+p.plot()
+```
+
+Sampling with a mean reversion speed five times larger
+
+```{code-cell} ipython3
+pr.kappa = 5; pr
 ```
 
 ```{code-cell} ipython3
-pr.kappa = 20
-pr.sigma = 2
-pr
-```
-
-```{code-cell} ipython3
-p = pr.paths(10, t=1, steps=1000)
-px.line(p.data).show()
+pr.paths(10, t=1, steps=1000).plot()
 ```
 
 ```{code-cell} ipython3
@@ -78,7 +73,8 @@ chracteristic_fig(m, N, M).show()
 The code below show the computed PDF via FRFT and the [analytical formula](https://en.wikipedia.org/wiki/Cox%E2%80%93Ingersoll%E2%80%93Ross_model).
 
 ```{code-cell} ipython3
-dx = 8/N
+import plotly.graph_objects as go
+dx = 4/N
 r = m.pdf_from_characteristic(N, M, dx)
 fig = go.Figure()
 fig.add_trace(go.Scatter(x=r["x"], y=r["y"], mode="markers", name="computed"))
