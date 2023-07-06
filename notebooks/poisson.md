@@ -36,8 +36,12 @@ The library includes the Exponential Poisson Process, a compound Poisson process
 ```{code-cell} ipython3
 from quantflow.sp.poisson import ExponentialPoissonProcess
 
-p = ExponentialPoissonProcess(rate=1, decay=1)
-p
+pr = ExponentialPoissonProcess(rate=1, decay=10)
+pr
+```
+
+```{code-cell} ipython3
+pr.paths(10, t=1, steps=1000).plot()
 ```
 
 ## Doubly Stochastic Poisson Process
@@ -87,11 +91,3 @@ The intensity function of a DSPP is given by:
 \begin{equation}
 {\mathbb P}\left(N_T - N_t = n\right) = {\mathbb E}_t\left[e^{-\Lambda_{t,T}} \frac{\Lambda_{t, T}^n}{n!}\right] = \frac{1}{n!}
 \end{equation}
-
-```{code-cell} ipython3
-
-```
-
-```{code-cell} ipython3
-
-```
