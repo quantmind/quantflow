@@ -1,7 +1,9 @@
+from __future__ import annotations
+
 import math
 from datetime import timedelta
 from decimal import Decimal
-from typing import NamedTuple, Self
+from typing import NamedTuple
 
 from .numbers import to_decimal
 
@@ -11,7 +13,7 @@ class Rate(NamedTuple):
     frequency: int = 0
 
     @classmethod
-    def from_number(cls, rate: float, frequency: int = 0) -> Self:
+    def from_number(cls, rate: float, frequency: int = 0) -> Rate:
         return cls(rate=round(to_decimal(rate), 7), frequency=frequency)
 
     @property
