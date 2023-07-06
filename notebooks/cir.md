@@ -5,7 +5,7 @@ jupytext:
     extension: .md
     format_name: myst
     format_version: 0.13
-    jupytext_version: 1.13.8
+    jupytext_version: 1.14.7
 kernelspec:
   display_name: Python 3 (ipykernel)
   language: python
@@ -37,18 +37,27 @@ The model has a close-form solution for the mean and the variance
 
 ```{code-cell} ipython3
 from quantflow.sp.cir import CIR
-pr = CIR(1, kappa=0.8, sigma=0.8, theta=1.2)
+pr = CIR(sigma=0.8)
+pr
+```
+
+```{code-cell} ipython3
 pr.is_positive
 ```
 
 ```{code-cell} ipython3
-import plotly.express as px
-import plotly.graph_objects as go
-import pandas as pd
-p = pr.sample(10, t=1, steps=100)
-x = pd.DataFrame(p.data)
-fig = px.line(p.data)
-fig.show()
+p = pr.paths(10, t=1, steps=1000)
+p.plot()
+```
+
+Sampling with a mean reversion speed five times larger
+
+```{code-cell} ipython3
+pr.kappa = 5; pr
+```
+
+```{code-cell} ipython3
+pr.paths(10, t=1, steps=1000).plot()
 ```
 
 ```{code-cell} ipython3
@@ -64,17 +73,13 @@ chracteristic_fig(m, N, M).show()
 The code below show the computed PDF via FRFT and the [analytical formula](https://en.wikipedia.org/wiki/Cox%E2%80%93Ingersoll%E2%80%93Ross_model).
 
 ```{code-cell} ipython3
+import plotly.graph_objects as go
 dx = 4/N
 r = m.pdf_from_characteristic(N, M, dx)
 fig = go.Figure()
 fig.add_trace(go.Scatter(x=r["x"], y=r["y"], mode="markers", name="computed"))
 fig.add_trace(go.Scatter(x=r["x"], y=m.pdf(r["x"]), name="analytical", line=dict()))
 fig.show()
-```
-
-```{code-cell} ipython3
-import plotly
-plotly.__version__
 ```
 
 ```{code-cell} ipython3

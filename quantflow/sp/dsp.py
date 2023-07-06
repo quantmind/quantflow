@@ -1,14 +1,15 @@
 from typing import List
 
 import numpy as np
+from pydantic import Field
 
 from ..utils.types import Vector, as_array
-from .base import Im
-from .cir import IntensityProcess, Parameters
+from .base import CountingProcess1D, Im
+from .cir import IntensityProcess
 from .poisson import PoissonProcess
 
 
-class DSP(PoissonProcess):
+class DSP(CountingProcess1D):
     r"""
     Doubly Stochastic Poisson process.
 
@@ -17,17 +18,10 @@ class DSP(PoissonProcess):
 
     :param intensity: the stochastic intensity of the Poisson
     """
-
-    def __init__(self, intensity: IntensityProcess):
-        super().__init__(1)
-        self.intensity = intensity
-
-    def __repr__(self) -> str:
-        return f"{type(self).__name__} {self.intensity}"
-
-    @property
-    def parameters(self) -> Parameters:
-        return self.intensity.parameters
+    intensity: IntensityProcess = Field(
+        default_factory=IntensityProcess, description="intensity process"
+    )
+    poisson: PoissonProcess = Field(default_factory=PoissonProcess, exclude=True)
 
     def pdf(self, t: float, n: Vector = 0) -> Vector:
         """PDF of the number of events at time t.
@@ -50,10 +44,13 @@ class DSP(PoissonProcess):
         """
         return np.cumsum(self.pdf(t, n))
 
+    def characteristic_exponent(self, u: Vector) -> Vector:
+        return self.poisson.characteristic_exponent(u)
+
     def characteristic(self, t: float, u: Vector) -> Vector:
         phi = self.characteristic_exponent(u)
         return self.intensity.cumulative_characteristic(t, -Im * phi)
 
     def arrivals(self, t: float = 1) -> List[float]:
         paths = self.intensity.paths(1, t).integrate()
-        return super().arrivals(paths.data[-1, 0])
+        return self.poisson.arrivals(paths.data[-1, 0])

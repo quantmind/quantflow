@@ -4,24 +4,20 @@ from abc import ABC, abstractmethod
 from typing import Generic, Tuple, TypeVar, cast
 
 import numpy as np
+from pydantic import BaseModel, Field
 from scipy.optimize import Bounds
 
-from quantflow.utils.marginal import Marginal1D
-from quantflow.utils.param import Param, Parameters, default_bounds
+from quantflow.utils.marginal import Marginal1D, default_bounds
 from quantflow.utils.paths import Paths
 from quantflow.utils.types import Vector
 
 Im = 1j
 
 
-class StochasticProcess(ABC):
+class StochasticProcess(BaseModel, ABC):
     """
     Base class for stochastic processes in continuous time
     """
-
-    @property
-    def parameters(self) -> Parameters:
-        return Parameters()
 
     def sample(self, n: int, t: float = 1, steps: int = 0) -> np.ndarray:
         """Generate random paths from the process
@@ -52,13 +48,7 @@ class StochasticProcess(ABC):
         :param t: time horizon
         :param steps: number of time steps to arrive at horizon
         """
-        return Paths(t, self.sample(n, t, steps))
-
-    def __repr__(self) -> str:
-        return f"{type(self).__name__} {self.parameters}"
-
-    def __str__(self) -> str:
-        return self.__repr__()
+        return Paths(t=t, data=self.sample(n, t, steps))
 
 
 class StochasticProcess1D(StochasticProcess):
@@ -280,13 +270,8 @@ class IntensityProcess(StochasticProcess1D):
     as stochastic intensity
     """
 
-    def __init__(self, rate: float, kappa: float) -> None:
-        self.rate = Param(
-            "rate", rate, bounds=(0, None), description="Instantaneous initial rate"
-        )
-        self.kappa = Param(
-            "kappa", kappa, bounds=(0, None), description="Mean reversion speed"
-        )
+    rate: float = Field(default=1.0, gt=0, description="Instantaneous initial rate")
+    kappa: float = Field(default=1.0, gt=0, description="Mean reversion speed")
 
     @abstractmethod
     def cumulative_characteristic(self, t: float, u: Vector) -> Vector:

@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-from typing import Dict, Optional, Tuple
+from typing import Dict, Tuple
 
 import numpy as np
 from scipy.optimize import Bounds
@@ -61,8 +61,8 @@ class Transform:
         return delta_x * grid(self.n) + b0
 
     def __call__(
-        self, y: np.ndarray, delta_x: Optional[float] = None
-    ) -> Dict[str, np.ndarray]:
+        self, y: np.ndarray, delta_x: float | None = None
+    ) -> dict[str, np.ndarray]:
         return self.fft(y) if delta_x is None else self.frft(y, delta_x)
 
     def fft(self, y: np.ndarray) -> Dict[str, np.ndarray]:

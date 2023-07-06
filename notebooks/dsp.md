@@ -5,14 +5,42 @@ jupytext:
     extension: .md
     format_name: myst
     format_version: 0.13
-    jupytext_version: 1.13.8
+    jupytext_version: 1.14.7
 kernelspec:
   display_name: Python 3 (ipykernel)
   language: python
   name: python3
 ---
 
-# Doubly Stochastic Poisson Process
+# Poisson Processes
+
+## Poisson Process
+
+```{code-cell} ipython3
+from quantflow.sp.poisson import PoissonProcess
+pr = PoissonProcess(rate=2)
+pr
+```
+
+```{code-cell} ipython3
+p = pr.paths(10, t=1, steps=1000)
+p.plot()
+```
+
+## Compound Poisson Process
+
+The compound poisson process is a jump process, where the arrival of jumps follows the same dynamic as the Poisson process but the size of jumps is no longer constant and equal to 1, instead it follows a given distribution.
+
+The library includes the Exponential Poisson Process, a compound Poisson process where the jump sizes are sampled from an exponential distribution.
+
+```{code-cell} ipython3
+from quantflow.sp.poisson import ExponentialPoissonProcess
+
+p = ExponentialPoissonProcess(rate=1, decay=1)
+p
+```
+
+## Doubly Stochastic Poisson Process
 
 
 The aim is to identify a stochastic process for simulating the goal arrival which fulfills the following properties
@@ -22,7 +50,7 @@ The aim is to identify a stochastic process for simulating the goal arrival whic
 * Capture the inherent randomness of the goal intensity
 * Intuitive
 
-Before we dive into the details of the DSP process, lets take a quick tour of what Lévy processes are, how a time chage can open the doors to a vast array of models and why they are important in the context of DSP.
+Before we dive into the details of the DSP process, lets take a quick tour of what Lévy processes are, how a time chage can open the doors to a vast array of models and why they are important in the context of DSP.of DSP.
 
 +++
 
@@ -59,6 +87,10 @@ The intensity function of a DSPP is given by:
 \begin{equation}
 {\mathbb P}\left(N_T - N_t = n\right) = {\mathbb E}_t\left[e^{-\Lambda_{t,T}} \frac{\Lambda_{t, T}^n}{n!}\right] = \frac{1}{n!}
 \end{equation}
+
+```{code-cell} ipython3
+
+```
 
 ```{code-cell} ipython3
 
