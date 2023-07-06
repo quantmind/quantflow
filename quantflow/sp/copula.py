@@ -1,26 +1,20 @@
 from abc import ABC, abstractmethod
 from math import isclose
-from typing import Union
 
 import numpy as np
+from pydantic import BaseModel, Field
 
 from quantflow.utils.functions import debye
-from quantflow.utils.param import Param, Parameters
 from quantflow.utils.types import Vector
 
 
-class Copula(ABC):
+class Copula(BaseModel, ABC):
     """Bivariate copula probability distribution - Abstract class
 
     Sklar's theorem states that any multivariate joint distribution can be
     written in terms of univariate marginal-distribution functions and a
     copula which describes the dependence structure between the variables.
     """
-
-    parameters: Parameters = Parameters()
-
-    def __repr__(self) -> str:
-        return f"{type(self).__name__} {self.parameters}"
 
     @abstractmethod
     def __call__(self, u: Vector, v: Vector) -> Vector:
@@ -77,14 +71,10 @@ class FrankCopula(Copula):
         u\right)-1\right)\left(\exp\left(-\kappa
         v\right)-1\right)}{\exp\left(-\kappa\right)-1}\right]
     """
-
-    def __init__(self, kappa: Union[float, Param] = 0) -> None:
-        if not isinstance(kappa, Param):
-            kappa = Param("kappa", kappa, (None, None), "Frank copula parameter")
-        self.parameters = Parameters(kappa)
+    kappa: float = Field(default=0, description="Frank copula parameter")
 
     def __call__(self, u: Vector, v: Vector) -> Vector:
-        k = self.parameters.kappa
+        k = self.kappa
         if isclose(k, 0.0):
             return u * v
         eu = np.exp(-k * u)
@@ -94,20 +84,20 @@ class FrankCopula(Copula):
 
     def tau(self) -> float:
         """Kendall's tau"""
-        k = self.parameters.kappa
+        k = self.kappa
         if isclose(k, 0.0):
             return 0
         return 1 + 4 * (debye(1, k) - 1) / k
 
     def rho(self) -> float:
         """Spearman's rho"""
-        k = self.parameters.kappa
+        k = self.kappa
         if isclose(k, 0.0):
             return 0
         return 1 - 12 * (debye(2, -k) - debye(1, -k)) / k
 
     def jacobian(self, u: Vector, v: Vector) -> np.ndarray:
-        k = self.parameters.kappa
+        k = self.kappa
         if isclose(k, 0.0):
             return np.array([v, u, v * 0])
         eu = np.exp(-k * u)

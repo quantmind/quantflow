@@ -3,9 +3,9 @@ from __future__ import annotations
 from functools import lru_cache
 
 import numpy as np
+from pydantic import Field
 from scipy.stats import norm
 
-from ..utils.param import Param, Parameters
 from ..utils.types import Vector
 from .base import StochasticProcess1D, StochasticProcess1DMarginal
 
@@ -23,26 +23,19 @@ class Weiner(StochasticProcess1D):
         d v_t = (a - \kappa v_t) dt + \nu \sqrt{v_t} dw^2_t
         \rho dt = \E[dw^1 dw^2]
     """
-
-    def __init__(self, sigma: float = 1) -> None:
-        super().__init__()
-        self.sigma = Param("sigma", sigma, bounds=(0, None), description="volatility")
-
-    @property
-    def parameters(self) -> Parameters:
-        return Parameters(self.sigma)
+    sigma: float = Field(default=1, ge=0, description="volatility")
 
     def marginal(self, t: float, N: int = 128) -> StochasticProcess1DMarginal:
         return WeinerMarginal(self, t, N)
 
     def characteristic(self, t: float, u: Vector) -> Vector:
-        su = self.sigma.value * u
+        su = self.sigma * u
         return np.exp(-0.5 * su * su * t)
 
 
 class WeinerMarginal(StochasticProcess1DMarginal[Weiner]):
     def variance(self) -> float:
-        s = self.process.sigma.value
+        s = self.process.sigma
         return s * s * self.t
 
     @lru_cache

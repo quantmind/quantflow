@@ -1,3 +1,5 @@
+import enum
+
 import numpy as np
 from numpy.random import normal
 from pydantic import Field
@@ -6,6 +8,11 @@ from scipy import special
 from quantflow.utils.types import Vector
 
 from .base import Im, IntensityProcess
+
+
+class SamplingAlgorithm(str, enum.Enum):
+    euler = "euler"
+    implicit = "implicit"
 
 
 class CIR(IntensityProcess):
@@ -30,6 +37,9 @@ class CIR(IntensityProcess):
     """
     sigma: float = Field(default=1.0, gt=0, description="Volatility")
     theta: float = Field(default=1.0, gt=0, description="Mean rate")
+    sample_algo: SamplingAlgorithm = Field(
+        default=SamplingAlgorithm.implicit, description="Sampling algorithm", repr=False
+    )
 
     @property
     def is_positive(self) -> bool:
@@ -66,6 +76,12 @@ class CIR(IntensityProcess):
         )
 
     def sample(self, n: int, t: float = 1, steps: int = 0) -> np.ndarray:
+        if self.sample_algo == SamplingAlgorithm.euler:
+            return self.sample_euler(n, t, steps)
+        else:
+            return self.sample_implicit(n, t, steps)
+
+    def sample_euler(self, n: int, t: float = 1, steps: int = 0) -> np.ndarray:
         size, dt = self.sample_dt(t, steps)
         kappa = self.kappa
         theta = self.theta
@@ -78,6 +94,26 @@ class CIR(IntensityProcess):
                 x = paths[i, p]
                 dx = kappa * (theta - x) * dt + np.sqrt(x) * w[i]
                 paths[i + 1, p] = x + dx
+        return paths
+
+    def sample_implicit(self, n: int, t: float = 1, steps: int = 0) -> np.ndarray:
+        """Use an implicit scheme to preserve positivity of the process."""
+        size, dt = self.sample_dt(t, steps)
+        kappa = self.kappa
+        theta = self.theta
+        sigma = self.sigma
+        kdt2 = 2 * (kappa * dt + 1)
+        kts = (kappa * theta - 0.5 * sigma * sigma) * dt
+        sdt = self.sigma * np.sqrt(dt)
+        paths = np.zeros((size + 1, n))
+        paths[0, :] = self.rate
+        for p in range(n):
+            w = normal(scale=sdt, size=size)
+            for i in range(size):
+                x = paths[i, p]
+                sw = w[i]
+                xs = (sw + np.sqrt(sw * sw + 2 * (x + kts) * kdt2)) / kdt2
+                paths[i + 1, p] = xs * xs
         return paths
 
     def characteristic(self, t: float, u: Vector) -> Vector:

@@ -48,7 +48,7 @@ class StochasticProcess(BaseModel, ABC):
         :param t: time horizon
         :param steps: number of time steps to arrive at horizon
         """
-        return Paths(t, self.sample(n, t, steps))
+        return Paths(t=t, data=self.sample(n, t, steps))
 
 
 class StochasticProcess1D(StochasticProcess):

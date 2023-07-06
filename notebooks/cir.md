@@ -37,7 +37,11 @@ The model has a close-form solution for the mean and the variance
 
 ```{code-cell} ipython3
 from quantflow.sp.cir import CIR
-pr = CIR(kappa=0.8, sigma=0.8, theta=1.2)
+pr = CIR(kappa=0.7, sigma=0.8, theta=1.2)
+pr
+```
+
+```{code-cell} ipython3
 pr.is_positive
 ```
 
@@ -45,10 +49,20 @@ pr.is_positive
 import plotly.express as px
 import plotly.graph_objects as go
 import pandas as pd
-p = pr.sample(10, t=1, steps=100)
-x = pd.DataFrame(p.data)
+p = pr.paths(10, t=1, steps=1000)
 fig = px.line(p.data)
 fig.show()
+```
+
+```{code-cell} ipython3
+pr.kappa = 20
+pr.sigma = 2
+pr
+```
+
+```{code-cell} ipython3
+p = pr.paths(10, t=1, steps=1000)
+px.line(p.data).show()
 ```
 
 ```{code-cell} ipython3
@@ -64,17 +78,12 @@ chracteristic_fig(m, N, M).show()
 The code below show the computed PDF via FRFT and the [analytical formula](https://en.wikipedia.org/wiki/Cox%E2%80%93Ingersoll%E2%80%93Ross_model).
 
 ```{code-cell} ipython3
-dx = 4/N
+dx = 8/N
 r = m.pdf_from_characteristic(N, M, dx)
 fig = go.Figure()
 fig.add_trace(go.Scatter(x=r["x"], y=r["y"], mode="markers", name="computed"))
 fig.add_trace(go.Scatter(x=r["x"], y=m.pdf(r["x"]), name="analytical", line=dict()))
 fig.show()
-```
-
-```{code-cell} ipython3
-import plotly
-plotly.__version__
 ```
 
 ```{code-cell} ipython3

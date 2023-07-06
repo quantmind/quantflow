@@ -1,14 +1,17 @@
-from typing import List
+from typing import Self
 
 import numpy as np
 import pandas as pd
+from pydantic import BaseModel, ConfigDict, Field
 from scipy.integrate import cumtrapz
 
 
-class Paths:
-    def __init__(self, t: float, data: np.ndarray) -> None:
-        self.t = t
-        self.data = data
+class Paths(BaseModel):
+    """Paths of a stochastic process"""
+
+    model_config = ConfigDict(arbitrary_types_allowed=True)
+    t: float = Field(description="time horizon")
+    data: np.ndarray = Field(description="paths")
 
     @property
     def dt(self) -> float:
@@ -31,17 +34,17 @@ class Paths:
         return pd.DataFrame(self.data)
 
     @property
-    def xs(self) -> List:
+    def xs(self) -> list[np.ndarray]:
         """Time as list of list (for visualization tools)"""
         return self.samples * [self.time]
 
     @property
-    def ys(self) -> List:
+    def ys(self) -> list[list[float]]:
         """Paths as list of list (for visualization tools)"""
         return self.data.transpose().tolist()
 
-    def integrate(self) -> "Paths":
+    def integrate(self) -> Self:
         """Integrate paths"""
         return self.__class__(
-            self.t, cumtrapz(self.data, dx=self.dt, axis=0, initial=0)
+            t=self.t, data=cumtrapz(self.data, dx=self.dt, axis=0, initial=0)
         )
