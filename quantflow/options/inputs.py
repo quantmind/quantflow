@@ -46,4 +46,4 @@ class OptionSidesInput(VolSurfaceInput[OptionInput]):
 
 class VolSurfaceInputs(BaseModel):
     ref_date: datetime
-    inputs: list[SpotInput | ForwardInput | OptionSidesInput]
+    inputs: list[ForwardInput | SpotInput | OptionSidesInput]

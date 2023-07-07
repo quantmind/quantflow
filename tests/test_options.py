@@ -46,3 +46,5 @@ def test_ditm_black_pricing():
 
 def test_vol_surface(vol_surface: VolSurface):
     assert vol_surface.ref_date
+    ts = vol_surface.term_structure()
+    assert len(ts) == 8

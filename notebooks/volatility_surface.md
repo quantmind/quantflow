@@ -105,5 +105,13 @@ vs2
 ```
 
 ```{code-cell} ipython3
+inputs = vs.inputs()
+```
+
+```{code-cell} ipython3
+inputs.inputs[1]
+```
+
+```{code-cell} ipython3
 
 ```

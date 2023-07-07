@@ -391,7 +391,7 @@ class VolSurfaceLoader(GenericVolSurfaceLoader[VolSecurityType]):
     def add(self, input: VolSurfaceInput[Any]) -> None:
         if isinstance(input, SpotInput):
             self.add_spot(VolSecurityType.spot, bid=input.bid, ask=input.ask)
-        elif isinstance(input, FwdPrice):
+        elif isinstance(input, ForwardInput):
             self.add_forward(
                 VolSecurityType.forward,
                 maturity=input.maturity,
