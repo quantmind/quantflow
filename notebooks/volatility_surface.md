@@ -74,7 +74,7 @@ vs.term_structure()
 This method allows to inspect bid/ask for call options at a given cross section. Prices of options are normalized by the Forward price, in other words they are given as base currency price, in this case BTC.
 
 ```{code-cell} ipython3
-vs.options_df(index=2)
+vs.options_df(index=1)
 ```
 
 ```{code-cell} ipython3
@@ -98,20 +98,4 @@ with  open("../tests/volsurface.json", "r") as fp:
     inputs = VolSurfaceInputs(**json.load(fp))
 
 vs2 = surface_from_inputs(inputs)
-```
-
-```{code-cell} ipython3
-vs2
-```
-
-```{code-cell} ipython3
-inputs = vs.inputs()
-```
-
-```{code-cell} ipython3
-inputs.inputs[1]
-```
-
-```{code-cell} ipython3
-
 ```

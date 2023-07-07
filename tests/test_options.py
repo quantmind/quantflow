@@ -48,3 +48,15 @@ def test_vol_surface(vol_surface: VolSurface):
     assert vol_surface.ref_date
     ts = vol_surface.term_structure()
     assert len(ts) == 8
+    options = vol_surface.options_df()
+    crosses = []
+    for index in range(0, len(vol_surface.maturities)):
+        crosses.append(vol_surface.options_df(index=index))
+    assert len(crosses) == 8
+    assert len(options) == sum(len(cross) for cross in crosses)
+
+
+def test_same_vol_surface(vol_surface: VolSurface):
+    inputs = vol_surface.inputs()
+    vol_surface2 = surface_from_inputs(inputs)
+    assert vol_surface == vol_surface2
