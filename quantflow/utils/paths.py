@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import os
 from typing import Any
 
 import numpy as np
@@ -8,12 +7,7 @@ import pandas as pd
 from pydantic import BaseModel, ConfigDict, Field
 from scipy.integrate import cumtrapz
 
-try:
-    import plotly.express as px  # type: ignore
-except ImportError:
-    px = None
-
-PLOTLY_THEME = os.environ.get("PLOTLY_THEME", "plotly_dark")
+from . import plot
 
 
 class Paths(BaseModel):
@@ -59,7 +53,5 @@ class Paths(BaseModel):
             t=self.t, data=cumtrapz(self.data, dx=self.dt, axis=0, initial=0)
         )
 
-    def plot(self, template: str = PLOTLY_THEME) -> Any:
-        if px is None:
-            raise ImportError("plotly is not installed")
-        return px.line(self.data, title="Paths", template=template)
+    def plot(self) -> Any:
+        return plot.plot_lines(self.data)

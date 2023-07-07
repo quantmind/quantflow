@@ -3,13 +3,15 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
 from decimal import Decimal
-from typing import Any, Generic, Iterator, Protocol, TypeVar
+from typing import Any, Generic, Iterator, NamedTuple, Protocol, TypeVar
 
 import numpy as np
 import pandas as pd
 
-from ..utils.interest_rates import rate_from_spot_and_forward
-from .bs import implied_black_volatility
+from quantflow.utils import plot
+from quantflow.utils.interest_rates import rate_from_spot_and_forward
+
+from .bs import black_price, implied_black_volatility_full_result
 from .inputs import (
     ForwardInput,
     OptionInput,
@@ -83,6 +85,9 @@ class OptionPrice:
     ttm: float = 0
     """Time to maturity in years"""
     side: str = "bid"
+    """Side of the market"""
+    converged: bool = True
+    """Flag indicating if implied vol calculation converged"""
 
     @property
     def moneyness(self) -> float:
@@ -95,6 +100,22 @@ class OptionPrice:
     @property
     def forward_price(self) -> Decimal:
         return self.forward * self.price
+
+    @property
+    def price_intrinsic(self) -> Decimal:
+        if self.call:
+            return max(self.forward - self.strike, ZERO) / self.forward
+        else:
+            return max(self.strike - self.forward, ZERO) / self.forward
+
+    @property
+    def price_time(self) -> Decimal:
+        return self.price - self.price_intrinsic
+
+    def can_price(self, converged: bool) -> bool:
+        if self.price_time > ZERO:
+            return self.converged if converged else True
+        return False
 
     def inputs(self) -> OptionInput:
         return OptionInput(
@@ -119,6 +140,14 @@ class OptionPrice:
         )
 
 
+class OptionArrays(NamedTuple):
+    options: list[OptionPrice]
+    moneyness: np.ndarray
+    price: np.ndarray
+    ttm: np.ndarray
+    implied_vol: np.ndarray
+
+
 @dataclass
 class OptionPrices(Generic[S]):
     security: S
@@ -130,13 +159,15 @@ class OptionPrices(Generic[S]):
         forward: Decimal,
         ttm: float,
         initial_vol: float,
+        converged: bool = True,
     ) -> Iterator[OptionPrice]:
         for o in (self.bid, self.ask):
             o.forward = forward
             o.ttm = ttm
             if not o.implied_vol:
                 o.implied_vol = initial_vol
-            yield o
+            if o.can_price(converged):
+                yield o
 
     def inputs(self) -> OptionSidesInput:
         return OptionSidesInput(
@@ -157,11 +188,12 @@ class Strike(Generic[S]):
         ttm: float,
         call: bool = True,
         initial_vol: float = INITIAL_VOL,
+        converged: bool = True,
     ) -> Iterator[OptionPrice]:
         if call and self.call:
-            yield from self.call.prices(forward, ttm, initial_vol)
+            yield from self.call.prices(forward, ttm, initial_vol, converged)
         if not call and self.put:
-            yield from self.put.prices(forward, ttm, initial_vol)
+            yield from self.put.prices(forward, ttm, initial_vol, converged)
 
 
 @dataclass
@@ -184,12 +216,20 @@ class VolCrossSection(Generic[S]):
         )
 
     def option_prices(
-        self, ref_date: datetime, call: bool = True, initial_vol: float = INITIAL_VOL
+        self,
+        ref_date: datetime,
+        call: bool = True,
+        initial_vol: float = INITIAL_VOL,
+        converged: bool = True,
     ) -> Iterator[OptionPrice]:
         ttm = time_to_maturity(self.maturity, ref_date)
         for s in self.strikes:
             yield from s.option_prices(
-                self.forward.mid, ttm, call, initial_vol=initial_vol
+                self.forward.mid,
+                ttm,
+                call,
+                initial_vol=initial_vol,
+                converged=converged,
             )
 
     def securities(self) -> Iterator[FwdPrice[S] | OptionPrices[S]]:
@@ -208,6 +248,16 @@ class VolSurface(Generic[S]):
     spot: SpotPrice[S]
     maturities: tuple[VolCrossSection[S], ...]
 
+    def securities(self) -> Iterator[SpotPrice[S] | FwdPrice[S] | OptionPrices[S]]:
+        yield self.spot
+        for maturity in self.maturities:
+            yield from maturity.securities()
+
+    def inputs(self) -> VolSurfaceInputs:
+        return VolSurfaceInputs(
+            ref_date=self.ref_date, inputs=list(s.inputs() for s in self.securities())
+        )
+
     def term_structure(self, frequency: float = 0) -> pd.DataFrame:
         """Return the term structure of the volatility surface"""
         return pd.DataFrame(
@@ -220,17 +270,31 @@ class VolSurface(Generic[S]):
         call: bool = True,
         index: int | None = None,
         initial_vol: float = INITIAL_VOL,
+        converged: bool = True,
     ) -> Iterator[OptionPrice]:
         "Iterator over all option prices in the surface"
         if index is not None:
             yield from self.maturities[index].option_prices(
-                self.ref_date, call=call, initial_vol=initial_vol
+                self.ref_date, call=call, initial_vol=initial_vol, converged=converged
             )
         else:
             for maturity in self.maturities:
                 yield from maturity.option_prices(
-                    self.ref_date, call=call, initial_vol=initial_vol
+                    self.ref_date,
+                    call=call,
+                    initial_vol=initial_vol,
+                    converged=converged,
                 )
+
+    def option_list(
+        self,
+        *,
+        call: bool = True,
+        index: int | None = None,
+        converged: bool = True,
+    ) -> list[OptionPrice]:
+        "List of all option prices in the surface"
+        return list(self.option_prices(call=call, index=index, converged=converged))
 
     def bs(
         self,
@@ -238,27 +302,31 @@ class VolSurface(Generic[S]):
         call: bool = True,
         index: int | None = None,
         initial_vol: float = INITIAL_VOL,
-    ) -> VolSurface:
+    ) -> list[OptionPrice]:
         """calculate Black-Scholes implied volatilities for all options
         in the surface"""
-        options = list(
-            self.option_prices(call=call, index=index, initial_vol=initial_vol)
+        d = self.as_array(
+            call=call, index=index, initial_vol=initial_vol, converged=False
         )
-        moneyness = []
-        ttm = []
-        price = []
-        vol = []
-        for option in options:
-            moneyness.append(float(option.moneyness))
-            ttm.append(float(option.ttm))
-            price.append(float(option.price))
-            vol.append(float(option.implied_vol))
-        result = implied_black_volatility(
-            np.array(moneyness), np.array(ttm), np.array(price), np.array(vol)
+        result = implied_black_volatility_full_result(
+            k=d.moneyness,
+            price=d.price,
+            ttm=d.ttm,
+            initial_sigma=d.implied_vol,
         )
-        for option, implied_vol in zip(options, result):
-            option.implied_vol = implied_vol
-        return self
+        for option, implied_vol, converged in zip(
+            d.options, result.root, result.converged
+        ):
+            option.implied_vol = float(implied_vol)
+            option.converged = converged
+        return d.options
+
+    def calc_bs_prices(
+        self, *, call: bool = True, index: int | None = None
+    ) -> np.ndarray:
+        """calculate Black-Scholes prices for all options in the surface"""
+        d = self.as_array(call=call, index=index)
+        return black_price(k=d.moneyness, sigma=d.implied_vol, ttm=d.ttm)
 
     def options_df(
         self,
@@ -266,20 +334,51 @@ class VolSurface(Generic[S]):
         call: bool = True,
         index: int | None = None,
         initial_vol: float = INITIAL_VOL,
+        converged: bool = True,
     ) -> pd.DataFrame:
         """Time frame of Black-Scholes call input data"""
-        data = self.option_prices(call=call, index=index, initial_vol=initial_vol)
+        data = self.option_prices(
+            call=call, index=index, initial_vol=initial_vol, converged=converged
+        )
         return pd.DataFrame([d._asdict() for d in data])
 
-    def securities(self) -> Iterator[SpotPrice[S] | FwdPrice[S] | OptionPrices[S]]:
-        yield self.spot
-        for maturity in self.maturities:
-            yield from maturity.securities()
-
-    def inputs(self) -> VolSurfaceInputs:
-        return VolSurfaceInputs(
-            ref_date=self.ref_date, inputs=list(s.inputs() for s in self.securities())
+    def as_array(
+        self,
+        *,
+        call: bool = True,
+        index: int | None = None,
+        initial_vol: float = INITIAL_VOL,
+        converged: bool = True,
+    ) -> OptionArrays:
+        """Organize option prices in a numpy arrays for black volatility calculation"""
+        options = list(
+            self.option_prices(
+                call=call, index=index, initial_vol=initial_vol, converged=converged
+            )
         )
+        moneyness = []
+        ttm = []
+        price = []
+        vol = []
+        for option in options:
+            moneyness.append(float(option.moneyness))
+            price.append(float(option.price))
+            ttm.append(float(option.ttm))
+            vol.append(float(option.implied_vol))
+        return OptionArrays(
+            options=options,
+            moneyness=np.array(moneyness),
+            price=np.array(price),
+            ttm=np.array(ttm),
+            implied_vol=np.array(vol),
+        )
+
+    def plot(
+        self, *, index: int | None = None, call: bool = True, **kwargs: Any
+    ) -> Any:
+        """Plot the volatility surface"""
+        df = self.options_df(index=index, call=call)
+        return plot.plot_vol_surface(df, **kwargs)
 
 
 @dataclass
@@ -374,6 +473,7 @@ class GenericVolSurfaceLoader(Generic[S]):
         )
 
     def surface(self, ref_date: datetime | None = None) -> VolSurface[S]:
+        """Build a volatility surface from the provided data"""
         if not self.spot or self.spot.mid == ZERO:
             raise ValueError("No spot price provided")
         maturities = []

@@ -73,12 +73,15 @@ vs.term_structure()
 
 This method allows to inspect bid/ask for call options at a given cross section. Prices of options are normalized by the Forward price, in other words they are given as base currency price, in this case BTC.
 
+To find the black implied volatility run the `bs` method.
+
 ```{code-cell} ipython3
-vs.options_df(index=1)
+vs.bs(index=2)
+vs.options_df(index=2)
 ```
 
 ```{code-cell} ipython3
-vs.bs(index=2).options_df(index=2)
+vs.plot(index=3)
 ```
 
 ## Serialization

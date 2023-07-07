@@ -19,7 +19,7 @@ import plotly.express as px
 import plotly.io as pio
 
 from quantflow.utils.marginal import Marginal1D
-from quantflow.utils.paths import PLOTLY_THEME
+from quantflow.utils.plot import PLOTLY_THEME
 
 pio.templates.default = PLOTLY_THEME
 
