@@ -53,5 +53,5 @@ class Paths(BaseModel):
             t=self.t, data=cumtrapz(self.data, dx=self.dt, axis=0, initial=0)
         )
 
-    def plot(self) -> Any:
-        return plot.plot_lines(self.data)
+    def plot(self, **kwargs: Any) -> Any:
+        return plot.plot_lines(self.data, **kwargs)

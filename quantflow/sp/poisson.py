@@ -4,7 +4,7 @@ from scipy.stats import poisson, skellam
 
 from ..utils.functions import factorial
 from ..utils.types import Vector
-from .base import CountingProcess1D, CountingProcess2D, Im
+from .base import CountingProcess1D, CountingProcess2D, Im, StochasticProcess1DMarginal
 
 
 class PoissonProcess(CountingProcess1D):
@@ -16,25 +16,8 @@ class PoissonProcess(CountingProcess1D):
     """
     rate: float = Field(default=1.0, ge=0, description="intensity rate")
 
-    def mean(self, t: float) -> float:
-        """Expected value at a time horizon"""
-        return self.rate * t
-
-    def variance(self, t: float) -> float:
-        """Expected variance at a time horizon"""
-        return self.rate * t
-
-    def pdf(self, t: float, n: Vector = 0) -> Vector:
-        r"""
-        Probability density function of the number of events at time ``t``.
-
-        It's given by
-
-        \begin{equation}
-           f_{X}\left(n\right)=\frac{\lambda^{n}e^{-\lambda}}{n!}
-        \end{equation}
-        """
-        return poisson.pmf(n, t * self.rate)
+    def marginal(self, t: float, N: int = 128) -> StochasticProcess1DMarginal:
+        return PoissonMarginal(self, t, N)
 
     def cdf(self, t: float, n: Vector) -> Vector:
         r"""
@@ -243,3 +226,25 @@ class ExponentialPoissonProcess(CompoundPoissonProcess):
         """
         exp_rate = 1.0 / self.decay
         return np.random.exponential(scale=exp_rate, size=n)
+
+
+class PoissonMarginal(StochasticProcess1DMarginal[PoissonProcess]):
+    def mean(self) -> float:
+        """Expected value at a time horizon"""
+        return self.process.rate * self.t
+
+    def variance(self) -> float:
+        """Expected variance at a time horizon"""
+        return self.process.rate * self.t
+
+    def pdf(self, n: Vector = 0) -> Vector:
+        r"""
+        Probability density function of the number of events at time ``t``.
+
+        It's given by
+
+        \begin{equation}
+           f_{X}\left(n\right)=\frac{\lambda^{n}e^{-\lambda}}{n!}
+        \end{equation}
+        """
+        return poisson.pmf(n, self.t * self.process.rate)

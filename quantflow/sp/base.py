@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from abc import ABC, abstractmethod
-from typing import Generic, Tuple, TypeVar, cast
+from typing import Generic, Tuple, TypeVar
 
 import numpy as np
 from pydantic import BaseModel, Field
@@ -114,38 +114,6 @@ class StochasticProcess1D(StochasticProcess):
         :param u: characteristic function input parameter
         """
         raise NotImplementedError
-
-    def mean(self, t: float) -> float:
-        """Expected value at a time horizon"""
-        return self.mean_from_characteristic(t)
-
-    def std(self, t: float) -> float:
-        """Standard deviation at a time horizon"""
-        return np.sqrt(self.variance(t))
-
-    def std_norm(self, t: float) -> float:
-        """Standard deviation at a time horizon normalized by the time"""
-        return np.sqrt(self.variance(t) / t)
-
-    def variance(self, t: float) -> float:
-        """Variance at a time horizon"""
-        return self.variance_from_characteristic(t)
-
-    def mean_from_characteristic(self, t: float) -> float:
-        """Calculate mean as first derivative of characteristic function at 0"""
-        d = 0.001
-        m = -0.5 * Im * (self.characteristic(t, d) - self.characteristic(t, -d)) / d
-        return cast(float, m.real)
-
-    def variance_from_characteristic(self, t: float) -> float:
-        """Calculate variance as second derivative of characteristic function at 0"""
-        d = 0.001
-        c1 = self.characteristic(t, d)
-        c0 = self.characteristic(t, 0)
-        c2 = self.characteristic(t, -d)
-        m = -0.5 * Im * (c1 - c2) / d
-        s = -(c1 - 2 * c0 + c2) / (d * d) - m * m
-        return cast(float, s.real)
 
     def domain_range(self) -> Bounds:
         return default_bounds()

@@ -7,7 +7,7 @@ from scipy import special
 
 from quantflow.utils.types import Vector
 
-from .base import Im, IntensityProcess
+from .base import Im, IntensityProcess, StochasticProcess1DMarginal
 
 
 class SamplingAlgorithm(str, enum.Enum):
@@ -43,37 +43,14 @@ class CIR(IntensityProcess):
 
     @property
     def is_positive(self) -> bool:
-        return self.kappa * self.theta >= 0.5 * self.sigma * self.sigma
+        return self.kappa * self.theta >= 0.5 * self.sigma2
 
-    def pdf(self, t: float, x: Vector) -> Vector:
-        k = self.kappa
-        s2 = self.sigma * self.sigma
-        ekt = np.exp(-k * t)
-        c = 2 * k / (1 - ekt) / s2
-        q = 2 * k * self.theta / s2 - 1
-        u = c * ekt * self.rate
-        v = c * x
-        return (
-            c
-            * np.exp(-v - u)
-            * np.power(v / u, 0.5 * q)
-            * special.iv(q, 2 * np.sqrt(u * v))
-        )
+    @property
+    def sigma2(self) -> float:
+        return self.sigma * self.sigma
 
-    def mean(self, t: float) -> float:
-        ekt = np.exp(-self.kappa * t)
-        return self.rate * ekt + self.theta * (1 - ekt)
-
-    def std(self, t: float) -> float:
-        kappa = self.kappa
-        ekt = np.exp(-kappa * t)
-        return np.sqrt(
-            self.sigma
-            * self.sigma
-            * (1 - ekt)
-            * (self.rate * ekt + 0.5 * self.theta * (1 - ekt))
-            / kappa
-        )
+    def marginal(self, t: float, N: int = 128) -> StochasticProcess1DMarginal:
+        return CIRMarginal(self, t, N)
 
     def sample(self, n: int, t: float = 1, steps: int = 0) -> np.ndarray:
         if self.sample_algo == SamplingAlgorithm.euler:
@@ -141,3 +118,34 @@ class CIR(IntensityProcess):
         a = 2 * self.theta * kappa * np.log(-d / c) / sigma2
         b = 2 * iu * (1 - egt) / c
         return np.exp(a + b * self.rate)
+
+
+class CIRMarginal(StochasticProcess1DMarginal[CIR]):
+    def mean(self) -> float:
+        ekt = np.exp(-self.process.kappa * self.t)
+        return self.process.rate * ekt + self.process.theta * (1 - ekt)
+
+    def std(self) -> float:
+        kappa = self.process.kappa
+        ekt = np.exp(-kappa * self.t)
+        return np.sqrt(
+            self.process.sigma2
+            * (1 - ekt)
+            * (self.process.rate * ekt + 0.5 * self.process.theta * (1 - ekt))
+            / kappa
+        )
+
+    def pdf(self, x: Vector) -> Vector:
+        k = self.process.kappa
+        s2 = self.process.sigma2
+        ekt = np.exp(-k * self.t)
+        c = 2 * k / (1 - ekt) / s2
+        q = 2 * k * self.process.theta / s2 - 1
+        u = c * ekt * self.process.rate
+        v = c * x
+        return (
+            c
+            * np.exp(-v - u)
+            * np.power(v / u, 0.5 * q)
+            * special.iv(q, 2 * np.sqrt(u * v))
+        )

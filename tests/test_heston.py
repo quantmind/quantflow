@@ -11,5 +11,6 @@ def heston() -> Heston:
 def test_characteristic(heston: Heston) -> None:
     assert heston.variance_process.is_positive is True
     assert heston.characteristic(1, 0) == 1
-    assert heston.mean(1) == 0.0
-    assert pytest.approx(heston.std(1)) == 0.5
+    m = heston.marginal(1)
+    assert m.mean() == 0.0
+    assert pytest.approx(m.std()) == 0.5

@@ -14,6 +14,8 @@ def default_bounds() -> Bounds:
 
 
 class Marginal1D(ABC):
+    """Marginal distribution"""
+
     def mean(self) -> float:
         """Expected value at a time horizon"""
         return self.mean_from_characteristic()
