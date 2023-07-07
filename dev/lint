@@ -11,4 +11,4 @@ fi
 
 black quantflow tests ${BLACK_ARG}
 ruff quantflow tests ${RUFF_ARG}
-mypy quantflow
+mypy quantflow tests

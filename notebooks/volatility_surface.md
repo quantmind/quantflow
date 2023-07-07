@@ -19,6 +19,7 @@ First thing, fetch the data
 
 ```{code-cell} ipython3
 from quantflow.data.client import HttpClient
+
 deribit_url = "https://test.deribit.com/api/v2/public/get_book_summary_by_currency"
 async with HttpClient() as cli:
     futures = await cli.get(deribit_url, params=dict(currency="BTC", kind="future"))
@@ -35,6 +36,7 @@ def parse_maturity(v: str):
     return parse(v).replace(tzinfo=timezone.utc, hour=8)
     
 loader = VolSurfaceLoader()
+
 for future in futures["result"]:
     if (bid := future["bid_price"]) and (ask := future["ask_price"]):
         maturity = future["instrument_name"].split("-")[-1]
@@ -53,14 +55,14 @@ for option in options["result"]:
     
 ```
 
-Once we have loaded the data, lets create the surface and display the term-structure of forwards
+Once we have loaded the data, we create the surface and display the term-structure of forwards
 
 ```{code-cell} ipython3
 vs = loader.surface()
 vs.term_structure()
 ```
 
-This method allows to inspect bid/ask for call options at a given cross section
+This method allows to inspect bid/ask for call options at a given cross section. Prices of options are normalized by the Forward price, in other words they are given as base currency price, in this case BTC.
 
 ```{code-cell} ipython3
 vs.options_df(index=2)

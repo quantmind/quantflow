@@ -4,8 +4,11 @@ from scipy.stats import norm
 
 
 def black_call(k: np.ndarray, sigma: np.ndarray, t: np.ndarray) -> np.ndarray:
-    """Calculate the Black call option price from the log strike,
-    volatility and time to maturity
+    """Calculate the Black call option price from
+
+    1) a vector of log(strikes/forward)
+    2) a corresponding vector of implied volatilities (0.2 for 20%)
+    3) time to maturity
     """
     sig2 = sigma * sigma * t
     sig = np.sqrt(sig2)
@@ -28,6 +31,7 @@ def implied_black_volatility(
     k: np.ndarray, price: np.ndarray, ttm: np.ndarray, initial_sigma: np.ndarray
 ) -> np.ndarray:
     """Calculate the implied block volatility from
+
     1) a vector of log(strikes/forward)
     2) a corresponding vector of call_price/forward
     3) time to maturity and

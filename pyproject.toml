@@ -60,9 +60,12 @@ select = ["E", "F"]
 extend-exclude = ["fluid_apps/db/migrations"]
 line-length = 88
 
+[tool.hatch.version]
+path = "quantflow/__init__.py"
 
 [tool.mypy]
-disallow_untyped_calls = false
+# strict = true
+disallow_untyped_calls = true
 disallow_untyped_defs = true
 warn_no_return = true
 exclude = [
@@ -70,6 +73,10 @@ exclude = [
     "quantflow/sp/combined.py",
     "quantflow/sp/derived.py"
 ]
+
+[[tool.mypy.overrides]]
+module = "tests.*"
+disallow_untyped_defs = false
 
 [[tool.mypy.overrides]]
 module = "IPython.*"

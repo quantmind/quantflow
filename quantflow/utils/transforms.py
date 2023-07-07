@@ -1,7 +1,9 @@
+from __future__ import annotations
+
 from dataclasses import dataclass
-from typing import Dict, Tuple
 
 import numpy as np
+import numpy.typing as npt
 from scipy.optimize import Bounds
 
 
@@ -9,17 +11,17 @@ class TransformError(RuntimeError):
     pass
 
 
-def grid(n: int) -> np.ndarray:
+def grid(n: int) -> npt.NDArray[np.int_]:
     return np.arange(0, n, 1)
 
 
-def trapezoid(N: int) -> np.ndarray:
+def trapezoid(N: int) -> npt.NDArray[np.float_]:
     h = np.ones(N)
     h[0] = 0.5
     return h
 
 
-def simpson(N: int) -> np.ndarray:
+def simpson(N: int) -> npt.NDArray[np.float_]:
     h = np.ones(N)
     h[1::2] = 4
     h[2::2] = 2
@@ -53,7 +55,7 @@ class Transform:
     def fft_delta_x(self) -> float:
         return self.fft_zeta / self.delta_f
 
-    def domain(self, delta_x: float) -> np.ndarray:
+    def domain(self, delta_x: float) -> npt.NDArray[np.float_]:
         b0 = max(self.domain_range.lb, -0.5 * delta_x * self.n)
         b1 = min(self.domain_range.ub, delta_x * self.n + b0)
         if not np.isclose((b1 - b0) / self.n, delta_x):
@@ -65,18 +67,18 @@ class Transform:
     ) -> dict[str, np.ndarray]:
         return self.fft(y) if delta_x is None else self.frft(y, delta_x)
 
-    def fft(self, y: np.ndarray) -> Dict[str, np.ndarray]:
+    def fft(self, y: np.ndarray) -> dict[str, np.ndarray]:
         """Transform using the Fast Fourier Transform"""
         delta_x = self.fft_zeta / self.delta_f
         x, f = self.transform(y, delta_x)
         return dict(x=x, y=np.fft.fft(f).real / self.n)
 
-    def frft(self, y: np.ndarray, delta_x: float) -> Dict[str, np.ndarray]:
+    def frft(self, y: np.ndarray, delta_x: float) -> dict[str, np.ndarray]:
         x, f = self.transform(y, delta_x)
         r = frft.calculate(f, delta_x * self.delta_f)
         return dict(x=x, y=r.result.real)
 
-    def transform(self, y: np.ndarray, delta_x: float) -> Tuple[np.ndarray, np.ndarray]:
+    def transform(self, y: np.ndarray, delta_x: float) -> tuple[np.ndarray, np.ndarray]:
         if y.shape != self.freq.shape:
             raise TransformError("shapes not compatible")
         x = self.domain(delta_x)
@@ -107,7 +109,7 @@ class frft:
         return 2 * np.pi / self.n
 
     @classmethod
-    def calculate(cls, x: np.ndarray, zeta: float) -> "frft":
+    def calculate(cls, x: np.ndarray, zeta: float) -> frft:
         n = x.shape[0]
         g = grid(n)
         ez = coef(g, zeta)
