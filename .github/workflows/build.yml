@@ -12,8 +12,6 @@ jobs:
     runs-on: ubuntu-latest
     env:
       PYTHON_ENV: ci
-      CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
-      COVERALLS_REPO_TOKEN: ${{ secrets.COVERALLS_REPO_TOKEN }}
       PYPI_PASSWORD: ${{ secrets.PYPI_PASSWORD }}
     strategy:
       matrix:
@@ -31,6 +29,12 @@ jobs:
         run: make lint-check
       - name: run tests
         run: make tests
+      - name: upload coverage reports to codecov
+        if: matrix.python-version == '3.11'
+        uses: codecov/codecov-action@v3
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          files: ./build/coverage.xml
       - name: build book
         if: ${{ matrix.python-version == '3.11' }}
         run: make book

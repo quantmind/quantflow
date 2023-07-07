@@ -16,6 +16,14 @@ class PoissonProcess(CountingProcess1D):
     """
     rate: float = Field(default=1.0, ge=0, description="intensity rate")
 
+    def mean(self, t: float) -> float:
+        """Expected value at a time horizon"""
+        return self.rate * t
+
+    def variance(self, t: float) -> float:
+        """Expected variance at a time horizon"""
+        return self.rate * t
+
     def pdf(self, t: float, n: Vector = 0) -> Vector:
         r"""
         Probability density function of the number of events at time ``t``.
