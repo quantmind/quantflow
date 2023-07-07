@@ -18,30 +18,30 @@ def vol_surface() -> VolSurface:
 
 @pytest.mark.parametrize("ttm", [0.4, 0.8, 1.4, 2])
 def test_atm_black_pricing(ttm):
-    price = bs.black_price(a(0), a(0.2), a(ttm))
-    implied_vol = bs.implied_black_volatility(a(0), price, a(ttm), a(0.5))
-    assert pytest.approx(implied_vol) == a(0.2)
+    price = bs.black_call(0, 0.2, ttm)
+    result = bs.implied_black_volatility(0, price, ttm, 0.5, 1)
+    assert pytest.approx(result[0]) == 0.2
 
 
 @pytest.mark.parametrize("ttm", [0.4, 0.8, 1.4, 2])
 def test_otm_black_pricing(ttm):
-    price = bs.black_price(math.log(1.1), 0.25, ttm)
-    implied_vol = bs.implied_black_volatility(math.log(1.1), price, ttm, 0.5)
-    assert pytest.approx(implied_vol) == 0.25
+    price = bs.black_call(math.log(1.1), 0.25, ttm)
+    result = bs.implied_black_volatility(math.log(1.1), price, ttm, 0.5, 1)
+    assert pytest.approx(result[0]) == 0.25
 
 
 @pytest.mark.parametrize("ttm", [0.4, 0.8, 1.4, 2])
 def test_itm_black_pricing(ttm):
-    price = bs.black_price(math.log(0.9), 0.25, ttm)
-    implied_vol = bs.implied_black_volatility(math.log(0.9), price, ttm, 0.5)
-    assert pytest.approx(implied_vol) == 0.25
+    price = bs.black_call(math.log(0.9), 0.25, ttm)
+    result = bs.implied_black_volatility(math.log(0.9), price, ttm, 0.5, 1)
+    assert pytest.approx(result[0]) == 0.25
 
 
 def test_ditm_black_pricing():
-    price = bs.black_price(math.log(0.6), 0.25, 1)
+    price = bs.black_call(math.log(0.6), 0.25, 1)
     assert pytest.approx(price, 0.01) == 0.4
-    implied_vol = bs.implied_black_volatility(math.log(0.6), price, 1, 0.5)
-    assert pytest.approx(implied_vol) == 0.25
+    result = bs.implied_black_volatility(math.log(0.6), price, 1, 0.5, 1)
+    assert pytest.approx(result[0]) == 0.25
 
 
 def test_vol_surface(vol_surface: VolSurface):
@@ -71,7 +71,7 @@ def test_black_vol(vol_surface: VolSurface):
     converged = [o for o in options if o.converged]
     assert converged
     # calculate the black price now
-    prices = vol_surface.calc_bs_prices(index=1, call=True)
+    prices = vol_surface.calc_bs_prices(index=1)
     assert len(converged) == len(prices)
     for o, price in zip(converged, prices):
         assert pytest.approx(float(o.price)) == price

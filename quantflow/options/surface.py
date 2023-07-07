@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import enum
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
 from decimal import Decimal
@@ -11,7 +12,7 @@ import pandas as pd
 from quantflow.utils import plot
 from quantflow.utils.interest_rates import rate_from_spot_and_forward
 
-from .bs import black_price, implied_black_volatility_full_result
+from .bs import black_price, implied_black_volatility
 from .inputs import (
     ForwardInput,
     OptionInput,
@@ -37,6 +38,17 @@ S = TypeVar("S", bound=VolSurfaceSecurity)
 def time_to_maturity(maturity: datetime, ref_date: datetime) -> float:
     delta = maturity - ref_date
     return (delta.days + delta.seconds / 86400) / 365
+
+
+class OptionSelection(enum.Enum):
+    """Option selection method"""
+
+    best = enum.auto()
+    """Select the best bid/ask options - the ones which are otm"""
+    call = enum.auto()
+    """Select the call options"""
+    put = enum.auto()
+    """Select the put options"""
 
 
 @dataclass
@@ -112,9 +124,13 @@ class OptionPrice:
     def price_time(self) -> Decimal:
         return self.price - self.price_intrinsic
 
-    def can_price(self, converged: bool) -> bool:
+    def can_price(self, converged: bool, select: OptionSelection) -> bool:
         if self.price_time > ZERO:
-            return self.converged if converged else True
+            if not self.converged and converged is True:
+                return False
+            if select == OptionSelection.best:
+                return self.price_intrinsic == ZERO
+            return True
         return False
 
     def inputs(self) -> OptionInput:
@@ -146,6 +162,7 @@ class OptionArrays(NamedTuple):
     price: np.ndarray
     ttm: np.ndarray
     implied_vol: np.ndarray
+    call_put: np.ndarray
 
 
 @dataclass
@@ -158,7 +175,9 @@ class OptionPrices(Generic[S]):
         self,
         forward: Decimal,
         ttm: float,
-        initial_vol: float,
+        *,
+        select: OptionSelection = OptionSelection.best,
+        initial_vol: float = INITIAL_VOL,
         converged: bool = True,
     ) -> Iterator[OptionPrice]:
         for o in (self.bid, self.ask):
@@ -166,7 +185,7 @@ class OptionPrices(Generic[S]):
             o.ttm = ttm
             if not o.implied_vol:
                 o.implied_vol = initial_vol
-            if o.can_price(converged):
+            if o.can_price(converged, select):
                 yield o
 
     def inputs(self) -> OptionSidesInput:
@@ -186,14 +205,27 @@ class Strike(Generic[S]):
         self,
         forward: Decimal,
         ttm: float,
-        call: bool = True,
+        *,
+        select: OptionSelection = OptionSelection.best,
         initial_vol: float = INITIAL_VOL,
         converged: bool = True,
     ) -> Iterator[OptionPrice]:
-        if call and self.call:
-            yield from self.call.prices(forward, ttm, initial_vol, converged)
-        if not call and self.put:
-            yield from self.put.prices(forward, ttm, initial_vol, converged)
+        if select != OptionSelection.put and self.call:
+            yield from self.call.prices(
+                forward,
+                ttm,
+                select=select,
+                initial_vol=initial_vol,
+                converged=converged,
+            )
+        if select != OptionSelection.call and self.put:
+            yield from self.put.prices(
+                forward,
+                ttm,
+                select=select,
+                initial_vol=initial_vol,
+                converged=converged,
+            )
 
 
 @dataclass
@@ -218,7 +250,8 @@ class VolCrossSection(Generic[S]):
     def option_prices(
         self,
         ref_date: datetime,
-        call: bool = True,
+        *,
+        select: OptionSelection = OptionSelection.best,
         initial_vol: float = INITIAL_VOL,
         converged: bool = True,
     ) -> Iterator[OptionPrice]:
@@ -227,7 +260,7 @@ class VolCrossSection(Generic[S]):
             yield from s.option_prices(
                 self.forward.mid,
                 ttm,
-                call,
+                select=select,
                 initial_vol=initial_vol,
                 converged=converged,
             )
@@ -267,21 +300,24 @@ class VolSurface(Generic[S]):
     def option_prices(
         self,
         *,
-        call: bool = True,
+        select: OptionSelection = OptionSelection.best,
         index: int | None = None,
         initial_vol: float = INITIAL_VOL,
         converged: bool = True,
     ) -> Iterator[OptionPrice]:
-        "Iterator over all option prices in the surface"
+        "Iterator over selected option prices in the surface"
         if index is not None:
             yield from self.maturities[index].option_prices(
-                self.ref_date, call=call, initial_vol=initial_vol, converged=converged
+                self.ref_date,
+                select=select,
+                initial_vol=initial_vol,
+                converged=converged,
             )
         else:
             for maturity in self.maturities:
                 yield from maturity.option_prices(
                     self.ref_date,
-                    call=call,
+                    select=select,
                     initial_vol=initial_vol,
                     converged=converged,
                 )
@@ -289,30 +325,31 @@ class VolSurface(Generic[S]):
     def option_list(
         self,
         *,
-        call: bool = True,
+        select: OptionSelection = OptionSelection.best,
         index: int | None = None,
         converged: bool = True,
     ) -> list[OptionPrice]:
         "List of all option prices in the surface"
-        return list(self.option_prices(call=call, index=index, converged=converged))
+        return list(self.option_prices(select=select, index=index, converged=converged))
 
     def bs(
         self,
         *,
-        call: bool = True,
+        select: OptionSelection = OptionSelection.best,
         index: int | None = None,
         initial_vol: float = INITIAL_VOL,
     ) -> list[OptionPrice]:
         """calculate Black-Scholes implied volatilities for all options
         in the surface"""
         d = self.as_array(
-            call=call, index=index, initial_vol=initial_vol, converged=False
+            select=select, index=index, initial_vol=initial_vol, converged=False
         )
-        result = implied_black_volatility_full_result(
+        result = implied_black_volatility(
             k=d.moneyness,
             price=d.price,
             ttm=d.ttm,
             initial_sigma=d.implied_vol,
+            call_put=d.call_put,
         )
         for option, implied_vol, converged in zip(
             d.options, result.root, result.converged
@@ -322,30 +359,33 @@ class VolSurface(Generic[S]):
         return d.options
 
     def calc_bs_prices(
-        self, *, call: bool = True, index: int | None = None
+        self,
+        *,
+        select: OptionSelection = OptionSelection.best,
+        index: int | None = None,
     ) -> np.ndarray:
         """calculate Black-Scholes prices for all options in the surface"""
-        d = self.as_array(call=call, index=index)
-        return black_price(k=d.moneyness, sigma=d.implied_vol, ttm=d.ttm)
+        d = self.as_array(select=select, index=index)
+        return black_price(k=d.moneyness, sigma=d.implied_vol, ttm=d.ttm, s=d.call_put)
 
     def options_df(
         self,
         *,
-        call: bool = True,
+        select: OptionSelection = OptionSelection.best,
         index: int | None = None,
         initial_vol: float = INITIAL_VOL,
         converged: bool = True,
     ) -> pd.DataFrame:
         """Time frame of Black-Scholes call input data"""
         data = self.option_prices(
-            call=call, index=index, initial_vol=initial_vol, converged=converged
+            select=select, index=index, initial_vol=initial_vol, converged=converged
         )
         return pd.DataFrame([d._asdict() for d in data])
 
     def as_array(
         self,
         *,
-        call: bool = True,
+        select: OptionSelection = OptionSelection.best,
         index: int | None = None,
         initial_vol: float = INITIAL_VOL,
         converged: bool = True,
@@ -353,31 +393,38 @@ class VolSurface(Generic[S]):
         """Organize option prices in a numpy arrays for black volatility calculation"""
         options = list(
             self.option_prices(
-                call=call, index=index, initial_vol=initial_vol, converged=converged
+                select=select, index=index, initial_vol=initial_vol, converged=converged
             )
         )
         moneyness = []
         ttm = []
         price = []
         vol = []
+        call_put = []
         for option in options:
             moneyness.append(float(option.moneyness))
             price.append(float(option.price))
             ttm.append(float(option.ttm))
             vol.append(float(option.implied_vol))
+            call_put.append(1 if option.call else -1)
         return OptionArrays(
             options=options,
             moneyness=np.array(moneyness),
             price=np.array(price),
             ttm=np.array(ttm),
             implied_vol=np.array(vol),
+            call_put=np.array(call_put),
         )
 
     def plot(
-        self, *, index: int | None = None, call: bool = True, **kwargs: Any
+        self,
+        *,
+        index: int | None = None,
+        select: OptionSelection = OptionSelection.best,
+        **kwargs: Any,
     ) -> Any:
         """Plot the volatility surface"""
-        df = self.options_df(index=index, call=call)
+        df = self.options_df(index=index, select=select)
         return plot.plot_vol_surface(df, **kwargs)
 
 

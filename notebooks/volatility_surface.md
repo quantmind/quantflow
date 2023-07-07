@@ -76,12 +76,12 @@ This method allows to inspect bid/ask for call options at a given cross section.
 To find the black implied volatility run the `bs` method.
 
 ```{code-cell} ipython3
-vs.bs(index=2)
-vs.options_df(index=2)
+vs.bs(index=3)
+vs.options_df(index=3)
 ```
 
 ```{code-cell} ipython3
-vs.plot(index=3)
+vs.plot(index=3, call=False)
 ```
 
 ## Serialization
