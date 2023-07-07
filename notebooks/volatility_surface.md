@@ -28,7 +28,7 @@ async with HttpClient() as cli:
 
 ```{code-cell} ipython3
 from decimal import Decimal
-from quantflow.options.surface import VolSurfaceLoader
+from quantflow.options.surface import VolSurfaceLoader, VolSecurityType
 from datetime import timezone
 from dateutil.parser import parse
 
@@ -41,17 +41,26 @@ for future in futures["result"]:
     if (bid := future["bid_price"]) and (ask := future["ask_price"]):
         maturity = future["instrument_name"].split("-")[-1]
         if maturity == "PERPETUAL":
-            loader.add_spot(future, bid=Decimal(bid), ask=Decimal(ask))
+            loader.add_spot(VolSecurityType.spot, bid=Decimal(bid), ask=Decimal(ask))
         else:
-            loader.add_forward(parse_maturity(maturity), future, bid=Decimal(bid), ask=Decimal(ask))
+            loader.add_forward(
+                VolSecurityType.forward,
+                maturity=parse_maturity(maturity),
+                bid=Decimal(str(bid)),
+                ask=Decimal(str(ask))
+            )
 
 for option in options["result"]:
     if (bid := option["bid_price"]) and (ask := option["ask_price"]):
         _, maturity, strike, ot = option["instrument_name"].split("-")
-        call = ot == "C"
-        bid = Decimal(bid)
-        ask = Decimal(ask)
-        loader.add_option(Decimal(strike), parse_maturity(maturity), call, option, bid=Decimal(bid), ask=Decimal(ask))
+        loader.add_option(
+            VolSecurityType.option,
+            strike=Decimal(strike),
+            maturity=parse_maturity(maturity),
+            call=ot == "C",
+            bid=Decimal(str(bid)),
+            ask=Decimal(str(ask))
+        )
     
 ```
 
@@ -72,8 +81,27 @@ vs.options_df(index=2)
 vs.bs(index=2).options_df(index=2)
 ```
 
+## Serialization
+
+It is possible to save the vol surface into a json file so it can be recreated for testing or for serialization/deserialization.
+
 ```{code-cell} ipython3
-len(r)
+with open("../tests/volsurface.json", "w") as fp:
+    fp.write(vs.inputs().model_dump_json())
+```
+
+```{code-cell} ipython3
+from quantflow.options.surface import VolSurfaceInputs, surface_from_inputs
+import json
+
+with  open("../tests/volsurface.json", "r") as fp:
+    inputs = VolSurfaceInputs(**json.load(fp))
+
+vs2 = surface_from_inputs(inputs)
+```
+
+```{code-cell} ipython3
+vs2
 ```
 
 ```{code-cell} ipython3
