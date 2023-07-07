@@ -71,17 +71,28 @@ vs = loader.surface()
 vs.term_structure()
 ```
 
-This method allows to inspect bid/ask for call options at a given cross section. Prices of options are normalized by the Forward price, in other words they are given as base currency price, in this case BTC.
+## bs method
 
-To find the black implied volatility run the `bs` method.
+This method calculate the implied Black volatility from option prices. By default it uses the best option in the surface for the calculation.
+
+The `options_df` method allows to inspect bid/ask for call options at a given cross section.
+Prices of options are normalized by the Forward price, in other words they are given as base currency price, in this case BTC.
+
+Moneyness is defined as
+
+\begin{equation}
+  k = \log{\frac{K}{F}}
+\end{equation}
 
 ```{code-cell} ipython3
 vs.bs(index=3)
 vs.options_df(index=3)
 ```
 
+The plot function is enabled only if [plotly](https://plotly.com/python/) is installed
+
 ```{code-cell} ipython3
-vs.plot(index=3, call=False)
+vs.plot(index=3)
 ```
 
 ## Serialization
@@ -101,4 +112,8 @@ with  open("../tests/volsurface.json", "r") as fp:
     inputs = VolSurfaceInputs(**json.load(fp))
 
 vs2 = surface_from_inputs(inputs)
+```
+
+```{code-cell} ipython3
+
 ```
