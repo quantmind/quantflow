@@ -26,7 +26,7 @@ publish-book:			## publish the book to github pages
 	poetry run ghp-import -n -p -f notebooks/_build/html
 
 tests:				## unit tests
-	poetry run pytest
+	@./dev/test
 
 
 outdated:			## Show outdated packages

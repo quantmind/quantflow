@@ -1,0 +1,15 @@
+[run]
+source = quantflow
+
+[html]
+directory = build/coverage/html
+
+[report]
+exclude_lines =
+    pragma: no cover
+    raise NotImplementedError
+    if TYPE_CHECKING:
+    @abstract
+
+[xml]
+output = build/coverage.xml
