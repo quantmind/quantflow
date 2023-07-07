@@ -3,21 +3,26 @@ import numpy.typing as npt
 from scipy.optimize import RootResults, newton
 from scipy.stats import norm
 
+FloatArray = npt.NDArray[np.float_]
+FloatArrayLike = FloatArray | float
+
 
 def black_call(
-    k: npt.ArrayLike, sigma: npt.ArrayLike, ttm: npt.ArrayLike
+    k: FloatArrayLike, sigma: FloatArrayLike, ttm: FloatArrayLike
 ) -> np.ndarray:
     kk = np.asarray(k)
     return black_price(kk, np.asarray(sigma), np.asarray(ttm), np.ones(kk.shape))
 
 
-def black_put(k: npt.ArrayLike, sigma: npt.ArrayLike, ttm: npt.ArrayLike) -> np.ndarray:
+def black_put(
+    k: FloatArrayLike, sigma: FloatArrayLike, ttm: FloatArrayLike
+) -> np.ndarray:
     kk = np.asarray(k)
     return black_price(kk, np.asarray(sigma), np.asarray(ttm), -np.ones(kk.shape))
 
 
 def black_price(
-    k: np.ndarray, sigma: np.ndarray, ttm: np.ndarray, s: np.ndarray
+    k: np.ndarray, sigma: np.ndarray, ttm: FloatArrayLike, s: FloatArrayLike
 ) -> np.ndarray:
     """Calculate the Black call option price from
 
@@ -33,7 +38,7 @@ def black_price(
     return s * norm.cdf(s * d1) - s * np.exp(k) * norm.cdf(s * d2)
 
 
-def black_vega(k: np.ndarray, sigma: np.ndarray, ttm: np.ndarray) -> np.ndarray:
+def black_vega(k: np.ndarray, sigma: np.ndarray, ttm: FloatArrayLike) -> np.ndarray:
     """Calculate the Black option vega from the log strike,
     volatility and time to maturity.
 
@@ -48,9 +53,9 @@ def black_vega(k: np.ndarray, sigma: np.ndarray, ttm: np.ndarray) -> np.ndarray:
 def implied_black_volatility(
     k: np.ndarray,
     price: np.ndarray,
-    ttm: np.ndarray,
-    initial_sigma: np.ndarray,
-    call_put: np.ndarray,
+    ttm: FloatArrayLike,
+    initial_sigma: FloatArray,
+    call_put: FloatArrayLike,
 ) -> RootResults:
     """Calculate the implied block volatility from
 

@@ -85,14 +85,14 @@ Moneyness is defined as
 \end{equation}
 
 ```{code-cell} ipython3
-vs.bs(index=3)
-vs.options_df(index=3)
+vs.bs()
+vs.options_df(index=5)
 ```
 
 The plot function is enabled only if [plotly](https://plotly.com/python/) is installed
 
 ```{code-cell} ipython3
-vs.plot(index=3)
+vs.plot(index=5)
 ```
 
 ## Serialization

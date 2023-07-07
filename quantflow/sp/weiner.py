@@ -10,7 +10,7 @@ from ..utils.types import Vector
 from .base import StochasticProcess1D, StochasticProcess1DMarginal
 
 
-class Weiner(StochasticProcess1D):
+class WeinerProcess(StochasticProcess1D):
     r"""The Heston stochastic volatility model
 
     THe classical square-root stochastic volatility model of Heston (1993)
@@ -33,7 +33,10 @@ class Weiner(StochasticProcess1D):
         return np.exp(-0.5 * su * su * t)
 
 
-class WeinerMarginal(StochasticProcess1DMarginal[Weiner]):
+class WeinerMarginal(StochasticProcess1DMarginal[WeinerProcess]):
+    def mean(self) -> float:
+        return 0
+
     def variance(self) -> float:
         s = self.process.sigma
         return s * s * self.t

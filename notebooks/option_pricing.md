@@ -5,7 +5,7 @@ jupytext:
     extension: .md
     format_name: myst
     format_version: 0.13
-    jupytext_version: 1.13.8
+    jupytext_version: 1.14.7
 kernelspec:
   display_name: Python 3 (ipykernel)
   language: python
@@ -75,10 +75,18 @@ The analytical expression of $\phi_k$ is given by
 
 To integrate we use the same approach as the PDF integration.
 
++++
+
+## Black Formula
+
+Here we illustrate how to use the characteristic function integration with the classical [Weiner process](https://en.wikipedia.org/wiki/Wiener_process).
+
 ```{code-cell} ipython3
-from quantflow.sp.weiner import Weiner
+from quantflow.sp.weiner import WeinerProcess
 ttm=1
-p = Weiner(0.5)
+p = WeinerProcess(sigma=0.5)
+
+# create the marginal density at ttm
 m = p.marginal(ttm)
 m.std()
 ```
@@ -86,11 +94,11 @@ m.std()
 ```{code-cell} ipython3
 import plotly.express as px
 import plotly.graph_objects as go
-from quantflow.utils.bs import black_call
+from quantflow.options.bs import black_call
 N, M = 128, 10
 dx = 10/N
 r = m.call_option(N, M, dx, alpha=0.2)
-b = black_call(r["x"], p.sigma.value, ttm)
+b = black_call(r["x"], p.sigma, ttm)
 fig = px.line(r, x="x", y="y", markers=True, labels=dict(x="moneyness", y="call price"))
 fig.add_trace(go.Scatter(x=r["x"], y=b, name="analytical", line=dict()))
 fig.show()

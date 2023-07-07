@@ -31,7 +31,7 @@ This means that the characteristic function of $y_t=x_{\tau_t}$ can be represent
 
 ```{code-cell} ipython3
 from quantflow.sp.heston import Heston
-pr = Heston.create(vol=0.6, kappa=1.3, sigma=0.9, rho=-0.6)
+pr = Heston.create(vol=0.6, kappa=2, sigma=1.2, rho=-0.4)
 pr
 ```
 
@@ -50,6 +50,10 @@ m = pr.marginal(1)
 chracteristic_fig(m, N, M).show()
 ```
 
+The immaginary part of the characteristic function is given by the correlation coefficient.
+
++++
+
 ## Marginal Distribution
 
 Here we compare the marginal distribution at a time in the future $t=1$ with a normal distribution with the same standard deviation.
@@ -67,8 +71,7 @@ from scipy.stats import norm
 import numpy as np
 
 N = 128
-M = 30
-dx = 4/N
+M = 40
 r = m.pdf_from_characteristic(N, M, delta_x=4/N)
 n = norm.pdf(r["x"], scale=m.std())
 fig = px.line(r, x="x", y="y", markers=True)
@@ -89,9 +92,9 @@ fig.show()
 ```{code-cell} ipython3
 import plotly.express as px
 import plotly.graph_objects as go
-from quantflow.utils.bs import black_call
-N, M = 128, 10
-dx = 3/N
+from quantflow.options.bs import black_call
+N, M = 128, 30
+dx = 4/N
 r = m.call_option(N, M, dx, alpha=0.5)
 b = black_call(r["x"], m.std(), 1)
 fig = px.line(r, x="x", y="y", markers=True)
@@ -100,10 +103,17 @@ fig.show()
 ```
 
 ```{code-cell} ipython3
-from quantflow.utils.bs import implied_black_volatility
-s = implied_black_volatility(r["x"], r["y"], 1, initial_sigma=m.std())
-fig = px.line(x=r["x"], y=s, markers=True, labels=dict(x="moneyness", y="implied vol"))
+from quantflow.options.bs import implied_black_volatility
+n = len(r["x"])
+
+
+result = implied_black_volatility(r["x"], r["y"], 1, initial_sigma=m.std()*np.ones((n,)), call_put=1)
+fig = px.line(x=r["x"], y=result.root, markers=True, labels=dict(x="moneyness", y="implied vol"))
 fig.show()
+```
+
+```{code-cell} ipython3
+
 ```
 
 ```{code-cell} ipython3
