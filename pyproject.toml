@@ -6,6 +6,11 @@ authors = ["Luca <luca@quantmind.com>"]
 license = "BSD-3-Clause"
 readme = "readme.md"
 
+[tool.poetry.urls]
+Homepage = "https://github.com/quantmind/quantflow"
+Repository = "https://github.com/quantmind/quantflow"
+Documentation = "https://quantmind.github.io/quantflow/"
+
 [tool.poetry.dependencies]
 python = ">=3.10,<3.12"
 numpy = "^1.22.3"
