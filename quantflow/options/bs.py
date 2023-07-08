@@ -22,7 +22,7 @@ def black_put(
 
 
 def black_price(
-    k: np.ndarray, sigma: np.ndarray, ttm: FloatArrayLike, s: FloatArrayLike
+    k: np.ndarray, sigma: FloatArrayLike, ttm: FloatArrayLike, s: FloatArrayLike
 ) -> np.ndarray:
     """Calculate the Black call option price from
 

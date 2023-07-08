@@ -92,7 +92,27 @@ vs.options_df(index=5)
 The plot function is enabled only if [plotly](https://plotly.com/python/) is installed
 
 ```{code-cell} ipython3
-vs.plot(index=5)
+vs.plot()
+```
+
+## Model Calibration
+
+We can now use the Vol Surface to calibrate the Heston stochastic volatility model.
+
+```{code-cell} ipython3
+from quantflow.options.calibration import HestonCalibration
+from quantflow.sp.heston import Heston
+
+cal = HestonCalibration(model=Heston(), vol_surface=vs)
+len(cal.options)
+```
+
+```{code-cell} ipython3
+cal.model
+```
+
+```{code-cell} ipython3
+
 ```
 
 ## Serialization
@@ -112,8 +132,4 @@ with  open("../tests/volsurface.json", "r") as fp:
     inputs = VolSurfaceInputs(**json.load(fp))
 
 vs2 = surface_from_inputs(inputs)
-```
-
-```{code-cell} ipython3
-
 ```

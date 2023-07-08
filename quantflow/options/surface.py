@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import enum
 from dataclasses import dataclass, field
-from datetime import datetime, timezone
+from datetime import datetime, timedelta
 from decimal import Decimal
 from typing import Any, Generic, Iterator, NamedTuple, Protocol, TypeVar
 
@@ -12,6 +12,8 @@ import pandas as pd
 from quantflow.utils import plot
 from quantflow.utils.interest_rates import rate_from_spot_and_forward
 
+from ..utils.dates import utcnow
+from ..utils.numbers import Number, sigfig, to_decimal
 from .bs import black_price, implied_black_volatility
 from .inputs import (
     ForwardInput,
@@ -101,6 +103,30 @@ class OptionPrice:
     converged: bool = True
     """Flag indicating if implied vol calculation converged"""
 
+    @classmethod
+    def create(
+        cls,
+        strike: Number,
+        *,
+        price: Number = ZERO,
+        implied_vol: float = INITIAL_VOL,
+        forward: Number | None = None,
+        ref_date: datetime | None = None,
+        maturity: datetime | None = None,
+        call: bool = True,
+    ) -> OptionPrice:
+        ref_date = ref_date or utcnow()
+        maturity = maturity or ref_date + timedelta(days=365)
+        return cls(
+            price=to_decimal(price),
+            strike=to_decimal(strike),
+            forward=to_decimal(forward or strike),
+            implied_vol=implied_vol,
+            call=call,
+            maturity=maturity,
+            ttm=time_to_maturity(maturity, ref_date),
+        )
+
     @property
     def moneyness(self) -> float:
         return float(np.log(float(self.strike / self.forward)))
@@ -124,6 +150,28 @@ class OptionPrice:
     def price_time(self) -> Decimal:
         return self.price - self.price_intrinsic
 
+    @property
+    def call_price(self) -> Decimal:
+        """call price
+
+        use put-call parity to calculate the call price if a put
+        """
+        if self.call:
+            return self.price
+        else:
+            return self.price + 1 - self.strike / self.forward
+
+    @property
+    def put_price(self) -> Decimal:
+        """put price
+
+        use put-call parity to calculate the put price if a call
+        """
+        if self.call:
+            return self.price - 1 + self.strike / self.forward
+        else:
+            return self.price
+
     def can_price(self, converged: bool, select: OptionSelection) -> bool:
         if self.price_time > ZERO:
             if not self.converged and converged is True:
@@ -140,6 +188,20 @@ class OptionPrice:
             maturity=self.maturity,
             call=self.call,
         )
+
+    def calculate_price(self) -> OptionPrice:
+        self.price = Decimal(
+            sigfig(
+                black_price(
+                    np.asarray(self.moneyness),
+                    self.implied_vol,
+                    self.ttm,
+                    1 if self.call else -1,
+                ).sum(),
+                8,
+            )
+        )
+        return self
 
     def _asdict(self) -> dict[str, Any]:
         return dict(
@@ -528,7 +590,7 @@ class GenericVolSurfaceLoader(Generic[S]):
             if section := self.maturities[maturity].cross_section():
                 maturities.append(section)
         return VolSurface(
-            ref_date=ref_date or datetime.utcnow().replace(tzinfo=timezone.utc),
+            ref_date=ref_date or utcnow(),
             spot=self.spot,
             maturities=tuple(maturities),
         )

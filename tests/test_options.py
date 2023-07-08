@@ -5,7 +5,14 @@ import numpy as np
 import pytest
 
 from quantflow.options import bs
-from quantflow.options.surface import VolSurface, VolSurfaceInputs, surface_from_inputs
+from quantflow.options.calibration import HestonCalibration
+from quantflow.options.surface import (
+    OptionPrice,
+    VolSurface,
+    VolSurfaceInputs,
+    surface_from_inputs,
+)
+from quantflow.sp.heston import Heston
 
 a = np.asarray
 
@@ -75,3 +82,28 @@ def test_black_vol(vol_surface: VolSurface):
     assert len(converged) == len(prices)
     for o, price in zip(converged, prices):
         assert pytest.approx(float(o.price)) == price
+
+
+def test_call_put_parity():
+    option = OptionPrice.create(100).calculate_price()
+    assert option.moneyness == 0
+    assert option.price == option.call_price
+    option2 = OptionPrice.create(100, call=False).calculate_price()
+    assert option2.price == option2.put_price
+    assert option2.price == option.put_price
+    assert option2.call_price == option.price
+
+
+def test_call_put_parity_otm():
+    option = OptionPrice.create(105, forward=100).calculate_price()
+    assert option.moneyness > 0
+    assert option.price == option.call_price
+    option2 = OptionPrice.create(105, forward=100, call=False).calculate_price()
+    assert option2.price == option2.put_price
+    assert option2.price == pytest.approx(option.put_price)
+    assert option2.call_price == pytest.approx(option.price)
+
+
+def test_calibration(vol_surface: VolSurface):
+    cal = HestonCalibration(model=Heston(), vol_surface=vol_surface)
+    assert cal.options
