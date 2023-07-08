@@ -23,7 +23,7 @@ pr
 ```
 
 ```{code-cell} ipython3
-p = pr.paths(10, t=1, steps=1000)
+p = pr.sample(10, time_horizon=1, time_steps=1000)
 p.plot()
 ```
 
@@ -41,7 +41,7 @@ pr
 ```
 
 ```{code-cell} ipython3
-pr.paths(10, t=1, steps=1000).plot()
+pr.sample(10, time_horizon=1, time_steps=1000).plot()
 ```
 
 ## Doubly Stochastic Poisson Process

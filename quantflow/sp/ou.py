@@ -3,6 +3,7 @@ from __future__ import annotations
 import numpy as np
 from pydantic import Field
 
+from ..utils.paths import Paths
 from ..utils.types import Vector
 from .base import Im, IntensityProcess
 from .poisson import ExponentialPoissonProcess
@@ -30,9 +31,6 @@ class OU(IntensityProcess):
     def jump_process(self) -> ExponentialPoissonProcess:
         return ExponentialPoissonProcess(rate=self.kappa * self.a, decay=self.decay)
 
-    def cdf(self, t: float, n: Vector) -> Vector:
-        raise NotImplementedError
-
     def characteristic(self, t: float, u: Vector) -> Vector:
         kappa = self.kappa
         b = self.decay
@@ -53,10 +51,10 @@ class OU(IntensityProcess):
         c0 = self.a * (b * np.log(b / (iuk + (b - iuk) / ekt)) / (iuk - b) - kappa * t)
         return np.exp(c0 + c1 * self.rate)
 
-    def sample(self, n: int, t: float = 1, steps: int = 0) -> np.ndarray:
-        size, dt = self.sample_dt(t, steps)
+    def sample(self, n: int, t: float = 1, steps: int = 100) -> Paths:
+        dt = t / steps
         jump_process = self.jump_process
-        paths = np.zeros((size + 1, n))
+        paths = np.zeros((steps + 1, n))
         paths[0, :] = self.rate
         for p in range(n):
             arrivals = jump_process.arrivals(t)
@@ -66,11 +64,11 @@ class OU(IntensityProcess):
             for arrival, jump in zip(arrivals, jumps):
                 while i * dt < arrival:
                     i = self._advance(i, pp, dt)
-                if i <= size:
+                if i <= steps:
                     i = self._advance(i, pp, dt, arrival, jump)
-            while i <= size:
+            while i <= steps:
                 i = self._advance(i, pp, dt)
-        return paths
+        return Paths(t=t, data=paths)
 
     def _advance(
         self, i: int, pp: np.ndarray, dt: float, arrival: float = 0, jump: float = 0

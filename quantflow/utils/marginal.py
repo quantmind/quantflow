@@ -52,7 +52,6 @@ class Marginal1D(ABC):
         :class:`cdf` method, but a subclass should overload this method if a
         more optimized way of computing it is available.
 
-        :param t: time horizon
         :param n: Location in the stochastic process domain space. If a numpy array,
             the output should have the same shape as the input.
         """
@@ -104,13 +103,30 @@ class Marginal1D(ABC):
 
     def cdf(self, n: Vector) -> Vector:
         """
-        Compute the cumulative distribution function of the process.
+        Compute the cumulative distribution function
 
-        :param t: time horizon
         :param n: Location in the stochastic process domain space. If a numpy array,
             the output should have the same shape as the input.
         """
-        raise NotImplementedError
+        raise NotImplementedError("Analytical CFD not available")
+
+    def pdf_jacobian(self, n: Vector) -> np.ndarray:
+        """
+        Jacobian of the pdf with respect to the parameters of the process.
+        It has a base implementation that computes it from the
+        :class:`cdf_jacobian` method, but a subclass should overload this method if a
+        more optimized way of computing it is available.
+        """
+        return self.cdf_jacobian(n) - self.cdf_jacobian(n - 1)
+
+    def cdf_jacobian(self, n: Vector) -> np.ndarray:
+        """
+        Jacobian of the cdf with respect to the parameters of the process.
+        It is useful for optimization purposes if necessary.
+
+        Optional to implement, otherwise raises ``NotImplementedError`` if called.
+        """
+        raise NotImplementedError("Analytical CFD Jacobian not available")
 
     @abstractmethod
     def characteristic(self, n: Vector) -> Vector:

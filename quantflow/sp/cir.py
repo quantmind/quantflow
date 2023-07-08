@@ -1,12 +1,12 @@
 import enum
 
 import numpy as np
-from numpy.random import normal
 from pydantic import Field
 from scipy import special
 
 from quantflow.utils.types import Vector
 
+from ..utils.paths import Paths
 from .base import Im, IntensityProcess, StochasticProcess1DMarginal
 
 
@@ -53,55 +53,54 @@ class CIR(IntensityProcess):
     def marginal(self, t: float, N: int = 128) -> StochasticProcess1DMarginal:
         return CIRMarginal(self, t, N)
 
-    def sample(self, n: int, t: float = 1, steps: int = 0) -> np.ndarray:
+    def sample(
+        self, paths: int, time_horizon: float = 1, time_steps: int = 100
+    ) -> Paths:
+        draws = Paths.normal_draws(paths, time_horizon, time_steps)
+        return self.sample_from_draws(draws)
+
+    def sample_from_draws(self, paths: Paths, *args: Paths) -> Paths:
         match self.sample_algo:
             case SamplingAlgorithm.euler:
-                return self.sample_euler(n, t, steps)
+                return self.sample_euler(paths)
             case SamplingAlgorithm.milstein:
-                return self.sample_euler(n, t, steps, 0.25)
+                return self.sample_euler(paths, 0.25)
             case SamplingAlgorithm.implicit:
-                return self.sample_implicit(n, t, steps)
+                return self.sample_implicit(paths)
 
-    def sample_euler(
-        self, n: int, t: float = 1, steps: int = 0, ic: float = 0
-    ) -> np.ndarray:
-        """Use an Euler scheme to sample the process.
-
-        The implementation preserve the positivity of the process even if the
-        Feller condition is not satisfied.
-        """
-        time_steps, dt = self.sample_dt(t, steps)
+    def sample_euler(self, draws: Paths, ic: float = 0.0) -> Paths:
         kappa = self.kappa
         theta = self.theta
+        dt = draws.dt
         sdt = self.sigma * np.sqrt(dt)
         sdt2 = sdt * sdt
-        paths = np.zeros((time_steps + 1, n))
+        paths = np.zeros(draws.data.shape)
         paths[0, :] = self.rate
-        for t in range(time_steps):
-            w = normal(scale=sdt, size=n)
+        for t in range(draws.time_steps):
+            w = sdt * draws.data[t, :]
             x = paths[t, :]
             xplus = np.clip(x, 0, None)
             dx = kappa * (theta - xplus) * dt + np.sqrt(xplus) * w + ic * (w * w - sdt2)
             paths[t + 1, :] = x + dx
-        return paths
+        return Paths(t=draws.t, data=paths)
 
-    def sample_implicit(self, n: int, t: float = 1, steps: int = 0) -> np.ndarray:
+    def sample_implicit(self, draws: Paths) -> Paths:
         """Use an implicit scheme to preserve positivity of the process."""
-        time_steps, dt = self.sample_dt(t, steps)
         kappa = self.kappa
         theta = self.theta
+        dt = draws.dt
         kdt2 = 2 * (1 + kappa * dt)
         kts = (kappa * theta - 0.5 * self.sigma2) * dt
         sdt = self.sigma * np.sqrt(dt)
-        paths = np.zeros((time_steps + 1, n))
+        paths = np.zeros(draws.data.shape)
         paths[0, :] = self.rate
-        for t in range(time_steps):
-            w = normal(scale=sdt, size=n)
+        for t in range(draws.time_steps):
+            w = sdt * draws.data[t, :]
             x = paths[t, :]
             w2p = np.clip(w * w + 2 * (x + kts) * kdt2, 0, None)
             xs = (w + np.sqrt(w2p)) / kdt2
             paths[t + 1, :] = xs * xs
-        return paths
+        return Paths(t=draws.t, data=paths)
 
     def characteristic(self, t: float, u: Vector) -> Vector:
         iu = Im * u
@@ -135,10 +134,10 @@ class CIRMarginal(StochasticProcess1DMarginal[CIR]):
         ekt = np.exp(-self.process.kappa * self.t)
         return self.process.rate * ekt + self.process.theta * (1 - ekt)
 
-    def std(self) -> float:
+    def variance(self) -> float:
         kappa = self.process.kappa
         ekt = np.exp(-kappa * self.t)
-        return np.sqrt(
+        return (
             self.process.sigma2
             * (1 - ekt)
             * (self.process.rate * ekt + 0.5 * self.process.theta * (1 - ekt))

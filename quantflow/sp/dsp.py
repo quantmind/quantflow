@@ -52,5 +52,5 @@ class DSP(CountingProcess1D):
         return self.intensity.cumulative_characteristic(t, -Im * phi)
 
     def arrivals(self, t: float = 1) -> List[float]:
-        paths = self.intensity.paths(1, t).integrate()
+        paths = self.intensity.sample(1, t, 100).integrate()
         return self.poisson.arrivals(paths.data[-1, 0])

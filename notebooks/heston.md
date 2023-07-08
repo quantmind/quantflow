@@ -119,5 +119,15 @@ The simulation of the Heston model is heavily dependent on the simulation of the
 The code implements algorithms from {cite:p}heston-simulation
 
 ```{code-cell} ipython3
+from quantflow.sp.heston import Heston
+pr = Heston.create(vol=0.6, kappa=2, sigma=1.2, rho=-0.4)
+pr
+```
+
+```{code-cell} ipython3
+pr.sample(20, time_horizon=1, time_steps=1000).plot().update_traces(line_width=0.5)
+```
+
+```{code-cell} ipython3
 
 ```

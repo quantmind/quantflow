@@ -3,6 +3,7 @@ from __future__ import annotations
 import numpy as np
 from pydantic import Field
 
+from ..utils.paths import Paths
 from ..utils.types import Vector
 from .base import StochasticProcess1D
 from .cir import CIR
@@ -48,6 +49,20 @@ class Heston(StochasticProcess1D):
         a = theta_kappa * (2 * np.log(c) + (gamma - kappa) * t) / eta2
         return np.exp(-a - b * self.variance_process.rate)
 
-    def sample(self, n: int, t: float = 1, steps: int = 0) -> np.ndarray:
-        # TODO: implement
-        raise NotImplementedError
+    def sample(self, n: int, time_horizon: float = 1, time_steps: int = 100) -> Paths:
+        dw1 = Paths.normal_draws(n, time_horizon, time_steps)
+        dw2 = Paths.normal_draws(n, time_horizon, time_steps)
+        return self.sample_from_draws(dw1, dw2)
+
+    def sample_from_draws(self, path1: Paths, *args: Paths) -> Paths:
+        if args:
+            path2 = args[0]
+        else:
+            path2 = Paths.normal_draws(path1.samples, path1.t, path1.time_steps)
+        dz = path1.data
+        dw = self.rho * dz + np.sqrt(1 - self.rho * self.rho) * path2.data
+        v = self.variance_process.sample_from_draws(path1)
+        dx = v.data * dw * np.sqrt(path1.dt)
+        paths = np.zeros(dx.shape)
+        paths[1:] = np.cumsum(dx[:-1], axis=0)
+        return Paths(t=path1.t, data=paths)

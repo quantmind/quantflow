@@ -4,6 +4,7 @@ from typing import Any
 
 import numpy as np
 import pandas as pd
+from numpy.random import normal
 from pydantic import BaseModel, ConfigDict, Field
 from scipy.integrate import cumtrapz
 
@@ -19,19 +20,19 @@ class Paths(BaseModel):
 
     @property
     def dt(self) -> float:
-        return self.t / self.steps
+        return self.t / self.time_steps
 
     @property
     def samples(self) -> int:
         return self.data.shape[1]
 
     @property
-    def steps(self) -> int:
+    def time_steps(self) -> int:
         return self.data.shape[0] - 1
 
     @property
     def time(self) -> np.ndarray:
-        return np.linspace(0.0, self.t, num=self.steps + 1)
+        return np.linspace(0.0, self.t, num=self.time_steps + 1)
 
     @property
     def df(self) -> pd.DataFrame:
@@ -52,8 +53,12 @@ class Paths(BaseModel):
         return np.mean(self.data, axis=1)
 
     def std(self) -> np.ndarray:
-        """Mean of paths"""
+        """Standard deviation of paths"""
         return np.std(self.data, axis=1)
+
+    def var(self) -> np.ndarray:
+        """Variance of paths"""
+        return np.var(self.data, axis=1)
 
     def integrate(self) -> Paths:
         """Integrate paths"""
@@ -63,3 +68,25 @@ class Paths(BaseModel):
 
     def plot(self, **kwargs: Any) -> Any:
         return plot.plot_lines(self.data, **kwargs)
+
+    @classmethod
+    def normal_draws(
+        cls,
+        paths: int,
+        time_horizon: float,
+        time_steps: int = 1000,
+        antithetic_variates: bool = True,
+    ) -> Paths:
+        """Generate normal draws
+
+        paths: number of paths
+        time_horizon: time horizon
+        time_steps: number of time steps to arrive at horizon
+        """
+        time_horizon / time_steps
+        if antithetic_variates:
+            paths = paths // 2
+        data = normal(size=(time_steps + 1, paths))
+        if antithetic_variates:
+            data = np.concatenate((data, -data), axis=1)
+        return cls(t=time_horizon, data=data)

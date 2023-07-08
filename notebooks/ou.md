@@ -17,6 +17,14 @@ kernelspec:
 
 ## Gaussian OU Process
 
+THe Gaussian Ornstein-Uhlebeck process is a mean-reverting process with the following SDE
+
+\begin{equation}
+    dx_t = \kappa\left(\theta - x_t\right) dt + \sigma dw_t
+\end{equation}
+
+where $\kappa$ is the mean revertion speed, $\theta$ is the long-term value of ${\bf x}_t$, $\sigma$ is a volatility parameter and $w_t$ is the standard Brownian motion.
+
 +++
 
 ## Non-gaussian OU process

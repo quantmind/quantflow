@@ -28,7 +28,7 @@ Importantly, the process remains positive if the Feller condition is satisfied
  2 \kappa \theta > \sigma^2
 \end{equation}
 
-In the code, the initial value of the process, ${\bf x}_0$, is given by the `rate` field, for example, a CIR process can be created via 
+In the code, the initial value of the process, ${\bf x}_0$, is given by the `rate` field, for example, a CIR process can be created via
 
 ```{code-cell} ipython3
 from quantflow.sp.cir import CIR
@@ -111,7 +111,7 @@ pr.is_positive
 ```
 
 ```{code-cell} ipython3
-pr.paths(20, t=1, steps=1000).plot().update_traces(line_width=0.5)
+pr.sample(20, time_horizon=1, time_steps=1000).plot().update_traces(line_width=0.5)
 ```
 
 The second sampling algorithm is the implicit Milstein scheme, a refinement of the Euler scheme produced by adding an extra term using the Ito's lemma.
@@ -124,9 +124,8 @@ pr
 ```
 
 ```{code-cell} ipython3
-pr.paths(20, t=1, steps=1000).plot().update_traces(line_width=0.5)
+pr.sample(20, time_horizon=1, time_steps=1000).plot().update_traces(line_width=0.5)
 ```
-
 
 Sampling with a mean reversion speed 20 times larger
 
@@ -135,7 +134,7 @@ pr.kappa = 20; pr
 ```
 
 ```{code-cell} ipython3
-pr.paths(20, t=1, steps=1000).plot().update_traces(line_width=0.5)
+pr.sample(20, time_horizon=1, time_steps=1000).plot().update_traces(line_width=0.5)
 ```
 
 ## MC simulations
@@ -158,19 +157,23 @@ prs = [
 ```{code-cell} ipython3
 import pandas as pd
 from quantflow.utils import plot
+from quantflow.utils.paths import Paths
 
-time = pr.paths(1, 1, 1000).time
-mean = dict(mean=pr.marginal(time).mean())
-mean.update({pr.sample_algo.name: pr.paths(1000, 1, 1000).mean() for pr in prs})
-df = pd.DataFrame(mean, index=time)
+samples = 1000
+time_steps = 100
+
+draws = Paths.normal_draws(samples, time_horizon=1, time_steps=time_steps)
+mean = dict(mean=pr.marginal(draws.time).mean())
+mean.update({pr.sample_algo.name: pr.sample_from_draws(draws).mean() for pr in prs})
+df = pd.DataFrame(mean, index=draws.time)
 
 plot.plot_lines(df)
 ```
 
 ```{code-cell} ipython3
-data = dict(std=pr.marginal(time).std())
-data.update({pr.sample_algo.name: pr.paths(1000, 1, 1000).std() for pr in prs})
-df = pd.DataFrame(data, index=time)
+std = dict(std=pr.marginal(draws.time).std())
+std.update({pr.sample_algo.name: pr.sample_from_draws(draws).std() for pr in prs})
+df = pd.DataFrame(std, index=draws.time)
 
 plot.plot_lines(df)
 ```

@@ -20,3 +20,11 @@ def test_characteristic(poisson: PoissonProcess) -> None:
     assert pytest.approx(m1.std()) == math.sqrt(2)
     assert pytest.approx(m1.variance_from_characteristic(), 0.001) == 2
     assert pytest.approx(m2.variance_from_characteristic(), 0.001) == 4
+
+
+def test_sampling(poisson: PoissonProcess) -> None:
+    paths = poisson.sample(1000, time_horizon=1, time_steps=1000)
+    mean = paths.mean()
+    assert mean[0] == 0
+    std = paths.std()
+    assert std[0] == 0

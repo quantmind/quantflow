@@ -17,8 +17,8 @@ def test_cir_neg(cir_neg: CIR) -> None:
 
 
 def test_cir_neg_sampling(cir_neg: CIR) -> None:
-    paths = cir_neg.paths(10, t=1, steps=1000)
+    paths = cir_neg.sample(10, time_horizon=1, time_steps=1000)
     assert paths.samples == 10
-    assert paths.steps == 1000
+    assert paths.time_steps == 1000
     assert paths.dt == 0.001
     assert np.all(paths.data == paths.data)

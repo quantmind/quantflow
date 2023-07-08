@@ -20,35 +20,19 @@ class StochasticProcess(BaseModel, ABC):
     """
 
     @abstractmethod
-    def sample(self, n: int, t: float = 1, steps: int = 0) -> np.ndarray:
-        """Generate random paths from the process
+    def sample_from_draws(self, path: Paths, *args: Paths) -> Paths:
+        """Sample a path from the process given a set of draws"""
 
-        :param n: Number of paths
-        :param t: time horizon
-        :param steps: number of time steps to arrive at horizon
-        """
-
-    def sample_dt(self, t: float, steps: int = 0) -> Tuple[int, float]:
-        """Time delta for sampling paths
-
-        :param t: time horizon
-        :param steps: number of time steps to arrive at horizon
-        :return: tuple with number of steps and delta time
-        """
-        size = steps or 100
-        return size, t / size
-
-    def paths(self, n: int, t: float = 1, steps: int = 0) -> Paths:
+    @abstractmethod
+    def sample(
+        self, paths: int, time_horizon: float = 1, time_steps: int = 100
+    ) -> Paths:
         """Generate random paths from the process.
 
-        This method simply wraps the
-        :class:sample method into a :class:`.Paths` object.
-
-        :param n: Number of paths
-        :param t: time horizon
-        :param steps: number of time steps to arrive at horizon
+        :param paths: Number of paths
+        :param time_horizon: time horizon
+        :param time_steps: number of time steps to arrive at horizon
         """
-        return Paths(t=t, data=self.sample(n, t, steps))
 
 
 class StochasticProcess1D(StochasticProcess):
@@ -58,48 +42,6 @@ class StochasticProcess1D(StochasticProcess):
 
     def marginal(self, t: float, N: int = 128) -> StochasticProcess1DMarginal:
         return StochasticProcess1DMarginal(self, t, N)
-
-    def pdf(self, t: float, n: Vector) -> Vector:
-        """
-        Computes the probability density (or mass) function of the process.
-
-        It has a base implementation that computes the pdf from the
-        :class:`cdf` method, but a subclass should overload this method if a
-        more optimized way of computing it is available.
-
-        :param t: time horizon
-        :param n: Location in the stochastic process domain space. If a numpy array,
-            the output should have the same shape as the input.
-        """
-        return self.cdf(t, n) - self.cdf(t, n - 1)
-
-    def cdf(self, t: float, n: Vector) -> Vector:
-        """
-        Compute the cumulative distribution function of the process.
-
-        :param t: time horizon
-        :param n: Location in the stochastic process domain space. If a numpy array,
-            the output should have the same shape as the input.
-        """
-        raise NotImplementedError("Analytical CFD not available")
-
-    def pdf_jacobian(self, t: float, n: Vector) -> np.ndarray:
-        """
-        Jacobian of the pdf with respect to the parameters of the process.
-        It has a base implementation that computes it from the
-        :class:`cdf_jacobian` method, but a subclass should overload this method if a
-        more optimized way of computing it is available.
-        """
-        return self.cdf_jacobian(t, n) - self.cdf_jacobian(t, n - 1)
-
-    def cdf_jacobian(self, t: float, n: Vector) -> np.ndarray:
-        """
-        Jacobian of the cdf with respect to the parameters of the process.
-        It is useful for optimization purposes if necessary.
-
-        Optional to implement, otherwise raises ``NotImplementedError`` if called.
-        """
-        raise NotImplementedError
 
     def characteristic(self, t: float, u: Vector) -> Vector:
         r"""Characteristic function at time `t` for a given input parameter
@@ -127,9 +69,6 @@ class StochasticProcess1DMarginal(Marginal1D, Generic[P]):
         self.process = process
         self.t = t
         self.N = N
-
-    def pdf(self, n: Vector) -> Vector:
-        return self.process.pdf(self.t, n)
 
     def std_norm(self) -> float:
         """Standard deviation at a time horizon normalized by the time"""
