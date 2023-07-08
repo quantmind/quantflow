@@ -15,3 +15,11 @@ def test_characteristic(weiner: WeinerProcess) -> None:
     assert marginal.mean_from_characteristic() == 0
     assert marginal.std() == 0.5
     assert marginal.variance_from_characteristic() == pytest.approx(0.25)
+
+
+def test_sampling(weiner: WeinerProcess) -> None:
+    paths = weiner.paths(1000, t=1, steps=1000)
+    mean = paths.mean()
+    assert mean[0] == 0
+    std = paths.std()
+    assert std[0] == 0

@@ -3,6 +3,7 @@ from __future__ import annotations
 from functools import lru_cache
 
 import numpy as np
+from numpy.random import normal
 from pydantic import Field
 from scipy.stats import norm
 
@@ -31,6 +32,14 @@ class WeinerProcess(StochasticProcess1D):
     def characteristic(self, t: float, u: Vector) -> Vector:
         su = self.sigma * u
         return np.exp(-0.5 * su * su * t)
+
+    def sample(self, n: int, t: float = 1, steps: int = 0) -> np.ndarray:
+        time_steps, dt = self.sample_dt(t, steps)
+        sdt = self.sigma * np.sqrt(dt)
+        paths = np.zeros((time_steps + 1, n))
+        for t in range(time_steps):
+            paths[t + 1, :] = paths[t, :] + normal(scale=sdt, size=n)
+        return paths
 
 
 class WeinerMarginal(StochasticProcess1DMarginal[WeinerProcess]):

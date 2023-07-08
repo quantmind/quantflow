@@ -19,6 +19,7 @@ class StochasticProcess(BaseModel, ABC):
     Base class for stochastic processes in continuous time
     """
 
+    @abstractmethod
     def sample(self, n: int, t: float = 1, steps: int = 0) -> np.ndarray:
         """Generate random paths from the process
 
@@ -26,7 +27,6 @@ class StochasticProcess(BaseModel, ABC):
         :param t: time horizon
         :param steps: number of time steps to arrive at horizon
         """
-        raise NotImplementedError
 
     def sample_dt(self, t: float, steps: int = 0) -> Tuple[int, float]:
         """Time delta for sampling paths

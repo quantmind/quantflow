@@ -48,8 +48,6 @@ class Heston(StochasticProcess1D):
         a = theta_kappa * (2 * np.log(c) + (gamma - kappa) * t) / eta2
         return np.exp(-a - b * self.variance_process.rate)
 
-    def pdf(self, t: float, n: Vector) -> Vector:
-        raise NotImplementedError
-
-    def cdf(self, t: float, n: Vector) -> Vector:
+    def sample(self, n: int, t: float = 1, steps: int = 0) -> np.ndarray:
+        # TODO: implement
         raise NotImplementedError
