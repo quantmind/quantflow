@@ -22,11 +22,13 @@ The Cox–Ingersoll–Ross (CIR) model is a standard mean reverting square-root 
 
 $\kappa$ is the mean reversion speed, $\theta$ the long term value of $x_t$, $\sigma$ controls the standard deviation given by $\sigma\sqrt{x_t}$ and $w_t$ is a brownian motion.
 
-Importantly, the process remains positive if
+Importantly, the process remains positive if the Feller condition is satisfied
 
 \begin{equation}
  2 \kappa \theta > \sigma^2
 \end{equation}
+
+In the code, the initial value of the process, ${\bf x}_0$, is given by the `rate` field, for example, a CIR process can be created via 
 
 ```{code-cell} ipython3
 from quantflow.sp.cir import CIR
@@ -40,7 +42,7 @@ pr.is_positive
 
 ## Marginal and moments
 
-The model has a close-form solution for the mean and the variance
+The model has a closed-form solution for the mean and the variance
 
 \begin{align}
 {\mathbb E}[x_t] &= x_0 e^{-\kappa t} + \theta\left(1 - e^{-\kappa t}\right) \\
@@ -75,6 +77,22 @@ fig.add_trace(go.Scatter(x=r["x"], y=m.pdf(r["x"]), name="analytical", line=dict
 fig.show()
 ```
 
+## Characteristic Function
+
+For this process it is possible to obtain the analytical formula of $a$ and $b$:
+
+\begin{equation}
+a =-\frac{2\kappa\theta}{\sigma^2} \log{\left(\frac{c + d e^{-\gamma \tau}}{c + d}\right)} + \frac{\kappa \theta \tau}{c}\\
+b = \frac{1-e^{-\gamma \tau}}{c + d e^{-\gamma_u \tau}}
+\end{equation}
+
+with
+\begin{equation}
+\gamma = \sqrt{\kappa^2 - 2 u \sigma^2} \\
+c = \frac{\gamma + \kappa}{2 u} \\
+d = \frac{\gamma - \kappa}{2 u}
+\end{equation}
+
 ```{code-cell} ipython3
 from notebooks.utils import chracteristic_fig
 N = 128
@@ -84,6 +102,7 @@ chracteristic_fig(m, N, M).show()
 ```
 
 ## Sampling
+
 
 ```{code-cell} ipython3
 pr.paths(20, t=1, steps=1000).plot().update_traces(line_width=0.5)

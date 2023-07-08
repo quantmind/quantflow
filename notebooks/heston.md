@@ -14,20 +14,20 @@ kernelspec:
 
 # Heston Model and Option Pricing
 
-A very important example of time-changed Lévy process useful for option pricing is the Heston model. In this model, the Lévy process is a standard Brownian motion, while the activity rate follows a {doc}`./cir.md`. The leverage effect can be accommodated by correlating the two Brownian motions as the following equations illustrate:
+A very important example of time-changed Lévy process useful for option pricing is the Heston model. In this model, the Lévy process is a standard Brownian motion, while the activity rate follows a [CIR process](`../cir.md`). The leverage effect can be accommodated by correlating the two Brownian motions as the following equations illustrate:
 
-\begin{aligned}
+\begin{align}
     d x_t &= d w_t \\
     d \nu_t &= \kappa\left(\theta - \nu_t\right) dt + \sigma\sqrt{\nu_t} d z_t \\
     {\mathbb E}\left[d w_t d z_t\right] &= \rho dt
-\end{aligned}
+\end{align}
 
 This means that the characteristic function of $y_t=x_{\tau_t}$ can be represented as
 
-\begin{aligned}
+\begin{align}
     \Phi_{y_t, u} & = {\mathbb E}\left[e^{i u y_t}\right] = {\mathbb L}_{\tau_t}^u\left(\frac{u^2}{2}\right) \\
      &= e^{-a_{t,u} - b_{t,u} \nu_0}
-\end{aligned}
+\end{align}
 
 ```{code-cell} ipython3
 from quantflow.sp.heston import Heston
@@ -115,6 +115,8 @@ fig.show()
 ## Simulation
 
 The simulation of the Heston model is heavily dependent on the simulation of the activity rate, mainly how the behavior near zero is handled.
+
+The code implements algorithms from {cite:p}heston-simulation
 
 ```{code-cell} ipython3
 

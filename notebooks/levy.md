@@ -6,7 +6,7 @@ jupytext:
     extension: .md
     format_name: myst
     format_version: 0.13
-    jupytext_version: 1.13.8
+    jupytext_version: 1.14.7
 kernelspec:
   display_name: Python 3 (ipykernel)
   language: python
@@ -38,31 +38,6 @@ where the **characteristic exponent** $\phi_{x,u}$ is given by the [Lévy–Khin
 There are several Levy process in the literature including, importantly, the **Poison** process, the compount Poisson process and the Brownian motion.
 
 +++
-
-## The Poisson Process
-
-```{code-cell} ipython3
-from quantflow.sp.poisson import PoissonProcess
-from quantflow.utils.text import doc
-poi = PoissonProcess(rate=3)
-display(doc(poi))
-```
-
-```{code-cell} ipython3
-display(doc(poi.pdf))
-```
-
-```{code-cell} ipython3
-poi.pdf(1,range(10))
-```
-
-```{code-cell} ipython3
-poi.pdf(2, range(10))
-```
-
-```{code-cell} ipython3
-display(doc(poi.cdf))
-```
 
 ## Time Changed Lévy Processes
 
@@ -129,75 +104,6 @@ When the intensity process is affine, the log characteristic function takes the 
 \end{equation}
 
 where coefficients $a$ and $b$ satisfy Riccati ODEs which can be solved numerically and in some cases analytically.
-
-### Square Root process
-The intensity process is a square-root diffsion:
-
-\begin{equation}
-    d \lambda_t = \kappa\left(\theta - \lambda_t\right) dt + \sigma\sqrt{\lambda_t} d w_t
-\end{equation}
-
-The condition $2\kappa\theta > \sigma^2$ guarantees that the $x_t$ process remains positive.
-
-For this process it is possible to obtain the analytical formula of $a$ and $b$:
-
-\begin{equation}
-a =-\frac{2\kappa\theta}{\sigma^2} \log{\left(\frac{c + d e^{-\gamma \tau}}{c + d}\right)} + \frac{\kappa \theta \tau}{c}\\
-b = \frac{1-e^{-\gamma \tau}}{c + d e^{-\gamma_u \tau}}
-\end{equation}
-
-with
-\begin{equation}
-\gamma = \sqrt{\kappa^2 - 2 u \sigma^2} \\
-c = \frac{\gamma + \kappa}{2 u} \\
-d = \frac{\gamma - \kappa}{2 u}
-\end{equation}
-
-```{code-cell} ipython3
-from quantlib.models.stochastic_processes.cox import COX
-```
-
-```{code-cell} ipython3
-c = COX(1.2, sigma=0.1, kappa=0.1)
-```
-
-```{code-cell} ipython3
-c.positive
-```
-
-```{code-cell} ipython3
-d = c.random(paths=5)
-```
-
-```{code-cell} ipython3
-d.rate
-```
-
-```{code-cell} ipython3
-import math
-```
-
-```{code-cell} ipython3
-math.ceil(1.0)
-```
-
-```{code-cell} ipython3
-import numpy as np
-```
-
-```{code-cell} ipython3
-np.zeros((10, 2))
-```
-
-### Non-gaussian OU process
-
-Here we model the intensity process as a non-Gaussian Ornstein-Uhlebeck process
-
-\begin{equation}
-    d \lambda_t = -\kappa\lambda_t dt + d j_{\kappa t}
-\end{equation}
-
-where $j_t$ is a non-decreasing compound Poisson process.
 
 +++
 
