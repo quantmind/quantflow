@@ -47,6 +47,14 @@ class Paths(BaseModel):
         """Paths as list of list (for visualization tools)"""
         return self.data.transpose().tolist()
 
+    def mean(self) -> np.ndarray:
+        """Mean of paths"""
+        return np.mean(self.data, axis=1)
+
+    def std(self) -> np.ndarray:
+        """Mean of paths"""
+        return np.std(self.data, axis=1)
+
     def integrate(self) -> Paths:
         """Integrate paths"""
         return self.__class__(

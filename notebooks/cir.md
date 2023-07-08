@@ -138,6 +138,43 @@ pr.kappa = 20; pr
 pr.paths(20, t=1, steps=1000).plot().update_traces(line_width=0.5)
 ```
 
+## MC simulations
+
+In this section we compare the performance of the three sampling algorithms in estimating the mean and and standard deviation.
+
+```{code-cell} ipython3
+from quantflow.sp.cir import CIR
+
+params = dict(rate=0.8, kappa=1.5, sigma=1.2)
+pr = CIR(**params)
+
+prs = [
+    CIR(sample_algo="euler", **params),
+    CIR(sample_algo="milstein", **params),
+    pr
+]
+```
+
+```{code-cell} ipython3
+import pandas as pd
+from quantflow.utils import plot
+
+time = pr.paths(1, 1, 1000).time
+mean = dict(mean=pr.marginal(time).mean())
+mean.update({pr.sample_algo.name: pr.paths(1000, 1, 1000).mean() for pr in prs})
+df = pd.DataFrame(mean, index=time)
+
+plot.plot_lines(df)
+```
+
+```{code-cell} ipython3
+data = dict(std=pr.marginal(time).std())
+data.update({pr.sample_algo.name: pr.paths(1000, 1, 1000).std() for pr in prs})
+df = pd.DataFrame(data, index=time)
+
+plot.plot_lines(df)
+```
+
 ```{code-cell} ipython3
 
 ```
