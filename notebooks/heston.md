@@ -14,7 +14,7 @@ kernelspec:
 
 # Heston Model and Option Pricing
 
-A very important example of time-changed Lévy process useful for option pricing is the Heston model. In this model the Lévy process is a standard Brownian motion, while the activity rate follows a CIR process. The leverage effect can be accomodated by correlating the two Brownian motions as the following equations illustrates:
+A very important example of time-changed Lévy process useful for option pricing is the Heston model. In this model, the Lévy process is a standard Brownian motion, while the activity rate follows a {doc}`./cir.md`. The leverage effect can be accommodated by correlating the two Brownian motions as the following equations illustrate:
 
 \begin{aligned}
     d x_t &= d w_t \\
@@ -112,9 +112,9 @@ fig = px.line(x=r["x"], y=result.root, markers=True, labels=dict(x="moneyness", 
 fig.show()
 ```
 
-```{code-cell} ipython3
+## Simulation
 
-```
+The simulation of the Heston model is heavily dependent on the simulation of the activity rate, mainly how the behavior near zero is handled.
 
 ```{code-cell} ipython3
 

@@ -6,6 +6,7 @@ root: index
 chapters:
 - file: levy
 - file: poisson
+- file: cir
 - file: inversion
 - file: option_pricing
 - file: heston
