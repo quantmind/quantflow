@@ -12,6 +12,7 @@ from .base import Im, IntensityProcess, StochasticProcess1DMarginal
 
 class SamplingAlgorithm(str, enum.Enum):
     euler = "euler"
+    milstein = "milstein"
     implicit = "implicit"
 
 
@@ -38,7 +39,7 @@ class CIR(IntensityProcess):
     sigma: float = Field(default=1.0, gt=0, description="Volatility")
     theta: float = Field(default=1.0, gt=0, description="Mean rate")
     sample_algo: SamplingAlgorithm = Field(
-        default=SamplingAlgorithm.implicit, description="Sampling algorithm", repr=False
+        default=SamplingAlgorithm.implicit, description="Sampling algorithm"
     )
 
     @property
@@ -53,44 +54,53 @@ class CIR(IntensityProcess):
         return CIRMarginal(self, t, N)
 
     def sample(self, n: int, t: float = 1, steps: int = 0) -> np.ndarray:
-        if self.sample_algo == SamplingAlgorithm.euler:
-            return self.sample_euler(n, t, steps)
-        else:
-            return self.sample_implicit(n, t, steps)
+        match self.sample_algo:
+            case SamplingAlgorithm.euler:
+                return self.sample_euler(n, t, steps)
+            case SamplingAlgorithm.milstein:
+                return self.sample_euler(n, t, steps, 0.25)
+            case SamplingAlgorithm.implicit:
+                return self.sample_implicit(n, t, steps)
 
-    def sample_euler(self, n: int, t: float = 1, steps: int = 0) -> np.ndarray:
-        size, dt = self.sample_dt(t, steps)
+    def sample_euler(
+        self, n: int, t: float = 1, steps: int = 0, ic: float = 0
+    ) -> np.ndarray:
+        """Use an Euler scheme to sample the process.
+
+        The implementation preserve the positivity of the process even if the
+        Feller condition is not satisfied.
+        """
+        time_steps, dt = self.sample_dt(t, steps)
         kappa = self.kappa
         theta = self.theta
         sdt = self.sigma * np.sqrt(dt)
-        paths = np.zeros((size + 1, n))
+        sdt2 = sdt * sdt
+        paths = np.zeros((time_steps + 1, n))
         paths[0, :] = self.rate
-        for p in range(n):
-            w = normal(scale=sdt, size=size)
-            for i in range(size):
-                x = paths[i, p]
-                dx = kappa * (theta - x) * dt + np.sqrt(x) * w[i]
-                paths[i + 1, p] = x + dx
+        for t in range(time_steps):
+            w = normal(scale=sdt, size=n)
+            x = paths[t, :]
+            xplus = np.clip(x, 0, None)
+            dx = kappa * (theta - xplus) * dt + np.sqrt(xplus) * w + ic * (w * w - sdt2)
+            paths[t + 1, :] = x + dx
         return paths
 
     def sample_implicit(self, n: int, t: float = 1, steps: int = 0) -> np.ndarray:
         """Use an implicit scheme to preserve positivity of the process."""
-        size, dt = self.sample_dt(t, steps)
+        time_steps, dt = self.sample_dt(t, steps)
         kappa = self.kappa
         theta = self.theta
-        sigma = self.sigma
-        kdt2 = 2 * (kappa * dt + 1)
-        kts = (kappa * theta - 0.5 * sigma * sigma) * dt
+        kdt2 = 2 * (1 + kappa * dt)
+        kts = (kappa * theta - 0.5 * self.sigma2) * dt
         sdt = self.sigma * np.sqrt(dt)
-        paths = np.zeros((size + 1, n))
+        paths = np.zeros((time_steps + 1, n))
         paths[0, :] = self.rate
-        for p in range(n):
-            w = normal(scale=sdt, size=size)
-            for i in range(size):
-                x = paths[i, p]
-                sw = w[i]
-                xs = (sw + np.sqrt(sw * sw + 2 * (x + kts) * kdt2)) / kdt2
-                paths[i + 1, p] = xs * xs
+        for t in range(time_steps):
+            w = normal(scale=sdt, size=n)
+            x = paths[t, :]
+            w2p = np.clip(w * w + 2 * (x + kts) * kdt2, 0, None)
+            xs = (w + np.sqrt(w2p)) / kdt2
+            paths[t + 1, :] = xs * xs
         return paths
 
     def characteristic(self, t: float, u: Vector) -> Vector:

@@ -32,7 +32,7 @@ In the code, the initial value of the process, ${\bf x}_0$, is given by the `rat
 
 ```{code-cell} ipython3
 from quantflow.sp.cir import CIR
-pr = CIR(rate=1.0, kappa=2.0, sigma=0.8)
+pr = CIR(rate=1.0, kappa=2.0, sigma=1.2)
 pr
 ```
 
@@ -58,18 +58,13 @@ m.mean(), m.variance()
 m.mean_from_characteristic(), m.variance_from_characteristic()
 ```
 
-```{code-cell} ipython3
-from notebooks.utils import chracteristic_fig
-N = 128*2
-M = 30
-chracteristic_fig(m, N, M).show()
-```
-
 The code below show the computed PDF via FRFT and the analytical formula above
 
 ```{code-cell} ipython3
 import plotly.graph_objects as go
-dx = 4/N
+N = 128*8
+M = 20
+dx = 8/N
 r = m.pdf_from_characteristic(N, M, dx)
 fig = go.Figure()
 fig.add_trace(go.Scatter(x=r["x"], y=r["y"], mode="markers", name="computed"))
@@ -95,18 +90,43 @@ d = \frac{\gamma - \kappa}{2 u}
 
 ```{code-cell} ipython3
 from notebooks.utils import chracteristic_fig
-N = 128
-M = 30
 m = pr.marginal(0.5)
 chracteristic_fig(m, N, M).show()
 ```
 
 ## Sampling
 
+The code offers three sampling algorithms, both guarantee positiveness even if the Feller condition above is not satisfied.
+
+The first sampling algorithm is the explicit Euler *full truncation* algorithm where the process is allowed to go below zero, at which point the process becomes deterministic with an upward drift of $\kappa \theta$, see {cite:p}`heston-calibration` and {cite:p}`heston-simulation` for a detailed discussion.
+
+```{code-cell} ipython3
+from quantflow.sp.cir import CIR
+pr = CIR(rate=1.0, kappa=1.0, sigma=2.0, sample_algo="euler")
+pr
+```
+
+```{code-cell} ipython3
+pr.is_positive
+```
 
 ```{code-cell} ipython3
 pr.paths(20, t=1, steps=1000).plot().update_traces(line_width=0.5)
 ```
+
+The second sampling algorithm is the implicit Milstein scheme, a refinement of the Euler scheme produced by adding an extra term using the Ito's lemma.
+
+The third algorithm is a fully implicit one that guarantees positiveness of the process if the Feller condition is met.
+
+```{code-cell} ipython3
+pr = CIR(rate=1.0, kappa=1.0, sigma=0.8)
+pr
+```
+
+```{code-cell} ipython3
+pr.paths(20, t=1, steps=1000).plot().update_traces(line_width=0.5)
+```
+
 
 Sampling with a mean reversion speed 20 times larger
 
