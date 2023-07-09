@@ -26,7 +26,7 @@ process (BDLP) in this contex.t
 
 ## Gaussian OU Process
 
-The Gaussian Ornstein-Uhlebeck process, is a OU process where the BDLP is a Brownian motion with drift $d z_t = \kappa\theta + \sigma dw_t$. Substituting this into the OU SDE equation yields:
+The Gaussian Ornstein-Uhlebeck process, is a OU process where the BDLP is a Brownian motion with drift $d z_t = \kappa\theta dt + \sigma dw_t$. Substituting this into the OU SDE equation yields:
 
 \begin{equation}
     dx_t = \kappa\left(\theta - x_t\right) dt + \sigma dw_t
@@ -71,8 +71,12 @@ In this case, the BDLP is an exponential compound Poisson process with Lévy den
 ```{code-cell} ipython3
 from quantflow.sp.ou import GammaOU
 
-pr = GammaOU.create(intensity=3, decay=2, kappa=2)
+pr = GammaOU.create(decay=10, kappa=5)
 pr
+```
+
+```{code-cell} ipython3
+pr.marginal(1).mean(), pr.marginal(1).std()
 ```
 
 ```{code-cell} ipython3
@@ -80,7 +84,7 @@ import numpy as np
 from quantflow.utils import plot
 
 m = pr.marginal(5)
-plot.plot_marginal_pdf(m, 0.1*np.arange(100))
+plot.plot_marginal_pdf(m, 0.05*np.arange(100))
 ```
 
 ```{code-cell} ipython3
@@ -92,15 +96,7 @@ plot_characteristic(m)
 
 ```{code-cell} ipython3
 from quantflow.sp.ou import GammaOU
-pr = GammaOU.create(decay=20, kappa=5)
+pr = GammaOU.create(decay=10, kappa=5)
 
 pr.sample(50, time_horizon=1, time_steps=1000).plot().update_traces(line_width=0.5)
-```
-
-```{code-cell} ipython3
-
-```
-
-```{code-cell} ipython3
-
 ```

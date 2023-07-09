@@ -43,7 +43,7 @@ class GammaOU(NGOU):
         return cls(
             rate=rate,
             kappa=kappa,
-            bdlp=ExponentialPoissonProcess(intensity=rate * decay * kappa, decay=decay),
+            bdlp=ExponentialPoissonProcess(intensity=rate * decay, decay=decay),
         )
 
     def marginal(self, t: float, N: int = 128) -> StochasticProcess1DMarginal:
@@ -78,11 +78,12 @@ class GammaOU(NGOU):
         paths = np.zeros((time_steps + 1, n))
         paths[0, :] = self.rate
         for p in range(n):
-            arrivals = jump_process.arrivals(time_horizon)
+            arrivals = jump_process.arrivals(self.kappa * time_horizon)
             jumps = jump_process.jumps(len(arrivals))
             pp = paths[:, p]
             i = 1
             for arrival, jump in zip(arrivals, jumps):
+                arrival /= self.kappa
                 while i * dt < arrival:
                     i = self._advance(i, pp, dt)
                 if i <= time_steps:

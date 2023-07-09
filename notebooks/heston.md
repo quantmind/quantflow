@@ -43,11 +43,9 @@ pr.variance_process.is_positive
 ## Characteristic Function
 
 ```{code-cell} ipython3
-from notebooks.utils import chracteristic_fig
-N = 128
-M = 30
+from quantflow.utils import plot
 m = pr.marginal(1)
-chracteristic_fig(m, N, M).show()
+plot.plot_characteristic(m)
 ```
 
 The immaginary part of the characteristic function is given by the correlation coefficient.
@@ -73,17 +71,16 @@ import numpy as np
 N = 128
 M = 40
 r = m.pdf_from_characteristic(N, M, delta_x=4/N)
-n = norm.pdf(r["x"], scale=m.std())
-fig = px.line(r, x="x", y="y", markers=True)
-fig.add_trace(go.Scatter(x=r["x"], y=n, name="normal", line=dict()))
-fig.show()
+n = norm.pdf(r.x, scale=m.std())
+fig = px.line(x=r.x, y=r.y, markers=True)
+fig.add_trace(go.Scatter(x=r.x, y=n, name="normal", line=dict()))
 ```
 
 Using log scale on the y axis highlighs the probability on the tails much better
 
 ```{code-cell} ipython3
-fig = px.line(r, x="x", y="y", markers=True, log_y=True)
-fig.add_trace(go.Scatter(x=r["x"], y=n, name="normal", line=dict()))
+fig = px.line(x=r.x, y=r.y, markers=True, log_y=True)
+fig.add_trace(go.Scatter(x=r.x, y=n, name="normal", line=dict()))
 fig.show()
 ```
 
@@ -96,19 +93,18 @@ from quantflow.options.bs import black_call
 N, M = 128, 30
 dx = 4/N
 r = m.call_option(N, M, dx, alpha=0.5)
-b = black_call(r["x"], m.std(), 1)
-fig = px.line(r, x="x", y="y", markers=True)
-fig.add_trace(go.Scatter(x=r["x"], y=b, name="normal", line=dict()))
+b = black_call(r.x, m.std(), 1)
+fig = px.line(x=r.x, y=r.y, markers=True)
+fig.add_trace(go.Scatter(x=r.x, y=b, name="normal", line=dict()))
 fig.show()
 ```
 
 ```{code-cell} ipython3
 from quantflow.options.bs import implied_black_volatility
-n = len(r["x"])
+n = len(r.x)
 
-
-result = implied_black_volatility(r["x"], r["y"], 1, initial_sigma=m.std()*np.ones((n,)), call_put=1)
-fig = px.line(x=r["x"], y=result.root, markers=True, labels=dict(x="moneyness", y="implied vol"))
+result = implied_black_volatility(r.x, r.y, 1, initial_sigma=m.std()*np.ones((n,)), call_put=1)
+fig = px.line(x=r.x, y=result.root, markers=True, labels=dict(x="moneyness", y="implied vol"))
 fig.show()
 ```
 
@@ -126,8 +122,4 @@ pr
 
 ```{code-cell} ipython3
 pr.sample(20, time_horizon=1, time_steps=1000).plot().update_traces(line_width=0.5)
-```
-
-```{code-cell} ipython3
-
 ```

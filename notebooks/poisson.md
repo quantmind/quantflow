@@ -77,19 +77,28 @@ pr.sample(10, time_horizon=10, time_steps=1000).plot().update_traces(line_width=
 
 ## Doubly Stochastic Poisson Process
 
-
-The aim is to identify a stochastic process for simulating the goal arrival which fulfills the following properties
+The aim is to identify a stochastic process for simulating arrivals which fulfills the following properties
 
 * Capture overdispersion
 * Analytically tractable
-* Capture the inherent randomness of the goal intensity
+* Capture the inherent randomness of the Poisson intensity
 * Intuitive
 
-Before we dive into the details of the DSP process, lets take a quick tour of what Lévy processes are, how a time chage can open the doors to a vast array of models and why they are important in the context of DSP.of DSP.
+The DSP process presented in {cite:p}`dspp` has an intensity process which belongs to a class of affine diffusion and it can treated analytically.
+
+Additional links
+
+* [Doubly Stochastic Poisson Processes
+with Affine Intensities](https://editorialexpress.com/cgi-bin/conference/download.cgi?db_name=sbe35&paper_id=179)
+* [Closed-form formulas for the distribution of the jumps of
+doubly-stochastic Poisson processes](https://arxiv.org/pdf/1701.00717.pdf)
+* [On the characteristic functional of a doubly stochastic
+Poisson process](http://hera.ugr.es/doi/16516588.pdf)
+* [Time Change](http://www.stats.ox.ac.uk/~winkel/winkel15.pdf)
 
 +++
 
-## DSP process
+### DSP process
 
 Here we are interested in a special Lévy process, a Poisson process $p_t$ with intensity equal to 1. The characteristic exponent of this process is given by
 
@@ -110,7 +119,7 @@ The Characteristic function of $N_t$ can therefore be written as
 \end{equation}
 
 
-The doubly stochastic Poisson process (DSP process) with intensity process $\lambda_t$ is a point proces $y_t = p_{\Lambda_t}$
+The doubly stochastic Poisson process (DSP process) with intensity process $\lambda_t$ is a point process $y_t = p_{\Lambda_t}$
 satisfying the following expression for the conditional distribution of the n-th jump
 
 \begin{equation}

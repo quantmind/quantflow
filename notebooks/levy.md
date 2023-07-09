@@ -85,35 +85,4 @@ When the intensity process is affine, the log characteristic function takes the 
 {\mathbb L}_{\tau_t}\left(z\right) = {\mathbb E}\left[e^{- z \tau_t}\right] = e^{-a_{u, t} - b_{u, t} z_0}
 \end{equation}
 
-+++
-
-## Affine definition
-
-An affine intensity process takes the general form
-
-\begin{equation}
-    \lambda_t = r_0 + {\bf r}\cdot{\bf x}_t
-\end{equation}
-
-where $r_0 \in \Re$ and ${\bf r} \in \Re^d$ are contants and ${\bf x}_t$ is a $d$-dimensional stochastic process called the **state process**.
-
-When the intensity process is affine, the log characteristic function takes the following form
-
-\begin{equation}
-\psi_{t, T, u} = e^{a_{u, T-t} + b_{u, T-t} \lambda_t}
-\end{equation}
-
 where coefficients $a$ and $b$ satisfy Riccati ODEs which can be solved numerically and in some cases analytically.
-
-+++
-
-## References
-
-* [Time-changed Lévy processes and option pricing](https://engineering.nyu.edu/sites/default/files/2019-03/Carr-time-changed-levy-processes-option-pricing.pdf)
-* [Doubly Stochastic Poisson Processes
-with Affine Intensities](https://editorialexpress.com/cgi-bin/conference/download.cgi?db_name=sbe35&paper_id=179)
-* [Closed-form formulas for the distribution of the jumps of
-doubly-stochastic Poisson processes](https://arxiv.org/pdf/1701.00717.pdf)
-* [On the characteristic functional of a doubly stochastic
-Poisson process](http://hera.ugr.es/doi/16516588.pdf)
-* [Time Change](http://www.stats.ox.ac.uk/~winkel/winkel15.pdf)
