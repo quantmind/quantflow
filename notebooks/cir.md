@@ -61,15 +61,9 @@ m.mean_from_characteristic(), m.variance_from_characteristic()
 The code below show the computed PDF via FRFT and the analytical formula above
 
 ```{code-cell} ipython3
-import plotly.graph_objects as go
-N = 128*8
-M = 20
-dx = 8/N
-r = m.pdf_from_characteristic(N, M, dx)
-fig = go.Figure()
-fig.add_trace(go.Scatter(x=r["x"], y=r["y"], mode="markers", name="computed"))
-fig.add_trace(go.Scatter(x=r["x"], y=m.pdf(r["x"]), name="analytical", line=dict()))
-fig.show()
+from quantflow.utils import plot
+import numpy as np
+plot.plot_marginal_pdf(m, 0.05*np.arange(100))
 ```
 
 ## Characteristic Function
@@ -89,9 +83,9 @@ d = \frac{\gamma - \kappa}{2 u}
 \end{equation}
 
 ```{code-cell} ipython3
-from notebooks.utils import chracteristic_fig
+from quantflow.utils import plot
 m = pr.marginal(0.5)
-chracteristic_fig(m, N, M).show()
+plot.plot_characteristic(m)
 ```
 
 ## Sampling

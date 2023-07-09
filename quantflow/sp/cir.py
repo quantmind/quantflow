@@ -3,6 +3,7 @@ import enum
 import numpy as np
 from pydantic import Field
 from scipy import special
+from scipy.optimize import Bounds
 
 from quantflow.utils.types import Vector
 
@@ -127,6 +128,9 @@ class CIR(IntensityProcess):
         a = 2 * self.theta * kappa * np.log(-d / c) / sigma2
         b = 2 * iu * (1 - egt) / c
         return np.exp(a + b * self.rate)
+
+    def domain_range(self) -> Bounds:
+        return Bounds(0, np.inf)
 
 
 class CIRMarginal(StochasticProcess1DMarginal[CIR]):

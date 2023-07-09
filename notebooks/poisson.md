@@ -14,22 +14,53 @@ kernelspec:
 
 # Poisson Processes
 
+In this section, we look at the family of pure jump processes which are Lévy provcesses.
+The most common process is the Poisson process.
+
 ## Poisson Process
 
 ```{code-cell} ipython3
 from quantflow.sp.poisson import PoissonProcess
-pr = PoissonProcess(rate=2)
+pr = PoissonProcess(intensity=2)
 pr
 ```
 
+### Marginal
+
 ```{code-cell} ipython3
-p = pr.sample(10, time_horizon=1, time_steps=1000)
-p.plot()
+import numpy as np
+from quantflow.utils import plot
+
+m = pr.marginal(1)
+plot.plot_marginal_pdf(m, np.arange(10), analytical="markers")
+```
+
+```{code-cell} ipython3
+from quantflow.utils.plot import plot_characteristic
+plot_characteristic(m)
+```
+
+### Sampling Poisson
+
+```{code-cell} ipython3
+p = pr.sample(10, time_horizon=10, time_steps=1000)
+p.plot().update_traces(line_width=1)
 ```
 
 ## Compound Poisson Process
 
-The compound poisson process is a jump process, where the arrival of jumps follows the same dynamic as the Poisson process but the size of jumps is no longer constant and equal to 1, instead it follows a given distribution.
+The compound poisson process is a jump process, where the arrival of jumps $N_t$ follows the same dynamic as the Poisson process but the size of jumps is no longer constant and equal to 1, instead, they are i.i.d. random variables independent from $N_t$.
+
+\begin{align}
+  x_t = \sum_{k=1}^{N_t} j_t
+\end{align}
+
+The characteristic exponent is given by
+
+\begin{align}
+  e = \int_0^\infty \left(e^{iuy} - 1\right) f(y) dy
+\end{align}
+
 
 The library includes the Exponential Poisson Process, a compound Poisson process where the jump sizes are sampled from an exponential distribution.
 
@@ -41,7 +72,7 @@ pr
 ```
 
 ```{code-cell} ipython3
-pr.sample(10, time_horizon=1, time_steps=1000).plot()
+pr.sample(10, time_horizon=10, time_steps=1000).plot().update_traces(line_width=1)
 ```
 
 ## Doubly Stochastic Poisson Process
@@ -91,3 +122,7 @@ The intensity function of a DSPP is given by:
 \begin{equation}
 {\mathbb P}\left(N_T - N_t = n\right) = {\mathbb E}_t\left[e^{-\Lambda_{t,T}} \frac{\Lambda_{t, T}^n}{n!}\right] = \frac{1}{n!}
 \end{equation}
+
+```{code-cell} ipython3
+
+```

@@ -1,51 +1,82 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
+from typing import Any, NamedTuple
 
 import numpy as np
 import numpy.typing as npt
 from scipy.optimize import Bounds
+
+from .types import FloatArray
 
 
 class TransformError(RuntimeError):
     pass
 
 
+class TransformResult(NamedTuple):
+    """Result of a transform"""
+
+    x: FloatArray
+    y: np.ndarray
+
+
 def grid(n: int) -> npt.NDArray[np.int_]:
     return np.arange(0, n, 1)
 
 
-def trapezoid(N: int) -> npt.NDArray[np.float_]:
-    h = np.ones(N)
+def trapezoid(n: int) -> FloatArray:
+    h = np.ones(n)
     h[0] = 0.5
     return h
 
 
-def simpson(N: int) -> npt.NDArray[np.float_]:
-    h = np.ones(N)
+def simpson(n: int) -> FloatArray:
+    h = np.ones(n)
     h[1::2] = 4
     h[2::2] = 2
     return h / 3
 
 
+def default_bounds() -> Bounds:
+    return Bounds(-np.inf, np.inf)
+
+
+def lower_bound(b: Any, value: float) -> float:
+    try:
+        return max(float(b), value)
+    except TypeError:
+        return value
+
+
+def upper_bound(b: Any, value: float) -> float:
+    try:
+        return min(float(b), value)
+    except TypeError:
+        return value
+
+
 class Transform:
-    """Transforms for Option pricing"""
+    """Transforms for option pricing"""
 
     def __init__(
         self,
-        n: int,
-        max_frequency: float,
-        domain_range: Bounds,
+        n: int | None = None,
+        max_frequency: float | None = None,
+        domain_range: Bounds | None = None,
         simpson_rule: bool = False,
     ) -> None:
+        n = n or 128
+        max_frequency = max_frequency or 20.0
         self.delta_f = max_frequency / n
-        self.freq = self.delta_f * grid(n)
-        self.domain_range = domain_range
+        self.frequency_domain = self.delta_f * grid(n)
+        self.domain_range = domain_range or default_bounds()
         self.h = simpson(n) if simpson_rule else trapezoid(n)
 
     @property
     def n(self) -> int:
-        return self.freq.shape[0]
+        """Number of discretization points in the frequency and space domain"""
+        return self.frequency_domain.shape[0]
 
     @property
     def fft_zeta(self) -> float:
@@ -55,36 +86,51 @@ class Transform:
     def fft_delta_x(self) -> float:
         return self.fft_zeta / self.delta_f
 
-    def domain(self, delta_x: float) -> npt.NDArray[np.float_]:
-        b0 = max(self.domain_range.lb, -0.5 * delta_x * self.n)
-        b1 = min(self.domain_range.ub, delta_x * self.n + b0)
+    def space_domain(self, delta_x: float) -> FloatArray:
+        """Return the space domain discretization points"""
+        b0 = lower_bound(self.domain_range.lb, -0.5 * delta_x * self.n)
+        b1 = upper_bound(self.domain_range.ub, delta_x * self.n + b0)
         if not np.isclose((b1 - b0) / self.n, delta_x):
             raise TransformError("Incompatible delta_x with domain bounds")
         return delta_x * grid(self.n) + b0
 
-    def __call__(
-        self, y: np.ndarray, delta_x: float | None = None
-    ) -> dict[str, np.ndarray]:
+    def delta_x_from_bounds(self) -> float | None:
+        """Return the delta_x from the domain bounds"""
+        b0 = lower_bound(self.domain_range.lb, -np.inf)
+        b1 = upper_bound(self.domain_range.ub, np.inf)
+        if np.isinf(b0) or np.isinf(b1):
+            return None
+        return (b1 - b0) / self.n
+
+    def __call__(self, y: np.ndarray, delta_x: float | None = None) -> TransformResult:
         return self.fft(y) if delta_x is None else self.frft(y, delta_x)
 
-    def fft(self, y: np.ndarray) -> dict[str, np.ndarray]:
+    def fft(self, y: np.ndarray) -> TransformResult:
         """Transform using the Fast Fourier Transform"""
         delta_x = self.fft_zeta / self.delta_f
         x, f = self.transform(y, delta_x)
-        return dict(x=x, y=np.fft.fft(f).real / self.n)
+        return TransformResult(x=x, y=np.fft.fft(f).real / self.n)
 
-    def frft(self, y: np.ndarray, delta_x: float) -> dict[str, np.ndarray]:
+    def frft(self, y: np.ndarray, delta_x: float) -> TransformResult:
+        """Transform using the Fractional Fourier Transform"""
         x, f = self.transform(y, delta_x)
         r = frft.calculate(f, delta_x * self.delta_f)
-        return dict(x=x, y=r.result.real)
+        return TransformResult(x=x, y=r.result.real)
 
-    def transform(self, y: np.ndarray, delta_x: float) -> tuple[np.ndarray, np.ndarray]:
-        if y.shape != self.freq.shape:
+    def transform(self, y: np.ndarray, delta_x: float) -> TransformResult:
+        if y.shape != self.frequency_domain.shape:
             raise TransformError("shapes not compatible")
-        x = self.domain(delta_x)
+        x = self.space_domain(delta_x)
         b = -x[0]
-        t = self.h * self.n * np.exp(1j * self.freq * b) * y * self.delta_f / np.pi
-        return x, t
+        t = (
+            self.h
+            * self.n
+            * np.exp(1j * self.frequency_domain * b)
+            * y
+            * self.delta_f
+            / np.pi
+        )
+        return TransformResult(x=x, y=t)
 
 
 @dataclass

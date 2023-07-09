@@ -87,5 +87,9 @@ module = "pandas.*"
 ignore_missing_imports = true
 
 [[tool.mypy.overrides]]
+module = "plotly.*"
+ignore_missing_imports = true
+
+[[tool.mypy.overrides]]
 module = "scipy.*"
 ignore_missing_imports = true

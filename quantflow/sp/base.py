@@ -11,7 +11,7 @@ from quantflow.utils.marginal import Marginal1D, default_bounds
 from quantflow.utils.paths import Paths
 from quantflow.utils.types import Vector
 
-Im = 1j
+Im = complex(0, 1)
 
 
 class StochasticProcess(BaseModel, ABC):
@@ -60,6 +60,10 @@ class StochasticProcess1D(StochasticProcess):
     def domain_range(self) -> Bounds:
         return default_bounds()
 
+    def max_frequency(self, t: float) -> float:
+        """Maximum frequency of the process"""
+        return 20
+
 
 P = TypeVar("P", bound=StochasticProcess1D)
 
@@ -79,6 +83,9 @@ class StochasticProcess1DMarginal(Marginal1D, Generic[P]):
 
     def domain_range(self) -> Bounds:
         return self.process.domain_range()
+
+    def max_frequency(self) -> float:
+        return self.process.max_frequency(self.t)
 
 
 class CountingProcess1D(StochasticProcess1D):
@@ -190,3 +197,6 @@ class IntensityProcess(StochasticProcess1D):
         :param t: time horizon
         :param u: frequency
         """
+
+    def domain_range(self) -> Bounds:
+        return Bounds(0, np.inf)

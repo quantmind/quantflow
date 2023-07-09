@@ -5,28 +5,43 @@ import numpy as np
 import pandas as pd
 from scipy.optimize import Bounds
 
-from .transforms import Transform, grid
-from .types import Vector
-
-
-def default_bounds() -> Bounds:
-    return Bounds(-np.inf, np.inf)
+from .transforms import Transform, TransformResult, default_bounds
+from .types import FloatArray, Vector
 
 
 class Marginal1D(ABC):
     """Marginal distribution"""
 
+    @abstractmethod
+    def characteristic(self, n: Vector) -> Vector:
+        """
+        Compute the characteristic function on support points `n`.
+        """
+
     def mean(self) -> float:
-        """Expected value at a time horizon"""
+        """Expected value at a time horizon
+
+        THis should be overloaded if a more efficient way of computing the mean
+        """
         return self.mean_from_characteristic()
+
+    def variance(self) -> float:
+        """Variance at a time horizon
+
+        This should be overloaded if a more efficient way of computing the
+        """
+        return self.variance_from_characteristic()
+
+    def max_frequency(self) -> float:
+        """Maximum frequency of the characteristic function
+
+        This should be overloaded if required
+        """
+        return 20
 
     def std(self) -> float:
         """Standard deviation at a time horizon"""
         return np.sqrt(self.variance())
-
-    def variance(self) -> float:
-        """Variance at a time horizon"""
-        return self.variance_from_characteristic()
 
     def mean_from_characteristic(self) -> float:
         """Calculate mean as first derivative of characteristic function at 0"""
@@ -57,22 +72,31 @@ class Marginal1D(ABC):
         """
         return self.cdf(n) - self.cdf(n - 1)
 
-    def frequency_space(self, N: int, max_frequency: float = 10.0) -> np.ndarray:
-        return max_frequency * grid(N) / N
-
     def pdf_from_characteristic(
         self,
-        N: int,
-        max_frequency: float = 10.0,
+        n_or_x: int | FloatArray | None = None,
+        max_frequency: float | None = None,
         delta_x: float | None = None,
         simpson_rule: bool = False,
-    ) -> pd.DataFrame:
+    ) -> TransformResult:
         """
         Compute the probability density function from the characteristic function.
         """
-        t = Transform(N, max_frequency, self.domain_range(), simpson_rule)
-        psi = cast(np.ndarray, self.characteristic(t.freq))
-        return pd.DataFrame(t(psi, delta_x))
+        n = None
+        if isinstance(n_or_x, int):
+            n = n_or_x
+        elif n_or_x is not None and delta_x is None:
+            min_x = float(np.min(n_or_x))
+            max_x = float(np.max(n_or_x))
+            delta_x = (max_x - min_x) / (len(n_or_x) - 1)
+        transform = Transform(
+            n,
+            max_frequency=max_frequency or self.max_frequency(),
+            domain_range=self.domain_range(),
+            simpson_rule=simpson_rule,
+        )
+        psi = cast(np.ndarray, self.characteristic(transform.frequency_domain))
+        return transform(psi, delta_x)
 
     def call_option(
         self,
@@ -81,13 +105,13 @@ class Marginal1D(ABC):
         delta_x: Optional[float] = None,
         alpha: float = 0.5,
         simpson_rule: bool = False,
-    ) -> pd.DataFrame:
+    ) -> TransformResult:
         t = Transform(N, max_frequency, self.domain_range(), simpson_rule)
-        phi = cast(np.ndarray, self.call_option_transform(t.freq - 1j * alpha))
+        phi = cast(
+            np.ndarray, self.call_option_transform(t.frequency_domain - 1j * alpha)
+        )
         result = t(phi, delta_x)
-        x = result["x"]
-        y = result["y"]
-        return pd.DataFrame(dict(x=x, y=y * np.exp(-alpha * x)))
+        return TransformResult(x=result.x, y=result.y * np.exp(-alpha * result.x))
 
     def call_option_transform(self, u: Vector) -> Vector:
         """Call option transfrom"""
@@ -128,8 +152,18 @@ class Marginal1D(ABC):
         """
         raise NotImplementedError("Analytical CFD Jacobian not available")
 
-    @abstractmethod
-    def characteristic(self, n: Vector) -> Vector:
+    def characteristic_df(
+        self, n: int | None, max_frequency: float | None = None
+    ) -> pd.DataFrame:
         """
-        Compute the characteristic function on support points `n`.
+        Compute the characteristic function with n discretization points
+        and a max frequency
         """
+        fre = Transform(n=n, max_frequency=max_frequency).frequency_domain
+        psi = self.characteristic(fre)
+        return pd.concat(
+            (
+                pd.DataFrame(dict(frequency=fre, characteristic=psi.real, name="real")),
+                pd.DataFrame(dict(frequency=fre, characteristic=psi.imag, name="iamg")),
+            )
+        )

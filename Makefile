@@ -22,7 +22,7 @@ notebook:			## Run Jupyter notebook server
 book:				## Build static jupyter {book}
 	poetry run jupyter-book build notebooks --all
 
-publish:		## release to pypi
+publish:			## release to pypi
 	@poetry publish --build -u lsbardel -p $(PYPI_PASSWORD)
 
 publish-book:			## publish the book to github pages

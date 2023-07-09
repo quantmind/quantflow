@@ -2,14 +2,15 @@ from __future__ import annotations
 
 import numpy as np
 from pydantic import Field
+from scipy.stats import gamma
 
 from ..utils.paths import Paths
 from ..utils.types import Vector
-from .base import Im, IntensityProcess
+from .base import Im, IntensityProcess, StochasticProcess1DMarginal
 from .poisson import ExponentialPoissonProcess
 
 
-class OU(IntensityProcess):
+class NGOU(IntensityProcess):
     r"""Non-Gaussian Ornstein-Uhlenbeck process
 
     The process :math:`x_t` that satisfies the following stochastic
@@ -18,57 +19,77 @@ class OU(IntensityProcess):
     .. math::
         dx_t =-\kappa x_t dt + d j_t
     """
-    a: float = Field(default=1, ge=0, description="Jump intensity")
-    decay: float = Field(default=0, gt=0, description="Jump size exponential decay")
 
-    @classmethod
-    def create(
-        cls, rate: float = 1, kappa: float = 1, a: float = 1, decay: float | None = None
-    ) -> OU:
-        return cls(rate=rate, kappa=kappa, a=a, decay=decay or a / rate)
+    def sample_from_draws(self, draws: Paths, *args: Paths) -> Paths:
+        raise NotImplementedError
+
+
+class GammaOU(NGOU):
+    bdlp: ExponentialPoissonProcess = Field(
+        default_factory=ExponentialPoissonProcess,
+        description="Background driving Levy process",
+    )
 
     @property
-    def jump_process(self) -> ExponentialPoissonProcess:
-        return ExponentialPoissonProcess(rate=self.kappa * self.a, decay=self.decay)
+    def alpha(self) -> float:
+        return self.bdlp.intensity
+
+    @property
+    def beta(self) -> float:
+        return self.bdlp.decay
+
+    @classmethod
+    def create(cls, rate: float = 1, decay: float = 1, kappa: float = 1) -> GammaOU:
+        return cls(
+            rate=rate,
+            kappa=kappa,
+            bdlp=ExponentialPoissonProcess(intensity=rate * decay * kappa, decay=decay),
+        )
+
+    def marginal(self, t: float, N: int = 128) -> StochasticProcess1DMarginal:
+        return GammaOUMarginal(self, t, N)
 
     def characteristic(self, t: float, u: Vector) -> Vector:
         kappa = self.kappa
-        b = self.decay
+        a = self.alpha
+        b = self.beta
         iu = Im * u
         kt = kappa * t
         ekt = np.exp(-kt)
         c1 = iu * ekt
-        c0 = self.a * (np.log((b / ekt - iu) / (b - iu)) - kt)
+        c0 = a * (np.log((b / ekt - iu) / (b - iu)) - kt)
         return np.exp(c0 + c1 * self.rate)
 
     def cumulative_characteristic(self, t: float, u: Vector) -> Vector:
         kappa = self.kappa
-        b = self.decay
+        b = self.beta
         iu = Im * u
         iuk = iu / kappa
         ekt = np.exp(-kappa * t)
         c1 = iuk * (1 - ekt)
-        c0 = self.a * (b * np.log(b / (iuk + (b - iuk) / ekt)) / (iuk - b) - kappa * t)
+        c0 = self.alpha * (
+            b * np.log(b / (iuk + (b - iuk) / ekt)) / (iuk - b) - kappa * t
+        )
         return np.exp(c0 + c1 * self.rate)
 
-    def sample(self, n: int, t: float = 1, steps: int = 100) -> Paths:
-        dt = t / steps
-        jump_process = self.jump_process
-        paths = np.zeros((steps + 1, n))
+    def sample(self, n: int, time_horizon: float = 1, time_steps: int = 100) -> Paths:
+        dt = time_horizon / time_steps
+        jump_process = self.bdlp
+        paths = np.zeros((time_steps + 1, n))
         paths[0, :] = self.rate
         for p in range(n):
-            arrivals = jump_process.arrivals(t)
+            arrivals = jump_process.arrivals(time_horizon)
             jumps = jump_process.jumps(len(arrivals))
             pp = paths[:, p]
             i = 1
             for arrival, jump in zip(arrivals, jumps):
                 while i * dt < arrival:
                     i = self._advance(i, pp, dt)
-                if i <= steps:
+                if i <= time_steps:
                     i = self._advance(i, pp, dt, arrival, jump)
-            while i <= steps:
+            while i <= time_steps:
                 i = self._advance(i, pp, dt)
-        return Paths(t=t, data=paths)
+        return Paths(t=time_horizon, data=paths)
 
     def _advance(
         self, i: int, pp: np.ndarray, dt: float, arrival: float = 0, jump: float = 0
@@ -81,15 +102,24 @@ class OU(IntensityProcess):
         pp[i] = x - kappa * x * (a - t0) - kappa * (x + jump) * (t1 - a) + jump
         return i + 1
 
-
-class OU2(OU):
-    def cumulative_characteristic(self, t: float, u: Vector) -> Vector:
+    def cumulative_characteristic2(self, t: float, u: Vector) -> Vector:
         """Formula from a paper"""
         kappa = self.kappa
-        b = self.decay
+        b = self.beta
         iu = Im * u
         iuk = iu / kappa
         ekt = np.exp(-kappa * t)
         c1 = iuk * (1 - ekt)
-        c0 = self.a * (b * np.log(b / (b - c1)) - iu * t) / (iuk - b)
+        c0 = self.alpha * (b * np.log(b / (b - c1)) - iu * t) / (iuk - b)
         return np.exp(c0 + c1 * self.rate)
+
+
+class GammaOUMarginal(StochasticProcess1DMarginal[GammaOU]):
+    def mean(self) -> float:
+        return self.process.alpha / self.process.beta
+
+    def variance(self) -> float:
+        return self.process.alpha / self.process.beta / self.process.beta
+
+    def pdf(self, x: Vector) -> Vector:
+        return gamma.pdf(x, self.process.alpha, scale=1 / self.process.beta)

@@ -32,7 +32,7 @@ class OptionEntry:
         return Bounds(min(implied_vols), max(implied_vols))
 
     def price_range(self) -> Bounds:
-        """Get the range of implied volatilities"""
+        """Get the range of prices"""
         prices = tuple(option.call_price for option in self.options)
         return Bounds(min(prices), max(prices))
 

@@ -2,11 +2,13 @@ from decimal import Decimal
 from typing import Optional, Union
 
 import numpy as np
+import numpy.typing as npt
 
 Number = Decimal
 Numbers = Union[int, float, np.number]
 NumberType = Union[float, int, str, Number]
 Vector = Union[int, float, complex, np.ndarray]
+FloatArray = npt.NDArray[np.float_]
 
 
 def as_number(num: Optional[NumberType] = None) -> Number:

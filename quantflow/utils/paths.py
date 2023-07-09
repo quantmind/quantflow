@@ -36,7 +36,7 @@ class Paths(BaseModel):
 
     @property
     def df(self) -> pd.DataFrame:
-        return pd.DataFrame(self.data)
+        return pd.DataFrame(self.data, index=self.time)
 
     @property
     def xs(self) -> list[np.ndarray]:
@@ -67,7 +67,7 @@ class Paths(BaseModel):
         )
 
     def plot(self, **kwargs: Any) -> Any:
-        return plot.plot_lines(self.data, **kwargs)
+        return plot.plot_lines(self.df, **kwargs)
 
     @classmethod
     def normal_draws(
