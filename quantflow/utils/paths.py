@@ -84,9 +84,14 @@ class Paths(BaseModel):
         time_steps: number of time steps to arrive at horizon
         """
         time_horizon / time_steps
+        odd = 0
         if antithetic_variates:
+            odd = paths % 2
             paths = paths // 2
         data = normal(size=(time_steps + 1, paths))
         if antithetic_variates:
             data = np.concatenate((data, -data), axis=1)
+            if odd:
+                extra_data = normal(size=(time_steps + 1, odd))
+                data = np.concatenate((data, extra_data), axis=1)
         return cls(t=time_horizon, data=data)

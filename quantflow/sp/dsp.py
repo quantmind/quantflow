@@ -1,15 +1,16 @@
+import math
 from typing import List
 
 import numpy as np
 from pydantic import Field
 
 from ..utils.types import Vector, as_array
-from .base import Im, StochasticProcess1D
-from .cir import IntensityProcess
-from .poisson import PoissonProcess
+from .base import Im
+from .cir import CIR, IntensityProcess
+from .poisson import PoissonBase, PoissonProcess, poisson_arrivals
 
 
-class DSP(StochasticProcess1D):
+class DSP(PoissonBase):
     r"""
     Doubly Stochastic Poisson process.
 
@@ -18,8 +19,8 @@ class DSP(StochasticProcess1D):
 
     :param intensity: the stochastic intensity of the Poisson
     """
-    intensity: IntensityProcess = Field(
-        default_factory=IntensityProcess, description="intensity process"
+    intensity: IntensityProcess = Field(  # type ignore
+        default_factory=CIR, description="intensity process"
     )
     poisson: PoissonProcess = Field(default_factory=PoissonProcess, exclude=True)
 
@@ -52,5 +53,9 @@ class DSP(StochasticProcess1D):
         return self.intensity.cumulative_characteristic(t, -Im * phi)
 
     def arrivals(self, t: float = 1) -> List[float]:
-        paths = self.intensity.sample(1, t, 100).integrate()
-        return self.poisson.arrivals(paths.data[-1, 0])
+        paths = self.intensity.sample(1, t, math.ceil(100 * t)).integrate()
+        intensity = paths.data[-1, 0]
+        return poisson_arrivals(intensity, t)
+
+    def jumps(self, n: int) -> np.ndarray:
+        return self.poisson.jumps(n)

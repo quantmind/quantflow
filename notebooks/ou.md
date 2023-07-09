@@ -101,6 +101,26 @@ pr = GammaOU.create(decay=10, kappa=5)
 pr.sample(50, time_horizon=1, time_steps=1000).plot().update_traces(line_width=0.5)
 ```
 
+### MC testing
+
+Test the simulated meand and stadard deviation against the values from the invariant gamma distribution.
+
+```{code-cell} ipython3
+import pandas as pd
+from quantflow.utils import plot
+
+paths = pr.sample(1000, time_horizon=1, time_steps=1000)
+mean = dict(mean=pr.marginal(paths.time).mean(), simulated=paths.mean())
+df = pd.DataFrame(mean, index=paths.time)
+plot.plot_lines(df)
+```
+
+```{code-cell} ipython3
+std = dict(std=pr.marginal(paths.time).std(), simulated=paths.std())
+df = pd.DataFrame(std, index=paths.time)
+plot.plot_lines(df)
+```
+
 ```{code-cell} ipython3
 
 ```

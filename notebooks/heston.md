@@ -116,10 +116,30 @@ The code implements algorithms from {cite:p}heston-simulation
 
 ```{code-cell} ipython3
 from quantflow.sp.heston import Heston
-pr = Heston.create(vol=0.6, kappa=2, sigma=1.2, rho=-0.4)
+pr = Heston.create(vol=0.6, kappa=2, sigma=0.8, rho=-0.4)
 pr
 ```
 
 ```{code-cell} ipython3
 pr.sample(20, time_horizon=1, time_steps=1000).plot().update_traces(line_width=0.5)
+```
+
+```{code-cell} ipython3
+import pandas as pd
+from quantflow.utils import plot
+
+paths = pr.sample(1000, time_horizon=1, time_steps=1000)
+mean = dict(mean=pr.marginal(paths.time).mean(), simulated=paths.mean())
+df = pd.DataFrame(mean, index=paths.time)
+plot.plot_lines(df)
+```
+
+```{code-cell} ipython3
+std = dict(std=pr.marginal(paths.time).std(), simulated=paths.std())
+df = pd.DataFrame(std, index=paths.time)
+plot.plot_lines(df)
+```
+
+```{code-cell} ipython3
+
 ```

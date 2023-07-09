@@ -62,7 +62,7 @@ class Heston(StochasticProcess1D):
         dz = path1.data
         dw = self.rho * dz + np.sqrt(1 - self.rho * self.rho) * path2.data
         v = self.variance_process.sample_from_draws(path1)
-        dx = v.data * dw * np.sqrt(path1.dt)
+        dx = dw * np.sqrt(v.data * path1.dt)
         paths = np.zeros(dx.shape)
         paths[1:] = np.cumsum(dx[:-1], axis=0)
         return Paths(t=path1.t, data=paths)

@@ -67,7 +67,7 @@ The library includes the Exponential Poisson Process, a compound Poisson process
 ```{code-cell} ipython3
 from quantflow.sp.poisson import ExponentialPoissonProcess
 
-pr = ExponentialPoissonProcess(intensity=2, decay=20)
+pr = ExponentialPoissonProcess(intensity=2, decay=10)
 pr
 ```
 
@@ -157,6 +157,24 @@ The intensity function of a DSPP is given by:
 \begin{equation}
 {\mathbb P}\left(N_T - N_t = n\right) = {\mathbb E}_t\left[e^{-\Lambda_{t,T}} \frac{\Lambda_{t, T}^n}{n!}\right] = \frac{1}{n!}
 \end{equation}
+
+```{code-cell} ipython3
+from quantflow.sp.dsp import DSP
+from quantflow.sp.cir import CIR
+
+pr = DSP()
+pr
+```
+
+```{code-cell} ipython3
+from quantflow.utils.plot import plot_characteristic
+m = pr.marginal(1)
+plot_characteristic(m)
+```
+
+```{code-cell} ipython3
+pr.sample(10, time_horizon=10, time_steps=1000).plot().update_traces(line_width=1)
+```
 
 ```{code-cell} ipython3
 

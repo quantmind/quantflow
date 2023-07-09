@@ -3,12 +3,23 @@ import math
 import numpy as np
 import pytest
 
-from quantflow.sp.poisson import PoissonProcess
+from quantflow.sp.dsp import DSP
+from quantflow.sp.poisson import ExponentialPoissonProcess, PoissonProcess
 
 
 @pytest.fixture
 def poisson() -> PoissonProcess:
     return PoissonProcess(intensity=2)
+
+
+@pytest.fixture
+def comp() -> ExponentialPoissonProcess:
+    return ExponentialPoissonProcess(intensity=2, decay=10)
+
+
+@pytest.fixture
+def dsp() -> DSP:
+    return DSP()
 
 
 def test_characteristic(poisson: PoissonProcess) -> None:
@@ -35,6 +46,14 @@ def test_pdf(poisson: PoissonProcess) -> None:
 
 def test_sampling(poisson: PoissonProcess) -> None:
     paths = poisson.sample(1000, time_horizon=1, time_steps=1000)
+    mean = paths.mean()
+    assert mean[0] == 0
+    std = paths.std()
+    assert std[0] == 0
+
+
+def test_dsp_sample(dsp: DSP):
+    paths = dsp.sample(1000, time_horizon=1, time_steps=1000)
     mean = paths.mean()
     assert mean[0] == 0
     std = paths.std()

@@ -12,15 +12,17 @@ from .base import Im, StochasticProcess1D, StochasticProcess1DMarginal
 
 
 class PoissonBase(StochasticProcess1D):
-    intensity: float = Field(default=1.0, ge=0, description="intensity rate")
-
     @abstractmethod
     def jumps(self, n: int) -> np.ndarray:
         """Generate a list of jump sizes"""
 
     @abstractmethod
     def characteristic_exponent(self, u: Vector) -> Vector:
-        return -self.intensity * (np.exp(Im * u) - 1)
+        """Characteristic exponent of the process"""
+
+    @abstractmethod
+    def arrivals(self, time_horizon: float = 1) -> list[float]:
+        """Generate a list of jump arrivals times up to time t"""
 
     def characteristic(self, t: float, u: Vector) -> Vector:
         return np.exp(-t * self.characteristic_exponent(u))
@@ -47,25 +49,31 @@ class PoissonBase(StochasticProcess1D):
     def domain_range(self) -> Bounds:
         return Bounds(0, np.inf)
 
-    def arrivals(self, time_horizon: float = 1) -> list[float]:
-        """Generate a list of jump arrivals times up to time t"""
-        exp_rate = 1.0 / self.intensity
-        arrivals = []
-        tt = 0.0
-        while tt < time_horizon:
-            dt = np.random.exponential(scale=exp_rate)
-            tt += dt
-            if tt <= time_horizon:
-                arrivals.append(tt)
-        return arrivals
+
+def poisson_arrivals(intensity: float, time_horizon: float = 1) -> list[float]:
+    """Generate a list of jump arrivals times up to time t"""
+    exp_rate = 1.0 / intensity
+    arrivals = []
+    tt = 0.0
+    while tt < time_horizon:
+        dt = np.random.exponential(scale=exp_rate)
+        tt += dt
+        if tt <= time_horizon:
+            arrivals.append(tt)
+    return arrivals
 
 
 class PoissonProcess(PoissonBase):
-    def characteristic_exponent(self, u: Vector) -> Vector:
-        return -self.intensity * (np.exp(Im * u) - 1)
+    intensity: float = Field(default=1.0, ge=0, description="intensity rate")
 
     def marginal(self, t: float, N: int = 128) -> StochasticProcess1DMarginal:
         return PoissonMarginal(self, t, N)
+
+    def characteristic_exponent(self, u: Vector) -> Vector:
+        return -self.intensity * (np.exp(Im * u) - 1)
+
+    def arrivals(self, time_horizon: float = 1) -> list[float]:
+        return poisson_arrivals(self.intensity, time_horizon)
 
     def jumps(self, n: int) -> np.ndarray:
         """For a poisson process this is just a list of 1s"""
@@ -87,6 +95,7 @@ class ExponentialPoissonProcess(PoissonBase):
 
         The arrival rate of events. Must be positive.
     """
+    intensity: float = Field(default=1.0, ge=0, description="intensity rate")
     decay: float = Field(default=1.0, ge=0, description="Jump size decay rate")
 
     def marginal(self, t: float, N: int = 128) -> StochasticProcess1DMarginal:
@@ -95,6 +104,9 @@ class ExponentialPoissonProcess(PoissonBase):
     def characteristic_exponent(self, u: Vector) -> Vector:
         iu = Im * u
         return -self.intensity * iu / (self.decay - iu)
+
+    def arrivals(self, time_horizon: float = 1) -> list[float]:
+        return poisson_arrivals(self.intensity, time_horizon)
 
     def jumps(self, n: int) -> np.ndarray:
         """Sample jump sizes from an exponential distribution with rate
