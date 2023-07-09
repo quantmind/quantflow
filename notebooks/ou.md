@@ -64,9 +64,9 @@ It is possible to show, see {cite:p}`ou`, that given the Lévy density $w$ of $z
 
 ## Gamma OU Process
 
-The library provides an implementation of the Non-gaussian OU process in the form of a Gamma OU process, where the invariant distribution of $x_t$ is a [gamma](https://en.wikipedia.org/wiki/Gamma_distribution) distribution $\Gamma\left(c, \alpha\right)$.
+The library provides an implementation of the non-gaussian OU process in the form of a Gamma OU process, where the invariant distribution of $x_t$ is a [gamma](https://en.wikipedia.org/wiki/Gamma_distribution) distribution $\Gamma\left(\alpha, \beta\right)$.
 
-In this case, the BDLP is an exponential compound Poisson process with Lévy density $r \alpha e^{-\alpha x}$, in other wordes the [exponential compount Poisson](./poisson.md) process with intensity $r$ and decay $\alpha$.
+In this case, the BDLP is an exponential compound Poisson process with Lévy density $\alpha\beta e^{-\beta x}$, in other words, the [exponential compound Poisson](./poisson.md) process with intensity $\alpha$ and decay $\beta$.
 
 ```{code-cell} ipython3
 from quantflow.sp.ou import GammaOU
@@ -99,4 +99,8 @@ from quantflow.sp.ou import GammaOU
 pr = GammaOU.create(decay=10, kappa=5)
 
 pr.sample(50, time_horizon=1, time_steps=1000).plot().update_traces(line_width=0.5)
+```
+
+```{code-cell} ipython3
+
 ```

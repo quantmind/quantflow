@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from abc import ABC, abstractmethod
-from typing import Generic, Tuple, TypeVar
+from typing import Generic, TypeVar
 
 import numpy as np
 from pydantic import BaseModel, Field
@@ -86,97 +86,6 @@ class StochasticProcess1DMarginal(Marginal1D, Generic[P]):
 
     def max_frequency(self) -> float:
         return self.process.max_frequency(self.t)
-
-
-class CountingProcess1D(StochasticProcess1D):
-    pass
-
-
-class CountingProcess2D(StochasticProcess):
-    """
-    Base class for 2D stochastic process in continuous time and discrete domain.
-    """
-
-    def pdf(self, t: float, n: Tuple[Vector, Vector]) -> Vector:
-        """
-        Computes the probability density (or mass) function of the process.
-        It has a base implementation that computes the pdf from the
-        :class:`cdf` method, but a subclass should overload this method if a
-        more optimized way of computing it is available.
-
-        Passing non integer values for ``n`` is currently undefined behavior.
-        Both elements of the tuple ``n`` need to have the same type, and if
-        they're numpy arrays, same shape. The return value should preserve the
-        shape of the elements of ``n``.
-        """
-        n0, n1 = n
-        return (
-            self.cdf(t, n)
-            - self.cdf(t, (n0 - 1, n1))
-            - self.cdf(t, (n0, n1 - 1))
-            + self.cdf(t, (n0 - 1, n1 - 1))
-        )
-
-    @abstractmethod
-    def cdf(self, t: float, n: Tuple[Vector, Vector]) -> Vector:
-        """
-        Cumulative distribution function.
-
-        The function should handle any value (even non integer) of the elements
-        of ``n``. Both elements of the tuple ``n`` need to have the same type,
-        and if they're numpy arrays, same shape. The return value should
-        preserve the shape of the elements of ``n``.
-        """
-
-    @abstractmethod
-    def marginals(self) -> Tuple[CountingProcess1D, CountingProcess1D]:
-        """
-        Returns the marginal process of each of the two random variables of the
-        process.
-        """
-
-    @abstractmethod
-    def sum_process(self) -> CountingProcess1D:
-        """
-        Returns the 1D process that represents the sum of the two random
-        variables of the process.
-        """
-
-    @abstractmethod
-    def difference_process(self) -> CountingProcess1D:
-        """
-        Returns the 1D process that represents the difference of the two random
-        variables of the process.
-        """
-
-    def cdf_square(self, t: float, n: int) -> np.ndarray:
-        """Cumulative distribution function on a n x n square support"""
-        raise NotImplementedError
-
-    def pdf_jacobian(self, t: float, n: Tuple[Vector, Vector]) -> np.ndarray:
-        """
-        Jacobian of the pdf with respect to the parameters of the process.
-
-        It has a base implementation that computes it from the
-        :class:`cdf_jacobian` method, but a subclass should overload this method if a
-        more optimized way of computing it is available.
-        """
-        n0, n1 = n
-        return (
-            self.cdf_jacobian(t, n)
-            - self.cdf_jacobian(t, (n0 - 1, n1))
-            - self.cdf_jacobian(t, (n0, n1 - 1))
-            + self.cdf_jacobian(t, (n0 - 1, n1 - 1))
-        )
-
-    def cdf_jacobian(self, t: float, n: Tuple[Vector, Vector]) -> np.ndarray:
-        """
-        Jacobian of the cdf with respect to the parameters of the process.
-        It is useful for optimization purposes if necessary.
-
-        Optional to implement, otherwise raises ``NotImplementedError`` if called.
-        """
-        raise NotImplementedError
 
 
 class IntensityProcess(StochasticProcess1D):

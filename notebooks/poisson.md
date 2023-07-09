@@ -67,12 +67,38 @@ The library includes the Exponential Poisson Process, a compound Poisson process
 ```{code-cell} ipython3
 from quantflow.sp.poisson import ExponentialPoissonProcess
 
-pr = ExponentialPoissonProcess(rate=1, decay=10)
+pr = ExponentialPoissonProcess(intensity=2, decay=20)
 pr
 ```
 
 ```{code-cell} ipython3
+from quantflow.utils.plot import plot_characteristic
+m = pr.marginal(1)
+plot_characteristic(m)
+```
+
+```{code-cell} ipython3
 pr.sample(10, time_horizon=10, time_steps=1000).plot().update_traces(line_width=1)
+```
+
+### MC simulations
+
+Here we test the simulated mean and standard deviation against the analytical values.
+
+```{code-cell} ipython3
+import pandas as pd
+from quantflow.utils import plot
+
+paths = pr.sample(100, time_horizon=10, time_steps=1000)
+mean = dict(mean=pr.marginal(paths.time).mean(), simulated=paths.mean())
+df = pd.DataFrame(mean, index=paths.time)
+plot.plot_lines(df)
+```
+
+```{code-cell} ipython3
+std = dict(std=pr.marginal(paths.time).std(), simulated=paths.std())
+df = pd.DataFrame(std, index=paths.time)
+plot.plot_lines(df)
 ```
 
 ## Doubly Stochastic Poisson Process

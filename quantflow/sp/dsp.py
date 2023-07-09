@@ -4,12 +4,12 @@ import numpy as np
 from pydantic import Field
 
 from ..utils.types import Vector, as_array
-from .base import CountingProcess1D, Im
+from .base import Im, StochasticProcess1D
 from .cir import IntensityProcess
 from .poisson import PoissonProcess
 
 
-class DSP(CountingProcess1D):
+class DSP(StochasticProcess1D):
     r"""
     Doubly Stochastic Poisson process.
 

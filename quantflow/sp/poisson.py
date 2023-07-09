@@ -1,3 +1,5 @@
+from abc import abstractmethod
+
 import numpy as np
 from pydantic import Field
 from scipy.optimize import Bounds
@@ -6,21 +8,17 @@ from scipy.stats import poisson
 from ..utils.functions import factorial
 from ..utils.paths import Paths
 from ..utils.types import Vector
-from .base import CountingProcess1D, Im, StochasticProcess1DMarginal
+from .base import Im, StochasticProcess1D, StochasticProcess1DMarginal
 
 
-class PoissonProcess(CountingProcess1D):
-    r"""
-    THe 1D Poisson process is one of the most common Levy processes.
-
-    It's point process where the inter-arrival time is exponentially distributed
-    with rate $\lambda$
-    """
+class PoissonBase(StochasticProcess1D):
     intensity: float = Field(default=1.0, ge=0, description="intensity rate")
 
-    def marginal(self, t: float, N: int = 128) -> StochasticProcess1DMarginal:
-        return PoissonMarginal(self, t, N)
+    @abstractmethod
+    def jumps(self, n: int) -> np.ndarray:
+        """Generate a list of jump sizes"""
 
+    @abstractmethod
     def characteristic_exponent(self, u: Vector) -> Vector:
         return -self.intensity * (np.exp(Im * u) - 1)
 
@@ -46,6 +44,9 @@ class PoissonProcess(CountingProcess1D):
     def sample_from_draws(self, draws: Paths, *args: Paths) -> Paths:
         raise NotImplementedError
 
+    def domain_range(self) -> Bounds:
+        return Bounds(0, np.inf)
+
     def arrivals(self, time_horizon: float = 1) -> list[float]:
         """Generate a list of jump arrivals times up to time t"""
         exp_rate = 1.0 / self.intensity
@@ -58,22 +59,24 @@ class PoissonProcess(CountingProcess1D):
                 arrivals.append(tt)
         return arrivals
 
+
+class PoissonProcess(PoissonBase):
+    def characteristic_exponent(self, u: Vector) -> Vector:
+        return -self.intensity * (np.exp(Im * u) - 1)
+
+    def marginal(self, t: float, N: int = 128) -> StochasticProcess1DMarginal:
+        return PoissonMarginal(self, t, N)
+
     def jumps(self, n: int) -> np.ndarray:
-        """Generate a list of jump sizes
-
-        For a poisson process this is just a list of 1s
-        """
+        """For a poisson process this is just a list of 1s"""
         return np.ones((n,))
-
-    def domain_range(self) -> Bounds:
-        return Bounds(0, np.inf)
 
     def max_frequency(self, t: float) -> float:
         """Maximum frequency of the process"""
         return 2 * np.pi
 
 
-class ExponentialPoissonProcess(PoissonProcess):
+class ExponentialPoissonProcess(PoissonBase):
     r"""
     1D Poisson process.
 
@@ -86,9 +89,12 @@ class ExponentialPoissonProcess(PoissonProcess):
     """
     decay: float = Field(default=1.0, ge=0, description="Jump size decay rate")
 
+    def marginal(self, t: float, N: int = 128) -> StochasticProcess1DMarginal:
+        return ExponentialPoissonMarginal(self, t, N)
+
     def characteristic_exponent(self, u: Vector) -> Vector:
         iu = Im * u
-        return -self.intensity * iu / (iu - self.decay)
+        return -self.intensity * iu / (self.decay - iu)
 
     def jumps(self, n: int) -> np.ndarray:
         """Sample jump sizes from an exponential distribution with rate
@@ -149,3 +155,15 @@ class PoissonMarginal(StochasticProcess1DMarginal[PoissonProcess]):
         k = np.floor(n).astype(int)
         rate = self.process.intensity
         return np.array([-(rate**k) * np.exp(-rate)]) / factorial(k)
+
+
+class ExponentialPoissonMarginal(
+    StochasticProcess1DMarginal[ExponentialPoissonProcess]
+):
+    def mean(self) -> float:
+        """Expected value at a time horizon"""
+        return self.process.intensity * self.t / self.process.decay
+
+    def variance(self) -> float:
+        """Expected variance at a time horizon"""
+        return 2 * self.mean() / self.process.decay
