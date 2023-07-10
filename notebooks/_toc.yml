@@ -11,7 +11,7 @@ chapters:
 - file: inversion
 - file: option_pricing
 - file: heston
-- file: dsp
+- file: bns
 - file: calibration
 - file: volatility_surface
 - file: contributing

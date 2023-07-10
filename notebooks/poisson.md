@@ -70,7 +70,7 @@ The compound poisson process is a jump process, where the arrival of jumps $N_t$
 The characteristic exponent of a compound Poisson process is given by
 
 \begin{align}
-  \phi_{x,u} = \int_0^\infty \left(e^{iuy} - 1\right) f(y) dy = \lambda \left(\Phi_{j,u} - 1\right)
+  \phi_{x,u} = \int_0^\infty \left(e^{iuy} - 1\right) f(y) dy = \lambda \left(1 - \Phi_{j,u}\right)
 \end{align}
 
 where $\Phi_{j,u}$ is the characteristic function of the jump distribution.

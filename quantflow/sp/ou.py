@@ -14,14 +14,6 @@ from .poisson import CompoundPoissonProcess
 
 
 class NGOU(IntensityProcess):
-    r"""Non-Gaussian Ornstein-Uhlenbeck process
-
-    The process :math:`x_t` that satisfies the following stochastic
-    differential equation:
-
-    .. math::
-        dx_t =-\kappa x_t dt + d j_t
-    """
     bdlp: CompoundPoissonProcess = Field(
         default_factory=CompoundPoissonProcess,
         description="Background driving Levy process",
@@ -29,11 +21,6 @@ class NGOU(IntensityProcess):
 
     def sample_from_draws(self, draws: Paths, *args: Paths) -> Paths:
         raise NotImplementedError
-
-    def cumulative_characteristic(self, t: Vector, u: Vector) -> Vector:
-        return (
-            self.bdlp.characteristic(self.kappa * t, u) - self.characteristic(t, u)
-        ) / self.kappa
 
 
 class GammaOU(NGOU):
@@ -66,6 +53,18 @@ class GammaOU(NGOU):
         c0 = self.intensity * np.log((b - c1) / (b - iu))
         return -c0 - c1 * self.rate
 
+    def cumulative_characteristic(self, t: Vector, u: Vector) -> Vector:
+        kappa = self.kappa
+        b = self.beta
+        iu = Im * u
+        iuk = iu / kappa
+        ekt = np.exp(-kappa * t)
+        c1 = iuk * (1 - ekt)
+        c0 = self.intensity * (
+            b * np.log(b / (iuk + (b - iuk) / ekt)) / (iuk - b) - kappa * t
+        )
+        return np.exp(c0 + c1 * self.rate)
+
     def sample(self, n: int, time_horizon: float = 1, time_steps: int = 100) -> Paths:
         dt = time_horizon / time_steps
         jump_process = self.bdlp
@@ -96,18 +95,6 @@ class GammaOU(NGOU):
         a = arrival or t1
         pp[i] = x - kappa * x * (a - t0) - kappa * (x + jump) * (t1 - a) + jump
         return i + 1
-
-    def cumulative_characteristic1(self, t: float, u: Vector) -> Vector:
-        kappa = self.kappa
-        b = self.beta
-        iu = Im * u
-        iuk = iu / kappa
-        ekt = np.exp(-kappa * t)
-        c1 = iuk * (1 - ekt)
-        c0 = self.intensity * (
-            b * np.log(b / (iuk + (b - iuk) / ekt)) / (iuk - b) - kappa * t
-        )
-        return np.exp(c0 + c1 * self.rate)
 
     def cumulative_characteristic2(self, t: float, u: Vector) -> Vector:
         """Formula from a paper"""
