@@ -31,7 +31,7 @@ This means that the characteristic function of $y_t=x_{\tau_t}$ can be represent
 
 ```{code-cell} ipython3
 from quantflow.sp.heston import Heston
-pr = Heston.create(vol=0.6, kappa=2, sigma=1.2, rho=-0.4)
+pr = Heston.create(vol=0.6, kappa=2, sigma=1.2, rho=-0.0)
 pr
 ```
 

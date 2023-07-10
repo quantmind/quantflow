@@ -19,7 +19,7 @@ The general definition of an Ornstein-Uhlebeck (OU) process is as the solution o
     d x_t = -\kappa x_t dt + d z_t
 \end{equation}
 
-where $z$, with $z_0 = 0$, is a [Lévy](./levy.md) process. As $z$ drives the OU process, we will call z(t) a background driving Lévy process (BDLP) in this context.
+where $z$, with $z_0 = 0$, is a [Lévy](./levy.md) process. As $z$ drives the OU process, we will call z(t) a background driving Lévy process (**BDLP**) in this context.
 
 The process can be integrated to the formula
 
