@@ -1,13 +1,16 @@
 from __future__ import annotations
 
+from typing import cast
+
 import numpy as np
 from pydantic import Field
 from scipy.stats import gamma
 
+from ..utils.distributions import Exponential
 from ..utils.paths import Paths
 from ..utils.types import Vector
 from .base import Im, IntensityProcess, StochasticProcess1DMarginal
-from .poisson import ExponentialPoissonProcess
+from .poisson import CompoundPoissonProcess
 
 
 class NGOU(IntensityProcess):
@@ -19,37 +22,44 @@ class NGOU(IntensityProcess):
     .. math::
         dx_t =-\kappa x_t dt + d j_t
     """
+    bdlp: CompoundPoissonProcess = Field(
+        default_factory=CompoundPoissonProcess,
+        description="Background driving Levy process",
+    )
 
     def sample_from_draws(self, draws: Paths, *args: Paths) -> Paths:
         raise NotImplementedError
 
+    def cumulative_characteristic(self, t: Vector, u: Vector) -> Vector:
+        return (
+            self.bdlp.characteristic(self.kappa * t, u) - self.characteristic(t, u)
+        ) / self.kappa
+
 
 class GammaOU(NGOU):
-    bdlp: ExponentialPoissonProcess = Field(
-        default_factory=ExponentialPoissonProcess,
-        description="Background driving Levy process",
-    )
-
     @property
     def alpha(self) -> float:
         return self.bdlp.intensity
 
     @property
     def beta(self) -> float:
-        return self.bdlp.decay
+        # TODO: find a better way for this
+        return cast(Exponential, self.bdlp.jumps).decay
 
     @classmethod
     def create(cls, rate: float = 1, decay: float = 1, kappa: float = 1) -> GammaOU:
         return cls(
             rate=rate,
             kappa=kappa,
-            bdlp=ExponentialPoissonProcess(intensity=rate * decay, decay=decay),
+            bdlp=CompoundPoissonProcess(
+                intensity=rate * decay, jumps=Exponential(decay=decay)
+            ),
         )
 
-    def marginal(self, t: float, N: int = 128) -> StochasticProcess1DMarginal:
-        return GammaOUMarginal(self, t, N)
+    def marginal(self, t: Vector, N: int = 128) -> StochasticProcess1DMarginal:
+        return GammaOUMarginal(process=self, t=t, N=N)
 
-    def characteristic(self, t: float, u: Vector) -> Vector:
+    def characteristic_exponent(self, t: Vector, u: Vector) -> Vector:
         kappa = self.kappa
         a = self.alpha
         b = self.beta
@@ -58,19 +68,7 @@ class GammaOU(NGOU):
         ekt = np.exp(-kt)
         c1 = iu * ekt
         c0 = a * (np.log((b / ekt - iu) / (b - iu)) - kt)
-        return np.exp(c0 + c1 * self.rate)
-
-    def cumulative_characteristic(self, t: float, u: Vector) -> Vector:
-        kappa = self.kappa
-        b = self.beta
-        iu = Im * u
-        iuk = iu / kappa
-        ekt = np.exp(-kappa * t)
-        c1 = iuk * (1 - ekt)
-        c0 = self.alpha * (
-            b * np.log(b / (iuk + (b - iuk) / ekt)) / (iuk - b) - kappa * t
-        )
-        return np.exp(c0 + c1 * self.rate)
+        return -c0 - c1 * self.rate
 
     def sample(self, n: int, time_horizon: float = 1, time_steps: int = 100) -> Paths:
         dt = time_horizon / time_steps
@@ -79,7 +77,7 @@ class GammaOU(NGOU):
         paths[0, :] = self.rate
         for p in range(n):
             arrivals = jump_process.arrivals(self.kappa * time_horizon)
-            jumps = jump_process.jumps(len(arrivals))
+            jumps = jump_process.sample_jumps(len(arrivals))
             pp = paths[:, p]
             i = 1
             for arrival, jump in zip(arrivals, jumps):
@@ -102,6 +100,18 @@ class GammaOU(NGOU):
         a = arrival or t1
         pp[i] = x - kappa * x * (a - t0) - kappa * (x + jump) * (t1 - a) + jump
         return i + 1
+
+    def cumulative_characteristic1(self, t: float, u: Vector) -> Vector:
+        kappa = self.kappa
+        b = self.beta
+        iu = Im * u
+        iuk = iu / kappa
+        ekt = np.exp(-kappa * t)
+        c1 = iuk * (1 - ekt)
+        c0 = self.alpha * (
+            b * np.log(b / (iuk + (b - iuk) / ekt)) / (iuk - b) - kappa * t
+        )
+        return np.exp(c0 + c1 * self.rate)
 
     def cumulative_characteristic2(self, t: float, u: Vector) -> Vector:
         """Formula from a paper"""

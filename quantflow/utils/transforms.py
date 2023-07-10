@@ -114,7 +114,7 @@ class Transform:
     def frft(self, y: np.ndarray, delta_x: float) -> TransformResult:
         """Transform using the Fractional Fourier Transform"""
         x, f = self.transform(y, delta_x)
-        r = frft.calculate(f, delta_x * self.delta_f)
+        r = FrFT.calculate(f, delta_x * self.delta_f)
         return TransformResult(x=x, y=r.result.real)
 
     def transform(self, y: np.ndarray, delta_x: float) -> TransformResult:
@@ -134,7 +134,7 @@ class Transform:
 
 
 @dataclass
-class frft:
+class FrFT:
     """Fractional Fourier Transfrom"""
 
     result: np.ndarray
@@ -155,7 +155,7 @@ class frft:
         return 2 * np.pi / self.n
 
     @classmethod
-    def calculate(cls, x: np.ndarray, zeta: float) -> frft:
+    def calculate(cls, x: np.ndarray, zeta: float) -> FrFT:
         n = x.shape[0]
         g = grid(n)
         ez = coef(g, zeta)

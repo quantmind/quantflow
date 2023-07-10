@@ -19,6 +19,18 @@ The most common process is the Poisson process.
 
 ## Poisson Process
 
+The Poisson Process $N_t$ with intensity parameter $\lambda > 0$ is a Lévy process with values in $N$ such that each $N_t$ has a [Poisson distribution](https://en.wikipedia.org/wiki/Poisson_distribution) with parameter $\lambda t$, that is
+
+\begin{equation}
+    P\left(N_t=n\right) = \frac{\left(\lambda t\right)^n}{n!}e^{-\lambda t}
+\end{equation}
+
+The characteristic exponent is given by
+
+\begin{equation}
+\phi_{u} = \lambda \left(1 - e^{iu}\right)
+\end{equation}
+
 ```{code-cell} ipython3
 from quantflow.sp.poisson import PoissonProcess
 pr = PoissonProcess(intensity=2)
@@ -34,6 +46,8 @@ from quantflow.utils import plot
 m = pr.marginal(1)
 plot.plot_marginal_pdf(m, np.arange(10), analytical="markers")
 ```
+
+
 
 ```{code-cell} ipython3
 from quantflow.utils.plot import plot_characteristic
@@ -55,19 +69,22 @@ The compound poisson process is a jump process, where the arrival of jumps $N_t$
   x_t = \sum_{k=1}^{N_t} j_t
 \end{align}
 
-The characteristic exponent is given by
+The characteristic exponent of a compound Poisson process is given by
 
 \begin{align}
-  e = \int_0^\infty \left(e^{iuy} - 1\right) f(y) dy
+  \phi_{x,u} = \int_0^\infty \left(e^{iuy} - 1\right) f(y) dy = \lambda \left(\Phi_{j,u} - 1\right)
 \end{align}
 
+where $\Phi_{j,u}$ is the characteristic function of the jump distribution.
+
+As long as we have a closed-form solution for the characteristic function of the jump distribution, then we have a closed-form solution for the characteristic exponent of the compound Poisson process.
 
 The library includes the Exponential Poisson Process, a compound Poisson process where the jump sizes are sampled from an exponential distribution.
 
 ```{code-cell} ipython3
-from quantflow.sp.poisson import ExponentialPoissonProcess
+from quantflow.sp.poisson import CompoundPoissonProcess, Exponential
 
-pr = ExponentialPoissonProcess(intensity=2, decay=10)
+pr = CompoundPoissonProcess(intensity=2, jumps=Exponential(decay=10))
 pr
 ```
 
@@ -126,13 +143,7 @@ Poisson process](http://hera.ugr.es/doi/16516588.pdf)
 
 ### DSP process
 
-Here we are interested in a special Lévy process, a Poisson process $p_t$ with intensity equal to 1. The characteristic exponent of this process is given by
-
-\begin{equation}
-\phi_{p,u} = e^{iu} - 1
-\end{equation}
-
-The DSP is defined as
+The DSP is defined as a time-changed Poisson process
 \begin{equation}
  N_t = p_{\tau_t}
 \end{equation}

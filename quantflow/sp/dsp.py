@@ -45,11 +45,11 @@ class DSP(PoissonBase):
         """
         return np.cumsum(self.pdf(t, n))
 
-    def characteristic_exponent(self, u: Vector) -> Vector:
-        return self.poisson.characteristic_exponent(u)
+    def characteristic_exponent(self, t: Vector, u: Vector) -> Vector:
+        return self.poisson.characteristic_exponent(t, u)
 
-    def characteristic(self, t: float, u: Vector) -> Vector:
-        phi = self.characteristic_exponent(u)
+    def characteristic(self, t: Vector, u: Vector) -> Vector:
+        phi = self.characteristic_exponent(t, u)
         return self.intensity.cumulative_characteristic(t, -Im * phi)
 
     def arrivals(self, t: float = 1) -> List[float]:
@@ -57,5 +57,5 @@ class DSP(PoissonBase):
         intensity = paths.data[-1, 0]
         return poisson_arrivals(intensity, t)
 
-    def jumps(self, n: int) -> np.ndarray:
-        return self.poisson.jumps(n)
+    def sample_jumps(self, n: int) -> np.ndarray:
+        return self.poisson.sample_jumps(n)

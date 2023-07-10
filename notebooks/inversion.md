@@ -5,7 +5,7 @@ jupytext:
     extension: .md
     format_name: myst
     format_version: 0.13
-    jupytext_version: 1.13.8
+    jupytext_version: 1.14.7
 kernelspec:
   display_name: Python 3 (ipykernel)
   language: python
@@ -16,15 +16,34 @@ kernelspec:
 
 +++
 
-To obtain the probability density function (PDF) from a characteristic function one uses the inverse Fourier transfrom formula
+One uses the inverse Fourier transform formula to obtain the probability density function (PDF) from a characteristic function.
 
 \begin{equation}
   f(x) = \frac{1}{2\pi}\int_{-\infty}^\infty e^{-iux} \Phi_x\left(u\right) du = \frac{1}{\pi} {\mathcal R} \int_0^\infty e^{-iux} \Phi_u du
 \end{equation}
 
-The last equivalence is due to the fact that the PDF is a real valued. In this doc we follow
+The last equivalence is because the PDF is real-valued.
 
-+++ {"tags": []}
+## Discretization
+
+The PDF integration can be approximated as:
+
+\begin{align}
+u_m &= \delta_u m \\ 
+f(x) &\approx \frac{1}{\pi}\sum_{m=0}^{N-1} h_m e^{-i u_m x} \Phi_x\left(u_m\right) \delta_u
+\end{align}
+
+* $\delta_u$ is the discretization in the frequency domain. It must be small enough to provide good accuracy of the integral.
+* $N$ is the number of discretization points and must be large enough so that the characteristic function is virtually 0 for $u_{N-1}=\delta_u N$.
+* $h_m$ is given by the integration methodology, either trapezoidal or Simpson rule (the library support both, with trapezoidal as default).
+
+For full details, follow {cite:p}`carr_madan`, {cite:p}`saez`.
+
+One could use the inverse Fourier transform to solve the integral. However, it has $O(N^2)$ time complexity.
+One alternative, implemented in the library, is using the Fast Fourier Transform (FFT), which has $O(N \log N)$ time complexity.
+Another more flexible alternative is the Fractional FFT as described in {cite:p}`frft`. This is the methodology used by default in the library.
+
++++
 
 ## FFT Integration
 
@@ -34,16 +53,7 @@ FFT is an efficient algorithm for computing discrete Fourier coefficients $d$ fr
 d_j = \frac{1}{N}\sum_{m=0}^{N-1} f_m e^{-jm\frac{2\pi}{N} i}\ \ j=0, 1, \dots, N-1
 \end{equation}
 
-For full details follow {cite:p}`carr_madan`, {cite:p}`frft`, {cite:p}`saez`.
-The PDF integration can be approximated as:
-
-\begin{align}
-u_m &= \delta_u m \\ 
-f(x) &\approx \frac{1}{\pi}\sum_{m=0}^{N-1} h_m e^{-i u_m x} \Phi_x\left(u_m\right) \delta_u
-\end{align}
-
-Where $h_m$ is given by the integration methodology, either trapezoidal or simpson rule (the library support both, with trapezoidal as default).
-The approximation can be rewritten as
+Using this formula, the discretization above can be rewritten as
 
 \begin{align}
 x_j &= -b + \delta_x j \\
@@ -52,9 +62,7 @@ f_m &= h_m \frac{N}{\pi} e^{i u_m b} \Phi_x\left(u_m\right) \delta_u\\
 f(x_j) &\approx \frac{1}{N} \sum_{m=0}^{N-1} f_m e^{-j m \zeta i}
 \end{align}
 
-The parameter $b$ controls the range of the random variable $x$, while $\delta_u$ is the discretization in the frequency domain and must be small enough to provide good accuracy of the integral. Finally $N$ must be large enough that the characteristic function is virtually 0 for $u_{N-1}=\delta_u N$.
-
-The FFT requires
+The parameter $b$ controls the range of the random variable $x$. The FFT requires that
 
 \begin{equation}
 \zeta = \frac{2\pi}{N}
@@ -62,35 +70,28 @@ The FFT requires
 
 which means $\delta_u$ and $\delta_x$ cannot be chosen indipendently.
 
+As an example, let us invert the characteristic function of the Weiber process, which yields the standard distribution.
+
 ```{code-cell} ipython3
-from quantflow.sp.weiner import Weiner
-p = Weiner(0.5)
+from quantflow.sp.weiner import WeinerProcess
+p = WeinerProcess(sigma=0.5)
 m = p.marginal(0.2)
 m.std()
 ```
 
 ```{code-cell} ipython3
-import plotly.express as px
-import pandas as pd
-N = 128*2*2
-M = 50
-freq = m.frequency_space(N, M)
-df = pd.DataFrame(dict(frequency=freq, psi=m.characteristic(freq)))
-fig = px.line(df, x="frequency", y="psi", markers=True)
-fig.show()
+from quantflow.utils import plot
+
+plot.plot_characteristic(m, max_frequency=50)
 ```
 
 ```{code-cell} ipython3
-import plotly.graph_objects as go
-from scipy.stats import norm
-r = m.pdf_from_characteristic(N, M)
-n = norm.pdf(r["x"], scale=m.std())
-fig = px.line(r, x="x", y="y", markers=True)
-fig.add_trace(go.Scatter(x=r["x"], y=n, name="analytical", line=dict()))
-fig.show()
+from quantflow.utils import plot
+import numpy as np
+plot.plot_marginal_pdf(m, 128, max_frequency=50)
 ```
 
-**Note** the amount of unecessary discretization points in the frequency domain (the characteristic function is zero after 15 or so). However the strike domain is poorly represented because of the FFT constraints
+**Note** the amount of unnecessary discretization points in the frequency domain (the characteristic function is zero after 15 or so). However the space domain is poorly represented because of the FFT constraints (we have a relatively small number of points where it matters, around zero).
 
 \begin{equation}
 \delta_x = \frac{2 \pi}{N} \delta_u
@@ -99,7 +100,7 @@ fig.show()
 +++
 
 ## FRFT
-Compared to the FFT, this method relaxes the constraint $\zeta=2\pi/N$ so that frequency domain and strike domains can be discretized independently. We use the methodology from {cite:p}`frft`
+Compared to the FFT, this method relaxes the constraint $\zeta=2\pi/N$ so that frequency domain and space domains can be discretized independently. We use the methodology from {cite:p}`frft`
 
 \begin{align}
 y &= \left(\left[e^{-i j^2 \zeta/2}\right]_{j=0}^{N-1}, \left[0\right]_{j=0}^{N-1}\right) \\
@@ -109,26 +110,10 @@ z &= \left(\left[e^{i j^2 \zeta/2}\right]_{j=0}^{N-1}, \left[e^{i\left(N-j\right
 We can now reduce the number of points needed for the discretization and achieve higher accuracy by properly selecting the domain discretization independently.
 
 ```{code-cell} ipython3
-import plotly.graph_objects as go
-import plotly.express as px
-from scipy.stats import norm
-import numpy as np
-
-N = 128
-M = 20
-dx = 4/N
-r = m.pdf_from_characteristic(N, M, dx)
-n = norm.pdf(r["x"], scale=m.std())
-fig = px.line(r, x="x", y="y", markers=True)
-fig.add_trace(go.Scatter(x=r["x"], y=n, name="analytical", line=dict()))
-fig.show()
+plot.plot_marginal_pdf(m, 128, delta_x=0.02)
 ```
 
 ## Additional References
 
 
 * [Fourier Transfrom and Characteristic Functions](https://faculty.baruch.cuny.edu/lwu/890/ADP_Transform.pdf) - useful but lots of typos
-
-```{code-cell} ipython3
-
-```

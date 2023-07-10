@@ -4,7 +4,7 @@ from abc import ABC, abstractmethod
 from typing import Generic, TypeVar
 
 import numpy as np
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, ConfigDict, Field
 from scipy.optimize import Bounds
 
 from quantflow.utils.marginal import Marginal1D, default_bounds
@@ -34,16 +34,11 @@ class StochasticProcess(BaseModel, ABC):
         :param time_steps: number of time steps to arrive at horizon
         """
 
+    @abstractmethod
+    def characteristic_exponent(self, t: Vector, u: Vector) -> Vector:
+        """Characteristic exponent at time `t` for a given input parameter"""
 
-class StochasticProcess1D(StochasticProcess):
-    """
-    Base class for 1D stochastic process in continuous time
-    """
-
-    def marginal(self, t: float, N: int = 128) -> StochasticProcess1DMarginal:
-        return StochasticProcess1DMarginal(self, t, N)
-
-    def characteristic(self, t: float, u: Vector) -> Vector:
+    def characteristic(self, t: Vector, u: Vector) -> Vector:
         r"""Characteristic function at time `t` for a given input parameter
 
         The characteristic function represents the Fourier transform of the
@@ -55,12 +50,21 @@ class StochasticProcess1D(StochasticProcess):
         :param t: time horizon
         :param u: characteristic function input parameter
         """
-        raise NotImplementedError
+        return np.exp(-self.characteristic_exponent(t, u))
+
+
+class StochasticProcess1D(StochasticProcess):
+    """
+    Base class for 1D stochastic process in continuous time
+    """
+
+    def marginal(self, t: Vector, N: int = 128) -> StochasticProcess1DMarginal:
+        return StochasticProcess1DMarginal(process=self, t=t, N=N)
 
     def domain_range(self) -> Bounds:
         return default_bounds()
 
-    def max_frequency(self, t: float) -> float:
+    def max_frequency(self, t: Vector) -> float:
         """Maximum frequency of the process"""
         return 20
 
@@ -69,12 +73,12 @@ P = TypeVar("P", bound=StochasticProcess1D)
 
 
 class StochasticProcess1DMarginal(Marginal1D, Generic[P]):
-    def __init__(self, process: P, t: float, N: int) -> None:
-        self.process = process
-        self.t = t
-        self.N = N
+    model_config = ConfigDict(arbitrary_types_allowed=True)
+    process: P
+    t: Vector
+    N: int
 
-    def std_norm(self) -> float:
+    def std_norm(self) -> Vector:
         """Standard deviation at a time horizon normalized by the time"""
         return np.sqrt(self.variance() / self.t)
 
@@ -97,7 +101,7 @@ class IntensityProcess(StochasticProcess1D):
     kappa: float = Field(default=1.0, gt=0, description="Mean reversion speed")
 
     @abstractmethod
-    def cumulative_characteristic(self, t: float, u: Vector) -> Vector:
+    def cumulative_characteristic(self, t: Vector, u: Vector) -> Vector:
         r"""The characteristic function of the cumulative process:
 
         .. math::

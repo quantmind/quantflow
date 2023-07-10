@@ -1,32 +1,33 @@
 from abc import ABC, abstractmethod
-from typing import Optional, cast
+from typing import Any, Optional, cast
 
 import numpy as np
 import pandas as pd
+from pydantic import BaseModel
 from scipy.optimize import Bounds
 
 from .transforms import Transform, TransformResult, default_bounds
 from .types import FloatArray, Vector
 
 
-class Marginal1D(ABC):
+class Marginal1D(BaseModel, ABC):
     """Marginal distribution"""
 
     @abstractmethod
-    def characteristic(self, n: Vector) -> Vector:
+    def characteristic(self, u: Vector) -> Vector:
         """
         Compute the characteristic function on support points `n`.
         """
 
-    def mean(self) -> float:
-        """Expected value at a time horizon
+    def mean(self) -> Vector:
+        """Expected value
 
         THis should be overloaded if a more efficient way of computing the mean
         """
         return self.mean_from_characteristic()
 
-    def variance(self) -> float:
-        """Variance at a time horizon
+    def variance(self) -> Vector:
+        """Variance
 
         This should be overloaded if a more efficient way of computing the
         """
@@ -39,17 +40,17 @@ class Marginal1D(ABC):
         """
         return 20
 
-    def std(self) -> float:
+    def std(self) -> Vector:
         """Standard deviation at a time horizon"""
         return np.sqrt(self.variance())
 
-    def mean_from_characteristic(self) -> float:
+    def mean_from_characteristic(self) -> Vector:
         """Calculate mean as first derivative of characteristic function at 0"""
         d = 0.001
         m = -0.5 * 1j * (self.characteristic(d) - self.characteristic(-d)) / d
         return cast(complex, m).real
 
-    def variance_from_characteristic(self) -> float:
+    def variance_from_characteristic(self) -> Vector:
         """Calculate variance as second derivative of characteristic function at 0"""
         d = 0.001
         c1 = self.characteristic(d)
@@ -57,7 +58,7 @@ class Marginal1D(ABC):
         c2 = self.characteristic(-d)
         m = -0.5 * 1j * (c1 - c2) / d
         s = -(c1 - 2 * c0 + c2) / (d * d) - m * m
-        return cast(float, s.real)
+        return s.real
 
     def pdf(self, n: Vector) -> Vector:
         """
@@ -91,7 +92,7 @@ class Marginal1D(ABC):
             delta_x = (max_x - min_x) / (len(n_or_x) - 1)
         transform = Transform(
             n,
-            max_frequency=max_frequency or self.max_frequency(),
+            max_frequency=self.get_max_frequency(max_frequency),
             domain_range=self.domain_range(),
             simpson_rule=simpson_rule,
         )
@@ -106,7 +107,12 @@ class Marginal1D(ABC):
         alpha: float = 0.5,
         simpson_rule: bool = False,
     ) -> TransformResult:
-        t = Transform(N, max_frequency, self.domain_range(), simpson_rule)
+        t = Transform(
+            N,
+            max_frequency=self.get_max_frequency(max_frequency),
+            domain_range=self.domain_range(),
+            simpson_rule=simpson_rule,
+        )
         phi = cast(
             np.ndarray, self.call_option_transform(t.frequency_domain - 1j * alpha)
         )
@@ -153,13 +159,15 @@ class Marginal1D(ABC):
         raise NotImplementedError("Analytical CFD Jacobian not available")
 
     def characteristic_df(
-        self, n: int | None, max_frequency: float | None = None
+        self, n: int | None, max_frequency: float | None = None, **kwargs: Any
     ) -> pd.DataFrame:
         """
         Compute the characteristic function with n discretization points
         and a max frequency
         """
-        fre = Transform(n=n, max_frequency=max_frequency).frequency_domain
+        fre = Transform(
+            n=n, max_frequency=self.get_max_frequency(max_frequency), **kwargs
+        ).frequency_domain
         psi = self.characteristic(fre)
         return pd.concat(
             (
@@ -167,3 +175,9 @@ class Marginal1D(ABC):
                 pd.DataFrame(dict(frequency=fre, characteristic=psi.imag, name="iamg")),
             )
         )
+
+    def get_max_frequency(self, max_frequency: float | None = None) -> float:
+        """
+        Get the maximum frequency to use for the characteristic function
+        """
+        return max_frequency if max_frequency is not None else self.max_frequency()

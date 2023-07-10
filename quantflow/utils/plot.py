@@ -27,12 +27,12 @@ def plot_lines(data: Any, template: str = PLOTLY_THEME, **kwargs: Any) -> Any:
 
 
 def plot_marginal_pdf(
-    m: Marginal1D, x: FloatArray, analytical: str = "lines", **kwargs: Any
+    m: Marginal1D, x: FloatArray | int, analytical: str = "lines", **kwargs: Any
 ) -> Any:
     """Plot the marginal pdf on an input support"""
     check_plotly()
-    n = len(x)
-    result = m.pdf_from_characteristic(x)
+    n = x if isinstance(x, int) else len(x)
+    result = m.pdf_from_characteristic(x, **kwargs)
     xx = result.x[:n]
     yy = result.y[:n]
     fig = go.Figure()

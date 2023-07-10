@@ -4,7 +4,8 @@ import numpy as np
 import pytest
 
 from quantflow.sp.dsp import DSP
-from quantflow.sp.poisson import ExponentialPoissonProcess, PoissonProcess
+from quantflow.sp.poisson import CompoundPoissonProcess, PoissonProcess
+from quantflow.utils.distributions import Exponential
 
 
 @pytest.fixture
@@ -13,8 +14,8 @@ def poisson() -> PoissonProcess:
 
 
 @pytest.fixture
-def comp() -> ExponentialPoissonProcess:
-    return ExponentialPoissonProcess(intensity=2, decay=10)
+def comp() -> CompoundPoissonProcess:
+    return CompoundPoissonProcess(intensity=2, jumps=Exponential(decay=10))
 
 
 @pytest.fixture

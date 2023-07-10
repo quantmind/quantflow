@@ -19,8 +19,18 @@ The general definition of an Ornstein-Uhlebeck (OU) process is as the solution o
     d x_t = -\kappa x_t dt + d z_t
 \end{equation}
 
-where $z$, with $z_0 = 0$, is a [Lévy](./levy.md) process. As $z$ is used to drive the OU process, we will call z(t) a background driving Lévy
-process (BDLP) in this contex.t
+where $z$, with $z_0 = 0$, is a [Lévy](./levy.md) process. As $z$ drives the OU process, we will call z(t) a background driving Lévy process (BDLP) in this context.
+
+The process can be integrated to the formula
+
+\begin{equation}
+    x_t = x_0 e^{-\kappa t} + \int_0^t e^{-\kappa\left(t-s\right)} d z_{\kappa s}
+\end{equation}
+
+The characteristic exponent of this process is given by
+
+\begin{equation}
+\end{equation}
 
 +++
 
@@ -29,7 +39,7 @@ process (BDLP) in this contex.t
 The Gaussian Ornstein-Uhlebeck process, is a OU process where the BDLP is a Brownian motion with drift $d z_t = \kappa\theta dt + \sigma dw_t$. Substituting this into the OU SDE equation yields:
 
 \begin{equation}
-    dx_t = \kappa\left(\theta - x_t\right) dt + \sigma dw_t
+    dx_t = \kappa\left(\theta - x_t\right) dt + \sigma dw_{\kappa t}
 \end{equation}
 
 $\theta$ is the long-term value of ${\bf x}_t$, $\sigma$ is a volatility parameter and $w_t$ is the standard Brownian motion.
@@ -45,11 +55,22 @@ Following the seminal paper of {cite:p}`ou`, we look at a model based on this SD
     dx_t = -\kappa x_t dt + dz_{\kappa t}
 \end{equation}
 
-The unusual timing $dz_{\kappa t}$ is deliberately chosen so that it will turn out that whatever the value of of $\kappa$, the marginal distribution of of $x_t$ will be unchanged. Hence we separately parameterise the distribution of the volatility and the dynamic structure.
+The unusual timing $dz_{\kappa t}$ is deliberately chosen so that it will turn out that whatever the value of of $\kappa$, the marginal distribution of of $x_t$ will be unchanged. Hence we separately parameterize the distribution of the volatility and the dynamic structure.
 
 The $z_t$ has positive increments and no drift. This type of process is called a subordinator {cite:p}`bertoin`.
 
-One of the advantages of these OU processes is that they offer a great deal of analytical tractability. For example, the integrated value of the process, useful for integrated volatility applications, is given by
+### Integration
+
+When the subordinator is a Compound Poisson process, than the integration takes the form
+
+\begin{equation}
+    x_t = x_0 e^{-\kappa t} + \sum_{n=0}^{N_{\kappa t}} e^{-\kappa t-m_n\right)} d j_n
+\end{equation}
+
+### Integrated Intensity
+
+One of the advantages of these OU processes is that they offer a great deal of analytical tractability. For example, the integrated value of the process, which can be used as a time change for [Lévy processes](./levy.md), is given by
+
 \begin{align}
    \int_0^t x_s ds &= \left(1 - e^{-\kappa t}\right)x_0 + \int_0^t \left[1 - e^{-\kappa\left(t - s\right)}\right] d z_{\kappa s}\\
     &= \frac{z_{\kappa t} - x_t + x_0}{\kappa}

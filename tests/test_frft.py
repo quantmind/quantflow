@@ -1,7 +1,8 @@
 import numpy as np
 import pytest
 from scipy.optimize import Bounds
-from quantflow.utils.transforms import frft, Transform
+
+from quantflow.utils.transforms import FrFT, Transform
 
 
 @pytest.fixture
@@ -15,7 +16,7 @@ def x():
 
 
 def test_frft(x):
-    t = frft.calculate(x, 0.01)
+    t = FrFT.calculate(x, 0.01)
     assert t.n == 64
 
 

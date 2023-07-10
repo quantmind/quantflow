@@ -51,8 +51,8 @@ class CIR(IntensityProcess):
     def sigma2(self) -> float:
         return self.sigma * self.sigma
 
-    def marginal(self, t: float, N: int = 128) -> StochasticProcess1DMarginal:
-        return CIRMarginal(self, t, N)
+    def marginal(self, t: Vector, N: int = 128) -> StochasticProcess1DMarginal:
+        return CIRMarginal(process=self, t=t, N=N)
 
     def sample(
         self, paths: int, time_horizon: float = 1, time_steps: int = 100
@@ -103,7 +103,7 @@ class CIR(IntensityProcess):
             paths[t + 1, :] = xs * xs
         return Paths(t=draws.t, data=paths)
 
-    def characteristic(self, t: float, u: Vector) -> Vector:
+    def characteristic_exponent(self, t: Vector, u: Vector) -> Vector:
         iu = Im * u
         sigma = self.sigma
         kappa = self.kappa
@@ -114,9 +114,9 @@ class CIR(IntensityProcess):
         c = s2u + (2 * kappa - s2u) * ekt
         b = 2 * kappa * iu / c
         a = 2 * kappa * self.theta * (kt + np.log(2 * kappa / c)) / sigma2
-        return np.exp(a + b * self.rate)
+        return -a - b * self.rate
 
-    def cumulative_characteristic(self, t: float, u: Vector) -> Vector:
+    def cumulative_characteristic(self, t: Vector, u: Vector) -> Vector:
         iu = Im * u
         sigma = self.sigma
         kappa = self.kappa
@@ -134,11 +134,11 @@ class CIR(IntensityProcess):
 
 
 class CIRMarginal(StochasticProcess1DMarginal[CIR]):
-    def mean(self) -> float:
+    def mean(self) -> Vector:
         ekt = np.exp(-self.process.kappa * self.t)
         return self.process.rate * ekt + self.process.theta * (1 - ekt)
 
-    def variance(self) -> float:
+    def variance(self) -> Vector:
         kappa = self.process.kappa
         ekt = np.exp(-kappa * self.t)
         return (

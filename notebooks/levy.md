@@ -49,7 +49,7 @@ y_t &= x_{\tau_t}\\
 \end{align}
 
 where $x_s$ is a Lévy process and $\lambda_s$ is a positive and integrable process which we refer to **stochastic intensity process**.
-Note that while $\tau_t$ is always continuous, $\lambda$ can exhibit jumps. Since the time-changed process is a stochastic process evaluated at a stochastic time, its characteristic function involves expectations over two sources of randomness:
+While $\tau_t$ is always continuous, $\lambda$ can exhibit jumps. Since the time-changed process is a stochastic process evaluated at a stochastic time, its characteristic function involves expectations over two sources of randomness:
 
 \begin{equation}
  \Phi_{y_t, u} = {\mathbb E}\left[e^{i u x_{\tau_t}}\right] = {\mathbb E}\left[{\mathbb E}\left[\left.e^{i u x_s}\right|\tau_t=s\right]\right]
@@ -63,7 +63,31 @@ where the inside expectation is taken on $x_{\tau_t}$ conditional on a fixed val
 
 **Remark**: Under independence, the characteristic function of a time-changed Lévy process $y_t$ is the **Laplace transform** of the cumulative intensity $\tau_t$ evaluated at the characteristic exponent of $x$.
 
-### Affine definition
+Therefore the characteristic function of $y_t$ can be expressed in closed form if
+
+* the characteristic exponent of the Lévy process $x_t$ is available in closed from
+* the Laplace transform of $\tau_t$, the integrated intensity process, is known in closed from
+
+## Laplace Transform
+
+To obtain the Laplace transform  of $\tau_t$ in closed form, consider its specification in terms of the intensity process $\lambda_t$:
+
+\begin{equation}
+{\mathbb L}_{\tau_t}\left(u\right) = {\mathbb E}\left[e^{- u \int_0^t \lambda_s ds}\right]
+\end{equation}
+
+In the general case, the intensity process is correlated with the Lévy process of increments, this is well
+known in the literature as the **leverage effect**.
+
+Carr and Wu {cite:p}`carr_wu` solve this problem by changing the measure from an economy with leverage effect to one without it.
+
+\begin{equation}
+\Phi_{y_t, u} = {\mathbb E}\left[e^{-\tau_t \phi_{x,u}}\right] = {\mathbb E}^u\left[e^{-\tau_t \phi_{x,u}}\right] = {\mathbb L}_{\tau_t}^u\left(\phi_{x,u}\right)
+\end{equation}
+
+where $E[\cdot]$ and $E^u[\cdot]$ denote the expectation under probability measure $P$ and $Q^u$, respectively.
+
+## Affine definition
 
 In the general case the stochastic time is correlated with increments, to obtain the Laplace transform in closed form, one consider its specification in terms of the intensity prcess $\lambda_t$:
 
@@ -71,6 +95,7 @@ In the general case the stochastic time is correlated with increments, to obtain
 {\mathbb L}_{\tau_t}\left(u\right) = {\mathbb E}\left[e^{- u \int_0^t \lambda_s ds}\right]
 \end{equation}
 
+This equation is very common in the bond pricing literature if we regard $u\lambda_t$ as the instantaneous interest rate.
 In order to obtain analytically tractable models we need to impose some restriction on the stochastic intensity process.
 An affine intensity process takes the general form
 
@@ -86,3 +111,7 @@ When the intensity process is affine, the log characteristic function takes the 
 \end{equation}
 
 where coefficients $a$ and $b$ satisfy Riccati ODEs which can be solved numerically and in some cases analytically.
+
+```{code-cell} ipython3
+
+```

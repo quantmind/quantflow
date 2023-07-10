@@ -34,7 +34,7 @@ class Heston(StochasticProcess1D):
             rho=rho,
         )
 
-    def characteristic(self, t: float, u: Vector) -> Vector:
+    def characteristic_exponent(self, t: Vector, u: Vector) -> Vector:
         rho = self.rho
         eta = self.variance_process.sigma
         eta2 = eta * eta
@@ -47,7 +47,7 @@ class Heston(StochasticProcess1D):
         c = (gamma - 0.5 * (gamma - kappa) * (1 - egt)) / gamma
         b = u2 * (1 - egt) / ((gamma + kappa) + (gamma - kappa) * egt)
         a = theta_kappa * (2 * np.log(c) + (gamma - kappa) * t) / eta2
-        return np.exp(-a - b * self.variance_process.rate)
+        return a + b * self.variance_process.rate
 
     def sample(self, n: int, time_horizon: float = 1, time_steps: int = 100) -> Paths:
         dw1 = Paths.normal_draws(n, time_horizon, time_steps)
