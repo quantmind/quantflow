@@ -15,6 +15,7 @@ from quantflow.options.surface import (
 from quantflow.sp.heston import Heston
 
 a = np.asarray
+CROSS_SECTIONS = 7
 
 
 @pytest.fixture
@@ -54,12 +55,12 @@ def test_ditm_black_pricing():
 def test_vol_surface(vol_surface: VolSurface):
     assert vol_surface.ref_date
     ts = vol_surface.term_structure()
-    assert len(ts) == 8
+    assert len(ts) == CROSS_SECTIONS
     options = vol_surface.options_df()
     crosses = []
     for index in range(0, len(vol_surface.maturities)):
         crosses.append(vol_surface.options_df(index=index))
-    assert len(crosses) == 8
+    assert len(crosses) == CROSS_SECTIONS
     assert len(options) == sum(len(cross) for cross in crosses)
 
 
