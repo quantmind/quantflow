@@ -47,8 +47,6 @@ m = pr.marginal(1)
 plot.plot_marginal_pdf(m, np.arange(10), analytical="markers")
 ```
 
-
-
 ```{code-cell} ipython3
 from quantflow.utils.plot import plot_characteristic
 plot_characteristic(m)

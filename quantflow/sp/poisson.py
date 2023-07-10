@@ -171,4 +171,4 @@ class CompoundPoissonMarginal(StochasticProcess1DMarginal[CompoundPoissonProcess
 
     def variance(self) -> Vector:
         """Expected variance at a time horizon"""
-        return self.process.intensity * self.t * self.process.jumps.variance()
+        return 2 * self.process.intensity * self.t * self.process.jumps.variance()
