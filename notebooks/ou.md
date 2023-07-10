@@ -61,11 +61,13 @@ The $z_t$ has positive increments and no drift. This type of process is called a
 
 ### Integration
 
-When the subordinator is a Compound Poisson process, than the integration takes the form
+When the subordinator is a Compound Poisson process, then the integration takes the form
 
 \begin{equation}
-    x_t = x_0 e^{-\kappa t} + \sum_{n=0}^{N_{\kappa t}} e^{-\kappa t-m_n\right)} d j_n
+    x_t = x_0 e^{-\kappa t} + \sum_{n=0}^{N_{\kappa t}} e^{-\kappa t-m_n} j_n
 \end{equation}
+
+where $m_n$ are the jump times of the Poisson process $N_{\kappa t} and $j_n$ are the jump sizes drawn from the jump distribution.
 
 ### Integrated Intensity
 
@@ -85,9 +87,9 @@ It is possible to show, see {cite:p}`ou`, that given the Lévy density $w$ of $z
 
 ## Gamma OU Process
 
-The library provides an implementation of the non-gaussian OU process in the form of a Gamma OU process, where the invariant distribution of $x_t$ is a [gamma](https://en.wikipedia.org/wiki/Gamma_distribution) distribution $\Gamma\left(\alpha, \beta\right)$.
+The library provides an implementation of the non-gaussian OU process in the form of a Gamma OU process, where the invariant distribution of $x_t$ is a [gamma](https://en.wikipedia.org/wiki/Gamma_distribution) distribution $\Gamma\left(\lambda, \beta\right)$.
 
-In this case, the BDLP is an exponential compound Poisson process with Lévy density $\alpha\beta e^{-\beta x}$, in other words, the [exponential compound Poisson](./poisson.md) process with intensity $\alpha$ and decay $\beta$.
+In this case, the BDLP is an exponential compound Poisson process with Lévy density $\lambda\beta e^{-\beta x}$, in other words, the [exponential compound Poisson](./poisson.md) process with intensity $\lambda$ and decay $\beta$.
 
 ```{code-cell} ipython3
 from quantflow.sp.ou import GammaOU
@@ -95,6 +97,14 @@ from quantflow.sp.ou import GammaOU
 pr = GammaOU.create(decay=10, kappa=5)
 pr
 ```
+
+### Characteristic Function
+
+The charatecristic exponent of the $\Gamma$-OU process is given by, see {cite:p}`gamma-ou`)
+
+\begin{equation}
+    \phi_{u, t} = -x_{0} i u e^{-\kappa t} - \lambda\ln\left(\frac{\beta-iue^{-\kappa t}}{\beta -iu}\right)
+\end{equation}
 
 ```{code-cell} ipython3
 pr.marginal(1).mean(), pr.marginal(1).std()

@@ -27,7 +27,7 @@ Strong Markov processes. See ([Markov property](https://en.wikipedia.org/wiki/Ma
 
 ## Characteristic function
 
-The independence and stationarity of the increments of the Lévy process implies that the [characteristic function](https://en.wikipedia.org/wiki/Characteristic_function_(probability_theory)) of $x_t$ has the form
+The independence and stationarity of the increments of the Lévy process imply that the [characteristic function](https://en.wikipedia.org/wiki/Characteristic_function_(probability_theory)) of $x_t$ has the form
 
 \begin{equation}
  \Phi_{x_t, u} = {\mathbb E}\left[e^{i u x_t}\right] = e^{-t \phi_{x,u}}

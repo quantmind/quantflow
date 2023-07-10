@@ -38,7 +38,7 @@ class NGOU(IntensityProcess):
 
 class GammaOU(NGOU):
     @property
-    def alpha(self) -> float:
+    def intensity(self) -> float:
         return self.bdlp.intensity
 
     @property
@@ -60,14 +60,10 @@ class GammaOU(NGOU):
         return GammaOUMarginal(process=self, t=t, N=N)
 
     def characteristic_exponent(self, t: Vector, u: Vector) -> Vector:
-        kappa = self.kappa
-        a = self.alpha
         b = self.beta
         iu = Im * u
-        kt = kappa * t
-        ekt = np.exp(-kt)
-        c1 = iu * ekt
-        c0 = a * (np.log((b / ekt - iu) / (b - iu)) - kt)
+        c1 = iu * np.exp(-self.kappa * t)
+        c0 = self.intensity * np.log((b - c1) / (b - iu))
         return -c0 - c1 * self.rate
 
     def sample(self, n: int, time_horizon: float = 1, time_steps: int = 100) -> Paths:
@@ -108,7 +104,7 @@ class GammaOU(NGOU):
         iuk = iu / kappa
         ekt = np.exp(-kappa * t)
         c1 = iuk * (1 - ekt)
-        c0 = self.alpha * (
+        c0 = self.intensity * (
             b * np.log(b / (iuk + (b - iuk) / ekt)) / (iuk - b) - kappa * t
         )
         return np.exp(c0 + c1 * self.rate)
@@ -121,16 +117,16 @@ class GammaOU(NGOU):
         iuk = iu / kappa
         ekt = np.exp(-kappa * t)
         c1 = iuk * (1 - ekt)
-        c0 = self.alpha * (b * np.log(b / (b - c1)) - iu * t) / (iuk - b)
+        c0 = self.intensity * (b * np.log(b / (b - c1)) - iu * t) / (iuk - b)
         return np.exp(c0 + c1 * self.rate)
 
 
 class GammaOUMarginal(StochasticProcess1DMarginal[GammaOU]):
     def mean(self) -> float:
-        return self.process.alpha / self.process.beta
+        return self.process.intensity / self.process.beta
 
     def variance(self) -> float:
-        return self.process.alpha / self.process.beta / self.process.beta
+        return self.process.intensity / self.process.beta / self.process.beta
 
     def pdf(self, x: Vector) -> Vector:
-        return gamma.pdf(x, self.process.alpha, scale=1 / self.process.beta)
+        return gamma.pdf(x, self.process.intensity, scale=1 / self.process.beta)
