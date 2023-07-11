@@ -62,7 +62,7 @@ pr.convexity_correction(1)
 
 ## Call option
 
-A call option is defined as
+The price C of a call option with strike $K$ is defined as
 \begin{align}
 C &= S_0 c_k \\
 k &= \ln\frac{K}{S_0}\\ 
@@ -82,17 +82,17 @@ u = v - i \alpha
 \end{equation}
 The value of $\alpha$ is a numerical choice we can check later.
 
-It is possible to obtain the analytical expression of $\Psi_k$ in terms of the characteristic function $\Phi_x$. Once we have that expression we can use the Fourier transform tooling presented peviously to calculate option prices.
+It is possible to obtain the analytical expression of $\Psi_u$ in terms of the characteristic function $\Phi_s$. Once we have that expression, we can use the Fourier transform tooling presented previously to calculate option prices in this way
 
 \begin{align}
 c_k &= \int_0^{\infty} e^{-iuk} \Psi\left(u\right) du \\
     &= \frac{e^{-\alpha k}}{\pi} \int_0^{\infty} e^{-ivk} \Psi\left(v-i\alpha\right) dv \\
 \end{align}
 
-The analytical expression of $\phi_k$ is given by
+The analytical expression of $\Psi_u$ is given by
 
 \begin{equation}
-\Psi\left(u\right) = \frac{\Phi_{s_t}\left(u-i\right)}{iu \left(iu + 1\right)}
+\Psi_u = \frac{\Phi_{s_t}\left(u-i\right)}{iu \left(iu + 1\right)}
 \end{equation}
 
 To integrate we use the same approach as the PDF integration.
@@ -119,10 +119,10 @@ import plotly.graph_objects as go
 from quantflow.options.bs import black_call
 N, M = 128, 10
 dx = 10/N
-r = m.call_option(N, M, dx, alpha=0.2)
-b = black_call(r["x"], p.sigma, ttm)
-fig = px.line(r, x="x", y="y", markers=True, labels=dict(x="moneyness", y="call price"))
-fig.add_trace(go.Scatter(x=r["x"], y=b, name="analytical", line=dict()))
+r = m.call_option(64, M, dx, alpha=0.3)
+b = black_call(r.x, p.sigma, ttm)
+fig = px.line(x=r.x, y=r.y, markers=True, labels=dict(x="moneyness", y="call price"))
+fig.add_trace(go.Scatter(x=r.x, y=b, name="analytical", line=dict()))
 fig.show()
 ```
 

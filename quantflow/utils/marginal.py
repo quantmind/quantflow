@@ -101,26 +101,27 @@ class Marginal1D(BaseModel, ABC):
 
     def call_option(
         self,
-        N: int,
+        n: int | None = None,
         max_frequency: float = 10.0,
         delta_x: Optional[float] = None,
         alpha: float = 0.5,
         simpson_rule: bool = False,
     ) -> TransformResult:
-        t = Transform(
-            N,
+        transform = Transform(
+            n,
             max_frequency=self.get_max_frequency(max_frequency),
             domain_range=self.domain_range(),
             simpson_rule=simpson_rule,
         )
         phi = cast(
-            np.ndarray, self.call_option_transform(t.frequency_domain - 1j * alpha)
+            np.ndarray,
+            self.call_option_transform(transform.frequency_domain - 1j * alpha),
         )
-        result = t(phi, delta_x)
+        result = transform(phi, delta_x)
         return TransformResult(x=result.x, y=result.y * np.exp(-alpha * result.x))
 
     def call_option_transform(self, u: Vector) -> Vector:
-        """Call option transfrom"""
+        """Call option transform"""
         uj = 1j * u
         return self.characteristic_corrected(u - 1j) / (uj * uj + uj)
 

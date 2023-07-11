@@ -86,7 +86,8 @@ Moneyness is defined as
 
 ```{code-cell} ipython3
 vs.bs()
-vs.options_df(index=5)
+df = vs.options_df()
+df
 ```
 
 The plot function is enabled only if [plotly](https://plotly.com/python/) is installed
@@ -112,7 +113,7 @@ cal.model
 ```
 
 ```{code-cell} ipython3
-
+cal.fit()
 ```
 
 ## Serialization

@@ -27,4 +27,5 @@ parts:
 - caption: Reference
   chapters:
   - file: reference/contributing
+  - file: reference/glossary
   - file: reference/biblio

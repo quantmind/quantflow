@@ -44,14 +44,14 @@ def default_bounds() -> Bounds:
 
 def lower_bound(b: Any, value: float) -> float:
     try:
-        return max(float(b), value)
+        return max(b[0], value)
     except TypeError:
         return value
 
 
 def upper_bound(b: Any, value: float) -> float:
     try:
-        return min(float(b), value)
+        return min(b[0], value)
     except TypeError:
         return value
 

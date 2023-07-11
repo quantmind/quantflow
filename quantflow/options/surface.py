@@ -173,7 +173,7 @@ class OptionPrice:
             return self.price
 
     def can_price(self, converged: bool, select: OptionSelection) -> bool:
-        if self.price_time > ZERO:
+        if self.price_time > ZERO and not np.isnan(self.implied_vol):
             if not self.converged and converged is True:
                 return False
             if select == OptionSelection.best:

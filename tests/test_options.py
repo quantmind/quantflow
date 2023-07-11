@@ -6,6 +6,7 @@ import pytest
 
 from quantflow.options import bs
 from quantflow.options.calibration import HestonCalibration
+from quantflow.options.pricer import OptionPricer
 from quantflow.options.surface import (
     OptionPrice,
     VolSurface,
@@ -16,6 +17,11 @@ from quantflow.sp.heston import Heston
 
 a = np.asarray
 CROSS_SECTIONS = 8
+
+
+@pytest.fixture
+def heston() -> OptionPricer[Heston]:
+    return OptionPricer(Heston.create(vol=0.5, kappa=1, sigma=0.8, rho=0))
 
 
 @pytest.fixture
@@ -105,6 +111,22 @@ def test_call_put_parity_otm():
     assert option2.call_price == pytest.approx(option.price)
 
 
-def test_calibration(vol_surface: VolSurface):
-    cal = HestonCalibration(model=Heston(), vol_surface=vol_surface)
+def test_calibration_setup(vol_surface: VolSurface, heston: OptionPricer[Heston]):
+    cal = HestonCalibration(pricer=heston, vol_surface=vol_surface)
     assert cal.options
+    n = len(cal.options)
+    vol_range = cal.implied_vol_range()
+    assert vol_range.lb < vol_range.ub
+    assert vol_range.lb > 0
+    assert vol_range.ub < 10
+    cal2 = cal.remove_implied_above(1.0)
+    assert len(cal2.options) == n
+    cal2 = cal.remove_implied_above(0.95)
+    assert len(cal2.options) < n
+
+
+def test_calibration(vol_surface: VolSurface, heston: OptionPricer[Heston]):
+    cal = HestonCalibration(
+        pricer=heston, vol_surface=vol_surface
+    ).remove_implied_above(0.95)
+    cal.fit()
