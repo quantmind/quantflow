@@ -15,7 +15,7 @@ from quantflow.options.surface import (
 from quantflow.sp.heston import Heston
 
 a = np.asarray
-CROSS_SECTIONS = 7
+CROSS_SECTIONS = 8
 
 
 @pytest.fixture

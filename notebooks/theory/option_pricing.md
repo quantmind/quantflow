@@ -19,24 +19,46 @@ We can use the tooling from characteristic function inversion to price european 
 
 ## Convexity Correction
 
-We assume interest rate 0, so that the forward price is equal the spot price. This assumtion leads to the following no arbitrage condition
+We assume an interest rate 0, so that the forward price is equal the spot price. This assumtion leads to the following no arbitrage condition
 
 \begin{align}
-s_t &= x_t - c \\
-{\mathbb E}_0\left[e^{s_t} \right] &= {\mathbb E}_0\left[e^{x_t - c} \right] = e^{-c} {\mathbb E}_0\left[e^{x_t} \right] = e^{-c} \Phi_x\left(-i\right) = 1
+s_t &= x_t - c_t \\
+{\mathbb E}_0\left[e^{s_t} \right] &= {\mathbb E}_0\left[e^{x_t - c_t} \right] = e^{-c_t} {\mathbb E}_0\left[e^{x_t} \right] = e^{-c_t} e^{-\phi_{x_t, -i}} = 1
 \end{align}
 
-Therefore, c represents the so called convextity correction term and it is equal to
+Therefore, $c_t$ represents the so-called convexity correction term, and it is equal to
 
 \begin{equation}
-  c = \ln{\Phi_x\left(-i\right)}
+  c_t = -\phi_{x_t, -i}
 \end{equation}
 
 The characteristic function of $s_t$ is given by
 
 \begin{equation}
- \Phi_{s_t}\left(u\right) = \Phi_x\left(u\right) e^{-i u c}
+ \Phi_{s_t}\left(u\right) = \Phi_x\left(u\right) e^{-i u c_t}
 \end{equation}
+
+As you can see the convexity correction increases with time horizon, lets take few examples:
+
+### Weiner process
+
+This is the very famous convexity correction which appears in all diffusion driven SDE:
+
+\begin{equation}
+    c_t = \frac{\sigma^2 t}{2}
+\end{equation}
+
+```{code-cell} ipython3
+from quantflow.sp.weiner import WeinerProcess
+pr = WeinerProcess(sigma=0.5)
+-pr.characteristic_exponent(1, complex(0,-1))
+```
+
+which is the same as
+
+```{code-cell} ipython3
+pr.convexity_correction(1)
+```
 
 ## Call option
 

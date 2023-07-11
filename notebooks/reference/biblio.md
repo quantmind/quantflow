@@ -16,7 +16,3 @@ kernelspec:
 
 ```{bibliography}
 ```
-
-```{code-cell} ipython3
-
-```

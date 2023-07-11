@@ -52,6 +52,10 @@ class StochasticProcess(BaseModel, ABC):
         """
         return np.exp(-self.characteristic_exponent(t, u))
 
+    def convexity_correction(self, t: Vector) -> Vector:
+        """Convexity correction for the process"""
+        return -self.characteristic_exponent(t, complex(0, -1)).real
+
 
 class StochasticProcess1D(StochasticProcess):
     """

@@ -3,16 +3,28 @@
 
 format: jb-book
 root: index
-chapters:
-- file: levy
-- file: poisson
-- file: cir
-- file: ou
-- file: inversion
-- file: option_pricing
-- file: heston
-- file: bns
-- file: calibration
-- file: volatility_surface
-- file: contributing
-- file: biblio
+parts:
+- caption: Theory
+  chapters:
+  - file: theory/levy
+  - file: theory/inversion
+  - file: theory/option_pricing
+
+- caption: Models
+  chapters:
+  - file: models/weiner
+  - file: models/poisson
+  - file: models/cir
+  - file: models/ou
+  - file: models/heston
+  - file: models/bns
+
+- caption: Applications
+  chapters:
+  - file: applications/calibration
+  - file: volatility_surface
+
+- caption: Reference
+  chapters:
+  - file: reference/contributing
+  - file: reference/biblio
