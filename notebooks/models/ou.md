@@ -74,8 +74,8 @@ where $m_n$ are the jump times of the Poisson process $N_{\kappa t} and $j_n$ ar
 One of the advantages of these OU processes is that they offer a great deal of analytical tractability. For example, the integrated value of the process, which can be used as a time change for [Lévy processes](./levy.md), is given by
 
 \begin{align}
-   \int_0^t x_s ds &= \left(1 - e^{-\kappa t}\right)x_0 + \int_0^t \left[1 - e^{-\kappa\left(t - s\right)}\right] d z_{\kappa s}\\
-    &= \frac{z_{\kappa t} - x_t + x_0}{\kappa}
+   \int_0^t x_s ds &= \epsilon_t x_0 + \int_0^t \epsilon_{t-s} d z_{\kappa s} = \frac{z_{\kappa t} - x_t + x_0}{\kappa}\\
+   \epsilon_t &= \frac{1 - e^{-\kappa t}}{\kappa}
 \end{align}
 
 ### Lévy density

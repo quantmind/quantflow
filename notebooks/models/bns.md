@@ -13,7 +13,7 @@ kernelspec:
 
 # BNS Model
 
-The Barndorff-Nielson--Shephard (BNS) model is a stochastic volatility model where the variance process $\nu_t$, or better, the activity rate process, follows a [non-gaussian OU process](./ou.md). The leverage effect can be accommodated by correlating the Brownian motion and the BDLP $z_t$ as the following equations illustrate:
+The Barndorff-Nielson--Shephard (BNS) model is a stochastic volatility model where the variance process $\nu_t$, or better, the activity rate process, follows a [non-gaussian OU process](./ou.md). The leverage effect can be accommodated by correlating the Brownian motion $w_t$ and the BDLP $z_t$ as the following equations illustrate:
 
 \begin{align}
     y_t &= w_{\tau_t} + \rho z_{\kappa t} \\
@@ -25,45 +25,95 @@ This means that the characteristic function of $y_t$ can be represented as
 
 \begin{align}
     \Phi_{y_t, u} & = {\mathbb E}\left[\exp{\left(i u w_{\tau_t} + i u \rho z_{\kappa t}\right)}\right] \\
-    &= {\mathbb E}\left[\exp{\left(-\tau_t \phi_{w, u} + i u z_{\kappa t}\right)}\right]
+    &= {\mathbb E}\left[\exp{\left(-\tau_t \phi_{w, u} + i u \rho z_{\kappa t}\right)}\right]
 \end{align}
 
-$\phi_{w, u}$ is the characteristic exponent of $w_t$. The second equivalence is a consequence of $w$ and $\tau$ being independent, as discussed in [the time-changed Lévy](./levy.md) process section.
-
-## Characteristic Function
-
-Carr at al {cite:p}`cgmy` show that the join characteristic function of $\tau_t$ and $z_{\kappa t}$ has a closed formula given by
-
-\begin{align}
-    e^{\zeta_{a, b}} &= {\mathbb E} \left[\exp{\left(i a \tau_t + i b z_{\kappa t}\right)}\right] \\
-    \zeta_{a, b} &= i c \nu_0 + \int_b^{b+c} \frac{\phi_z\left(s\right)}{a+\kappa b - \kappa s} ds = i c \nu_0 + I_{b+c} - I_{b} \\
-    c &= a \frac{1 - e^{-\kappa t}}{\kappa}
-\end{align}
-
-Recall that in the case of the $\Gamma$-OU process, $z_t$ is an exponential compound process, and its characteristic exponent is given by
-
-\begin{equation}
-    \phi_{z,u} = \frac{i u \lambda}{iu - \beta}
-\end{equation}
-
-Substituting into the integral in $\zeta_{a,b}$ one obtains the value of $I$ as
-
-\begin{align}
-I_x &= \frac{\lambda}{\kappa -i g} \ln{\left(\beta + x\right)} + \frac{\lambda + g}{\kappa\left(g+i\kappa\right)} \ln{\left(\beta g - \kappa x\right)}\\
-g &= \frac{a + \kappa b}{\beta}
-\end{align}
+$\phi_{w, u}$ is the characteristic exponent of $w_1$. The second equivalence is a consequence of $w$ and $\tau$ being independent, as discussed in [the time-changed Lévy](./levy.md) process section.
 
 ```{code-cell} ipython3
 from quantflow.sp.bns import BNS
 
-pr = BNS(rho=-0.0)
+pr = BNS.create(vol=0.5, decay=10, kappa=10, rho=-1)
 pr
 ```
 
 ```{code-cell} ipython3
 from quantflow.utils import plot
-m = pr.marginal(1)
-plot.plot_characteristic(m)
+m = pr.marginal(2)
+plot.plot_characteristic(m, max_frequency=10)
+```
+
+## Marginal Distribution
+
+```{code-cell} ipython3
+m.mean(), m.std()
+```
+
+```{code-cell} ipython3
+import plotly.graph_objects as go
+import plotly.express as px
+from scipy.stats import norm
+import numpy as np
+
+N = 128
+M = 10
+r = m.pdf_from_characteristic(N, delta_x=0.05)
+n = norm.pdf(r.x, scale=m.std())
+fig = px.line(x=r.x, y=r.y, markers=True)
+fig.add_trace(go.Scatter(x=r.x, y=n, name="normal", line=dict()))
+```
+
+## Appendix
+
+
+Carr at al {cite:p}`cgmy` show that the join characteristic function of $\tau_t$ and $z_{\kappa t}$ has a closed formula, and this is our derivation
+
+\begin{align}
+    \zeta_{a, b} &= \ln {\mathbb E} \left[\exp{\left(i a \tau_t + i b z_{\kappa t}\right)}\right] \\
+    \zeta_{a, b} &= i c \nu_0 - \int_b^{b+c} \frac{\phi_{z_1, s}}{a+\kappa b - \kappa s} ds = i c \nu_0 + \lambda \left(I_{b+c} - I_{b}\right) \\
+    c &= a \frac{1 - e^{-\kappa t}}{\kappa}
+\end{align}
+
+
+Noting that (see [non-gaussian OU process](./ou.md))
+
+\begin{align}
+i a \tau_t + i b z_{\kappa t} &= i a \epsilon_t \nu_0 + \int_0^t \left(i a \epsilon_{t-s} + i b\right) d z_{\kappa s} \\
+&= i a \epsilon_t \nu_0 + \int_0^{\kappa t} \left(i a \epsilon_{t-s/\kappa} + i b\right) d z_s \\
+\epsilon_t &= \frac{1 - e^{-\kappa t}}{\kappa}
+\end{align}
+
+we obtain
+\begin{align}
+    \zeta_{a, b} &= i a \epsilon_t \nu_0 + \ln {\mathbb E} \left[\exp{\left(\int_0^{\kappa t} \left(i a \epsilon_{t-s/\kappa} + i b\right) d z_s\right)}\right] \\
+    &=  i a \epsilon_t \nu_0 - \int_0^{\kappa t} \phi_z\left(a \epsilon_{t-s/\kappa} + b\right) d s  \\
+     &=  i a \epsilon_t \nu_0 - \int_L^U \frac{\phi_{z,s}}{a + \kappa b - \kappa s} d s
+\end{align}
+
+Here we use [sympy](https://www.sympy.org/en/index.html) to derive the integral in the characteristic function.
+
+```{code-cell} ipython3
+import sympy as sym
+```
+
+```{code-cell} ipython3
+k =  sym.Symbol("k")
+iβ = sym.Symbol("iβ")
+γ = sym.Symbol("γ")
+s = sym.Symbol("s")
+ϕ = s/(s+iβ)/(γ-k*s)
+ϕ
+```
+
+```{code-cell} ipython3
+r = sym.integrate(ϕ, s)
+sym.simplify(r)
+```
+
+```{code-cell} ipython3
+import numpy as np
+f = lambda x: x*np.log(x)
+f(0.001)
 ```
 
 ```{code-cell} ipython3

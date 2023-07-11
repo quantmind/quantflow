@@ -11,7 +11,7 @@ def gamma_ou() -> GammaOU:
 
 @pytest.fixture
 def bns() -> BNS:
-    return BNS(rho=-0.3, variance_process=GammaOU.create(rate=0.5, decay=10, kappa=5))
+    return BNS.create(vol=0.5, decay=5, kappa=1, rho=0)
 
 
 def test_marginal(gamma_ou: GammaOU) -> None:
@@ -26,7 +26,7 @@ def test_sample(gamma_ou: GammaOU) -> None:
 
 
 def test_bns(bns: BNS):
-    bns.marginal(1)
+    m = bns.marginal(1)
     assert bns.characteristic(1, 0) == 1
-    # assert m.mean() == 0.0
-    # assert pytest.approx(m.std()) == 0.5
+    assert m.mean() == 0.0
+    # assert pytest.approx(m.std(), 1e-3) == 0.5

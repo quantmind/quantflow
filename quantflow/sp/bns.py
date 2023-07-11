@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import numpy as np
 from pydantic import Field
+from scipy.special import xlogy
 
 from ..utils.paths import Paths
 from ..utils.types import Vector
@@ -16,6 +17,13 @@ class BNS(StochasticProcess1D):
         default_factory=GammaOU, description="Variance process"
     )
     rho: float = Field(default=0, ge=-1, le=1, description="Correlation")
+
+    @classmethod
+    def create(cls, vol: float, kappa: float, decay: float, rho: float) -> BNS:
+        return cls(
+            variance_process=GammaOU.create(rate=vol * vol, kappa=kappa, decay=decay),
+            rho=rho,
+        )
 
     def characteristic_exponent(self, t: Vector, u: Vector) -> Vector:
         return -self._zeta(t, 0.5 * Im * u * u, self.rho * u)
@@ -45,16 +53,14 @@ class BNS(StochasticProcess1D):
     def _zeta(self, t: Vector, a: Vector, b: Vector) -> Vector:
         k = self.variance_process.kappa
         c = a * (1 - np.exp(-k * t)) / k
-        g = (a + k * b) / self.variance_process.beta
-        return Im * c * self.variance_process.rate + self._i(b + c, g) - self._i(b, g)
+        g = (a + b) / self.variance_process.beta
+        return Im * c * self.variance_process.rate - self.variance_process.intensity * (
+            self._i(b + c, g) - self._i(b, g)
+        )
 
     def _i(self, x: Vector, g: Vector) -> Vector:
         k = self.variance_process.kappa
-        lamb = self.variance_process.intensity
         beta = self.variance_process.beta
-        try:
-            l1 = (beta + x) ** (lamb / (k - Im * g))
-            l2 = (beta * g - k * x) ** ((lamb + g) / (g + Im * k) / k)
-            return np.log(l1 * l2)
-        except ZeroDivisionError:
-            return 0
+        l1 = xlogy(k - Im * g, x + Im * beta)
+        l2 = xlogy(g / (g + Im * k) / k, beta * g / k - x)
+        return l1 + l2

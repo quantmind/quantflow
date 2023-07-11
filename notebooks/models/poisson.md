@@ -28,7 +28,7 @@ The Poisson Process $N_t$ with intensity parameter $\lambda > 0$ is a Lévy proc
 The characteristic exponent is given by
 
 \begin{equation}
-\phi_{u} = \lambda \left(1 - e^{iu}\right)
+\phi_{N_t, u} = t \lambda \left(1 - e^{iu}\right)
 \end{equation}
 
 ```{code-cell} ipython3
@@ -70,12 +70,14 @@ The compound poisson process is a jump process, where the arrival of jumps $N_t$
 The characteristic exponent of a compound Poisson process is given by
 
 \begin{align}
-  \phi_{x,u} = \int_0^\infty \left(e^{iuy} - 1\right) f(y) dy = \lambda \left(1 - \Phi_{j,u}\right)
+  \phi_{x_t,u} = t\int_0^\infty \left(e^{iuy} - 1\right) f(y) dy = t\lambda \left(1 - \Phi_{j,u}\right)
 \end{align}
 
 where $\Phi_{j,u}$ is the characteristic function of the jump distribution.
 
 As long as we have a closed-form solution for the characteristic function of the jump distribution, then we have a closed-form solution for the characteristic exponent of the compound Poisson process.
+
+### Exponential Compound Poisson Process
 
 The library includes the Exponential Poisson Process, a compound Poisson process where the jump sizes are sampled from an exponential distribution.
 
@@ -90,6 +92,14 @@ pr
 from quantflow.utils.plot import plot_characteristic
 m = pr.marginal(1)
 plot_characteristic(m)
+```
+
+```{code-cell} ipython3
+m.mean(), m.mean_from_characteristic()
+```
+
+```{code-cell} ipython3
+m.variance(), m.variance_from_characteristic()
 ```
 
 ```{code-cell} ipython3

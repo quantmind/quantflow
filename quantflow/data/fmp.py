@@ -5,16 +5,17 @@ from typing import Any, cast
 import pandas as pd
 
 from .client import HttpClient, compact
-from .utils import isoformat
+from ..utils.dates import isoformat
 
 
 class FMP(HttpClient):
-    url: str = "https://financialmodelingprep.com/api"
-
     def __init__(
         self,
+        *,
+        url: str = "https://financialmodelingprep.com/api",
         key: str = "",
     ) -> None:
+        self.url = url
         self.key = key or os.environ.get("FMP_API_KEY")
 
     async def stocks(self, **kw: Any) -> list[dict]:

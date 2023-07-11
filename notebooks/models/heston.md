@@ -37,7 +37,7 @@ pr
 
 ```{code-cell} ipython3
 # check that the variance CIR process is positive
-pr.variance_process.is_positive
+pr.variance_process.is_positive, pr.variance_process.marginal(1).std()
 ```
 
 ## Characteristic Function

@@ -38,6 +38,7 @@ nbconvert = "^6.4.5"
 jupytext = "^1.13.8"
 plotly = "^5.7.0"
 jupyterlab = "^4.0.2"
+sympy = "^1.12"
 
 
 [build-system]
@@ -68,11 +69,6 @@ path = "quantflow/__init__.py"
 disallow_untyped_calls = true
 disallow_untyped_defs = true
 warn_no_return = true
-exclude = [
-    "quantflow/sp/cached.py",
-    "quantflow/sp/combined.py",
-    "quantflow/sp/derived.py"
-]
 
 [[tool.mypy.overrides]]
 module = "tests.*"
