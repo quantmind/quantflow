@@ -65,7 +65,7 @@ pr.convexity_correction(1)
 The price C of a call option with strike $K$ is defined as
 \begin{align}
 C &= S_0 c_k \\
-k &= \ln\frac{K}{S_0}\\ 
+k &= \ln\frac{K}{S_0}\\
 c_k &= {\mathbb E}\left[\left(e^{s_t} - e^k\right)1_{s_t\ge k}\right]
 \end{align}
 
@@ -95,9 +95,15 @@ The analytical expression of $\Psi_u$ is given by
 \Psi_u = \frac{\Phi_{s_t}\left(u-i\right)}{iu \left(iu + 1\right)}
 \end{equation}
 
-To integrate we use the same approach as the PDF integration.
+To integrate, we use the same approach as the PDF integration.
 
-+++
+### Choice of $\alpha$
+
+Positive values of α assist the integrability of the modified call value over the
+negative moneyness axis, but aggravate the same condition for the positive moneyness axis. For the modified call value to be integrable in the positive moneyness
+direction, and hence for it to be square-integrable as well, a sufficient condition
+is provided by $\Psi_{-i\alpha}$ being finite, which means the characteristic function $\Phi_{t,{-(\alpha+1)i}}$ is finite.
+
 
 ## Black Formula
 

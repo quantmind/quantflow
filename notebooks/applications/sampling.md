@@ -13,7 +13,7 @@ kernelspec:
 
 # Sampling Tools
 
-The library use the `Paths` class for managing monte carlo paths. 
+The library use the `Paths` class for managing monte carlo paths.
 
 ```{code-cell} ipython3
 from quantflow.utils.paths import Paths

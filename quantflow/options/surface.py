@@ -208,6 +208,7 @@ class OptionPrice:
             strike=float(self.strike),
             forward=float(self.forward),
             moneyness=self.moneyness,
+            moneyness_ttm=self.moneyness / np.sqrt(self.ttm),
             ttm=self.ttm,
             implied_vol=self.implied_vol,
             price=float(self.price),

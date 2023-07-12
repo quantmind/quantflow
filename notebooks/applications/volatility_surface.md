@@ -94,8 +94,18 @@ df
 The plot function is enabled only if [plotly](https://plotly.com/python/) is installed
 
 ```{code-cell} ipython3
-vs.plot()
+vs.plot(index=0)
 ```
+
+The `moneyness_ttm` is defined as
+
+\begin{equation}
+\frac{1}{\sqrt{T}} \ln{\frac{K}{F}}
+\end{equation}
+
+where $T$ is the time-to-maturity
+
++++
 
 ## Model Calibration
 
@@ -128,14 +138,16 @@ pricer.model
 ```
 
 ```{code-cell} ipython3
-pricer.model.rho=-0.2
+pricer.model.rho=-0.0
 pricer.model.variance_process.sigma=1.5
+pricer.model.variance_process.theta=0.55
+pricer.model.variance_process.rate=0.08
 
 pricer.reset()
 ```
 
 ```{code-cell} ipython3
-cal.plot(index=2, max_moneyness=1)
+cal.plot(index=0, max_moneyness_ttm=1)
 ```
 
 ## Serialization

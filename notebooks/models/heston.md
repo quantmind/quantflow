@@ -31,7 +31,7 @@ This means that the characteristic function of $y_t=x_{\tau_t}$ can be represent
 
 ```{code-cell} ipython3
 from quantflow.sp.heston import Heston
-pr = Heston.create(vol=0.6, kappa=2, sigma=1.5, rho=-0.4)
+pr = Heston.create(vol=0.6, kappa=2, sigma=1.5, rho=-0.1)
 pr
 ```
 
@@ -44,7 +44,7 @@ pr.variance_process.is_positive, pr.variance_process.marginal(1).std()
 
 ```{code-cell} ipython3
 from quantflow.utils import plot
-m = pr.marginal(0.01)
+m = pr.marginal(0.1)
 plot.plot_characteristic(m)
 ```
 
@@ -55,12 +55,6 @@ The immaginary part of the characteristic function is given by the correlation c
 ## Marginal Distribution
 
 Here we compare the marginal distribution at a time in the future $t=1$ with a normal distribution with the same standard deviation.
-
-```{code-cell} ipython3
-# Marginal at time 1
-m = pr.marginal(1)
-m.std()
-```
 
 ```{code-cell} ipython3
 import plotly.graph_objects as go
@@ -85,23 +79,35 @@ fig.show()
 ## Option pricing
 
 ```{code-cell} ipython3
+from quantflow.options.pricer import OptionPricer
+from quantflow.sp.heston import Heston
+pricer = OptionPricer(Heston.create(vol=0.6, kappa=2, sigma=0.8, rho=-0.1))
+pricer
+```
+
+```{code-cell} ipython3
 import plotly.express as px
 import plotly.graph_objects as go
 from quantflow.options.bs import black_call
-r = m.call_option(128)
-b = black_call(r.x, m.std(), 1)
-fig = px.line(x=r.x, y=r.y, markers=True)
-fig.add_trace(go.Scatter(x=r.x, y=b, name="normal", line=dict()))
+
+pricer.model.variance_process.rate = 0.1
+pricer.reset()
+
+r = pricer.maturity(0.02)
+b = r.black()
+fig = px.line(x=r.moneyness_ttm, y=r.time_value, markers=True, title=r.name)
+fig.add_trace(go.Scatter(x=r.moneyness_ttm, y=b.time_value, name=b.name, line=dict()))
 fig.show()
 ```
 
 ```{code-cell} ipython3
-from quantflow.options.bs import implied_black_volatility
-n = len(r.x)
+pricer.model.variance_process.rate = 0.1
+pricer.reset()
+pricer.maturity(0.03).plot()
+```
 
-result = implied_black_volatility(r.x, r.y, 1, initial_sigma=m.std()*np.ones((n,)), call_put=1)
-fig = px.line(x=r.x, y=result.root, markers=True, labels=dict(x="moneyness", y="implied vol"))
-fig.show()
+```{code-cell} ipython3
+
 ```
 
 ## Simulation
@@ -134,10 +140,6 @@ plot.plot_lines(df)
 std = dict(std=pr.marginal(paths.time).std(), simulated=paths.std())
 df = pd.DataFrame(std, index=paths.time)
 plot.plot_lines(df)
-```
-
-```{code-cell} ipython3
-
 ```
 
 ```{code-cell} ipython3

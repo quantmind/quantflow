@@ -128,7 +128,7 @@ import numpy as np
 from quantflow.utils import plot
 
 m = pr.marginal(5)
-plot.plot_marginal_pdf(m, 0.05*np.arange(100))
+plot.plot_marginal_pdf(m, 128)
 ```
 
 ```{code-cell} ipython3
@@ -176,7 +176,3 @@ The integration of the OU process can be achieved by multiplying both sides of t
     e^{\kappa t} x_t - x_0 &= \int_0^t e^{\kappa s} d z_s \\
     x_t &= x_0 e^{-\kappa t} + \int_0^t e^{-\kappa\left(t - s\right)} d z_s
 \end{align}
-
-```{code-cell} ipython3
-
-```

@@ -21,8 +21,8 @@ parts:
 
 - caption: Applications
   chapters:
+  - file: applications/volatility_surface
   - file: applications/calibration
-  - file: volatility_surface
 
 - caption: Reference
   chapters:

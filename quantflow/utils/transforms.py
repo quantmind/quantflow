@@ -115,8 +115,7 @@ class Transform:
 
     def fft(self, y: np.ndarray) -> TransformResult:
         """Transform using the Fast Fourier Transform"""
-        delta_x = self.fft_zeta / self.delta_f
-        x, f = self.transform(y, delta_x)
+        x, f = self.transform(y, self.fft_delta_x)
         return TransformResult(x=x, y=np.fft.fft(f).real / self.n)
 
     def frft(self, y: np.ndarray, delta_x: float) -> TransformResult:

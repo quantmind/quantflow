@@ -13,7 +13,6 @@ from scipy.optimize import Bounds, OptimizeResult, minimize
 from quantflow.sp.base import StochasticProcess1D
 from quantflow.sp.heston import Heston
 from quantflow.utils import plot
-from quantflow.utils.transforms import PricingResult
 
 from .pricer import OptionPricer
 from .surface import OptionPrice, VolSurface
@@ -146,7 +145,7 @@ class VolModelCalibration(ABC, Generic[M]):
         self.pricer.reset()
         cost = 0.0
         for entry in self.options.values():
-            model_price = self.pricer.price(entry.ttm, entry.moneyness)
+            model_price = self.pricer.call_price(entry.ttm, entry.moneyness)
             if residual := entry.residual(model_price):
                 weight = self.cost_weight(entry.ttm, entry.moneyness)
                 cost += weight * residual**2
@@ -156,24 +155,22 @@ class VolModelCalibration(ABC, Generic[M]):
         self,
         index: int = 0,
         *,
-        max_moneyness: float | None = 1.0,
+        max_moneyness_ttm: float | None = 1.0,
         support: int = 51,
         **kwargs: Any,
     ) -> Any:
         """Plot the implied volatility for market and model prices"""
-        options = tuple(self.vol_surface.option_prices(index=index))
-        if max_moneyness is None:
-            max_moneyness = 0.1 * np.ceil(
-                10 * max(np.abs(option.moneyness) for option in options)
-            )
-        moneyness = np.linspace(-max_moneyness, max_moneyness, support)
         cross = self.vol_surface.maturities[index]
-        result = self.pricer.implied_vols(cross.ttm(self.ref_date), moneyness=moneyness)
+        options = tuple(self.vol_surface.option_prices(index=index))
+        cross = self.vol_surface.maturities[index]
+        model = self.pricer.maturity(cross.ttm(self.ref_date))
+        if max_moneyness_ttm is not None:
+            model = model.max_moneyness_ttm(
+                max_moneyness_ttm=max_moneyness_ttm, support=support
+            )
         return plot.plot_vol_surface(
             pd.DataFrame([d._asdict() for d in options]),
-            model_implied=PricingResult(
-                x=moneyness, y=result.root, name=type(self.model).__name__
-            ),
+            model=model.df,
             **kwargs,
         )
 
@@ -182,7 +179,7 @@ class VolModelCalibration(ABC, Generic[M]):
 class HestonCalibration(VolModelCalibration[Heston]):
     """Calibration of a stochastic volatility model"""
 
-    feller_penalize: float = 0.1
+    feller_penalize: float = 0.01
 
     def get_bounds(self) -> Sequence[Bounds] | None:
         vol_range = self.implied_vol_range()

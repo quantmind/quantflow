@@ -82,13 +82,17 @@ m.std()
 ```{code-cell} ipython3
 from quantflow.utils import plot
 
-plot.plot_characteristic(m, max_frequency=50)
+plot.plot_characteristic(m)
 ```
 
 ```{code-cell} ipython3
 from quantflow.utils import plot
 import numpy as np
-plot.plot_marginal_pdf(m, 128, max_frequency=50)
+plot.plot_marginal_pdf(m, 128, use_fft=True, max_frequency=20)
+```
+
+```{code-cell} ipython3
+plot.plot_marginal_pdf(m, 128*8, use_fft=True, max_frequency=8*20)
 ```
 
 **Note** the amount of unnecessary discretization points in the frequency domain (the characteristic function is zero after 15 or so). However the space domain is poorly represented because of the FFT constraints (we have a relatively small number of points where it matters, around zero).
@@ -110,8 +114,14 @@ z &= \left(\left[e^{i j^2 \zeta/2}\right]_{j=0}^{N-1}, \left[e^{i\left(N-j\right
 We can now reduce the number of points needed for the discretization and achieve higher accuracy by properly selecting the domain discretization independently.
 
 ```{code-cell} ipython3
-plot.plot_marginal_pdf(m, 128, delta_x=0.02)
+plot.plot_marginal_pdf(m, 128)
 ```
+
+Since one N-pointFRFTt will invoke three 2N-pointFFTt procedures, the number of operations will be approximately $6N\log{N}$ compared to $N\log{N}$ for the FFT. However, we can use fewer points as demonstrated and be more robust in delivering results.
+
+The FRFT is used as the default transforms across the library, the FFT can be used by passing `use_fft` to the transform functions, but it is not advised.
+
++++
 
 ## Additional References
 

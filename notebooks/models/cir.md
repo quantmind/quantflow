@@ -42,7 +42,7 @@ pr.is_positive
 
 ## Marginal and moments
 
-The model has a closed-form solution for the mean and the variance
+The model has a closed-form solution for the mean, the variance, and the (marginal pdf)[https://en.wikipedia.org/wiki/Cox%E2%80%93Ingersoll%E2%80%93Ross_model].
 
 \begin{align}
 {\mathbb E}[x_t] &= x_0 e^{-\kappa t} + \theta\left(1 - e^{-\kappa t}\right) \\
@@ -50,7 +50,7 @@ The model has a closed-form solution for the mean and the variance
 \end{align}
 
 ```{code-cell} ipython3
-m = pr.marginal(0.5)
+m = pr.marginal(1)
 m.mean(), m.variance()
 ```
 
@@ -63,7 +63,7 @@ The code below show the computed PDF via FRFT and the analytical formula above
 ```{code-cell} ipython3
 from quantflow.utils import plot
 import numpy as np
-plot.plot_marginal_pdf(m, 128)
+plot.plot_marginal_pdf(m, 128, max_frequency=20)
 ```
 
 ## Characteristic Function

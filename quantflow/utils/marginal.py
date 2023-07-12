@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from abc import ABC, abstractmethod
 from typing import Any, cast
 
@@ -81,53 +83,49 @@ class Marginal1D(BaseModel, ABC):
 
     def pdf_from_characteristic(
         self,
-        n_or_x: int | FloatArray | None = None,
+        n: int | None = None,
         *,
         max_frequency: float | None = None,
         simpson_rule: bool = False,
+        use_fft: bool = False,
     ) -> TransformResult:
         """
         Compute the probability density function from the characteristic function.
         """
-        n = None
-        if n_or_x is None:
-            n_or_x = 128
-        if isinstance(n_or_x, int):
-            n = n_or_x
-            x = self.support(n_or_x + 1)
+        n = n or 128
+        if use_fft:
+            delta_x = None
+            transform = Transform(
+                n,
+                max_frequency=self.get_max_frequency(max_frequency),
+                domain_range=self.domain_range(),
+                simpson_rule=simpson_rule,
+            )
         else:
-            n = len(n_or_x) - 1
-            x = n_or_x
-        min_x = float(np.min(x))
-        max_x = float(np.max(x))
-        delta_x = (max_x - min_x) / (len(x) - 1)
-        transform = Transform(
-            n,
-            max_frequency=self.get_max_frequency(max_frequency),
-            domain_range=Bounds(min_x, max_x),
-            simpson_rule=simpson_rule,
-        )
+            x = self.support(n + 1)
+            min_x = float(np.min(x))
+            max_x = float(np.max(x))
+            delta_x = (max_x - min_x) / (len(x) - 1)
+            transform = Transform(
+                n,
+                max_frequency=self.get_max_frequency(max_frequency),
+                domain_range=Bounds(min_x, max_x),
+                simpson_rule=simpson_rule,
+            )
         psi = cast(np.ndarray, self.characteristic(transform.frequency_domain))
         return transform(psi, delta_x)
 
     def call_option(
         self,
-        n_or_x: int | FloatArray | None = None,
+        n: int | None = None,
         *,
         max_frequency: float | None = None,
         max_moneyness: float = 1,
         alpha: float = 0.5,
         simpson_rule: bool = False,
     ) -> TransformResult:
-        n = None
-        if n_or_x is None:
-            n_or_x = 128
-        if isinstance(n_or_x, int):
-            n = n_or_x
-            x = self.option_support(n_or_x + 1, max_moneyness=max_moneyness)
-        else:
-            n = len(n_or_x) - 1
-            x = n_or_x
+        n = n or 128
+        x = self.option_support(n + 1, max_moneyness=max_moneyness)
         min_x = float(np.min(x))
         max_x = float(np.max(x))
         delta_x = (max_x - min_x) / (len(x) - 1)
@@ -144,14 +142,34 @@ class Marginal1D(BaseModel, ABC):
         result = transform(phi, delta_x)
         return TransformResult(x=result.x, y=result.y * np.exp(-alpha * result.x))
 
-    def call_option_transform(self, u: Vector) -> Vector:
-        """Call option transform"""
-        uj = 1j * u
-        return self.characteristic_corrected(u - 1j) / (uj * uj + uj)
-
-    def characteristic_corrected(self, u: Vector) -> Vector:
-        convexity = np.log(self.characteristic(-1j))
-        return self.characteristic(u) * np.exp(-1j * u * convexity)
+    def option_time_value(
+        self,
+        n: int = 128,
+        *,
+        max_frequency: float | None = None,
+        max_moneyness: float = 1,
+        alpha: float = 1.1,
+        simpson_rule: bool = False,
+    ) -> TransformResult:
+        """Option time value"""
+        n = n or 128
+        x = self.option_support(n + 1, max_moneyness=max_moneyness)
+        min_x = float(np.min(x))
+        max_x = float(np.max(x))
+        delta_x = (max_x - min_x) / (len(x) - 1)
+        transform = Transform(
+            n,
+            max_frequency=self.get_max_frequency(max_frequency),
+            domain_range=Bounds(min_x, max_x),
+            simpson_rule=simpson_rule,
+        )
+        phi = cast(
+            np.ndarray,
+            self.option_time_value_transform(transform.frequency_domain, alpha),
+        )
+        result = transform(phi, delta_x)
+        time_value = result.y / np.sinh(alpha * result.x)
+        return TransformResult(x=result.x, y=time_value)
 
     def domain_range(self) -> Bounds:
         return default_bounds()
@@ -214,3 +232,35 @@ class Marginal1D(BaseModel, ABC):
         Compute the x axis.
         """
         return np.linspace(-max_moneyness, max_moneyness, points)
+
+    # Fourier Transforms for options
+
+    def call_option_transform(self, u: Vector) -> Vector:
+        """Call option transform"""
+        uj = 1j * u
+        return self.characteristic_corrected(u - 1j) / (uj * uj + uj)
+
+    def characteristic_corrected(self, u: Vector) -> Vector:
+        convexity = np.log(self.characteristic(-1j))
+        return self.characteristic(u) * np.exp(-1j * u * convexity)
+
+    def option_time_value_transform(self, u: Vector, alpha: float = 1.1) -> Vector:
+        """Option time value transform
+
+        This transform does not require any additional correction since
+        the integrant is already bounded for positive and negative moneyess"""
+        ia = 1j * alpha
+        return 0.5 * (
+            self._option_time_value_transform(u - ia)
+            - self._option_time_value_transform(u + ia)
+        )
+
+    def _option_time_value_transform(self, u: Vector) -> Vector:
+        """Option time value transform
+
+        This transform does not require any additional correction since
+        the integrant is already bounded for positive and negative moneyess"""
+        iu = 1j * u
+        return (
+            1 / (1 + iu) - 1 / iu - self.characteristic_corrected(u - 1j) / (u * u - iu)
+        )
