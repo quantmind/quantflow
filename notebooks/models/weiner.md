@@ -43,6 +43,27 @@ import numpy as np
 plot.plot_marginal_pdf(m, 64)
 ```
 
-```{code-cell} ipython3
+## Test Option Pricing
 
+```{code-cell} ipython3
+from quantflow.options.pricer import OptionPricer
+from quantflow.sp.weiner import WeinerProcess
+pricer = OptionPricer(WeinerProcess(sigma=0.2))
+pricer
+```
+
+```{code-cell} ipython3
+import plotly.express as px
+import plotly.graph_objects as go
+from quantflow.options.bs import black_call
+pricer.reset()
+r = pricer.maturity(0.005)
+b = r.black()
+fig = px.line(x=r.moneyness_ttm, y=r.time_value, markers=True, title="Time value")
+fig.add_trace(go.Scatter(x=b.moneyness_ttm, y=b.time_value, name=b.name, line=dict()))
+fig.show()
+```
+
+```{code-cell} ipython3
+pricer.maturity(0.1, alpha=8).plot()
 ```

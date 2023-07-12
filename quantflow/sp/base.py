@@ -108,6 +108,10 @@ class StochasticProcess1DMarginal(Marginal1D, Generic[P]):
             np.max(self.mean()), std_mult * np.max(self.std()), points
         )
 
+    def option_alpha(self) -> float:
+        """Option alpha parameter for integrability of call option transform"""
+        return max(8 * np.max(np.exp(-2 * self.t)), 0.5)
+
 
 class IntensityProcess(StochasticProcess1D):
     """Base class for mean reverting 1D processes which can be used

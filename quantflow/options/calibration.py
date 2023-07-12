@@ -179,7 +179,7 @@ class VolModelCalibration(ABC, Generic[M]):
 class HestonCalibration(VolModelCalibration[Heston]):
     """Calibration of a stochastic volatility model"""
 
-    feller_penalize: float = 0.01
+    feller_penalize: float = 0.0
 
     def get_bounds(self) -> Sequence[Bounds] | None:
         vol_range = self.implied_vol_range()

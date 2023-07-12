@@ -21,14 +21,6 @@ class TransformResult(NamedTuple):
     y: np.ndarray
 
 
-class PricingResult(NamedTuple):
-    """Result of a pricing"""
-
-    x: FloatArray
-    y: FloatArray
-    name: str
-
-
 def grid(n: int) -> npt.NDArray[np.int_]:
     return np.arange(0, n, 1)
 

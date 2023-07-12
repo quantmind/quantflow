@@ -93,7 +93,7 @@ from quantflow.options.bs import black_call
 pricer.model.variance_process.rate = 0.1
 pricer.reset()
 
-r = pricer.maturity(0.02)
+r = pricer.maturity(0.1)
 b = r.black()
 fig = px.line(x=r.moneyness_ttm, y=r.time_value, markers=True, title=r.name)
 fig.add_trace(go.Scatter(x=r.moneyness_ttm, y=b.time_value, name=b.name, line=dict()))
@@ -103,11 +103,7 @@ fig.show()
 ```{code-cell} ipython3
 pricer.model.variance_process.rate = 0.1
 pricer.reset()
-pricer.maturity(0.03).plot()
-```
-
-```{code-cell} ipython3
-
+pricer.maturity(0.01).plot()
 ```
 
 ## Simulation

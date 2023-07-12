@@ -121,7 +121,7 @@ class Marginal1D(BaseModel, ABC):
         *,
         max_frequency: float | None = None,
         max_moneyness: float = 1,
-        alpha: float = 0.5,
+        alpha: float | None = None,
         simpson_rule: bool = False,
     ) -> TransformResult:
         n = n or 128
@@ -135,6 +135,7 @@ class Marginal1D(BaseModel, ABC):
             domain_range=Bounds(min_x, max_x),
             simpson_rule=simpson_rule,
         )
+        alpha = alpha or self.option_alpha()
         phi = cast(
             np.ndarray,
             self.call_option_transform(transform.frequency_domain - 1j * alpha),
@@ -264,3 +265,7 @@ class Marginal1D(BaseModel, ABC):
         return (
             1 / (1 + iu) - 1 / iu - self.characteristic_corrected(u - 1j) / (u * u - iu)
         )
+
+    def option_alpha(self) -> float:
+        """Option alpha"""
+        return 2.0

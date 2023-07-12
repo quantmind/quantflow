@@ -94,7 +94,7 @@ class MaturityPricer(NamedTuple):
     def black(self) -> MaturityPricer:
         """Calculate the Maturity Result for the Black model with same std"""
         return self._replace(
-            call=black_call(self.moneyness, self.std, ttm=self.ttm),
+            call=black_call(self.moneyness, self.std / np.sqrt(self.ttm), ttm=self.ttm),
             name="Black",
         )
 
@@ -118,14 +118,14 @@ class OptionPricer(Generic[M]):
         """Clear the cache"""
         self.ttm.clear()
 
-    def maturity(self, ttm: float) -> MaturityPricer:
+    def maturity(self, ttm: float, **kwargs: Any) -> MaturityPricer:
         """Get the maturity cache or create a new one and return it"""
         ttm_int = int(TTM_FACTOR * ttm)
         if ttm_int not in self.ttm:
             ttmr = ttm_int / TTM_FACTOR
             marginal = self.model.marginal(ttmr)
             transform = marginal.call_option(
-                self.n, max_moneyness=self.max_moneyness_ttm * np.sqrt(ttmr)
+                self.n, max_moneyness=self.max_moneyness_ttm * np.sqrt(ttmr), **kwargs
             )
             self.ttm[ttm_int] = MaturityPricer(
                 ttm=ttmr,

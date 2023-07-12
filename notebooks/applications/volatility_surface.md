@@ -94,7 +94,7 @@ df
 The plot function is enabled only if [plotly](https://plotly.com/python/) is installed
 
 ```{code-cell} ipython3
-vs.plot(index=0)
+vs.plot()
 ```
 
 The `moneyness_ttm` is defined as
@@ -138,16 +138,11 @@ pricer.model
 ```
 
 ```{code-cell} ipython3
-pricer.model.rho=-0.0
-pricer.model.variance_process.sigma=1.5
-pricer.model.variance_process.theta=0.55
-pricer.model.variance_process.rate=0.08
-
 pricer.reset()
 ```
 
 ```{code-cell} ipython3
-cal.plot(index=0, max_moneyness_ttm=1)
+cal.plot(index=5, max_moneyness_ttm=1)
 ```
 
 ## Serialization
