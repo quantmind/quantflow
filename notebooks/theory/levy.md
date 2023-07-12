@@ -16,6 +16,7 @@ kernelspec:
 # Lévy process
 A Lévy process $x_t$ is a stochastic process which satisfies the following properties
 
+* $x_0 = 0$
 * **independent increments**: $x_t - x_s$ is independent of $x_u; u \le s\ \forall\ s < t$
 * **stationary increments**: $x_{s+t} - x_s$ has the same distribution as $x_t - x_0$ for any $s,t > 0$
 
@@ -30,10 +31,10 @@ Strong Markov processes. See ([Markov property](https://en.wikipedia.org/wiki/Ma
 The independence and stationarity of the increments of the Lévy process imply that the [characteristic function](https://en.wikipedia.org/wiki/Characteristic_function_(probability_theory)) of $x_t$ has the form
 
 \begin{equation}
- \Phi_{x_t, u} = {\mathbb E}\left[e^{i u x_t}\right] = e^{-t \phi_{x,u}}
+ \Phi_{x_t, u} = {\mathbb E}\left[e^{i u x_t}\right] = e^{-\phi_{x_t, u}} = e^{-t \phi_{x_1,u}}
 \end{equation}
 
-where the **characteristic exponent** $\phi_{x,u}$ is given by the [Lévy–Khintchine formula](https://en.wikipedia.org/wiki/L%C3%A9vy_process).
+where the **characteristic exponent** $\phi_{x_1,u}$ is given by the [Lévy–Khintchine formula](https://en.wikipedia.org/wiki/L%C3%A9vy_process).
 
 There are several Lévy processes in the literature, including, importantly, the [Poisson process](./poisson.md), the compound Poisson process, and the Brownian motion.
 
@@ -76,6 +77,7 @@ To obtain the Laplace transform  of $\tau_t$ in closed form, consider its specif
 {\mathbb L}_{\tau_t}\left(u\right) = {\mathbb E}\left[e^{- u \int_0^t \lambda_s ds}\right]
 \end{equation}
 
+This equation is very common in the bond pricing literature if we regard $u\lambda_t$ as the instantaneous interest rate.
 In the general case, the intensity process is correlated with the Lévy process of increments, this is well
 known in the literature as the **leverage effect**.
 
@@ -89,13 +91,6 @@ where $E[\cdot]$ and $E^u[\cdot]$ denote the expectation under probability measu
 
 ## Affine definition
 
-In the general case the stochastic time is correlated with increments, to obtain the Laplace transform in closed form, one consider its specification in terms of the intensity prcess $\lambda_t$:
-
-\begin{equation}
-{\mathbb L}_{\tau_t}\left(u\right) = {\mathbb E}\left[e^{- u \int_0^t \lambda_s ds}\right]
-\end{equation}
-
-This equation is very common in the bond pricing literature if we regard $u\lambda_t$ as the instantaneous interest rate.
 In order to obtain analytically tractable models we need to impose some restriction on the stochastic intensity process.
 An affine intensity process takes the general form
 
@@ -104,13 +99,13 @@ An affine intensity process takes the general form
 \end{equation}
 
 where $r_0$ and $r_1$ are contants and ${\bf z}_t$ is a Markov process called the **state process**.
-When the intensity process is affine, the log characteristic function takes the following form
+When the intensity process is affine, the Laplace transform takes the following form.
 
 \begin{equation}
 {\mathbb L}_{\tau_t}\left(z\right) = {\mathbb E}\left[e^{- z \tau_t}\right] = e^{-a_{u, t} - b_{u, t} z_0}
 \end{equation}
 
-where coefficients $a$ and $b$ satisfy Riccati ODEs which can be solved numerically and in some cases analytically.
+where coefficients $a$ and $b$ satisfy Riccati ODEs, which can be solved numerically and, in some cases, analytically.
 
 ```{code-cell} ipython3
 

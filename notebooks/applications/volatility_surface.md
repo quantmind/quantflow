@@ -68,6 +68,7 @@ Once we have loaded the data, we create the surface and display the term-structu
 
 ```{code-cell} ipython3
 vs = loader.surface()
+vs.maturities = vs.maturities[1:]
 vs.term_structure()
 ```
 
@@ -101,10 +102,11 @@ vs.plot()
 We can now use the Vol Surface to calibrate the Heston stochastic volatility model.
 
 ```{code-cell} ipython3
-from quantflow.options.calibration import HestonCalibration
+from quantflow.options.calibration import HestonCalibration, OptionPricer
 from quantflow.sp.heston import Heston
 
-cal = HestonCalibration(model=Heston(), vol_surface=vs)
+pricer = OptionPricer(Heston.create(vol=0.5))
+cal = HestonCalibration(pricer=pricer, vol_surface=vs)
 len(cal.options)
 ```
 
@@ -113,7 +115,27 @@ cal.model
 ```
 
 ```{code-cell} ipython3
+cal = cal.remove_implied_above(quantile=0.99)
+len(cal.options)
+```
+
+```{code-cell} ipython3
 cal.fit()
+```
+
+```{code-cell} ipython3
+pricer.model
+```
+
+```{code-cell} ipython3
+pricer.model.rho=-0.2
+pricer.model.variance_process.sigma=1.5
+
+pricer.reset()
+```
+
+```{code-cell} ipython3
+cal.plot(index=2, max_moneyness=1)
 ```
 
 ## Serialization

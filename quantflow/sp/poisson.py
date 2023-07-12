@@ -8,7 +8,7 @@ from scipy.stats import poisson
 from ..utils.distributions import Distribution1D, Exponential
 from ..utils.functions import factorial
 from ..utils.paths import Paths
-from ..utils.types import Vector
+from ..utils.types import FloatArray, Vector
 from .base import Im, StochasticProcess1D, StochasticProcess1DMarginal
 
 
@@ -60,8 +60,8 @@ def poisson_arrivals(intensity: float, time_horizon: float = 1) -> list[float]:
 class PoissonProcess(PoissonBase):
     intensity: float = Field(default=1.0, ge=0, description="intensity rate")
 
-    def marginal(self, t: Vector, N: int = 128) -> StochasticProcess1DMarginal:
-        return PoissonMarginal(process=self, t=t, N=N)
+    def marginal(self, t: Vector) -> StochasticProcess1DMarginal:
+        return PoissonMarginal(process=self, t=t)
 
     def characteristic_exponent(self, t: Vector, u: Vector) -> Vector:
         return t * self.intensity * (1 - np.exp(Im * u))
@@ -76,6 +76,10 @@ class PoissonProcess(PoissonBase):
     def max_frequency(self, t: Vector) -> float:
         """Maximum frequency of the process"""
         return 2 * np.pi
+
+    def support(self, mean: float, std: float, points: int) -> FloatArray:
+        """Support of the process at time `t`"""
+        return np.linspace(0, points, points + 1)
 
 
 class CompoundPoissonProcess(PoissonBase):
@@ -94,8 +98,8 @@ class CompoundPoissonProcess(PoissonBase):
         default_factory=Exponential, description="Jump size distribution"
     )
 
-    def marginal(self, t: Vector, N: int = 128) -> StochasticProcess1DMarginal:
-        return CompoundPoissonMarginal(process=self, t=t, N=N)
+    def marginal(self, t: Vector) -> StochasticProcess1DMarginal:
+        return CompoundPoissonMarginal(process=self, t=t)
 
     def characteristic_exponent(self, t: Vector, u: Vector) -> Vector:
         return t * self.intensity * (1 - self.jumps.characteristic(u))

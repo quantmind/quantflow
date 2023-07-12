@@ -19,30 +19,43 @@ The general definition of an Ornstein-Uhlebeck (OU) process is as the solution o
     d x_t = -\kappa x_t dt + d z_t
 \end{equation}
 
-where $z$, with $z_0 = 0$, is a [Lévy](./levy.md) process. As $z$ drives the OU process, we will call z(t) a background driving Lévy process (**BDLP**) in this context.
+where $z$, with $z_0 = 0$, is a [Lévy](./levy.md) process. As $z_t$ drives the OU process, it is usually referred to as a background driving Lévy process (**BDLP**).
 
-The process can be integrated to the formula
+The OU process can be integrated into the formula (see Appendix below).
 
 \begin{equation}
     x_t = x_0 e^{-\kappa t} + \int_0^t e^{-\kappa\left(t-s\right)} d z_{\kappa s}
-\end{equation}
-
-The characteristic exponent of this process is given by
-
-\begin{equation}
 \end{equation}
 
 +++
 
 ## Gaussian OU Process
 
-The Gaussian Ornstein-Uhlebeck process, is a OU process where the BDLP is a Brownian motion with drift $d z_t = \kappa\theta dt + \sigma dw_t$. Substituting this into the OU SDE equation yields:
+The Gaussian Ornstein-Uhlebeck process is an OU process where the BDLP is a Brownian motion with drift $d z_{\kappa t} = \kappa\theta dt + \sigma dw_{\kappa t}$. Substituting this into the OU SDE equation yields:
 
-\begin{equation}
-    dx_t = \kappa\left(\theta - x_t\right) dt + \sigma dw_{\kappa t}
-\end{equation}
+\begin{align}
+    dx_t &= \kappa\left(\theta - x_t\right) dt + \sigma dw_{\kappa t} \\
+    x_t &= x_0 e^{-\kappa t} + \theta\left(1 - e^{-\kappa t}\right) + \sigma \int_0^t e^{-\kappa\left(t-s\right)} d w_{\kappa s}
+\end{align}
 
 $\theta$ is the long-term value of ${\bf x}_t$, $\sigma$ is a volatility parameter and $w_t$ is the standard Brownian motion.
+
+In the interest rate literature, this model is also known as [Vasicek model](https://en.wikipedia.org/wiki/Vasicek_model).
+
+## Marginal and moments
+
+The model has a closed-form solution for marginal distribution, which equal to the normal standard distribution with the mean and the variance defined by
+
+\begin{align}
+{\mathbb E}[x_t] &= x_0 e^{-\kappa t} + \theta\left(1 - e^{-\kappa t}\right) \\
+{\mathbb Var}[x_t] &= \frac{\sigma^2}{2 \kappa}\left(1 - e^{-2 \kappa t}\right)
+\end{align}
+
+which means the process admits a stationary probability distribution equal to
+
+\begin{equation}
+    x_t \sim N\left(\theta, \frac{\sigma^2}{2\kappa}\right)\ \ t\rightarrow\infty
+\end{equation}
 
 +++
 
@@ -151,6 +164,18 @@ std = dict(std=pr.marginal(paths.time).std(), simulated=paths.std())
 df = pd.DataFrame(std, index=paths.time)
 plot.plot_lines(df)
 ```
+
+## Appendix
+
+The integration of the OU process can be achieved by multiplying both sides of the equation by $e^{\kappa t}$ and performing simple steps as indicated below
+
+\begin{align}
+    e^{\kappa t} d x_t &= -e^{\kappa t} \kappa x_t dt + e^{\kappa t} d z_t \\
+    d\left(e^{\kappa t} x\right) - \kappa e^{\kappa t} x_t dt &= -e^{\kappa t} \kappa x_t dt + e^{\kappa t} d z_t \\
+    d\left(e^{\kappa t} x\right) &= e^{\kappa t} d z_t \\
+    e^{\kappa t} x_t - x_0 &= \int_0^t e^{\kappa s} d z_s \\
+    x_t &= x_0 e^{-\kappa t} + \int_0^t e^{-\kappa\left(t - s\right)} d z_s
+\end{align}
 
 ```{code-cell} ipython3
 

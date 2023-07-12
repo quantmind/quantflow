@@ -51,8 +51,8 @@ class CIR(IntensityProcess):
     def sigma2(self) -> float:
         return self.sigma * self.sigma
 
-    def marginal(self, t: Vector, N: int = 128) -> StochasticProcess1DMarginal:
-        return CIRMarginal(process=self, t=t, N=N)
+    def marginal(self, t: Vector) -> StochasticProcess1DMarginal:
+        return CIRMarginal(process=self, t=t)
 
     def sample(
         self, paths: int, time_horizon: float = 1, time_steps: int = 100

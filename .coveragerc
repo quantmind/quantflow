@@ -1,6 +1,9 @@
 [run]
 source = quantflow
 
+omit =
+    quantflow/utils/plot.py
+
 [html]
 directory = build/coverage/html
 

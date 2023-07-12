@@ -4,7 +4,7 @@ import numpy as np
 from pydantic import Field
 
 from .marginal import Marginal1D
-from .types import Vector
+from .types import FloatArray, Vector
 
 
 class Distribution1D(Marginal1D):
@@ -31,3 +31,6 @@ class Exponential(Distribution1D):
 
     def sample(self, n: int) -> np.ndarray:
         return np.random.exponential(scale=self.scale, size=n)
+
+    def support(self, points: int = 100, *, std_mult: float = 4) -> FloatArray:
+        return np.linspace(0, std_mult * np.max(self.std()), points)

@@ -1,10 +1,8 @@
 import numpy as np
-import numpy.typing as npt
 from scipy.optimize import RootResults, newton
 from scipy.stats import norm
 
-FloatArray = npt.NDArray[np.float_]
-FloatArrayLike = FloatArray | float
+from ..utils.types import FloatArray, FloatArrayLike
 
 
 def black_call(

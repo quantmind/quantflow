@@ -298,10 +298,13 @@ class VolCrossSection(Generic[S]):
     strikes: tuple[Strike[S], ...]
     """Tuple of sorted strikes and their corresponding option prices"""
 
+    def ttm(self, ref_date: datetime) -> float:
+        return time_to_maturity(self.maturity, ref_date)
+
     def info_dict(self, ref_date: datetime, spot: SpotPrice[S]) -> dict:
         return dict(
             maturity=self.maturity,
-            ttm=time_to_maturity(self.maturity, ref_date),
+            ttm=self.ttm(ref_date),
             forward=self.forward.mid,
             basis=self.forward.mid - spot.mid,
             rate_percent=rate_from_spot_and_forward(

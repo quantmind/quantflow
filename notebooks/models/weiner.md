@@ -13,7 +13,7 @@ kernelspec:
 
 # Weiner Process
 
-In this document, we use the term Weiner process $w_t$ is a Brownian motion with stadard deviation given by the parameter $\sigma$; that is to say, the one-dimensional Weiner process is defined as:
+In this document, we use the term Weiner process $w_t$ to indicate a Brownian motion with standard deviation given by the parameter $\sigma$; that is to say, the one-dimensional Weiner process is defined as:
 
 1. $w_t$ is Lévy process
 2. $d w_t = w_{t+dt}-w_t \sim N\left(0, \sigma dt\right)$ where $N$ is the normal distribution
@@ -28,6 +28,19 @@ from quantflow.sp.weiner import WeinerProcess
 
 pr = WeinerProcess(sigma=0.5)
 pr
+```
+
+```{code-cell} ipython3
+from quantflow.utils import plot
+# create the marginal at time in the future
+m = pr.marginal(1)
+plot.plot_characteristic(m, n=32)
+```
+
+```{code-cell} ipython3
+from quantflow.utils import plot
+import numpy as np
+plot.plot_marginal_pdf(m, 64)
 ```
 
 ```{code-cell} ipython3

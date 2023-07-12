@@ -4,13 +4,22 @@ from typing import cast
 
 import numpy as np
 from pydantic import Field
-from scipy.stats import gamma
+from scipy.stats import gamma, norm
 
 from ..utils.distributions import Exponential
 from ..utils.paths import Paths
 from ..utils.types import Vector
 from .base import Im, IntensityProcess, StochasticProcess1DMarginal
 from .poisson import CompoundPoissonProcess
+from .weiner import WeinerProcess
+
+
+class Vasicek(IntensityProcess):
+    bdlp: WeinerProcess = Field(
+        default_factory=WeinerProcess,
+        description="Background driving Weiner process",
+    )
+    theta: float = Field(default=1.0, gt=0, description="Mean rate")
 
 
 class NGOU(IntensityProcess):
@@ -43,8 +52,8 @@ class GammaOU(NGOU):
             ),
         )
 
-    def marginal(self, t: Vector, N: int = 128) -> StochasticProcess1DMarginal:
-        return GammaOUMarginal(process=self, t=t, N=N)
+    def marginal(self, t: Vector) -> StochasticProcess1DMarginal:
+        return GammaOUMarginal(process=self, t=t)
 
     def characteristic_exponent(self, t: Vector, u: Vector) -> Vector:
         b = self.beta
@@ -117,3 +126,19 @@ class GammaOUMarginal(StochasticProcess1DMarginal[GammaOU]):
 
     def pdf(self, x: Vector) -> Vector:
         return gamma.pdf(x, self.process.intensity, scale=1 / self.process.beta)
+
+
+class VasicekMarginal(StochasticProcess1DMarginal[Vasicek]):
+    def mean(self) -> Vector:
+        ekt = self.process.ekt(self.t)
+        return self.process.rate * ekt + self.process.theta * (1 - ekt)
+
+    def variance(self) -> Vector:
+        ekt = self.process.ekt(2 * self.t)
+        return 0.5 * self.process.bdlp.sigma2 * (1 - ekt) / self.process.kappa
+
+    def pdf(self, n: Vector) -> Vector:
+        return norm.pdf(n, loc=self.mean(), scale=self.std())
+
+    def cdf(self, n: Vector) -> Vector:
+        return norm.cdf(n, loc=self.mean(), scale=self.std())

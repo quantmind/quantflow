@@ -8,8 +8,10 @@ from pydantic import BaseModel, ConfigDict, Field
 from scipy.optimize import Bounds
 
 from quantflow.utils.marginal import Marginal1D, default_bounds
+from quantflow.utils.numbers import sigfig
 from quantflow.utils.paths import Paths
-from quantflow.utils.types import Vector
+from quantflow.utils.transforms import lower_bound, upper_bound
+from quantflow.utils.types import FloatArray, Vector
 
 Im = complex(0, 1)
 
@@ -62,15 +64,22 @@ class StochasticProcess1D(StochasticProcess):
     Base class for 1D stochastic process in continuous time
     """
 
-    def marginal(self, t: Vector, N: int = 128) -> StochasticProcess1DMarginal:
-        return StochasticProcess1DMarginal(process=self, t=t, N=N)
+    def marginal(self, t: Vector) -> StochasticProcess1DMarginal:
+        return StochasticProcess1DMarginal(process=self, t=t)
 
     def domain_range(self) -> Bounds:
         return default_bounds()
 
-    def max_frequency(self, t: Vector) -> float:
-        """Maximum frequency of the process"""
-        return 20
+    def max_frequency(self, std: float) -> float:
+        """Maximum frequency when calculating characteristic functions"""
+        return np.sqrt(40 / std / std)
+
+    def support(self, mean: float, std: float, points: int) -> FloatArray:
+        """Support of the process at time `t`"""
+        bounds = self.domain_range()
+        start = float(sigfig(lower_bound(bounds.lb, mean - std)))
+        end = float(sigfig(upper_bound(bounds.ub, mean + std)))
+        return np.linspace(start, end, points)
 
 
 P = TypeVar("P", bound=StochasticProcess1D)
@@ -80,7 +89,6 @@ class StochasticProcess1DMarginal(Marginal1D, Generic[P]):
     model_config = ConfigDict(arbitrary_types_allowed=True)
     process: P
     t: Vector
-    N: int
 
     def std_norm(self) -> Vector:
         """Standard deviation at a time horizon normalized by the time"""
@@ -93,7 +101,12 @@ class StochasticProcess1DMarginal(Marginal1D, Generic[P]):
         return self.process.domain_range()
 
     def max_frequency(self) -> float:
-        return self.process.max_frequency(self.t)
+        return self.process.max_frequency(np.min(self.std()))
+
+    def support(self, points: int = 100, *, std_mult: float = 4) -> FloatArray:
+        return self.process.support(
+            np.max(self.mean()), std_mult * np.max(self.std()), points
+        )
 
 
 class IntensityProcess(StochasticProcess1D):
@@ -117,3 +130,6 @@ class IntensityProcess(StochasticProcess1D):
 
     def domain_range(self) -> Bounds:
         return Bounds(0, np.inf)
+
+    def ekt(self, t: Vector) -> Vector:
+        return np.exp(-self.kappa * t)

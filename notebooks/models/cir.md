@@ -63,24 +63,24 @@ The code below show the computed PDF via FRFT and the analytical formula above
 ```{code-cell} ipython3
 from quantflow.utils import plot
 import numpy as np
-plot.plot_marginal_pdf(m, 0.05*np.arange(100))
+plot.plot_marginal_pdf(m, 128)
 ```
 
 ## Characteristic Function
 
-For this process it is possible to obtain the analytical formula of $a$ and $b$:
+For this process, it is possible to obtain the analytical formula of $a$ and $b$:
 
-\begin{equation}
-a =-\frac{2\kappa\theta}{\sigma^2} \log{\left(\frac{c + d e^{-\gamma \tau}}{c + d}\right)} + \frac{\kappa \theta \tau}{c}\\
-b = \frac{1-e^{-\gamma \tau}}{c + d e^{-\gamma_u \tau}}
-\end{equation}
+\begin{align}
+a &=-\frac{2\kappa\theta}{\sigma^2} \log{\left(\frac{c + d e^{-\gamma \tau}}{c + d}\right)} + \frac{\kappa \theta \tau}{c}\\
+b &= \frac{1-e^{-\gamma \tau}}{c + d e^{-\gamma_u \tau}}
+\end{align}
 
 with
-\begin{equation}
-\gamma = \sqrt{\kappa^2 - 2 u \sigma^2} \\
-c = \frac{\gamma + \kappa}{2 u} \\
-d = \frac{\gamma - \kappa}{2 u}
-\end{equation}
+\begin{align}
+\gamma &= \sqrt{\kappa^2 - 2 u \sigma^2} \\
+c &= \frac{\gamma + \kappa}{2 u} \\
+d &= \frac{\gamma - \kappa}{2 u}
+\end{align}
 
 ```{code-cell} ipython3
 from quantflow.utils import plot
@@ -170,6 +170,10 @@ std.update({pr.sample_algo.name: pr.sample_from_draws(draws).std() for pr in prs
 df = pd.DataFrame(std, index=draws.time)
 
 plot.plot_lines(df)
+```
+
+```{code-cell} ipython3
+
 ```
 
 ```{code-cell} ipython3

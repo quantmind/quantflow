@@ -113,6 +113,7 @@ def test_call_put_parity_otm():
 
 def test_calibration_setup(vol_surface: VolSurface, heston: OptionPricer[Heston]):
     cal = HestonCalibration(pricer=heston, vol_surface=vol_surface)
+    assert cal.ref_date == vol_surface.ref_date
     assert cal.options
     n = len(cal.options)
     vol_range = cal.implied_vol_range()
@@ -126,7 +127,9 @@ def test_calibration_setup(vol_surface: VolSurface, heston: OptionPricer[Heston]
 
 
 def test_calibration(vol_surface: VolSurface, heston: OptionPricer[Heston]):
+    vol_surface.maturities = vol_surface.maturities[1:]
     cal = HestonCalibration(
         pricer=heston, vol_surface=vol_surface
     ).remove_implied_above(0.95)
     cal.fit()
+    assert cal.plot(index=2) is not None

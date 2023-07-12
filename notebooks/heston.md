@@ -31,20 +31,20 @@ This means that the characteristic function of $y_t=x_{\tau_t}$ can be represent
 
 ```{code-cell} ipython3
 from quantflow.sp.heston import Heston
-pr = Heston.create(vol=0.6, kappa=2, sigma=1.5, rho=-0.4)
+pr = Heston.create(vol=0.4, kappa=4, sigma=3, rho=-0.4)
 pr
 ```
 
 ```{code-cell} ipython3
 # check that the variance CIR process is positive
-pr.variance_process.is_positive, pr.variance_process.marginal(1).std()
+pr.variance_process.is_positive
 ```
 
 ## Characteristic Function
 
 ```{code-cell} ipython3
 from quantflow.utils import plot
-m = pr.marginal(0.01)
+m = pr.marginal(1)
 plot.plot_characteristic(m)
 ```
 
@@ -68,7 +68,9 @@ import plotly.express as px
 from scipy.stats import norm
 import numpy as np
 
-r = m.pdf_from_characteristic(128)
+N = 128
+M = 40
+r = m.pdf_from_characteristic(N, M, delta_x=4/N)
 n = norm.pdf(r.x, scale=m.std())
 fig = px.line(x=r.x, y=r.y, markers=True)
 fig.add_trace(go.Scatter(x=r.x, y=n, name="normal", line=dict()))
@@ -88,7 +90,9 @@ fig.show()
 import plotly.express as px
 import plotly.graph_objects as go
 from quantflow.options.bs import black_call
-r = m.call_option(128)
+N, M = 128, 20
+dx = 4/N
+r = m.call_option(N, M, 0.01, alpha=0.5)
 b = black_call(r.x, m.std(), 1)
 fig = px.line(x=r.x, y=r.y, markers=True)
 fig.add_trace(go.Scatter(x=r.x, y=b, name="normal", line=dict()))
@@ -134,10 +138,6 @@ plot.plot_lines(df)
 std = dict(std=pr.marginal(paths.time).std(), simulated=paths.std())
 df = pd.DataFrame(std, index=paths.time)
 plot.plot_lines(df)
-```
-
-```{code-cell} ipython3
-
 ```
 
 ```{code-cell} ipython3

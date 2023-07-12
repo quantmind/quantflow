@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from typing import Any, Optional, cast
+from typing import Any, cast
 
 import numpy as np
 import pandas as pd
@@ -17,6 +17,12 @@ class Marginal1D(BaseModel, ABC):
     def characteristic(self, u: Vector) -> Vector:
         """
         Compute the characteristic function on support points `n`.
+        """
+
+    @abstractmethod
+    def support(self, points: int = 100, *, std_mult: float = 3) -> FloatArray:
+        """
+        Compute the x axis.
         """
 
     def mean(self) -> Vector:
@@ -76,24 +82,29 @@ class Marginal1D(BaseModel, ABC):
     def pdf_from_characteristic(
         self,
         n_or_x: int | FloatArray | None = None,
+        *,
         max_frequency: float | None = None,
-        delta_x: float | None = None,
         simpson_rule: bool = False,
     ) -> TransformResult:
         """
         Compute the probability density function from the characteristic function.
         """
         n = None
+        if n_or_x is None:
+            n_or_x = 128
         if isinstance(n_or_x, int):
             n = n_or_x
-        elif n_or_x is not None and delta_x is None:
-            min_x = float(np.min(n_or_x))
-            max_x = float(np.max(n_or_x))
-            delta_x = (max_x - min_x) / (len(n_or_x) - 1)
+            x = self.support(n_or_x + 1)
+        else:
+            n = len(n_or_x) - 1
+            x = n_or_x
+        min_x = float(np.min(x))
+        max_x = float(np.max(x))
+        delta_x = (max_x - min_x) / (len(x) - 1)
         transform = Transform(
             n,
             max_frequency=self.get_max_frequency(max_frequency),
-            domain_range=self.domain_range(),
+            domain_range=Bounds(min_x, max_x),
             simpson_rule=simpson_rule,
         )
         psi = cast(np.ndarray, self.characteristic(transform.frequency_domain))
@@ -101,16 +112,29 @@ class Marginal1D(BaseModel, ABC):
 
     def call_option(
         self,
-        n: int | None = None,
-        max_frequency: float = 10.0,
-        delta_x: Optional[float] = None,
+        n_or_x: int | FloatArray | None = None,
+        *,
+        max_frequency: float | None = None,
+        max_moneyness: float = 1,
         alpha: float = 0.5,
         simpson_rule: bool = False,
     ) -> TransformResult:
+        n = None
+        if n_or_x is None:
+            n_or_x = 128
+        if isinstance(n_or_x, int):
+            n = n_or_x
+            x = self.option_support(n_or_x + 1, max_moneyness=max_moneyness)
+        else:
+            n = len(n_or_x) - 1
+            x = n_or_x
+        min_x = float(np.min(x))
+        max_x = float(np.max(x))
+        delta_x = (max_x - min_x) / (len(x) - 1)
         transform = Transform(
             n,
             max_frequency=self.get_max_frequency(max_frequency),
-            domain_range=self.domain_range(),
+            domain_range=Bounds(min_x, max_x),
             simpson_rule=simpson_rule,
         )
         phi = cast(
@@ -182,3 +206,11 @@ class Marginal1D(BaseModel, ABC):
         Get the maximum frequency to use for the characteristic function
         """
         return max_frequency if max_frequency is not None else self.max_frequency()
+
+    def option_support(
+        self, points: int = 101, max_moneyness: float = 1.0
+    ) -> FloatArray:
+        """
+        Compute the x axis.
+        """
+        return np.linspace(-max_moneyness, max_moneyness, points)

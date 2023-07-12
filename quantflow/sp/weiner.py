@@ -12,8 +12,12 @@ from .base import StochasticProcess1D, StochasticProcess1DMarginal
 class WeinerProcess(StochasticProcess1D):
     sigma: float = Field(default=1, ge=0, description="volatility")
 
-    def marginal(self, t: Vector, N: int = 128) -> StochasticProcess1DMarginal:
-        return WeinerMarginal(process=self, t=t, N=N)
+    @property
+    def sigma2(self) -> float:
+        return self.sigma * self.sigma
+
+    def marginal(self, t: Vector) -> StochasticProcess1DMarginal:
+        return WeinerMarginal(process=self, t=t)
 
     def characteristic_exponent(self, t: Vector, u: Vector) -> Vector:
         su = self.sigma * u

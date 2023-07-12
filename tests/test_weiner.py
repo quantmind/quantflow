@@ -13,7 +13,7 @@ def weiner() -> WeinerProcess:
 def test_characteristic(weiner: WeinerProcess) -> None:
     assert weiner.characteristic(1, 0) == 1
     assert weiner.convexity_correction(2) == 0.25
-    marginal = weiner.marginal(1, 0)
+    marginal = weiner.marginal(1)
     assert marginal.mean() == 0
     assert marginal.mean_from_characteristic() == 0
     assert marginal.std() == 0.5
@@ -45,3 +45,9 @@ def test_normal_draws1() -> None:
     paths = Paths.normal_draws(1, 1, 1000, antithetic_variates=False)
     assert paths.samples == 1
     assert paths.time_steps == 1000
+
+
+def test_support(weiner: WeinerProcess) -> None:
+    m = weiner.marginal(0.01)
+    pdf = m.pdf_from_characteristic(32)
+    assert len(pdf.x) == 32

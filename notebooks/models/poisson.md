@@ -44,7 +44,7 @@ import numpy as np
 from quantflow.utils import plot
 
 m = pr.marginal(1)
-plot.plot_marginal_pdf(m, np.arange(10), analytical="markers")
+plot.plot_marginal_pdf(m, 16, analytical="markers")
 ```
 
 ```{code-cell} ipython3

@@ -26,7 +26,9 @@ class Heston(StochasticProcess1D):
     rho: float = Field(default=0, ge=-1, le=1, description="Correlation")
 
     @classmethod
-    def create(cls, vol: float, kappa: float, sigma: float, rho: float) -> Heston:
+    def create(
+        cls, vol: float = 0.5, kappa: float = 1, sigma: float = 0.8, rho: float = 0
+    ) -> Heston:
         return cls(
             variance_process=CIR(
                 rate=vol * vol, kappa=kappa, sigma=sigma, theta=vol * vol
