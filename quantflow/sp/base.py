@@ -110,7 +110,7 @@ class StochasticProcess1D(StochasticProcess):
         bounds = self.domain_range()
         start = float(sigfig(lower_bound(bounds.lb, mean - std)))
         end = float(sigfig(upper_bound(bounds.ub, mean + std)))
-        return np.linspace(start, end, points)
+        return np.linspace(start, end, points + 1)
 
 
 P = TypeVar("P", bound=StochasticProcess1D)

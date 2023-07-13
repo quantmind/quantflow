@@ -36,9 +36,13 @@ class JumpDiffusion(StochasticProcess1D, Generic[D]):
         dw1 = Paths.normal_draws(n, time_horizon, time_steps)
         return self.sample_from_draws(dw1)
 
-    def sample_from_draws(self, path1: Paths, *args: Paths) -> Paths:
-        # TODO: implement
-        raise NotImplementedError
+    def sample_from_draws(self, path_w: Paths, *args: Paths) -> Paths:
+        if args:
+            path_j = args[0]
+        else:
+            path_j = self.jumps.sample(path_w.samples, path_w.t, path_w.time_steps)
+        path_w = self.diffusion.sample_from_draws(path_w)
+        return Paths(t=path_w.t, data=path_w.data + path_j.data)
 
     def analytical_mean(self, t: FloatArrayLike) -> FloatArrayLike:
         return self.diffusion.analytical_mean(t) + self.jumps.analytical_mean(t)
@@ -54,10 +58,11 @@ class Merton(JumpDiffusion[Normal]):
         vol: float = 0.5,
         diffusion_percentage: float = 0.5,
         jump_intensity: float = 100,
-        jump_mean: float = 0.0,
+        jump_skew: float = 0.0,
     ) -> Merton:
         variance = vol * vol
-        jump_std = 1
+        jump_std = 1.0
+        jump_mean = 0.0
         if diffusion_percentage > 1:
             raise ValueError("diffusion_percentage must be less than 1")
         elif diffusion_percentage < 0:
@@ -66,6 +71,7 @@ class Merton(JumpDiffusion[Normal]):
             jump_intensity = 0
         else:
             jump_std = np.sqrt(variance * (1 - diffusion_percentage) / jump_intensity)
+            jump_mean = jump_skew / jump_intensity
         return cls(
             diffusion=WeinerProcess(sigma=np.sqrt(variance * diffusion_percentage)),
             jumps=CompoundPoissonProcess[Normal](

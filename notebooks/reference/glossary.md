@@ -13,6 +13,12 @@ kernelspec:
 
 # Glossary
 
+## Characteristic Function
+
+The characteristic function of a random variable $x$ is the Fourier transform of $P^x$, where $P^x$ is the distrubution measure of $x$
+\begin{equation}
+ \Phi_{x,u} = {\mathbb E}\left[e^{i u x_t}\right] = \int e^{i u x} P^x\left(dx\right)
+\end{equation}
 ## Moneyness
 
 Monenyness is used in the context of option pricing and it is defined as

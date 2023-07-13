@@ -51,3 +51,11 @@ def test_support(weiner: WeinerProcess) -> None:
     m = weiner.marginal(0.01)
     pdf = m.pdf_from_characteristic(32)
     assert len(pdf.x) == 32
+
+
+def test_fft_v_frft(weiner: WeinerProcess) -> None:
+    m = weiner.marginal(1)
+    pdf1 = m.pdf_from_characteristic(128, max_frequency=10)
+    pdf2 = m.pdf_from_characteristic(128, use_fft=True, max_frequency=200)
+    y = np.interp(pdf1.x[10:-10], pdf2.x, pdf2.y)
+    assert np.allclose(y, pdf1.y[10:-10], 1e-2)

@@ -87,7 +87,7 @@ Moneyness is defined as
 
 ```{code-cell} ipython3
 vs.bs()
-df = vs.options_df()
+df = vs.disable_outliers(0.95).options_df()
 df
 ```
 
@@ -127,11 +127,6 @@ cal.model
 ```
 
 ```{code-cell} ipython3
-cal = cal.remove_implied_above(quantile=0.99)
-len(cal.options)
-```
-
-```{code-cell} ipython3
 cal.fit()
 ```
 
@@ -140,13 +135,7 @@ pricer.model
 ```
 
 ```{code-cell} ipython3
-pricer.model.variance_process.sigma=2.8
-pricer.model.variance_process.kappa=3.96
-pricer.reset()
-```
-
-```{code-cell} ipython3
-cal.plot(index=5, max_moneyness_ttm=1)
+cal.plot(index=4, max_moneyness_ttm=1)
 ```
 
 ## Serialization

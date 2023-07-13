@@ -106,7 +106,7 @@ class Marginal1D(BaseModel, ABC, extra="forbid"):
                 simpson_rule=simpson_rule,
             )
         else:
-            x = self.support(n + 1)
+            x = self.support(n)
             min_x = float(np.min(x))
             max_x = float(np.max(x))
             delta_x = (max_x - min_x) / (len(x) - 1)

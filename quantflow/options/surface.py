@@ -395,7 +395,7 @@ class VolSurface(Generic[S]):
         index: int | None = None,
         converged: bool = True,
     ) -> list[OptionPrice]:
-        "List of all option prices in the surface"
+        "List of selected option prices in the surface"
         return list(self.option_prices(select=select, index=index, converged=converged))
 
     def bs(
@@ -481,6 +481,16 @@ class VolSurface(Generic[S]):
             implied_vol=np.array(vol),
             call_put=np.array(call_put),
         )
+
+    def disable_outliers(self, quantile: float = 0.99, repeat: int = 2) -> VolSurface:
+        for _ in range(repeat):
+            option_prices = self.option_list()
+            implied_vols = [o.implied_vol for o in option_prices]
+            exclude_above = np.quantile(implied_vols, quantile)
+            for option in option_prices:
+                if option.implied_vol > exclude_above:
+                    option.converged = False
+        return self
 
     def plot(
         self,

@@ -44,14 +44,16 @@ def default_bounds() -> Bounds:
 
 def lower_bound(b: Any, value: float) -> float:
     try:
-        return max(b[0], value)
+        v = float(b[0])
+        return value if np.isinf(v) else v
     except TypeError:
         return value
 
 
 def upper_bound(b: Any, value: float) -> float:
     try:
-        return min(b[0], value)
+        v = float(b[0])
+        return value if np.isinf(v) else v
     except TypeError:
         return value
 
@@ -93,14 +95,6 @@ class Transform:
         if not np.isclose((b1 - b0) / self.n, delta_x):
             raise TransformError("Incompatible delta_x with domain bounds")
         return delta_x * grid(self.n) + b0
-
-    def delta_x_from_bounds(self) -> float | None:
-        """Return the delta_x from the domain bounds"""
-        b0 = lower_bound(self.domain_range.lb, -np.inf)
-        b1 = upper_bound(self.domain_range.ub, np.inf)
-        if np.isinf(b0) or np.isinf(b1):
-            return None
-        return (b1 - b0) / self.n
 
     def __call__(self, y: np.ndarray, delta_x: float | None = None) -> TransformResult:
         return self.fft(y) if delta_x is None else self.frft(y, delta_x)

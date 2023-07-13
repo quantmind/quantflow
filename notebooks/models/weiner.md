@@ -40,7 +40,7 @@ plot.plot_characteristic(m, n=32)
 ```{code-cell} ipython3
 from quantflow.utils import plot
 import numpy as np
-plot.plot_marginal_pdf(m, 64)
+plot.plot_marginal_pdf(m, 128)
 ```
 
 ## Test Option Pricing

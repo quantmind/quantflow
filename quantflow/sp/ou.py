@@ -4,6 +4,7 @@ from typing import Generic
 
 import numpy as np
 from pydantic import Field
+from scipy.optimize import Bounds
 from scipy.stats import gamma, norm
 
 from ..utils.distributions import Exponential
@@ -44,6 +45,9 @@ class Vasicek(IntensityProcess):
             dx = kappa * (theta - x) * dt + sdt * w
             paths[t + 1, :] = x + dx
         return Paths(t=draws.t, data=paths)
+
+    def domain_range(self) -> Bounds:
+        return Bounds(-np.inf, np.inf)
 
     def analytical_mean(self, t: FloatArrayLike) -> FloatArrayLike:
         ekt = self.ekt(t)

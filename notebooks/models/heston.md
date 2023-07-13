@@ -33,7 +33,7 @@ This means that the characteristic function of $y_t=x_{\tau_t}$ can be represent
 
 ```{code-cell} ipython3
 from quantflow.sp.heston import Heston
-pr = Heston.create(vol=0.6, kappa=2, sigma=1.5, rho=-0.3)
+pr = Heston.create(vol=0.6, kappa=2, sigma=1.5, rho=-0.1)
 pr
 ```
 
@@ -73,7 +73,7 @@ plot.plot_marginal_pdf(m, 128, normal=True, analytical=False, log_y=True)
 ```{code-cell} ipython3
 from quantflow.options.pricer import OptionPricer
 from quantflow.sp.heston import Heston
-pricer = OptionPricer(Heston.create(vol=0.6, kappa=2, sigma=0.8, rho=-0.1))
+pricer = OptionPricer(Heston.create(vol=0.6, kappa=2, sigma=0.8, rho=-0.2))
 pricer
 ```
 
