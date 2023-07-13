@@ -22,6 +22,12 @@ notebook:			## Run Jupyter notebook server
 book:				## Build static jupyter {book}
 	poetry run jupyter-book build notebooks --all
 
+sphinx-config:			## Build sphinx config
+	poetry run jupyter-book config sphinx notebooks
+
+sphinx:
+	poetry run sphinx-build notebooks path/to/book/_build/html -b html
+
 publish:			## release to pypi
 	@poetry publish --build -u lsbardel -p $(PYPI_PASSWORD)
 

@@ -22,8 +22,8 @@ class StochasticProcess(BaseModel, ABC):
     """
 
     @abstractmethod
-    def sample_from_draws(self, path: Paths, *args: Paths) -> Paths:
-        """Sample a path from the process given a set of draws"""
+    def sample_from_draws(self, draws: Paths, *args: Paths) -> Paths:
+        """Sample paths from the process given a set of draws"""
 
     @abstractmethod
     def sample(

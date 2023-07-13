@@ -24,6 +24,10 @@ parts:
   - file: applications/volatility_surface
   - file: applications/calibration
 
+- caption: API Reference
+  chapters:
+    - file: api/sp.rst
+
 - caption: Reference
   chapters:
   - file: reference/contributing

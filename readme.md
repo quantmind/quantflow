@@ -1,4 +1,4 @@
-# Quantflow
+[![quantflow jupyter book](./notebooks/quantflow-small-1.png)](https://quantmind.github.io/quantflow)
 
 [![PyPI version](https://badge.fury.io/py/quantflow.svg)](https://badge.fury.io/py/quantflow)
 [![Python versions](https://img.shields.io/pypi/pyversions/quantflow.svg)](https://pypi.org/project/quantflow)
@@ -7,7 +7,7 @@
 
 Quantitative analysis and pricing tools.
 
-Documentation is available as [quantflow jupyter book](http://quantmind.github.io/quantflow/).
+Documentation is available as [quantflow jupyter book](https://quantmind.github.io/quantflow/).
 
 ## Installation
 

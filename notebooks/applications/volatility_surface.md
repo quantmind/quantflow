@@ -144,7 +144,7 @@ pricer.reset()
 ```
 
 ```{code-cell} ipython3
-cal.plot(index=1, max_moneyness_ttm=1)
+cal.plot(index=6, max_moneyness_ttm=1.5)
 ```
 
 ## Serialization
