@@ -108,6 +108,17 @@ def plot_vol_surface(
     return fig
 
 
+def plot_vol_surface_3d(
+    df: pd.DataFrame,
+    *,
+    marker_size: int = 10,
+    series: str = "implied_vol",
+    **kwargs: Any
+) -> Any:
+    check_plotly()
+    return px.scatter_3d(df, x="moneyness_ttm", y="ttm", z=series, color="side")
+
+
 def plot_vol_cross(
     data: pd.DataFrame,
     data2: pd.DataFrame | None = None,

@@ -94,7 +94,7 @@ df
 The plot function is enabled only if [plotly](https://plotly.com/python/) is installed
 
 ```{code-cell} ipython3
-vs.plot()
+vs.plot().update_layout(height=500, title="BTC Volatility Surface", xaxis_title=r"$\frac{1}{T}$")
 ```
 
 The `moneyness_ttm` is defined as
@@ -103,9 +103,11 @@ The `moneyness_ttm` is defined as
 \frac{1}{\sqrt{T}} \ln{\frac{K}{F}}
 \end{equation}
 
-where $T$ is the time-to-maturity
+where $T$ is the time-to-maturity.
 
-+++
+```{code-cell} ipython3
+vs.plot3d().update_layout(height=800, title="BTC Volatility Surface")
+```
 
 ## Model Calibration
 
@@ -116,7 +118,7 @@ from quantflow.options.calibration import HestonCalibration, OptionPricer
 from quantflow.sp.heston import Heston
 
 pricer = OptionPricer(Heston.create(vol=0.5))
-cal = HestonCalibration(pricer=pricer, vol_surface=vs)
+cal = HestonCalibration(pricer=pricer, vol_surface=vs, moneyness_weight=-0)
 len(cal.options)
 ```
 
@@ -142,7 +144,7 @@ pricer.reset()
 ```
 
 ```{code-cell} ipython3
-cal.plot(index=5, max_moneyness_ttm=1)
+cal.plot(index=1, max_moneyness_ttm=1)
 ```
 
 ## Serialization

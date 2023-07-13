@@ -493,6 +493,16 @@ class VolSurface(Generic[S]):
         df = self.options_df(index=index, select=select)
         return plot.plot_vol_surface(df, **kwargs)
 
+    def plot3d(
+        self,
+        *,
+        select: OptionSelection = OptionSelection.best,
+        **kwargs: Any,
+    ) -> Any:
+        """Plot the volatility surface"""
+        df = self.options_df(select=select)
+        return plot.plot_vol_surface_3d(df, **kwargs)
+
 
 @dataclass
 class VolCrossSectionLoader(Generic[S]):
