@@ -94,7 +94,7 @@ df
 The plot function is enabled only if [plotly](https://plotly.com/python/) is installed
 
 ```{code-cell} ipython3
-vs.plot().update_layout(height=500, title="BTC Volatility Surface", xaxis_title=r"$\frac{1}{T}$")
+vs.plot().update_layout(height=500, title="BTC Volatility Surface")
 ```
 
 The `moneyness_ttm` is defined as
@@ -106,7 +106,7 @@ The `moneyness_ttm` is defined as
 where $T$ is the time-to-maturity.
 
 ```{code-cell} ipython3
-vs.plot3d().update_layout(height=800, title="BTC Volatility Surface")
+vs.plot3d().update_layout(height=800, title="BTC Volatility Surface", scene_camera=dict(eye=dict(x=1, y=-2, z=1)))
 ```
 
 ## Model Calibration
