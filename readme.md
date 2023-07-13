@@ -15,6 +15,8 @@ Documentation is available as [quantflow jupyter book](http://quantmind.github.i
 pip install quantflow
 ```
 
+![btcvol](https://github.com/quantmind/quantflow/assets/144320/88ed85d1-c3c5-489c-ac07-21b036593214)
+
 
 ## Modules
 
