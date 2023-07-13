@@ -143,10 +143,6 @@ class FrFT:
     def n(self) -> int:
         return self.result.shape[0]
 
-    @property
-    def fft_zeta(self) -> float:
-        return 2 * np.pi / self.n
-
     @classmethod
     def calculate(cls, x: np.ndarray, zeta: float) -> FrFT:
         n = x.shape[0]
