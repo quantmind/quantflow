@@ -37,12 +37,11 @@ class Heston(StochasticProcess1D):
         )
 
     def characteristic_exponent(self, t: Vector, u: Vector) -> Vector:
-        rho = self.rho
         eta = self.variance_process.sigma
         eta2 = eta * eta
         theta_kappa = self.variance_process.theta * self.variance_process.kappa
         # adjusted drift
-        kappa = self.variance_process.kappa - 1j * u * eta * rho
+        kappa = self.variance_process.kappa - 1j * u * eta * self.rho
         u2 = u * u
         gamma = np.sqrt(kappa * kappa + u2 * eta2)
         egt = np.exp(-gamma * t)

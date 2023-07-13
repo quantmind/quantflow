@@ -11,12 +11,12 @@ from quantflow.utils.marginal import Marginal1D, default_bounds
 from quantflow.utils.numbers import sigfig
 from quantflow.utils.paths import Paths
 from quantflow.utils.transforms import lower_bound, upper_bound
-from quantflow.utils.types import FloatArray, Vector
+from quantflow.utils.types import FloatArray, FloatArrayLike, Vector
 
 Im = complex(0, 1)
 
 
-class StochasticProcess(BaseModel, ABC):
+class StochasticProcess(BaseModel, ABC, extra="forbid"):
     """
     Base class for stochastic processes in continuous time
     """
@@ -37,10 +37,10 @@ class StochasticProcess(BaseModel, ABC):
         """
 
     @abstractmethod
-    def characteristic_exponent(self, t: Vector, u: Vector) -> Vector:
+    def characteristic_exponent(self, t: FloatArrayLike, u: Vector) -> Vector:
         """Characteristic exponent at time `t` for a given input parameter"""
 
-    def characteristic(self, t: Vector, u: Vector) -> Vector:
+    def characteristic(self, t: FloatArrayLike, u: Vector) -> Vector:
         r"""Characteristic function at time `t` for a given input parameter
 
         The characteristic function represents the Fourier transform of the
@@ -54,9 +54,40 @@ class StochasticProcess(BaseModel, ABC):
         """
         return np.exp(-self.characteristic_exponent(t, u))
 
-    def convexity_correction(self, t: Vector) -> Vector:
+    def convexity_correction(self, t: FloatArrayLike) -> Vector:
         """Convexity correction for the process"""
         return -self.characteristic_exponent(t, complex(0, -1)).real
+
+    def analytical_std(self, t: FloatArrayLike) -> FloatArrayLike:
+        return np.sqrt(self.analytical_variance(t))
+
+    def analytical_mean(self, t: FloatArrayLike) -> FloatArrayLike:
+        """Analytical mean of the process at time `t`
+
+        Implement if available
+        """
+        raise NotImplementedError
+
+    def analytical_variance(self, t: FloatArrayLike) -> FloatArrayLike:
+        """Analytical variance of the process at time `t`
+
+        Implement if available
+        """
+        raise NotImplementedError
+
+    def analytical_pdf(self, t: FloatArrayLike, x: FloatArrayLike) -> FloatArrayLike:
+        """Analytical pdf of the process at time `t`
+
+        Implement if available
+        """
+        raise NotImplementedError
+
+    def analytical_cdf(self, t: FloatArrayLike, x: FloatArrayLike) -> FloatArrayLike:
+        """Analytical cdf of the process at time `t`
+
+        Implement if available
+        """
+        raise NotImplementedError
 
 
 class StochasticProcess1D(StochasticProcess):
@@ -64,7 +95,7 @@ class StochasticProcess1D(StochasticProcess):
     Base class for 1D stochastic process in continuous time
     """
 
-    def marginal(self, t: Vector) -> StochasticProcess1DMarginal:
+    def marginal(self, t: FloatArrayLike) -> StochasticProcess1DMarginal:
         return StochasticProcess1DMarginal(process=self, t=t)
 
     def domain_range(self) -> Bounds:
@@ -88,7 +119,7 @@ P = TypeVar("P", bound=StochasticProcess1D)
 class StochasticProcess1DMarginal(Marginal1D, Generic[P]):
     model_config = ConfigDict(arbitrary_types_allowed=True)
     process: P
-    t: Vector
+    t: FloatArrayLike
 
     def std_norm(self) -> Vector:
         """Standard deviation at a time horizon normalized by the time"""
@@ -100,12 +131,30 @@ class StochasticProcess1DMarginal(Marginal1D, Generic[P]):
     def domain_range(self) -> Bounds:
         return self.process.domain_range()
 
+    def pdf(self, x: FloatArrayLike) -> FloatArrayLike:
+        return self.process.analytical_pdf(self.t, x)
+
+    def cdf(self, x: FloatArrayLike) -> FloatArrayLike:
+        return self.process.analytical_cdf(self.t, x)
+
+    def mean(self) -> FloatArrayLike:
+        try:
+            return self.process.analytical_mean(self.t)
+        except NotImplementedError:
+            return self.mean_from_characteristic()
+
+    def variance(self) -> FloatArrayLike:
+        try:
+            return self.process.analytical_variance(self.t)
+        except NotImplementedError:
+            return self.variance_from_characteristic()
+
     def max_frequency(self) -> float:
-        return self.process.max_frequency(np.min(self.std()))
+        return self.process.max_frequency(float(np.min(self.std())))
 
     def support(self, points: int = 100, *, std_mult: float = 4) -> FloatArray:
         return self.process.support(
-            np.max(self.mean()), std_mult * np.max(self.std()), points
+            float(self.mean()), std_mult * float(self.std()), points
         )
 
     def option_alpha(self) -> float:
@@ -122,11 +171,11 @@ class IntensityProcess(StochasticProcess1D):
     kappa: float = Field(default=1.0, gt=0, description="Mean reversion speed")
 
     @abstractmethod
-    def cumulative_characteristic(self, t: Vector, u: Vector) -> Vector:
-        r"""The characteristic function of the cumulative process:
+    def integrated_log_laplace(self, t: FloatArrayLike, u: Vector) -> Vector:
+        r"""The log-Laplace transform of the cumulative process:
 
         .. math::
-            \phi = {\mathbb E} \left[e^{i u \int_0^t x_s ds}\right]
+            e^{\phi_{t, u}} = {\mathbb E} \left[e^{i u \int_0^t x_s ds}\right]
 
         :param t: time horizon
         :param u: frequency
@@ -135,5 +184,5 @@ class IntensityProcess(StochasticProcess1D):
     def domain_range(self) -> Bounds:
         return Bounds(0, np.inf)
 
-    def ekt(self, t: Vector) -> Vector:
+    def ekt(self, t: FloatArrayLike) -> FloatArrayLike:
         return np.exp(-self.kappa * t)

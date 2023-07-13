@@ -59,7 +59,7 @@ While $\tau_t$ is always continuous, $\lambda$ can exhibit jumps. Since the time
 where the inside expectation is taken on $x_{\tau_t}$ conditional on a fixed value of $\tau_t = s$ and the outside expectation is on all possible values of $\tau_t$. If the random time $\tau_t$ is independent of $x_t$, the randomness due to the Lévy process can be integrated out using the characteristic function of $x_t$:
 
 \begin{equation}
-\Phi_{y_t, u} = {\mathbb E}\left[e^{-\tau_t \phi_{x,u}}\right] = {\mathbb L}_{\tau_t}\left(\phi_{x,u}\right)
+\Phi_{y_t, u} = {\mathbb E}\left[e^{-\tau_t \phi_{x,u}}\right] = {\mathbb L}_{\tau_t}\left(\phi_{x_1,u}\right)
 \end{equation}
 
 **Remark**: Under independence, the characteristic function of a time-changed Lévy process $y_t$ is the **Laplace transform** of the cumulative intensity $\tau_t$ evaluated at the characteristic exponent of $x$.
@@ -69,7 +69,7 @@ Therefore the characteristic function of $y_t$ can be expressed in closed form i
 * the characteristic exponent of the Lévy process $x_t$ is available in closed from
 * the Laplace transform of $\tau_t$, the integrated intensity process, is known in closed from
 
-## Laplace Transform
+## Leverage Effect
 
 To obtain the Laplace transform  of $\tau_t$ in closed form, consider its specification in terms of the intensity process $\lambda_t$:
 
@@ -83,11 +83,20 @@ known in the literature as the **leverage effect**.
 
 Carr and Wu {cite:p}`carr_wu` solve this problem by changing the measure from an economy with leverage effect to one without it.
 
-\begin{equation}
-\Phi_{y_t, u} = {\mathbb E}\left[e^{-\tau_t \phi_{x,u}}\right] = {\mathbb E}^u\left[e^{-\tau_t \phi_{x,u}}\right] = {\mathbb L}_{\tau_t}^u\left(\phi_{x,u}\right)
-\end{equation}
+\begin{align}
+\Phi_{y_t, u} &= {\mathbb E}\left[e^{i u y_t}\right] \\
+     &= {\mathbb E}\left[e^{i u y_t + \tau_t \phi_{x_1, u} - \tau_t \phi_{x_1, u}}\right] \\
+     &= {\mathbb E}\left[M_{t, u} e^{-\tau_t \phi_{x_1,u}}\right] \\
+     &= {\mathbb E}^u\left[e^{-\tau_t \phi_{x_1,u}}\right] \\
+     &= {\mathbb L}_{\tau_t}^u\left(\phi_{x_1,u}\right)
+\end{align}
 
-where $E[\cdot]$ and $E^u[\cdot]$ denote the expectation under probability measure $P$ and $Q^u$, respectively.
+where $E[\cdot]$ and $E^u[\cdot]$ denote the expectation under probability measure $P$ and $Q^u$, respectively. The two measures are linked via
+the complex-valued [Radon–Nikodym derivative](https://en.wikipedia.org/wiki/Radon%E2%80%93Nikodym_theorem#Radon%E2%80%93Nikodym_derivative)
+
+\begin{equation}
+M_{t, u} = \frac{d Q^u}{d P} = \exp{\left(i u y_t + \tau_t \phi_{x_1, u}\right)} = \exp{\left(i u y_t + \phi_{x_1, u}\int_0^t \lambda_s ds\right)}
+\end{equation}
 
 ## Affine definition
 

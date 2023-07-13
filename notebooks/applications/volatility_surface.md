@@ -140,11 +140,13 @@ pricer.model
 ```
 
 ```{code-cell} ipython3
+pricer.model.variance_process.sigma=2.8
+pricer.model.variance_process.kappa=3.96
 pricer.reset()
 ```
 
 ```{code-cell} ipython3
-cal.plot(index=6, max_moneyness_ttm=1.5)
+cal.plot(index=5, max_moneyness_ttm=1)
 ```
 
 ## Serialization

@@ -50,17 +50,7 @@ m.mean(), m.std()
 ```
 
 ```{code-cell} ipython3
-import plotly.graph_objects as go
-import plotly.express as px
-from scipy.stats import norm
-import numpy as np
-
-N = 128
-M = 10
-r = m.pdf_from_characteristic(N, delta_x=0.05)
-n = norm.pdf(r.x, scale=m.std())
-fig = px.line(x=r.x, y=r.y, markers=True)
-fig.add_trace(go.Scatter(x=r.x, y=n, name="normal", line=dict()))
+plot.plot_marginal_pdf(m, 128, normal=True, analytical=False)
 ```
 
 ## Appendix

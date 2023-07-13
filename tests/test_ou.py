@@ -1,7 +1,12 @@
 import pytest
 
 from quantflow.sp.bns import BNS
-from quantflow.sp.ou import GammaOU
+from quantflow.sp.ou import GammaOU, Vasicek
+
+
+@pytest.fixture
+def vasicek() -> Vasicek:
+    return Vasicek(kappa=5)
 
 
 @pytest.fixture
@@ -23,6 +28,12 @@ def test_sample(gamma_ou: GammaOU) -> None:
     paths = gamma_ou.sample(10, 1, 100)
     assert paths.t == 1
     assert paths.dt == 0.01
+
+
+def test_vasicek(vasicek: Vasicek) -> None:
+    m = vasicek.marginal(10)
+    assert m.mean() == 1.0
+    assert m.variance() == pytest.approx(0.1)
 
 
 def test_bns(bns: BNS):

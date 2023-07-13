@@ -1,15 +1,18 @@
 from abc import abstractmethod
+from typing import Generic, TypeVar
 
 import numpy as np
 from pydantic import Field
 from scipy.optimize import Bounds
 from scipy.stats import poisson
 
-from ..utils.distributions import Distribution1D, Exponential
+from ..utils.distributions import Distribution1D
 from ..utils.functions import factorial
 from ..utils.paths import Paths
-from ..utils.types import FloatArray, Vector
-from .base import Im, StochasticProcess1D, StochasticProcess1DMarginal
+from ..utils.types import FloatArray, FloatArrayLike, Vector
+from .base import Im, StochasticProcess1D
+
+D = TypeVar("D", bound=Distribution1D)
 
 
 class PoissonBase(StochasticProcess1D):
@@ -60,9 +63,6 @@ def poisson_arrivals(intensity: float, time_horizon: float = 1) -> list[float]:
 class PoissonProcess(PoissonBase):
     intensity: float = Field(default=1.0, ge=0, description="intensity rate")
 
-    def marginal(self, t: Vector) -> StochasticProcess1DMarginal:
-        return PoissonMarginal(process=self, t=t)
-
     def characteristic_exponent(self, t: Vector, u: Vector) -> Vector:
         return t * self.intensity * (1 - np.exp(Im * u))
 
@@ -81,50 +81,15 @@ class PoissonProcess(PoissonBase):
         """Support of the process at time `t`"""
         return np.linspace(0, points, points + 1)
 
-
-class CompoundPoissonProcess(PoissonBase):
-    r"""
-    1D Poisson process.
-
-    It's a process where the inter-arrival time is exponentially distributed
-    with rate :math:`\lambda`
-
-    .. attribute:: rate
-
-        The arrival rate of events. Must be positive.
-    """
-    intensity: float = Field(default=1.0, ge=0, description="intensity rate")
-    jumps: Distribution1D = Field(
-        default_factory=Exponential, description="Jump size distribution"
-    )
-
-    def marginal(self, t: Vector) -> StochasticProcess1DMarginal:
-        return CompoundPoissonMarginal(process=self, t=t)
-
-    def characteristic_exponent(self, t: Vector, u: Vector) -> Vector:
-        return t * self.intensity * (1 - self.jumps.characteristic(u))
-
-    def arrivals(self, time_horizon: float = 1) -> list[float]:
-        """Same as Poisson process"""
-        return poisson_arrivals(self.intensity, time_horizon)
-
-    def sample_jumps(self, n: int) -> np.ndarray:
-        """Sample jump sizes from an exponential distribution with rate
-        parameter :class:b
-        """
-        return self.jumps.sample(n)
-
-
-class PoissonMarginal(StochasticProcess1DMarginal[PoissonProcess]):
-    def mean(self) -> Vector:
+    def analytical_mean(self, t: FloatArrayLike) -> FloatArrayLike:
         """Expected value at a time horizon"""
-        return self.process.intensity * self.t
+        return self.intensity * t
 
-    def variance(self) -> Vector:
+    def analytical_variance(self, t: FloatArrayLike) -> FloatArrayLike:
         """Expected variance at a time horizon"""
-        return self.process.intensity * self.t
+        return self.intensity * t
 
-    def cdf(self, n: Vector) -> Vector:
+    def analytical_cdf(self, t: FloatArrayLike, n: FloatArrayLike) -> FloatArrayLike:
         r"""
         CDF of the number of events at time ``t``.
 
@@ -138,9 +103,9 @@ class PoissonMarginal(StochasticProcess1DMarginal[PoissonProcess]):
 
         where :math:`\Gamma` is the upper incomplete gamma function.
         """
-        return poisson.cdf(n, self.t * self.process.intensity)
+        return poisson.cdf(n, t * self.intensity)
 
-    def pdf(self, n: Vector = 0) -> Vector:
+    def analytical_pdf(self, t: FloatArrayLike, n: FloatArrayLike) -> FloatArrayLike:
         r"""
         Probability density function of the number of events at time ``t``.
 
@@ -150,9 +115,9 @@ class PoissonMarginal(StochasticProcess1DMarginal[PoissonProcess]):
            f_{X}\left(n\right)=\frac{\lambda^{n}e^{-\lambda}}{n!}
         \end{equation}
         """
-        return poisson.pmf(n, self.t * self.process.intensity)
+        return poisson.pmf(n, t * self.intensity)
 
-    def cdf_jacobian(self, n: Vector) -> np.ndarray:
+    def cdf_jacobian(self, t: FloatArrayLike, n: Vector) -> np.ndarray:
         r"""
         Jacobian of the CDF
 
@@ -164,15 +129,41 @@ class PoissonMarginal(StochasticProcess1DMarginal[PoissonProcess]):
             n\right\rfloor }e^{-\lambda}}{\left\lfloor n\right\rfloor !}
         """
         k = np.floor(n).astype(int)
-        rate = self.process.intensity
+        rate = self.intensity
         return np.array([-(rate**k) * np.exp(-rate)]) / factorial(k)
 
 
-class CompoundPoissonMarginal(StochasticProcess1DMarginal[CompoundPoissonProcess]):
-    def mean(self) -> Vector:
-        """Expected value at a time horizon"""
-        return self.process.intensity * self.t * self.process.jumps.mean()
+class CompoundPoissonProcess(PoissonBase, Generic[D]):
+    r"""
+    1D Poisson process.
 
-    def variance(self) -> Vector:
+    It's a process where the inter-arrival time is exponentially distributed
+    with rate :math:`\lambda`
+
+    .. attribute:: rate
+
+        The arrival rate of events. Must be positive.
+    """
+    intensity: float = Field(default=1.0, ge=0, description="intensity rate")
+    jumps: D = Field(description="Jump size distribution")
+
+    def characteristic_exponent(self, t: FloatArrayLike, u: Vector) -> Vector:
+        return t * self.intensity * (1 - self.jumps.characteristic(u))
+
+    def arrivals(self, time_horizon: float = 1) -> list[float]:
+        """Same as Poisson process"""
+        return poisson_arrivals(self.intensity, time_horizon)
+
+    def sample_jumps(self, n: int) -> FloatArray:
+        """Sample jump sizes from an exponential distribution with rate
+        parameter :class:b
+        """
+        return self.jumps.sample(n)
+
+    def analytical_mean(self, t: FloatArrayLike) -> FloatArrayLike:
+        """Expected value at a time horizon"""
+        return self.intensity * t * self.jumps.mean()
+
+    def analytical_variance(self, t: FloatArrayLike) -> FloatArrayLike:
         """Expected variance at a time horizon"""
-        return 2 * self.process.intensity * self.t * self.process.jumps.variance()
+        return self.intensity * t * self.jumps.variance()

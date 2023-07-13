@@ -57,7 +57,19 @@ which means the process admits a stationary probability distribution equal to
     x_t \sim N\left(\theta, \frac{\sigma^2}{2\kappa}\right)\ \ t\rightarrow\infty
 \end{equation}
 
-+++
+```{code-cell} ipython3
+from quantflow.sp.ou import Vasicek
+pr = Vasicek()
+pr
+```
+
+```{code-cell} ipython3
+pr.sample(20, time_horizon=1, time_steps=1000).plot().update_traces(
+    line_width=0.5
+).update_layout(
+    title="Mean reverting paths of Vasicek model"
+)
+```
 
 ## Non-gaussian OU process
 
@@ -176,3 +188,7 @@ The integration of the OU process can be achieved by multiplying both sides of t
     e^{\kappa t} x_t - x_0 &= \int_0^t e^{\kappa s} d z_s \\
     x_t &= x_0 e^{-\kappa t} + \int_0^t e^{-\kappa\left(t - s\right)} d z_s
 \end{align}
+
+```{code-cell} ipython3
+
+```

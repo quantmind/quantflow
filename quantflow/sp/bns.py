@@ -5,7 +5,7 @@ from pydantic import Field
 from scipy.special import xlogy
 
 from ..utils.paths import Paths
-from ..utils.types import Vector
+from ..utils.types import FloatArrayLike, Vector
 from .base import Im, StochasticProcess1D
 from .ou import GammaOU
 
@@ -14,7 +14,7 @@ class BNS(StochasticProcess1D):
     """Barndorff-Nielson--Shephard (BNS) stochastic volatility model"""
 
     variance_process: GammaOU = Field(
-        default_factory=GammaOU, description="Variance process"
+        default_factory=GammaOU.create, description="Variance process"
     )
     rho: float = Field(default=0, ge=-1, le=1, description="Correlation")
 
@@ -25,7 +25,7 @@ class BNS(StochasticProcess1D):
             rho=rho,
         )
 
-    def characteristic_exponent(self, t: Vector, u: Vector) -> Vector:
+    def characteristic_exponent(self, t: FloatArrayLike, u: Vector) -> Vector:
         return -self._zeta(t, 0.5 * Im * u * u, self.rho * u)
 
     def sample(self, n: int, time_horizon: float = 1, time_steps: int = 100) -> Paths:

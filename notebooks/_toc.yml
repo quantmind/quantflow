@@ -14,6 +14,7 @@ parts:
   chapters:
   - file: models/weiner
   - file: models/poisson
+  - file: models/jump_diffusion
   - file: models/cir
   - file: models/ou
   - file: models/heston

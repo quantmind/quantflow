@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import cast
+from typing import Generic
 
 import numpy as np
 from pydantic import Field
@@ -8,9 +8,9 @@ from scipy.stats import gamma, norm
 
 from ..utils.distributions import Exponential
 from ..utils.paths import Paths
-from ..utils.types import Vector
-from .base import Im, IntensityProcess, StochasticProcess1DMarginal
-from .poisson import CompoundPoissonProcess
+from ..utils.types import FloatArrayLike, Vector
+from .base import Im, IntensityProcess
+from .poisson import CompoundPoissonProcess, D
 from .weiner import WeinerProcess
 
 
@@ -21,10 +21,47 @@ class Vasicek(IntensityProcess):
     )
     theta: float = Field(default=1.0, gt=0, description="Mean rate")
 
+    def characteristic_exponent(self, t: FloatArrayLike, u: Vector) -> Vector:
+        raise NotImplementedError
 
-class NGOU(IntensityProcess):
-    bdlp: CompoundPoissonProcess = Field(
-        default_factory=CompoundPoissonProcess,
+    def integrated_log_laplace(self, t: FloatArrayLike, u: Vector) -> Vector:
+        raise NotImplementedError
+
+    def sample(self, n: int, time_horizon: float = 1, time_steps: int = 100) -> Paths:
+        paths = Paths.normal_draws(n, time_horizon, time_steps)
+        return self.sample_from_draws(paths)
+
+    def sample_from_draws(self, draws: Paths, *args: Paths) -> Paths:
+        kappa = self.kappa
+        theta = self.theta
+        dt = draws.dt
+        sdt = self.bdlp.sigma * np.sqrt(dt)
+        paths = np.zeros(draws.data.shape)
+        paths[0, :] = self.rate
+        for t in range(draws.time_steps):
+            w = sdt * draws.data[t, :]
+            x = paths[t, :]
+            dx = kappa * (theta - x) * dt + sdt * w
+            paths[t + 1, :] = x + dx
+        return Paths(t=draws.t, data=paths)
+
+    def analytical_mean(self, t: FloatArrayLike) -> FloatArrayLike:
+        ekt = self.ekt(t)
+        return self.rate * ekt + self.theta * (1 - ekt)
+
+    def analytical_variance(self, t: FloatArrayLike) -> FloatArrayLike:
+        ekt = self.ekt(2 * t)
+        return 0.5 * self.bdlp.sigma2 * (1 - ekt) / self.kappa
+
+    def analytical_pdf(self, t: FloatArrayLike, x: FloatArrayLike) -> FloatArrayLike:
+        return norm.pdf(x, loc=self.analytical_mean(t), scale=self.analytical_std(t))
+
+    def analytical_cdf(self, t: FloatArrayLike, x: FloatArrayLike) -> FloatArrayLike:
+        return norm.cdf(x, loc=self.analytical_mean(t), scale=self.analytical_std(t))
+
+
+class NGOU(IntensityProcess, Generic[D]):
+    bdlp: CompoundPoissonProcess[D] = Field(
         description="Background driving Levy process",
     )
 
@@ -32,7 +69,7 @@ class NGOU(IntensityProcess):
         raise NotImplementedError
 
 
-class GammaOU(NGOU):
+class GammaOU(NGOU[Exponential]):
     @property
     def intensity(self) -> float:
         return self.bdlp.intensity
@@ -40,29 +77,26 @@ class GammaOU(NGOU):
     @property
     def beta(self) -> float:
         # TODO: find a better way for this
-        return cast(Exponential, self.bdlp.jumps).decay
+        return self.bdlp.jumps.decay
 
     @classmethod
     def create(cls, rate: float = 1, decay: float = 1, kappa: float = 1) -> GammaOU:
         return cls(
             rate=rate,
             kappa=kappa,
-            bdlp=CompoundPoissonProcess(
+            bdlp=CompoundPoissonProcess[Exponential](
                 intensity=rate * decay, jumps=Exponential(decay=decay)
             ),
         )
 
-    def marginal(self, t: Vector) -> StochasticProcess1DMarginal:
-        return GammaOUMarginal(process=self, t=t)
-
-    def characteristic_exponent(self, t: Vector, u: Vector) -> Vector:
+    def characteristic_exponent(self, t: FloatArrayLike, u: Vector) -> Vector:
         b = self.beta
         iu = Im * u
         c1 = iu * np.exp(-self.kappa * t)
         c0 = self.intensity * np.log((b - c1) / (b - iu))
         return -c0 - c1 * self.rate
 
-    def cumulative_characteristic(self, t: Vector, u: Vector) -> Vector:
+    def integrated_log_laplace(self, t: FloatArrayLike, u: Vector) -> Vector:
         kappa = self.kappa
         b = self.beta
         iu = Im * u
@@ -105,7 +139,7 @@ class GammaOU(NGOU):
         pp[i] = x - kappa * x * (a - t0) - kappa * (x + jump) * (t1 - a) + jump
         return i + 1
 
-    def cumulative_characteristic2(self, t: float, u: Vector) -> Vector:
+    def cumulative_characteristic2(self, t: FloatArrayLike, u: Vector) -> Vector:
         """Formula from a paper"""
         kappa = self.kappa
         b = self.beta
@@ -116,29 +150,11 @@ class GammaOU(NGOU):
         c0 = self.intensity * (b * np.log(b / (b - c1)) - iu * t) / (iuk - b)
         return np.exp(c0 + c1 * self.rate)
 
+    def analytical_mean(self, t: FloatArrayLike) -> FloatArrayLike:
+        return self.intensity / self.beta
 
-class GammaOUMarginal(StochasticProcess1DMarginal[GammaOU]):
-    def mean(self) -> float:
-        return self.process.intensity / self.process.beta
+    def analytical_variance(self, t: FloatArrayLike) -> FloatArrayLike:
+        return self.intensity / self.beta / self.beta
 
-    def variance(self) -> float:
-        return self.process.intensity / self.process.beta / self.process.beta
-
-    def pdf(self, x: Vector) -> Vector:
-        return gamma.pdf(x, self.process.intensity, scale=1 / self.process.beta)
-
-
-class VasicekMarginal(StochasticProcess1DMarginal[Vasicek]):
-    def mean(self) -> Vector:
-        ekt = self.process.ekt(self.t)
-        return self.process.rate * ekt + self.process.theta * (1 - ekt)
-
-    def variance(self) -> Vector:
-        ekt = self.process.ekt(2 * self.t)
-        return 0.5 * self.process.bdlp.sigma2 * (1 - ekt) / self.process.kappa
-
-    def pdf(self, n: Vector) -> Vector:
-        return norm.pdf(n, loc=self.mean(), scale=self.std())
-
-    def cdf(self, n: Vector) -> Vector:
-        return norm.cdf(n, loc=self.mean(), scale=self.std())
+    def analytical_pdf(self, t: FloatArrayLike, x: FloatArrayLike) -> FloatArrayLike:
+        return gamma.pdf(x, self.intensity, scale=1 / self.beta)

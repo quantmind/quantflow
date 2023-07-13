@@ -179,10 +179,26 @@ The intensity function of a DSPP is given by:
 
 ```{code-cell} ipython3
 from quantflow.sp.dsp import DSP
+from quantflow.sp.heston import Heston
 from quantflow.sp.cir import CIR
 
 pr = DSP()
 pr
+```
+
+```{code-cell} ipython3
+pr.intensity.integrated_log_laplace(1, 1)
+```
+
+```{code-cell} ipython3
+from quantflow.sp.weiner import WeinerProcess
+w = WeinerProcess()
+h = Heston.create(vol=1.0, kappa=1.0, sigma=1.0)
+h, w
+```
+
+```{code-cell} ipython3
+h.characteristic_exponent(1, w.characteristic_exponent(1, 1))
 ```
 
 ```{code-cell} ipython3

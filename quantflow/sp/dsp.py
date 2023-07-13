@@ -1,10 +1,9 @@
 import math
-from typing import List
 
 import numpy as np
 from pydantic import Field
 
-from ..utils.types import Vector, as_array
+from ..utils.types import FloatArray, FloatArrayLike, Vector, as_array
 from .base import Im
 from .cir import CIR, IntensityProcess
 from .poisson import PoissonBase, PoissonProcess, poisson_arrivals
@@ -45,17 +44,17 @@ class DSP(PoissonBase):
         """
         return np.cumsum(self.pdf(t, n))
 
-    def characteristic_exponent(self, t: Vector, u: Vector) -> Vector:
+    def characteristic_exponent(self, t: FloatArrayLike, u: Vector) -> Vector:
         return self.poisson.characteristic_exponent(t, u)
 
-    def characteristic(self, t: Vector, u: Vector) -> Vector:
+    def characteristic(self, t: FloatArrayLike, u: Vector) -> Vector:
         phi = self.characteristic_exponent(t, u)
-        return self.intensity.cumulative_characteristic(t, -Im * phi)
+        return np.exp(self.intensity.integrated_log_laplace(t, -Im * phi))
 
-    def arrivals(self, t: float = 1) -> List[float]:
+    def arrivals(self, t: float = 1) -> list[float]:
         paths = self.intensity.sample(1, t, math.ceil(100 * t)).integrate()
         intensity = paths.data[-1, 0]
         return poisson_arrivals(intensity, t)
 
-    def sample_jumps(self, n: int) -> np.ndarray:
+    def sample_jumps(self, n: int) -> FloatArray:
         return self.poisson.sample_jumps(n)

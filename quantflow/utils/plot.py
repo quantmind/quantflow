@@ -2,6 +2,7 @@ import os
 from typing import Any
 
 import pandas as pd
+from scipy.stats import norm
 
 from .marginal import Marginal1D
 
@@ -30,44 +31,56 @@ def plot_lines(data: Any, template: str = PLOTLY_THEME, **kwargs: Any) -> Any:
 def plot_marginal_pdf(
     m: Marginal1D,
     n: int | None = None,
-    analytical: str = "lines",
+    *,
+    analytical: str | bool = "lines",
+    normal: bool = False,
     marker_size: int = 8,
     marker_color: str = "rgba(30, 186, 64, .5)",
+    log_y: bool = False,
     **kwargs: Any
 ) -> Any:
     """Plot the marginal pdf on an input support"""
     check_plotly()
-    result = m.pdf_from_characteristic(n, **kwargs)
-    xx = result.x
-    yy = result.y
+    pdf = m.pdf_from_characteristic(n, **kwargs)
     fig = go.Figure()
     if analytical:
         fig.add_trace(
             go.Scatter(
-                x=xx,
-                y=m.pdf(xx),
+                x=pdf.x,
+                y=m.pdf(pdf.x),
                 name="analytical",
                 mode=analytical,
             )
         )
+    if normal:
+        n = norm.pdf(pdf.x, loc=m.mean(), scale=m.std())
+        fig.add_trace(
+            go.Scatter(
+                x=pdf.x,
+                y=n,
+                name="normal",
+                mode="lines",
+            )
+        )
+
     fig.add_trace(
         go.Scatter(
-            x=xx,
-            y=yy,
-            name="characteristic",
+            x=pdf.x,
+            y=pdf.y,
+            name="characteristic PDF",
             mode="markers",
             marker_color=marker_color,
             marker_size=marker_size,
         )
     )
+    if log_y:
+        fig.update_yaxes(type="log")
     return fig
 
 
-def plot_characteristic(
-    m: Marginal1D, n: int | None = None, max_frequency: float | None = None
-) -> Any:
+def plot_characteristic(m: Marginal1D, n: int | None = None, **kwargs: Any) -> Any:
     check_plotly()
-    df = m.characteristic_df(n=n, max_frequency=max_frequency)
+    df = m.characteristic_df(n=n, **kwargs)
     return px.line(
         df,
         x="frequency",
@@ -121,18 +134,21 @@ def plot_vol_surface_3d(
 
 def plot_vol_cross(
     data: pd.DataFrame,
+    *,
     data2: pd.DataFrame | None = None,
     series: str = "implied_vol",
     marker_size: int = 10,
+    fig: go.Figure | None = None,
+    name: str = "model",
     **kwargs: Any
 ) -> Any:
     check_plotly()
-    fig = go.Figure()
+    fig = fig or go.Figure()
     fig.add_trace(
         go.Scatter(
             x=data["moneyness_ttm"],
             y=data[series],
-            name="model",
+            name=name,
             mode="lines",
         )
     )

@@ -9,10 +9,10 @@ from pydantic import BaseModel
 from scipy.optimize import Bounds
 
 from .transforms import Transform, TransformResult, default_bounds
-from .types import FloatArray, Vector
+from .types import FloatArray, Vector, FloatArrayLike
 
 
-class Marginal1D(BaseModel, ABC):
+class Marginal1D(BaseModel, ABC, extra="forbid"):
     """Marginal distribution"""
 
     @abstractmethod
@@ -27,14 +27,14 @@ class Marginal1D(BaseModel, ABC):
         Compute the x axis.
         """
 
-    def mean(self) -> Vector:
+    def mean(self) -> FloatArrayLike:
         """Expected value
 
         THis should be overloaded if a more efficient way of computing the mean
         """
         return self.mean_from_characteristic()
 
-    def variance(self) -> Vector:
+    def variance(self) -> FloatArrayLike:
         """Variance
 
         This should be overloaded if a more efficient way of computing the
@@ -48,17 +48,21 @@ class Marginal1D(BaseModel, ABC):
         """
         return 20
 
-    def std(self) -> Vector:
+    def std(self) -> FloatArrayLike:
         """Standard deviation at a time horizon"""
         return np.sqrt(self.variance())
 
-    def mean_from_characteristic(self) -> Vector:
+    def mean_from_characteristic(self) -> FloatArrayLike:
         """Calculate mean as first derivative of characteristic function at 0"""
         d = 0.001
         m = -0.5 * 1j * (self.characteristic(d) - self.characteristic(-d)) / d
         return cast(complex, m).real
 
-    def variance_from_characteristic(self) -> Vector:
+    def std_from_characteristic(self) -> FloatArrayLike:
+        """Calculate standard deviation as square root of variance"""
+        return np.sqrt(self.variance_from_characteristic())
+
+    def variance_from_characteristic(self) -> FloatArrayLike:
         """Calculate variance as second derivative of characteristic function at 0"""
         d = 0.001
         c1 = self.characteristic(d)
@@ -68,7 +72,7 @@ class Marginal1D(BaseModel, ABC):
         s = -(c1 - 2 * c0 + c2) / (d * d) - m * m
         return s.real
 
-    def pdf(self, n: Vector) -> Vector:
+    def pdf(self, x: FloatArrayLike) -> FloatArrayLike:
         """
         Computes the probability density (or mass) function of the process.
 
@@ -79,7 +83,7 @@ class Marginal1D(BaseModel, ABC):
         :param n: Location in the stochastic process domain space. If a numpy array,
             the output should have the same shape as the input.
         """
-        return self.cdf(n) - self.cdf(n - 1)
+        return self.cdf(x) - self.cdf(x - 1)
 
     def pdf_from_characteristic(
         self,
@@ -175,7 +179,7 @@ class Marginal1D(BaseModel, ABC):
     def domain_range(self) -> Bounds:
         return default_bounds()
 
-    def cdf(self, n: Vector) -> Vector:
+    def cdf(self, x: FloatArrayLike) -> FloatArrayLike:
         """
         Compute the cumulative distribution function
 
@@ -184,16 +188,16 @@ class Marginal1D(BaseModel, ABC):
         """
         raise NotImplementedError("Analytical CFD not available")
 
-    def pdf_jacobian(self, n: Vector) -> np.ndarray:
+    def pdf_jacobian(self, x: FloatArrayLike) -> FloatArrayLike:
         """
         Jacobian of the pdf with respect to the parameters of the process.
         It has a base implementation that computes it from the
         :class:`cdf_jacobian` method, but a subclass should overload this method if a
         more optimized way of computing it is available.
         """
-        return self.cdf_jacobian(n) - self.cdf_jacobian(n - 1)
+        return self.cdf_jacobian(x) - self.cdf_jacobian(x - 1)
 
-    def cdf_jacobian(self, n: Vector) -> np.ndarray:
+    def cdf_jacobian(self, x: FloatArrayLike) -> np.ndarray:
         """
         Jacobian of the cdf with respect to the parameters of the process.
         It is useful for optimization purposes if necessary.

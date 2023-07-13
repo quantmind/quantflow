@@ -98,9 +98,9 @@ class MaturityPricer(NamedTuple):
             name="Black",
         )
 
-    def plot(self, series: str = "implied_vol") -> Any:
+    def plot(self, series: str = "implied_vol", **kwargs: Any) -> Any:
         """Plot the results"""
-        return plot.plot_vol_cross(self.df, series=series)
+        return plot.plot_vol_cross(self.df, series=series, **kwargs)
 
 
 @dataclass
@@ -129,7 +129,7 @@ class OptionPricer(Generic[M]):
             )
             self.ttm[ttm_int] = MaturityPricer(
                 ttm=ttmr,
-                std=np.max(marginal.std()),
+                std=float(np.max(marginal.std())),
                 moneyness=transform.x,
                 call=transform.y,
                 name=type(self.model).__name__,

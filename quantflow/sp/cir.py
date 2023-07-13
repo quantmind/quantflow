@@ -5,10 +5,10 @@ from pydantic import Field
 from scipy import special
 from scipy.optimize import Bounds
 
-from quantflow.utils.types import Vector
+from quantflow.utils.types import FloatArrayLike, Vector
 
 from ..utils.paths import Paths
-from .base import Im, IntensityProcess, StochasticProcess1DMarginal
+from .base import Im, IntensityProcess
 
 
 class SamplingAlgorithm(str, enum.Enum):
@@ -50,9 +50,6 @@ class CIR(IntensityProcess):
     @property
     def sigma2(self) -> float:
         return self.sigma * self.sigma
-
-    def marginal(self, t: Vector) -> StochasticProcess1DMarginal:
-        return CIRMarginal(process=self, t=t)
 
     def sample(
         self, paths: int, time_horizon: float = 1, time_steps: int = 100
@@ -116,7 +113,7 @@ class CIR(IntensityProcess):
         a = 2 * kappa * self.theta * (kt + np.log(2 * kappa / c)) / sigma2
         return -a - b * self.rate
 
-    def cumulative_characteristic(self, t: Vector, u: Vector) -> Vector:
+    def integrated_log_laplace(self, t: Vector, u: Vector) -> Vector:
         iu = Im * u
         sigma = self.sigma
         kappa = self.kappa
@@ -127,34 +124,32 @@ class CIR(IntensityProcess):
         d = 2 * gamma * np.exp(0.5 * (gamma + kappa) * t)
         a = 2 * self.theta * kappa * np.log(-d / c) / sigma2
         b = 2 * iu * (1 - egt) / c
-        return np.exp(a + b * self.rate)
+        return -a - b * self.rate
 
     def domain_range(self) -> Bounds:
         return Bounds(0, np.inf)
 
+    def analytical_mean(self, t: FloatArrayLike) -> FloatArrayLike:
+        ekt = self.ekt(t)
+        return self.rate * ekt + self.theta * (1 - ekt)
 
-class CIRMarginal(StochasticProcess1DMarginal[CIR]):
-    def mean(self) -> Vector:
-        ekt = np.exp(-self.process.kappa * self.t)
-        return self.process.rate * ekt + self.process.theta * (1 - ekt)
-
-    def variance(self) -> Vector:
-        kappa = self.process.kappa
-        ekt = np.exp(-kappa * self.t)
+    def analytical_variance(self, t: FloatArrayLike) -> FloatArrayLike:
+        kappa = self.kappa
+        ekt = self.ekt(t)
         return (
-            self.process.sigma2
+            self.sigma2
             * (1 - ekt)
-            * (self.process.rate * ekt + 0.5 * self.process.theta * (1 - ekt))
+            * (self.rate * ekt + 0.5 * self.theta * (1 - ekt))
             / kappa
         )
 
-    def pdf(self, x: Vector) -> Vector:
-        k = self.process.kappa
-        s2 = self.process.sigma2
-        ekt = np.exp(-k * self.t)
+    def analytical_pdf(self, t: FloatArrayLike, x: FloatArrayLike) -> FloatArrayLike:
+        k = self.kappa
+        s2 = self.sigma2
+        ekt = self.ekt(t)
         c = 2 * k / (1 - ekt) / s2
-        q = 2 * k * self.process.theta / s2 - 1
-        u = c * ekt * self.process.rate
+        q = 2 * k * self.theta / s2 - 1
+        u = c * ekt * self.rate
         v = c * x
         return (
             c

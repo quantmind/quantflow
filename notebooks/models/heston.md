@@ -17,6 +17,8 @@ kernelspec:
 A very important example of time-changed Lévy process useful for option pricing is the Heston model. In this model, the Lévy process is a standard Brownian motion, while the activity rate follows a [CIR process](./cir.md). The leverage effect can be accommodated by correlating the two Brownian motions as the following equations illustrate:
 
 \begin{align}
+    y_t &= x_{\tau_t} \\
+    \tau_t &= \int_0^t \nu_s ds \\
     d x_t &= d w_t \\
     d \nu_t &= \kappa\left(\theta - \nu_t\right) dt + \sigma\sqrt{\nu_t} d z_t \\
     {\mathbb E}\left[d w_t d z_t\right] &= \rho dt
@@ -31,7 +33,7 @@ This means that the characteristic function of $y_t=x_{\tau_t}$ can be represent
 
 ```{code-cell} ipython3
 from quantflow.sp.heston import Heston
-pr = Heston.create(vol=0.6, kappa=2, sigma=1.5, rho=-0.1)
+pr = Heston.create(vol=0.6, kappa=2, sigma=1.5, rho=-0.3)
 pr
 ```
 
@@ -57,23 +59,13 @@ The immaginary part of the characteristic function is given by the correlation c
 Here we compare the marginal distribution at a time in the future $t=1$ with a normal distribution with the same standard deviation.
 
 ```{code-cell} ipython3
-import plotly.graph_objects as go
-import plotly.express as px
-from scipy.stats import norm
-import numpy as np
-
-r = m.pdf_from_characteristic(128)
-n = norm.pdf(r.x, scale=m.std())
-fig = px.line(x=r.x, y=r.y, markers=True)
-fig.add_trace(go.Scatter(x=r.x, y=n, name="normal", line=dict()))
+plot.plot_marginal_pdf(m, 128, normal=True, analytical=False)
 ```
 
 Using log scale on the y axis highlighs the probability on the tails much better
 
 ```{code-cell} ipython3
-fig = px.line(x=r.x, y=r.y, markers=True, log_y=True)
-fig.add_trace(go.Scatter(x=r.x, y=n, name="normal", line=dict()))
-fig.show()
+plot.plot_marginal_pdf(m, 128, normal=True, analytical=False, log_y=True)
 ```
 
 ## Option pricing
@@ -90,9 +82,6 @@ import plotly.express as px
 import plotly.graph_objects as go
 from quantflow.options.bs import black_call
 
-pricer.model.variance_process.rate = 0.1
-pricer.reset()
-
 r = pricer.maturity(0.1)
 b = r.black()
 fig = px.line(x=r.moneyness_ttm, y=r.time_value, markers=True, title=r.name)
@@ -101,9 +90,10 @@ fig.show()
 ```
 
 ```{code-cell} ipython3
-pricer.model.variance_process.rate = 0.1
-pricer.reset()
-pricer.maturity(0.01).plot()
+fig = None
+for ttm in (0.05, 0.1, 0.2, 0.4, 0.6, 1):
+    fig = pricer.maturity(ttm).plot(fig=fig, name=f"t={ttm}")
+fig.update_layout(title="Implied black vols", height=500)
 ```
 
 ## Simulation
@@ -136,8 +126,4 @@ plot.plot_lines(df)
 std = dict(std=pr.marginal(paths.time).std(), simulated=paths.std())
 df = pd.DataFrame(std, index=paths.time)
 plot.plot_lines(df)
-```
-
-```{code-cell} ipython3
-
 ```

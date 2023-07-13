@@ -133,7 +133,7 @@ class VolModelCalibration(ABC, Generic[M]):
         )
 
     def cost_weight(self, ttm: float, moneyness: float) -> float:
-        return np.exp(-self.moneyness_weight * moneyness * moneyness)
+        return np.exp(-self.moneyness_weight * moneyness)
 
     def penalize(self) -> float:
         """Penalize the cost function"""
