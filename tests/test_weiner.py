@@ -3,6 +3,7 @@ import pytest
 
 from quantflow.sp.weiner import WeinerProcess
 from quantflow.utils.paths import Paths
+from tests.utils import characteristic_tests
 
 
 @pytest.fixture
@@ -14,6 +15,7 @@ def test_characteristic(weiner: WeinerProcess) -> None:
     assert weiner.characteristic(1, 0) == 1
     assert weiner.convexity_correction(2) == 0.25
     marginal = weiner.marginal(1)
+    characteristic_tests(marginal)
     assert marginal.mean() == 0
     assert marginal.mean_from_characteristic() == 0
     assert marginal.std() == 0.5

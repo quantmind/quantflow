@@ -7,6 +7,7 @@ parts:
 - caption: Theory
   chapters:
   - file: theory/levy
+  - file: theory/characteristic
   - file: theory/inversion
   - file: theory/option_pricing
 

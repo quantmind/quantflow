@@ -65,5 +65,9 @@ fig.show()
 ```
 
 ```{code-cell} ipython3
-pricer.maturity(0.1, alpha=8).plot()
+pricer.maturity(0.1).plot()
+```
+
+```{code-cell} ipython3
+
 ```

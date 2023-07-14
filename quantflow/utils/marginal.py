@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from abc import ABC, abstractmethod
-from typing import Any, cast
+from typing import Callable, cast
 
 import numpy as np
 import pandas as pd
@@ -9,7 +9,7 @@ from pydantic import BaseModel
 from scipy.optimize import Bounds
 
 from .transforms import Transform, TransformResult, default_bounds
-from .types import FloatArray, Vector, FloatArrayLike
+from .types import FloatArray, FloatArrayLike, Vector
 
 
 class Marginal1D(BaseModel, ABC, extra="forbid"):
@@ -41,12 +41,19 @@ class Marginal1D(BaseModel, ABC, extra="forbid"):
         """
         return self.variance_from_characteristic()
 
-    def max_frequency(self) -> float:
-        """Maximum frequency of the characteristic function
+    def domain_range(self) -> Bounds:
+        """The space domain range for the random variable
 
         This should be overloaded if required
         """
-        return 20
+        return default_bounds()
+
+    def frequency_range(self, max_frequency: float | None = None) -> float:
+        """The frequency domain range for the characteristic function
+
+        This should be overloaded if required
+        """
+        return Bounds(0, max_frequency or 20)
 
     def std(self) -> FloatArrayLike:
         """Standard deviation at a time horizon"""
@@ -95,29 +102,24 @@ class Marginal1D(BaseModel, ABC, extra="forbid"):
     ) -> TransformResult:
         """
         Compute the probability density function from the characteristic function.
+
+        :param n: Number of discretization points to use in the transform.
+            If None, use 128.
+        :param max_frequency: The maximum frequency to use in the transform. If not
+            provided, the value from the :meth:`frequency_range` method is used.
+            Only needed for special cases/testing.
+        :param simpson_rule: Use Simpson's rule for integration. Default is False.
+        :param use_fft: Use FFT for the transform. Default is False.
         """
-        n = n or 128
-        if use_fft:
-            delta_x = None
-            transform = Transform(
-                n,
-                max_frequency=self.get_max_frequency(max_frequency),
-                domain_range=self.domain_range(),
-                simpson_rule=simpson_rule,
-            )
-        else:
-            x = self.support(n)
-            min_x = float(np.min(x))
-            max_x = float(np.max(x))
-            delta_x = (max_x - min_x) / (len(x) - 1)
-            transform = Transform(
-                n,
-                max_frequency=self.get_max_frequency(max_frequency),
-                domain_range=Bounds(min_x, max_x),
-                simpson_rule=simpson_rule,
-            )
+        transform = self.get_transform(
+            n,
+            self.support,
+            max_frequency=max_frequency,
+            simpson_rule=simpson_rule,
+            use_fft=use_fft,
+        )
         psi = cast(np.ndarray, self.characteristic(transform.frequency_domain))
-        return transform(psi, delta_x)
+        return transform(psi, use_fft=use_fft)
 
     def call_option(
         self,
@@ -127,24 +129,21 @@ class Marginal1D(BaseModel, ABC, extra="forbid"):
         max_moneyness: float = 1,
         alpha: float | None = None,
         simpson_rule: bool = False,
+        use_fft: bool = False,
     ) -> TransformResult:
-        n = n or 128
-        x = self.option_support(n + 1, max_moneyness=max_moneyness)
-        min_x = float(np.min(x))
-        max_x = float(np.max(x))
-        delta_x = (max_x - min_x) / (len(x) - 1)
-        transform = Transform(
+        transform = self.get_transform(
             n,
-            max_frequency=self.get_max_frequency(max_frequency),
-            domain_range=Bounds(min_x, max_x),
+            lambda m: self.option_support(m + 1, max_moneyness=max_moneyness),
+            max_frequency=max_frequency,
             simpson_rule=simpson_rule,
+            use_fft=use_fft,
         )
         alpha = alpha or self.option_alpha()
         phi = cast(
             np.ndarray,
             self.call_option_transform(transform.frequency_domain - 1j * alpha),
         )
-        result = transform(phi, delta_x)
+        result = transform(phi, use_fft=use_fft)
         return TransformResult(x=result.x, y=result.y * np.exp(-alpha * result.x))
 
     def option_time_value(
@@ -155,29 +154,65 @@ class Marginal1D(BaseModel, ABC, extra="forbid"):
         max_moneyness: float = 1,
         alpha: float = 1.1,
         simpson_rule: bool = False,
+        use_fft: bool = False,
     ) -> TransformResult:
         """Option time value"""
-        n = n or 128
-        x = self.option_support(n + 1, max_moneyness=max_moneyness)
-        min_x = float(np.min(x))
-        max_x = float(np.max(x))
-        delta_x = (max_x - min_x) / (len(x) - 1)
-        transform = Transform(
+        transform = self.get_transform(
             n,
-            max_frequency=self.get_max_frequency(max_frequency),
-            domain_range=Bounds(min_x, max_x),
+            lambda m: self.option_support(m + 1, max_moneyness=max_moneyness),
+            max_frequency=max_frequency,
             simpson_rule=simpson_rule,
+            use_fft=use_fft,
         )
         phi = cast(
             np.ndarray,
             self.option_time_value_transform(transform.frequency_domain, alpha),
         )
-        result = transform(phi, delta_x)
+        result = transform(phi, use_fft=use_fft)
         time_value = result.y / np.sinh(alpha * result.x)
         return TransformResult(x=result.x, y=time_value)
 
-    def domain_range(self) -> Bounds:
-        return default_bounds()
+    def characteristic_df(
+        self,
+        n: int | None = None,
+        *,
+        max_frequency: float | None = None,
+        simpson_rule: bool = False,
+    ) -> pd.DataFrame:
+        """
+        Compute the characteristic function with n discretization points
+        and a max frequency
+        """
+        transform = self.get_transform(
+            n,
+            self.support,
+            max_frequency=max_frequency,
+            simpson_rule=simpson_rule,
+        )
+        psi = self.characteristic(transform.frequency_domain)
+        return transform.characteristic_df(cast(np.ndarray, psi))
+
+    def get_transform(
+        self,
+        n: int | None,
+        support: Callable[[int], FloatArray],
+        *,
+        max_frequency: float | None = None,
+        simpson_rule: bool = False,
+        use_fft: bool = False,
+    ) -> Transform:
+        n = n or 128
+        if use_fft:
+            bounds = self.domain_range()
+        else:
+            x = support(n)
+            bounds = Bounds(float(np.min(x)), float(np.max(x)))
+        return Transform.create(
+            n,
+            frequency_range=self.frequency_range(max_frequency),
+            domain_range=bounds,
+            simpson_rule=simpson_rule,
+        )
 
     def cdf(self, x: FloatArrayLike) -> FloatArrayLike:
         """
@@ -205,30 +240,6 @@ class Marginal1D(BaseModel, ABC, extra="forbid"):
         Optional to implement, otherwise raises ``NotImplementedError`` if called.
         """
         raise NotImplementedError("Analytical CFD Jacobian not available")
-
-    def characteristic_df(
-        self, n: int | None, max_frequency: float | None = None, **kwargs: Any
-    ) -> pd.DataFrame:
-        """
-        Compute the characteristic function with n discretization points
-        and a max frequency
-        """
-        fre = Transform(
-            n=n, max_frequency=self.get_max_frequency(max_frequency), **kwargs
-        ).frequency_domain
-        psi = self.characteristic(fre)
-        return pd.concat(
-            (
-                pd.DataFrame(dict(frequency=fre, characteristic=psi.real, name="real")),
-                pd.DataFrame(dict(frequency=fre, characteristic=psi.imag, name="iamg")),
-            )
-        )
-
-    def get_max_frequency(self, max_frequency: float | None = None) -> float:
-        """
-        Get the maximum frequency to use for the characteristic function
-        """
-        return max_frequency if max_frequency is not None else self.max_frequency()
 
     def option_support(
         self, points: int = 101, max_moneyness: float = 1.0

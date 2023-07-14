@@ -73,9 +73,9 @@ class PoissonProcess(PoissonBase):
         """For a poisson process this is just a list of 1s"""
         return np.ones((n,))
 
-    def max_frequency(self, t: Vector) -> float:
-        """Maximum frequency of the process"""
-        return 2 * np.pi
+    def frequency_range(self, std: float, max_frequency: float | None = None) -> Bounds:
+        """Frequency range of the process"""
+        return Bounds(0, np.pi)
 
     def support(self, mean: float, std: float, points: int) -> FloatArray:
         """Support of the process at time `t`"""

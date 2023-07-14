@@ -6,6 +6,7 @@ import pytest
 from quantflow.sp.dsp import DSP
 from quantflow.sp.poisson import CompoundPoissonProcess, PoissonProcess
 from quantflow.utils.distributions import Exponential
+from tests.utils import characteristic_tests
 
 
 @pytest.fixture
@@ -24,9 +25,9 @@ def dsp() -> DSP:
 
 
 def test_characteristic(poisson: PoissonProcess) -> None:
+    characteristic_tests(poisson.marginal(1))
     m1 = poisson.marginal(1)
     m2 = poisson.marginal(2)
-    assert poisson.characteristic(1, 0) == 1
     assert m1.mean() == 2
     assert pytest.approx(m1.mean_from_characteristic(), 0.001) == 2
     assert pytest.approx(m2.mean_from_characteristic(), 0.001) == 4
@@ -38,8 +39,8 @@ def test_characteristic(poisson: PoissonProcess) -> None:
 def test_pdf(poisson: PoissonProcess) -> None:
     m = poisson.marginal(1)
     # m.pdf(x)
-    c_pdf = m.pdf_from_characteristic(10)
-    np.testing.assert_almost_equal(np.linspace(0, 9, 10), c_pdf.x)
+    c_pdf = m.pdf_from_characteristic(32)
+    np.testing.assert_almost_equal(np.linspace(0, 31, 32), c_pdf.x)
     # TODO: fix this
     # np.testing.assert_almost_equal(pdf, c_pdf.y[:10])
 

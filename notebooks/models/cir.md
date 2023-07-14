@@ -42,7 +42,7 @@ pr.is_positive
 
 ## Marginal and moments
 
-The model has a closed-form solution for the mean, the variance, and the (marginal pdf)[https://en.wikipedia.org/wiki/Cox%E2%80%93Ingersoll%E2%80%93Ross_model].
+The model has a closed-form solution for the mean, the variance, and the [marginal pdf](https://en.wikipedia.org/wiki/Cox%E2%80%93Ingersoll%E2%80%93Ross_model).
 
 \begin{align}
 {\mathbb E}[x_t] &= x_0 e^{-\kappa t} + \theta\left(1 - e^{-\kappa t}\right) \\

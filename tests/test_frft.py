@@ -22,7 +22,7 @@ def test_frft(x):
 
 def test_transform_positive_domain():
     n = 10
-    t = Transform(n, domain_range=Bounds(0, np.inf))
+    t = Transform.create(n, domain_range=Bounds(0, np.inf))
     assert t.n == n
     x = t.space_domain(1)
     assert len(x) == n

@@ -5,6 +5,7 @@ from typing import Any, NamedTuple
 
 import numpy as np
 import numpy.typing as npt
+import pandas as pd
 from scipy.optimize import Bounds
 
 from .types import FloatArray
@@ -23,6 +24,24 @@ class TransformResult(NamedTuple):
 
 def grid(n: int) -> npt.NDArray[np.int_]:
     return np.arange(0, n, 1)
+
+
+def finite_bounds(bounds: Bounds) -> tuple[float, float]:
+    lb = float(bounds.lb[0])
+    ub = float(bounds.ub[0])
+    if np.isinf(lb) or np.isinf(ub):
+        raise ValueError(f"Bounds are not finite: {lb}, {ub}")
+    return lb, ub
+
+
+def grid_from_bounds(bounds: Bounds, n: int) -> FloatArray:
+    lb, ub = finite_bounds(bounds)
+    return np.linspace(lb, ub, n + 1)[:-1]
+
+
+def delta_from_bounds(bounds: Bounds, n: int) -> float:
+    lb, ub = finite_bounds(bounds)
+    return (ub - lb) / n
 
 
 def trapezoid(n: int) -> FloatArray:
@@ -58,22 +77,27 @@ def upper_bound(b: Any, value: float) -> float:
         return value
 
 
+@dataclass
 class Transform:
-    """Transforms for option pricing"""
+    """Transform for inverting frequency-domain functions"""
 
-    def __init__(
-        self,
-        n: int | None = None,
-        max_frequency: float | None = None,
+    frequency_domain: FloatArray
+    domain_range: Bounds
+    h: FloatArray
+
+    @classmethod
+    def create(
+        cls,
+        n: int,
+        frequency_range: Bounds | None = None,
         domain_range: Bounds | None = None,
         simpson_rule: bool = False,
-    ) -> None:
-        n = n or 128
-        max_frequency = max_frequency or 20.0
-        self.delta_f = max_frequency / n
-        self.frequency_domain = self.delta_f * grid(n)
-        self.domain_range = domain_range or default_bounds()
-        self.h = simpson(n) if simpson_rule else trapezoid(n)
+    ) -> Transform:
+        return cls(
+            frequency_domain=grid_from_bounds(frequency_range or Bounds(0, 20), n),
+            domain_range=domain_range or default_bounds(),
+            h=simpson(n) if simpson_rule else trapezoid(n),
+        )
 
     @property
     def n(self) -> int:
@@ -81,7 +105,13 @@ class Transform:
         return self.frequency_domain.shape[0]
 
     @property
+    def delta_f(self) -> float:
+        """Return the frequency discretization step"""
+        return self.frequency_domain[1] - self.frequency_domain[0]
+
+    @property
     def fft_zeta(self) -> float:
+        """Return the zeta parameter for the FFT"""
         return 2 * np.pi / self.n
 
     @property
@@ -96,16 +126,17 @@ class Transform:
             raise TransformError("Incompatible delta_x with domain bounds")
         return delta_x * grid(self.n) + b0
 
-    def __call__(self, y: np.ndarray, delta_x: float | None = None) -> TransformResult:
-        return self.fft(y) if delta_x is None else self.frft(y, delta_x)
+    def __call__(self, y: np.ndarray, use_fft: bool = False) -> TransformResult:
+        return self.fft(y) if use_fft else self.frft(y)
 
     def fft(self, y: np.ndarray) -> TransformResult:
         """Transform using the Fast Fourier Transform"""
         x, f = self.transform(y, self.fft_delta_x)
         return TransformResult(x=x, y=np.fft.fft(f).real / self.n)
 
-    def frft(self, y: np.ndarray, delta_x: float) -> TransformResult:
+    def frft(self, y: np.ndarray) -> TransformResult:
         """Transform using the Fractional Fourier Transform"""
+        delta_x = delta_from_bounds(self.domain_range, self.n)
         x, f = self.transform(y, delta_x)
         r = FrFT.calculate(f, delta_x * self.delta_f)
         return TransformResult(x=x, y=r.result.real)
@@ -124,6 +155,26 @@ class Transform:
             / np.pi
         )
         return TransformResult(x=x, y=t)
+
+    def characteristic_df(self, psi: np.ndarray) -> pd.DataFrame:
+        return pd.concat(
+            (
+                pd.DataFrame(
+                    dict(
+                        frequency=self.frequency_domain,
+                        characteristic=psi.real,
+                        name="real",
+                    )
+                ),
+                pd.DataFrame(
+                    dict(
+                        frequency=self.frequency_domain,
+                        characteristic=psi.imag,
+                        name="iamg",
+                    )
+                ),
+            )
+        )
 
 
 @dataclass

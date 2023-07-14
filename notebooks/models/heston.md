@@ -127,3 +127,7 @@ std = dict(std=pr.marginal(paths.time).std(), simulated=paths.std())
 df = pd.DataFrame(std, index=paths.time)
 plot.plot_lines(df)
 ```
+
+```{code-cell} ipython3
+
+```

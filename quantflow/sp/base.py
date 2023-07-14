@@ -101,9 +101,11 @@ class StochasticProcess1D(StochasticProcess):
     def domain_range(self) -> Bounds:
         return default_bounds()
 
-    def max_frequency(self, std: float) -> float:
+    def frequency_range(self, std: float, max_frequency: float | None = None) -> Bounds:
         """Maximum frequency when calculating characteristic functions"""
-        return np.sqrt(40 / std / std)
+        if max_frequency is None:
+            max_frequency = np.sqrt(40 / std / std)
+        return Bounds(0, max_frequency)
 
     def support(self, mean: float, std: float, points: int) -> FloatArray:
         """Support of the process at time `t`"""
@@ -131,6 +133,10 @@ class StochasticProcess1DMarginal(Marginal1D, Generic[P]):
     def domain_range(self) -> Bounds:
         return self.process.domain_range()
 
+    def frequency_range(self, max_frequency: float | None = None) -> Bounds:
+        std = float(np.min(self.std()))
+        return self.process.frequency_range(std, max_frequency=max_frequency)
+
     def pdf(self, x: FloatArrayLike) -> FloatArrayLike:
         return self.process.analytical_pdf(self.t, x)
 
@@ -148,9 +154,6 @@ class StochasticProcess1DMarginal(Marginal1D, Generic[P]):
             return self.process.analytical_variance(self.t)
         except NotImplementedError:
             return self.variance_from_characteristic()
-
-    def max_frequency(self) -> float:
-        return self.process.max_frequency(float(np.min(self.std())))
 
     def support(self, points: int = 100, *, std_mult: float = 4) -> FloatArray:
         return self.process.support(

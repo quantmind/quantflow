@@ -82,7 +82,8 @@ As long as we have a closed-form solution for the characteristic function of the
 The library includes the Exponential Poisson Process, a compound Poisson process where the jump sizes are sampled from an exponential distribution.
 
 ```{code-cell} ipython3
-from quantflow.sp.poisson import CompoundPoissonProcess, Exponential
+from quantflow.sp.poisson import CompoundPoissonProcess
+from quantflow.utils.distributions import Exponential
 
 pr = CompoundPoissonProcess(intensity=2, jumps=Exponential(decay=10))
 pr
@@ -91,7 +92,7 @@ pr
 ```{code-cell} ipython3
 from quantflow.utils.plot import plot_characteristic
 m = pr.marginal(1)
-plot_characteristic(m)
+plot_characteristic(m, max_frequency=100)
 ```
 
 ```{code-cell} ipython3
@@ -209,6 +210,14 @@ plot_characteristic(m)
 
 ```{code-cell} ipython3
 pr.sample(10, time_horizon=10, time_steps=1000).plot().update_traces(line_width=1)
+```
+
+```{code-cell} ipython3
+m.characteristic(2)
+```
+
+```{code-cell} ipython3
+m.characteristic(-2).conj()
 ```
 
 ```{code-cell} ipython3
