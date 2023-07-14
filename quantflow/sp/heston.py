@@ -3,10 +3,12 @@ from __future__ import annotations
 import numpy as np
 from pydantic import Field
 
+from ..utils.distributions import DoubleExponential, Exponential
 from ..utils.paths import Paths
-from ..utils.types import Vector
+from ..utils.types import Vector, FloatArrayLike
 from .base import StochasticProcess1D
 from .cir import CIR
+from .poisson import CompoundPoissonProcess
 
 
 class Heston(StochasticProcess1D):
@@ -36,7 +38,7 @@ class Heston(StochasticProcess1D):
             rho=rho,
         )
 
-    def characteristic_exponent(self, t: Vector, u: Vector) -> Vector:
+    def characteristic_exponent(self, t: FloatArrayLike, u: Vector) -> Vector:
         eta = self.variance_process.sigma
         eta2 = eta * eta
         theta_kappa = self.variance_process.theta * self.variance_process.kappa
@@ -67,3 +69,57 @@ class Heston(StochasticProcess1D):
         paths = np.zeros(dx.shape)
         paths[1:] = np.cumsum(dx[:-1], axis=0)
         return Paths(t=path1.t, data=paths)
+
+
+class HestonJ(Heston):
+    jumps_up: CompoundPoissonProcess[Exponential] = Field(
+        description="positive jumps process"
+    )
+    jumps_down: CompoundPoissonProcess[Exponential] = Field(
+        description="negative jumps process"
+    )
+
+    @classmethod
+    def create(
+        cls,
+        vol: float = 0.5,
+        kappa: float = 1,
+        sigma: float = 0.8,
+        rho: float = 0,
+        jump_intensity: float = 100,  # number of jumps per year
+        jump_fraction: float = 0.1,  # percentage of variance due to jumps
+        jump_skew: float = 1,
+    ) -> Heston:
+        if jump_fraction <= 0 or jump_fraction >= 1:
+            raise ValueError("jump_percentage must be between 0 and 1")
+        variance = vol * vol
+        jump_variance = variance * jump_fraction
+        diffusion_variance = variance - jump_variance
+        jump_distribution_variance = jump_variance / jump_intensity
+        de = DoubleExponential(
+            decay=1.0 / np.sqrt(jump_distribution_variance), k=jump_skew
+        )
+        return cls(
+            variance_process=CIR(
+                rate=diffusion_variance,
+                kappa=kappa,
+                sigma=sigma,
+                theta=diffusion_variance,
+            ),
+            rho=rho,
+            jumps_up=CompoundPoissonProcess[Exponential](
+                intensity=jump_intensity,
+                jumps=Exponential(decay=1 / de.scale_up),
+            ),
+            jumps_down=CompoundPoissonProcess[Exponential](
+                intensity=jump_intensity,
+                jumps=Exponential(decay=1 / de.scale_down),
+            ),
+        )
+
+    def characteristic_exponent(self, t: FloatArrayLike, u: Vector) -> Vector:
+        return (
+            super().characteristic_exponent(t, u)
+            + self.jumps_up.characteristic_exponent(t, u)
+            - self.jumps_down.characteristic_exponent(t, u)
+        )

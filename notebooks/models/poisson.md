@@ -245,7 +245,3 @@ m.characteristic(2)
 ```{code-cell} ipython3
 m.characteristic(-2).conj()
 ```
-
-```{code-cell} ipython3
-
-```

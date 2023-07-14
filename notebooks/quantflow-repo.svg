@@ -1,0 +1,101 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- Created with Inkscape (http://www.inkscape.org/) -->
+
+<svg
+   width="338.66669mm"
+   height="169.33331mm"
+   viewBox="0 0 338.66669 169.33331"
+   version="1.1"
+   id="svg5"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg">
+  <defs
+     id="defs2" />
+  <g
+     id="layer1"
+     transform="translate(-4.0338982,-66.203385)">
+    <g
+       id="g34657">
+      <rect
+         style="opacity:1;fill:#10141b;fill-opacity:1;stroke:none;stroke-width:1.41604;stroke-dasharray:none;stroke-opacity:1"
+         id="rect32462"
+         width="338.66666"
+         height="169.33333"
+         x="4.0338984"
+         y="66.203384" />
+      <g
+         id="g32408"
+         transform="matrix(1.0835547,0,0,1.0835547,10.960405,8.4219378)">
+        <g
+           id="g32071"
+           transform="translate(-23.283078,25.627119)">
+          <text
+             xml:space="preserve"
+             style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:61.919px;font-family:'Nirmala UI';-inkscape-font-specification:'Nirmala UI, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;letter-spacing:0px;opacity:1;fill:#8c8400;fill-opacity:1;stroke:none;stroke-width:2.74247;stroke-dasharray:none;stroke-opacity:1"
+             x="101.41463"
+             y="111.57877"
+             id="text32055"><tspan
+               id="tspan32053"
+               style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:61.919px;font-family:'Nirmala UI';-inkscape-font-specification:'Nirmala UI, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;stroke:none;stroke-width:2.74247"
+               x="101.41463"
+               y="111.57877"
+               dx="0 0 -2.6030264"
+               dy="0 5.8568096 1.5445983e-07">Q<tspan
+   style="font-size:34.8294px;stroke-width:2.74247"
+   id="tspan32051">uantflow</tspan></tspan></text>
+          <g
+             id="g32069"
+             transform="translate(4.7457627)">
+            <circle
+               style="fill:#297efe;fill-opacity:1;stroke:#4465da;stroke-width:0;stroke-dasharray:none;stroke-opacity:1"
+               id="circle32057"
+               cx="70.644058"
+               cy="92.582512"
+               r="7.9999995" />
+            <circle
+               style="fill:#297efe;fill-opacity:1;stroke:#4465da;stroke-width:0;stroke-dasharray:none;stroke-opacity:1"
+               id="circle32059"
+               cx="70.644058"
+               cy="109.84374"
+               r="7.9999995" />
+            <circle
+               style="fill:#297efe;fill-opacity:1;stroke:#4465da;stroke-width:0;stroke-dasharray:none;stroke-opacity:1"
+               id="circle32061"
+               cx="70.644058"
+               cy="75.497765"
+               r="7.9999995" />
+            <circle
+               style="fill:#297efe;fill-opacity:1;stroke:#4465da;stroke-width:0;stroke-dasharray:none;stroke-opacity:1"
+               id="circle32063"
+               cx="89.152534"
+               cy="75.497765"
+               r="7.9999995" />
+            <circle
+               style="fill:#297efe;fill-opacity:1;stroke:#4465da;stroke-width:0;stroke-dasharray:none;stroke-opacity:1"
+               id="circle32065"
+               cx="88.440674"
+               cy="92.582512"
+               r="7.9999995" />
+            <ellipse
+               style="fill:#297efe;fill-opacity:1;stroke:#4465da;stroke-width:0;stroke-dasharray:none;stroke-opacity:1"
+               id="ellipse32067"
+               cx="88.440674"
+               cy="109.84374"
+               rx="4"
+               ry="3.9999998" />
+          </g>
+        </g>
+        <text
+           xml:space="preserve"
+           style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:12.7px;font-family:'Nirmala UI';-inkscape-font-specification:'Nirmala UI, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;opacity:1;fill:#297efe;fill-opacity:1;stroke:none;stroke-width:1;stroke-dasharray:none;stroke-opacity:1"
+           x="14.474576"
+           y="166.81355"
+           id="text32291"><tspan
+             id="tspan32289"
+             style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:12.7px;font-family:'Nirmala UI';-inkscape-font-specification:'Nirmala UI, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;fill:#297efe;fill-opacity:1;stroke:none;stroke-width:1"
+             x="14.474576"
+             y="166.81355">A modern python library for quantitative finance</tspan></text>
+      </g>
+    </g>
+  </g>
+</svg>
