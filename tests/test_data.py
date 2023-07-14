@@ -17,4 +17,4 @@ def test_client(fmp: FMP) -> None:
 
 async def test_historical(fmp: FMP) -> None:
     df = await fmp.prices("BTCUSD")
-    assert df["close"]
+    assert df["close"] is not None
