@@ -19,6 +19,7 @@ parts:
   - file: models/cir
   - file: models/ou
   - file: models/heston
+  - file: models/heston_jumps
   - file: models/bns
 
 - caption: Applications

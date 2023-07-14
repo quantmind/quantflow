@@ -13,16 +13,35 @@ kernelspec:
 
 # Heston Model with Jumps
 
+THe models complements the standard [Heston](./heston.md) stochastic volatility model, with the addition of a double exponential Compound Poisson process.
+The Compound Poisson process adds a jump component to the Heston diffusion SDEs which control the volatility smile and skew for shorter maturities.
+
+\begin{align}
+    y_t &= x_{\tau_t} + d j_t\\
+    \tau_t &= \int_0^t \nu_s ds \\
+    d x_t &= d w_t \\
+    d \nu_t &= \kappa\left(\theta - \nu_t\right) dt + \sigma\sqrt{\nu_t} d z_t \\
+    {\mathbb E}\left[d w_t d z_t\right] &= \rho dt
+\end{align}
+
+where $j_t$ is a double exponential Compound Poisson process which adds three additional parameter to the model
+
+* the jump intensity, which measures the expected number of jumps in a year
+* the jump percentage (fraction) contribution to the total variance
+* the jump asymmetry is defined as a parameter greater than 0; 1 means jump are symmetric
+
+The jump process is independent of the other Brownian motions.
+
 ```{code-cell} ipython3
 from quantflow.sp.heston import HestonJ
 pr = HestonJ.create(
     vol=0.6,
     kappa=2,
-    sigma=1.5,
-    rho=-0.3,
-    jump_intensity=100,
-    jump_fraction=0.3,
-    jump_skew=1.5
+    sigma=0.8,
+    rho=-0.2,
+    jump_intensity=50,
+    jump_fraction=0.2,
+    jump_asymmetry=1.2
 )
 pr
 ```

@@ -5,7 +5,7 @@ from pydantic import Field
 
 from ..utils.distributions import DoubleExponential, Exponential
 from ..utils.paths import Paths
-from ..utils.types import Vector, FloatArrayLike
+from ..utils.types import FloatArrayLike, Vector
 from .base import StochasticProcess1D
 from .cir import CIR
 from .poisson import CompoundPoissonProcess
@@ -88,16 +88,16 @@ class HestonJ(Heston):
         rho: float = 0,
         jump_intensity: float = 100,  # number of jumps per year
         jump_fraction: float = 0.1,  # percentage of variance due to jumps
-        jump_skew: float = 1,
-    ) -> Heston:
+        jump_asymmetry: float = 1,
+    ) -> HestonJ:
         if jump_fraction <= 0 or jump_fraction >= 1:
             raise ValueError("jump_percentage must be between 0 and 1")
-        variance = vol * vol
-        jump_variance = variance * jump_fraction
-        diffusion_variance = variance - jump_variance
-        jump_distribution_variance = jump_variance / jump_intensity
+        total_variance = vol * vol
+        jump_variance = total_variance * jump_fraction
+        diffusion_variance = total_variance - jump_variance
+        jump_distribution_variance = 0.5 * jump_variance / jump_intensity
         de = DoubleExponential(
-            decay=1.0 / np.sqrt(jump_distribution_variance), k=jump_skew
+            decay=1.0 / np.sqrt(jump_distribution_variance), k=jump_asymmetry
         )
         return cls(
             variance_process=CIR(
