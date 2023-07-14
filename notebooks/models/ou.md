@@ -71,6 +71,15 @@ pr.sample(20, time_horizon=1, time_steps=1000).plot().update_traces(
 )
 ```
 
+```{code-cell} ipython3
+m = pr.marginal(1)
+m.mean(), m.std()
+```
+
+```{code-cell} ipython3
+m.mean_from_characteristic(), m.std_from_characteristic()
+```
+
 ## Non-gaussian OU process
 
 Non-Gaussian OU processes offer the possibility of capturing significant distributional deviations from Gaussianity and for flexible modeling of dependence structure.

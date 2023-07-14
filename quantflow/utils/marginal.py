@@ -30,7 +30,7 @@ class Marginal1D(BaseModel, ABC, extra="forbid"):
     def mean(self) -> FloatArrayLike:
         """Expected value
 
-        THis should be overloaded if a more efficient way of computing the mean
+        This should be overloaded if a more efficient way of computing the mean
         """
         return self.mean_from_characteristic()
 

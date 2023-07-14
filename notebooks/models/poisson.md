@@ -77,6 +77,12 @@ where $\Phi_{j,u}$ is the characteristic function of the jump distribution.
 
 As long as we have a closed-form solution for the characteristic function of the jump distribution, then we have a closed-form solution for the characteristic exponent of the compound Poisson process.
 
+The mean and variance of the compund Poisson is given by
+\begin{align}
+    {\mathbb E}\left[x_t\right] &= \lambda t {\mathbb E}\left[j\right]\\
+    {\mathbb Var}\left[x_t^2\right] &= \lambda t \left({\mathbb Var}\left[j\right] + {\mathbb E}\left[j\right]^2\right)
+\end{align}
+
 ### Exponential Compound Poisson Process
 
 The library includes the Exponential Poisson Process, a compound Poisson process where the jump sizes are sampled from an exponential distribution.
@@ -85,14 +91,14 @@ The library includes the Exponential Poisson Process, a compound Poisson process
 from quantflow.sp.poisson import CompoundPoissonProcess
 from quantflow.utils.distributions import Exponential
 
-pr = CompoundPoissonProcess(intensity=2, jumps=Exponential(decay=10))
+pr = CompoundPoissonProcess(intensity=1, jumps=Exponential(decay=1))
 pr
 ```
 
 ```{code-cell} ipython3
 from quantflow.utils.plot import plot_characteristic
 m = pr.marginal(1)
-plot_characteristic(m, max_frequency=100)
+plot_characteristic(m)
 ```
 
 ```{code-cell} ipython3
@@ -125,6 +131,26 @@ plot.plot_lines(df)
 std = dict(std=pr.marginal(paths.time).std(), simulated=paths.std())
 df = pd.DataFrame(std, index=paths.time)
 plot.plot_lines(df)
+```
+
+## Normal Compound Poisson
+
+A compound Poisson process with a normal jump distribution
+
+```{code-cell} ipython3
+from quantflow.utils.distributions import Normal
+from quantflow.sp.poisson import CompoundPoissonProcess
+pr = CompoundPoissonProcess(intensity=10, jumps=Normal(mu=0.01, sigma=0.1))
+pr
+```
+
+```{code-cell} ipython3
+m = pr.marginal(1)
+m.mean(), m.std()
+```
+
+```{code-cell} ipython3
+m.mean_from_characteristic(), m.std_from_characteristic()
 ```
 
 ## Doubly Stochastic Poisson Process

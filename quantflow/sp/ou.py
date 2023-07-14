@@ -16,6 +16,11 @@ from .weiner import WeinerProcess
 
 
 class Vasicek(IntensityProcess):
+    """Gaussian OU process, also know as the Vasiceck model.
+
+    Strictly, it is not an intensity process since it is not positive
+    """
+
     bdlp: WeinerProcess = Field(
         default_factory=WeinerProcess,
         description="Background driving Weiner process",
@@ -23,7 +28,9 @@ class Vasicek(IntensityProcess):
     theta: float = Field(default=1.0, gt=0, description="Mean rate")
 
     def characteristic_exponent(self, t: FloatArrayLike, u: Vector) -> Vector:
-        raise NotImplementedError
+        mu = self.analytical_mean(t)
+        var = self.analytical_variance(t)
+        return u * (-complex(0, 1) * mu + 0.5 * var * u)
 
     def integrated_log_laplace(self, t: FloatArrayLike, u: Vector) -> Vector:
         raise NotImplementedError

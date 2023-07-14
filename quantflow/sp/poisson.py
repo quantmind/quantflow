@@ -166,4 +166,4 @@ class CompoundPoissonProcess(PoissonBase, Generic[D]):
 
     def analytical_variance(self, t: FloatArrayLike) -> FloatArrayLike:
         """Expected variance at a time horizon"""
-        return self.intensity * t * self.jumps.variance()
+        return self.intensity * t * (self.jumps.variance() + self.jumps.mean() ** 2)

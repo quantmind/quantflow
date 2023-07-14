@@ -2,6 +2,7 @@ import pytest
 
 from quantflow.sp.bns import BNS
 from quantflow.sp.ou import GammaOU, Vasicek
+from tests.utils import characteristic_tests, analytical_tests
 
 
 @pytest.fixture
@@ -32,8 +33,12 @@ def test_sample(gamma_ou: GammaOU) -> None:
 
 def test_vasicek(vasicek: Vasicek) -> None:
     m = vasicek.marginal(10)
+    characteristic_tests(m)
+    analytical_tests(vasicek)
     assert m.mean() == 1.0
     assert m.variance() == pytest.approx(0.1)
+    assert m.mean_from_characteristic() == pytest.approx(1.0, 1e-3)
+    assert m.std_from_characteristic() == pytest.approx(m.std(), 1e-3)
 
 
 def test_bns(bns: BNS):

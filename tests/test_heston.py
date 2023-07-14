@@ -1,6 +1,7 @@
 import pytest
 
 from quantflow.sp.heston import Heston
+from tests.utils import characteristic_tests
 
 
 @pytest.fixture
@@ -12,5 +13,6 @@ def test_characteristic(heston: Heston) -> None:
     assert heston.variance_process.is_positive is True
     assert heston.characteristic(1, 0) == 1
     m = heston.marginal(1)
+    characteristic_tests(m)
     assert m.mean() == 0.0
     assert pytest.approx(m.std()) == 0.5
