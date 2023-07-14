@@ -1,0 +1,105 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- Created with Inkscape (http://www.inkscape.org/) -->
+
+<svg
+   width="211.55325mm"
+   height="50.345985mm"
+   viewBox="0 0 211.55325 50.345985"
+   version="1.1"
+   id="svg5"
+   inkscape:version="1.2.2 (732a01da63, 2022-12-09)"
+   sodipodi:docname="quantflow.svg"
+   inkscape:dataloss="true"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg">
+  <sodipodi:namedview
+     id="namedview7"
+     pagecolor="#505050"
+     bordercolor="#ffffff"
+     borderopacity="1"
+     inkscape:showpageshadow="0"
+     inkscape:pageopacity="0"
+     inkscape:pagecheckerboard="1"
+     inkscape:deskcolor="#505050"
+     inkscape:document-units="mm"
+     showgrid="false"
+     inkscape:zoom="1.1150298"
+     inkscape:cx="529.58228"
+     inkscape:cy="396.85039"
+     inkscape:window-width="1920"
+     inkscape:window-height="1130"
+     inkscape:window-x="-6"
+     inkscape:window-y="1721"
+     inkscape:window-maximized="1"
+     inkscape:current-layer="layer1" />
+  <defs
+     id="defs2" />
+  <g
+     inkscape:label="Layer 1"
+     inkscape:groupmode="layer"
+     id="layer1"
+     transform="translate(-45.796599,-72.955393)">
+    <g
+       id="g31842"
+       transform="translate(-21.59322,5.4576271)">
+      <text
+         xml:space="preserve"
+         style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:61.919px;font-family:'Nirmala UI';-inkscape-font-specification:'Nirmala UI, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;letter-spacing:0px;opacity:1;fill:#8c8400;fill-opacity:1;stroke:none;stroke-width:2.74247;stroke-dasharray:none;stroke-opacity:1"
+         x="101.41463"
+         y="111.57877"
+         id="text30142"><tspan
+           sodipodi:role="line"
+           id="tspan30140"
+           style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:61.919px;font-family:'Nirmala UI';-inkscape-font-specification:'Nirmala UI, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;stroke:none;stroke-width:2.74247"
+           x="101.41463"
+           y="111.57877"
+           dx="0 0 -2.6030264"
+           dy="0 5.8568096 1.5445983e-07">Q<tspan
+   style="font-size:34.8294px;stroke-width:2.74247"
+   id="tspan31698">uantflow</tspan></tspan></text>
+      <g
+         id="g31830"
+         transform="translate(4.7457627)">
+        <circle
+           style="fill:#297efe;fill-opacity:1;stroke:#4465da;stroke-width:0;stroke-dasharray:none;stroke-opacity:1"
+           id="circle31723"
+           cx="70.644058"
+           cy="92.582512"
+           r="7.9999995" />
+        <circle
+           style="fill:#297efe;fill-opacity:1;stroke:#4465da;stroke-width:0;stroke-dasharray:none;stroke-opacity:1"
+           id="circle31725"
+           cx="70.644058"
+           cy="109.84374"
+           r="7.9999995" />
+        <circle
+           style="fill:#297efe;fill-opacity:1;stroke:#4465da;stroke-width:0;stroke-dasharray:none;stroke-opacity:1"
+           id="circle31808"
+           cx="70.644058"
+           cy="75.497765"
+           r="7.9999995" />
+        <circle
+           style="fill:#297efe;fill-opacity:1;stroke:#4465da;stroke-width:0;stroke-dasharray:none;stroke-opacity:1"
+           id="circle31818"
+           cx="89.152534"
+           cy="75.497765"
+           r="7.9999995" />
+        <circle
+           style="fill:#297efe;fill-opacity:1;stroke:#4465da;stroke-width:0;stroke-dasharray:none;stroke-opacity:1"
+           id="circle31820"
+           cx="88.440674"
+           cy="92.582512"
+           r="7.9999995" />
+        <ellipse
+           style="fill:#297efe;fill-opacity:1;stroke:#4465da;stroke-width:0;stroke-dasharray:none;stroke-opacity:1"
+           id="circle31822"
+           cx="88.440674"
+           cy="109.84374"
+           rx="4"
+           ry="3.9999998" />
+      </g>
+    </g>
+  </g>
+</svg>
