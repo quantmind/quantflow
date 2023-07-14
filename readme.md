@@ -1,4 +1,4 @@
-[![quantflow jupyter book](./notebooks/quantflow-small-1.png)](https://quantmind.github.io/quantflow)
+# <img src="https://raw.githubusercontent.com/quantmind/quantflow/main/notebooks/quantflow.svg" width=300 />
 
 [![PyPI version](https://badge.fury.io/py/quantflow.svg)](https://badge.fury.io/py/quantflow)
 [![Python versions](https://img.shields.io/pypi/pyversions/quantflow.svg)](https://pypi.org/project/quantflow)
