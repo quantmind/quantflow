@@ -13,7 +13,7 @@ jobs:
     env:
       PYTHON_ENV: ci
       PYPI_PASSWORD: ${{ secrets.PYPI_PASSWORD }}
-      
+      FMP_API_KEY: ${{ secrets.FMP_API_KEY }}
     strategy:
       matrix:
         python-version: ["3.10", "3.11"]
