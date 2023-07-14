@@ -2,14 +2,13 @@
 <!-- Created with Inkscape (http://www.inkscape.org/) -->
 
 <svg
-   width="211.55325mm"
-   height="50.345985mm"
-   viewBox="0 0 211.55325 50.345985"
+   width="297mm"
+   height="210mm"
+   viewBox="0 0 297 210"
    version="1.1"
    id="svg5"
    inkscape:version="1.2.2 (732a01da63, 2022-12-09)"
    sodipodi:docname="quantflow.svg"
-   inkscape:dataloss="true"
    xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
    xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
    xmlns="http://www.w3.org/2000/svg"
@@ -35,15 +34,36 @@
      inkscape:window-maximized="1"
      inkscape:current-layer="layer1" />
   <defs
-     id="defs2" />
+     id="defs2">
+    <rect
+       x="530.92753"
+       y="191.92313"
+       width="210.75671"
+       height="52.016549"
+       id="rect30136" />
+    <rect
+       x="498.6414"
+       y="173.08955"
+       width="143.49393"
+       height="171.29588"
+       id="rect30130" />
+    <rect
+       x="486.08568"
+       y="200.8915"
+       width="116.58882"
+       height="140.80342"
+       id="rect30124" />
+  </defs>
   <g
      inkscape:label="Layer 1"
      inkscape:groupmode="layer"
-     id="layer1"
-     transform="translate(-45.796599,-72.955393)">
+     id="layer1">
     <g
        id="g31842"
-       transform="translate(-21.59322,5.4576271)">
+       transform="translate(-21.59322,5.4576271)"
+       inkscape:export-filename="quantflow.svg"
+       inkscape:export-xdpi="96"
+       inkscape:export-ydpi="96">
       <text
          xml:space="preserve"
          style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:61.919px;font-family:'Nirmala UI';-inkscape-font-specification:'Nirmala UI, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;letter-spacing:0px;opacity:1;fill:#8c8400;fill-opacity:1;stroke:none;stroke-width:2.74247;stroke-dasharray:none;stroke-opacity:1"
