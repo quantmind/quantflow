@@ -16,7 +16,7 @@ kernelspec:
 
 A library for quantitative analysis and pricing.
 
-<img src="./_static_/heston.gif" alt="Heston volatility surface" width="400">
+<img src="./assets/heston.gif" alt="Heston volatility surface" width="400">
 
 
 This documentation is organized into a few major sections.
