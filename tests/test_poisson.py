@@ -52,6 +52,9 @@ def test_poisson_sampling(poisson: PoissonProcess) -> None:
     assert mean[0] == 0
     std = paths.std()
     assert std[0] == 0
+    pdf = paths.pdf(delta=1)
+    assert len(pdf.columns) == 1
+    assert sum(pdf["pdf"]) == 1
 
 
 def test_comp_characteristic(comp: CompoundPoissonProcess) -> None:

@@ -4,31 +4,37 @@
 format: jb-book
 root: index
 parts:
-- caption: Theory
+- caption: Topic Guides
   chapters:
-  - file: theory/levy
-  - file: theory/characteristic
-  - file: theory/inversion
-  - file: theory/option_pricing
+  - file: theory/overview
+    sections:
+    - file: theory/levy
+    - file: theory/characteristic
+    - file: theory/inversion
+    - file: theory/option_pricing
 
-- caption: Models
-  chapters:
-  - file: models/weiner
-  - file: models/poisson
-  - file: models/jump_diffusion
-  - file: models/cir
-  - file: models/ou
-  - file: models/heston
-  - file: models/heston_jumps
-  - file: models/bns
+  - file: models/overview
+    sections:
+    - file: models/weiner
+    - file: models/poisson
+    - file: models/jump_diffusion
+    - file: models/cir
+    - file: models/ou
+    - file: models/heston
+    - file: models/heston_jumps
+    - file: models/bns
 
-- caption: Applications
-  chapters:
-  - file: applications/volatility_surface
-  - file: applications/calibration
+  - file: applications/overview
+    sections:
+    - file: applications/volatility_surface
+    - file: applications/calibration
 
-- caption: API Reference
-  chapters:
+  - file: examples/overview
+    sections:
+    - file: examples/poisson_sampling
+
+  - file: api/overview.rst
+    sections:
     - file: api/sp.rst
 
 - caption: Reference

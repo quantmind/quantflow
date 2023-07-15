@@ -1,22 +1,23 @@
 from __future__ import annotations
 
-from typing import Any
+from typing import Any, cast
 
 import numpy as np
 import pandas as pd
 from numpy.random import normal
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, Field
 from scipy.integrate import cumtrapz
 
 from . import plot
+from .bins import pdf as bins_pdf
+from .types import FloatArray
 
 
-class Paths(BaseModel):
+class Paths(BaseModel, arbitrary_types_allowed=True):
     """Paths of a stochastic process"""
 
-    model_config = ConfigDict(arbitrary_types_allowed=True)
     t: float = Field(description="time horizon")
-    data: np.ndarray = Field(description="paths")
+    data: FloatArray = Field(description="paths")
 
     @property
     def dt(self) -> float:
@@ -64,6 +65,33 @@ class Paths(BaseModel):
         """Integrate paths"""
         return self.__class__(
             t=self.t, data=cumtrapz(self.data, dx=self.dt, axis=0, initial=0)
+        )
+
+    def cross_section(self, t: float | None = None) -> FloatArray:
+        index = self.time_steps
+        if t is not None:
+            index = cast(int, t // self.dt)
+        return self.data[index, :]
+
+    def pdf(
+        self,
+        t: float | None = None,
+        num_bins: int | None = None,
+        delta: float | None = None,
+        symmetric: float | None = None,
+    ) -> pd.DataFrame:
+        """Probability density function of paths
+
+        Calculate a DataFrame with the probability density function of the paths
+        at a given cross section of time. By default it take the last section.
+
+        :param t: time at which to calculate the pdf
+        :param num_bins: number of bins
+        :param delta: optional size of bins (cannot be set with num_bins)
+        :param symmetric: optional center of bins
+        """
+        return bins_pdf(
+            self.cross_section(t), num_bins=num_bins, delta=delta, symmetric=symmetric
         )
 
     def plot(self, **kwargs: Any) -> Any:
