@@ -30,8 +30,11 @@ repository:
 # See https://jupyterbook.org/customize/config.html#add-a-link-to-your-repository
 html:
   favicon: quantflow-logo.png
+  home_page_in_navbar: false
+  use_edit_page_button: true
   use_issues_button: true
   use_repository_button: true
+  google_analytics_id: G-XBNNWQ560T
 
 parse:
   myst_enable_extensions:

@@ -39,7 +39,7 @@ make notebook
 
 +++
 
-### Documentation
+## Documentation
 
 The documentation is built using [Jupyter book](https://jupyterbook.org/en/stable/intro.html) which supports an *extended version of Jupyter Markdown* called "MyST Markdown".
 For information about the MyST syntax and how to use it, see
