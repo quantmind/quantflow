@@ -54,7 +54,7 @@ def test_poisson_sampling(poisson: PoissonProcess) -> None:
     assert std[0] == 0
     pdf = paths.pdf(delta=1)
     assert len(pdf.columns) == 1
-    assert sum(pdf["pdf"]) == 1
+    assert sum(pdf["pdf"]) == pytest.approx(1)
 
 
 def test_comp_characteristic(comp: CompoundPoissonProcess) -> None:
