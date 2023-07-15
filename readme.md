@@ -1,4 +1,4 @@
-# <a href="https://quantmind.github.io/quantflow"><img src="https://raw.githubusercontent.com/quantmind/quantflow/main/notebooks/quantflow-light.svg" width=300 /></a>
+# <a href="https://quantmind.github.io/quantflow"><img src="https://raw.githubusercontent.com/quantmind/quantflow/main/notebooks/assets/quantflow-light.svg" width=300 /></a>
 
 [![PyPI version](https://badge.fury.io/py/quantflow.svg)](https://badge.fury.io/py/quantflow)
 [![Python versions](https://img.shields.io/pypi/pyversions/quantflow.svg)](https://pypi.org/project/quantflow)
