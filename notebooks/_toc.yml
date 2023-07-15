@@ -32,6 +32,7 @@ parts:
   - file: examples/overview
     sections:
     - file: examples/poisson_sampling
+    - file: example/heston_vol_surface
 
   - file: api/overview.rst
     sections:

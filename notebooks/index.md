@@ -16,6 +16,9 @@ kernelspec:
 
 A library for quantitative analysis and pricing.
 
+<img src="./_static_/heston.gif" alt="Heston volatility surface" width="400">
+
+
 This documentation is organized into a few major sections.
 * **Theory** cover some important concept used throughout the library, for the curious reader
 * **Stochastic Processes** cover all the stochastic models supported and their use

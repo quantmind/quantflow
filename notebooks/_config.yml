@@ -4,7 +4,7 @@
 title: Quantflow library
 author: Quantmind Team
 copyright: "2023"
-logo: quantflow-light.svg
+logo: assets/quantflow-light.svg
 
 # Force re-execution of notebooks on each build.
 # See https://jupyterbook.org/content/execute.html
@@ -29,7 +29,7 @@ repository:
 # Add GitHub buttons to your book
 # See https://jupyterbook.org/customize/config.html#add-a-link-to-your-repository
 html:
-  favicon: quantflow-logo.png
+  favicon: assets/quantflow-logo.png
   home_page_in_navbar: false
   use_edit_page_button: true
   use_issues_button: true

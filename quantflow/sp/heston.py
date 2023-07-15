@@ -29,12 +29,18 @@ class Heston(StochasticProcess1D):
 
     @classmethod
     def create(
-        cls, vol: float = 0.5, kappa: float = 1, sigma: float = 0.8, rho: float = 0
+        cls,
+        vol: float = 0.5,
+        kappa: float = 1,
+        sigma: float = 0.8,
+        rho: float = 0,
+        theta: float | None = None,
     ) -> Heston:
+        rate = vol * vol
+        if theta is None:
+            theta = rate
         return cls(
-            variance_process=CIR(
-                rate=vol * vol, kappa=kappa, sigma=sigma, theta=vol * vol
-            ),
+            variance_process=CIR(rate=rate, kappa=kappa, sigma=sigma, theta=theta),
             rho=rho,
         )
 
@@ -86,6 +92,7 @@ class HestonJ(Heston):
         kappa: float = 1,
         sigma: float = 0.8,
         rho: float = 0,
+        theta: float | None = None,
         jump_intensity: float = 100,  # number of jumps per year
         jump_fraction: float = 0.1,  # percentage of variance due to jumps
         jump_asymmetry: float = 1,
@@ -104,7 +111,7 @@ class HestonJ(Heston):
                 rate=diffusion_variance,
                 kappa=kappa,
                 sigma=sigma,
-                theta=diffusion_variance,
+                theta=theta if theta is not None else diffusion_variance,
             ),
             rho=rho,
             jumps_up=CompoundPoissonProcess[Exponential](

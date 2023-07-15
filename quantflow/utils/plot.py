@@ -5,6 +5,7 @@ import pandas as pd
 from scipy.stats import norm
 
 from .marginal import Marginal1D
+from .types import FloatArray
 
 PLOTLY_THEME = os.environ.get("PLOTLY_THEME", "plotly_dark")
 
@@ -162,3 +163,20 @@ def plot_vol_cross(
             )
         )
     return fig.update_layout(xaxis_title="moneyness_ttm", yaxis_title=series)
+
+
+def plot3d(
+    x: FloatArray,
+    y: FloatArray,
+    z: FloatArray,
+    contours: Any | None,
+    colorscale: str = "viridis",
+    **kwargs: Any
+) -> Any:
+    check_plotly()
+    fig = go.Figure(
+        data=[go.Surface(x=x, y=y, z=z, contours=contours, colorscale=colorscale)]
+    )
+    if kwargs:
+        fig.update_layout(**kwargs)
+    return fig

@@ -139,3 +139,43 @@ class OptionPricer(Generic[M]):
     def call_price(self, ttm: float, moneyness: float) -> float:
         """Price a single call option"""
         return self.maturity(ttm).call_price(moneyness)
+
+    def plot3d(
+        self,
+        max_moneyness_ttm: float = 1.0,
+        support: int = 51,
+        ttm: FloatArray | None = None,
+        **kwargs: Any,
+    ) -> Any:
+        """Plot the implied vols surface
+
+        It requires plotly to be installed
+        """
+        if ttm is None:
+            ttm = np.arange(0.05, 1.0, 0.05)
+        moneyness_ttm = np.linspace(-max_moneyness_ttm, max_moneyness_ttm, support)
+        implied = np.zeros((len(ttm), len(moneyness_ttm)))
+        for i, t in enumerate(ttm):
+            maturity = self.maturity(t)
+            implied[i, :] = maturity.interp(moneyness_ttm * np.sqrt(t)).implied_vols
+        properties: dict = dict(
+            xaxis_title="moneyness_ttm",
+            yaxis_title="TTM",
+            colorscale="viridis",
+            scene=dict(
+                xaxis=dict(title="moneyness_ttm"),
+                yaxis=dict(title="TTM"),
+                zaxis=dict(title="implied_vol"),
+            ),
+            scene_camera=dict(eye=dict(x=1.2, y=-1.8, z=0.3)),
+            contours=dict(
+                x=dict(show=True, color="white"), y=dict(show=True, color="white")
+            ),
+        )
+        properties.update(kwargs)
+        return plot.plot3d(
+            x=moneyness_ttm,
+            y=ttm,
+            z=implied,
+            **properties,
+        )
