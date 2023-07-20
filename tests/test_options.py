@@ -14,6 +14,7 @@ from quantflow.options.surface import (
     surface_from_inputs,
 )
 from quantflow.sp.heston import Heston
+from tests.utils import has_plotly
 
 a = np.asarray
 CROSS_SECTIONS = 8
@@ -132,4 +133,5 @@ def test_calibration(vol_surface: VolSurface, heston: OptionPricer[Heston]):
         pricer=heston, vol_surface=vol_surface
     ).remove_implied_above(0.95)
     cal.fit()
-    assert cal.plot(index=2) is not None
+    if has_plotly:
+        assert cal.plot(index=2) is not None

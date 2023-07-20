@@ -4,6 +4,13 @@ import numpy as np
 
 from quantflow.sp.base import StochasticProcess1D
 from quantflow.utils.marginal import Marginal1D
+from quantflow.utils.plot import check_plotly
+
+try:
+    check_plotly()
+    has_plotly = True
+except ImportError:
+    has_plotly = False
 
 
 def characteristic_tests(m: Marginal1D):
