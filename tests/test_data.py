@@ -2,9 +2,14 @@ from typing import AsyncIterator, cast
 
 import pytest
 
-from quantflow.data.fmp import FMP
+try:
+    from quantflow.data.fmp import FMP
+except ImportError:
+    FMP = None  # type: ignore
 
-pytestmark = pytest.mark.skipif(FMP().key is None, reason="No FMP API key found")
+pytestmark = pytest.mark.skipif(
+    FMP is None or FMP().key is None, reason="No FMP API key found"
+)
 
 
 @pytest.fixture

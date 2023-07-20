@@ -139,7 +139,7 @@ def plot_vol_cross(
     data2: pd.DataFrame | None = None,
     series: str = "implied_vol",
     marker_size: int = 10,
-    fig: go.Figure | None = None,
+    fig: Any | None = None,
     name: str = "model",
     **kwargs: Any
 ) -> Any:
