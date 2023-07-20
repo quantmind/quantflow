@@ -28,9 +28,6 @@ ruff = "^0.0.277"
 pytest-asyncio = "^0.21.1"
 
 
-[tool.poetry.group.bok.dependencies]
-ipywidgets = "^8.0.7"
-
 [tool.poetry.extras]
 data = ["aiohttp"]
 
@@ -44,7 +41,7 @@ jupytext = "^1.13.8"
 plotly = "^5.7.0"
 jupyterlab = "^4.0.2"
 sympy = "^1.12"
-
+ipywidgets = "^8.0.7"
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]
