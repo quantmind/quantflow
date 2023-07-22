@@ -37,13 +37,16 @@ def plot_marginal_pdf(
     normal: bool = False,
     marker_size: int = 8,
     marker_color: str = "rgba(30, 186, 64, .5)",
+    label: str = "characteristic PDF",
     log_y: bool = False,
+    fig: Any | None = None,
     **kwargs: Any
 ) -> Any:
     """Plot the marginal pdf on an input support"""
     check_plotly()
     pdf = m.pdf_from_characteristic(n, **kwargs)
-    fig = go.Figure()
+    if fig is None:
+        fig = go.Figure()
     if analytical:
         fig.add_trace(
             go.Scatter(
@@ -68,7 +71,7 @@ def plot_marginal_pdf(
         go.Scatter(
             x=pdf.x,
             y=pdf.y,
-            name="characteristic PDF",
+            name=label,
             mode="markers",
             marker_color=marker_color,
             marker_size=marker_size,

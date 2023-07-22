@@ -114,17 +114,21 @@ class CIR(IntensityProcess):
         return -a - b * self.rate
 
     def integrated_log_laplace(self, t: Vector, u: Vector) -> Vector:
-        iu = Im * u
-        sigma = self.sigma
+        """Integrated log Laplace transform of the process
+
+        This is the log of the Laplace transform of the process integrated
+        over time.
+        """
         kappa = self.kappa
-        sigma2 = sigma * sigma
-        gamma = np.sqrt(kappa * kappa - 2 * iu * sigma2)
+        sigma2 = self.sigma2
+        gamma = np.sqrt(kappa * kappa + 2 * u * sigma2)
+        kts = 2 * kappa * self.theta / sigma2
+        gamma_kappa = gamma + kappa
         egt = np.exp(gamma * t)
-        c = (gamma + kappa) * (1 - egt) - 2 * gamma
-        d = 2 * gamma * np.exp(0.5 * (gamma + kappa) * t)
-        a = 2 * self.theta * kappa * np.log(-d / c) / sigma2
-        b = 2 * iu * (1 - egt) / c
-        return -a - b * self.rate
+        d = 2 * gamma + gamma_kappa * (egt - 1)
+        a = 2 * gamma * np.exp(0.5 * gamma_kappa * t) / d
+        b = 2 * u * (egt - 1) / d
+        return kts * np.log(a) - b * self.rate
 
     def domain_range(self) -> Bounds:
         return Bounds(0, np.inf)

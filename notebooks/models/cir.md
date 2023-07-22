@@ -172,10 +172,15 @@ df = pd.DataFrame(std, index=draws.time)
 plot.plot_lines(df)
 ```
 
-```{code-cell} ipython3
+## Integrated log-Laplace Transform
 
-```
+The log-Laplace transform of the integrated CIR process is defined as
 
-```{code-cell} ipython3
-
-```
+\begin{align}
+\iota_{t,u} &= \log  {\mathbb E}\left[e^{- u \int_0^t x_s ds}\right]\\
+    &= a_{t,u} + x_0 b_{t,u}\\
+    a_{t,u} &= \frac{2\kappa\theta}{\sigma^2} \log{\frac{2\gamma_u e^{\left(\kappa+\gamma_u\right)t/2}}{d_{t,u}}}\\
+    b_{t,u} &=-\frac{2u\left(e^{\gamma_u t}-1\right)}{d_{t,u}}\\
+    d_{t,u} &= 2\gamma_u + \left(\gamma_u+\kappa\right)\left(e^{\gamma_u t}-1\right)\\
+    \gamma_u &= \sqrt{\kappa^2+2u\sigma^2}\\
+\end{align}

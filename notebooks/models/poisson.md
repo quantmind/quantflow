@@ -44,7 +44,7 @@ import numpy as np
 from quantflow.utils import plot
 
 m = pr.marginal(1)
-plot.plot_marginal_pdf(m, 16, analytical="markers")
+plot.plot_marginal_pdf(m, 16)
 ```
 
 ```{code-cell} ipython3
@@ -180,14 +180,14 @@ Poisson process](http://hera.ugr.es/doi/16516588.pdf)
 
 The DSP is defined as a time-changed Poisson process
 \begin{equation}
- N_t = p_{\tau_t}
+ D_t = N_{\tau_t}
 \end{equation}
 
 where $\tau_t$ is the **cumulative intensity**, or the **hazard process**, for the intensity process $\lambda_t$.
-The Characteristic function of $N_t$ can therefore be written as
+The Characteristic function of $D_t$ can therefore be written as
 
 \begin{equation}
-    \Phi_{N_t, u} = {\mathbb E}\left[e^{-\tau_t \left(e^{iu}-1\right)}\right]
+    \Phi_{D_t, u} = {\mathbb E}\left[e^{-\tau_t \left(e^{iu}-1\right)}\right]
 \end{equation}
 
 
@@ -205,27 +205,30 @@ The intensity function of a DSPP is given by:
 \end{equation}
 
 ```{code-cell} ipython3
-from quantflow.sp.dsp import DSP
-from quantflow.sp.heston import Heston
-from quantflow.sp.cir import CIR
-
-pr = DSP()
+from quantflow.sp.dsp import DSP, PoissonProcess, CIR
+pr = DSP(intensity=CIR(sigma=1, kappa=1), poisson=PoissonProcess(intensity=3))
+pr2 = DSP(intensity=CIR(sigma=0.1, kappa=10), poisson=PoissonProcess(intensity=3))
 pr
 ```
 
 ```{code-cell} ipython3
-pr.intensity.integrated_log_laplace(1, 1)
+import numpy as np
+from quantflow.utils import plot
+import plotly.graph_objects as go
+
+m = pr.marginal(1)
+pdf = m.pdf_from_characteristic(16)
+fig = plot.plot_marginal_pdf(m, 16, analytical=False, label=f"sigma={pr.intensity.sigma}")
+plot.plot_marginal_pdf(pr2.marginal(1), 16, analytical=False, fig=fig, marker_color="yellow", label=f"sigma={pr2.intensity.sigma}")
+fig.add_trace(go.Scatter(x=pdf.x, y=pr.poisson.marginal(1).pdf(pdf.x), name="Poisson", mode="markers", marker_color="blue"))
 ```
 
 ```{code-cell} ipython3
-from quantflow.sp.weiner import WeinerProcess
-w = WeinerProcess()
-h = Heston.create(vol=1.0, kappa=1.0, sigma=1.0)
-h, w
+pr.marginal(1).mean(), pr.marginal(1).variance()
 ```
 
 ```{code-cell} ipython3
-h.characteristic_exponent(1, w.characteristic_exponent(1, 1))
+pr2.marginal(1).mean(), pr2.marginal(1).variance()
 ```
 
 ```{code-cell} ipython3
