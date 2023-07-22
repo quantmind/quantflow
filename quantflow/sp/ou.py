@@ -47,9 +47,8 @@ class Vasicek(IntensityProcess):
         paths = np.zeros(draws.data.shape)
         paths[0, :] = self.rate
         for t in range(draws.time_steps):
-            w = sdt * draws.data[t, :]
             x = paths[t, :]
-            dx = kappa * (theta - x) * dt + sdt * w
+            dx = kappa * (theta - x) * dt + sdt * draws.data[t, :]
             paths[t + 1, :] = x + dx
         return Paths(t=draws.t, data=paths)
 

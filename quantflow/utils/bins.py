@@ -2,6 +2,7 @@ from typing import Dict, Sequence
 
 import numpy as np
 from pandas import DataFrame
+
 from .types import FloatArray
 
 
@@ -17,24 +18,25 @@ def pdf(
     domain = max(abs(data)) if symmetric is not None else max_value - min_value
     if num_bins is None:
         if not delta:
-            num_bins = num_bins or 50
-            delta_ = round(domain / num_bins, precision)
+            num_bins = 50
+            delta_ = round(domain / (num_bins - 1), precision)
         else:
             delta_ = delta
             num_bins = round(domain / delta_)
     else:
         if delta:
             raise ValueError("Cannot specify both num_bins and delta")
-        delta_ = round(domain / num_bins, precision)
+        if num_bins < 2:
+            raise ValueError("num_bins must be greater than 1")
+        delta_ = round(domain / (num_bins - 1), precision)
     if symmetric is not None:
         b = (num_bins + 0.5) * delta_
         min_value = symmetric - b
         max_value = symmetric + b
     x = np.arange(min_value - delta_, max_value + 2 * delta_, delta_)
     bins = (x[:-1] + x[1:]) * 0.5
-    counts, _ = np.histogram(data, bins=bins)
-    counts = counts / np.sum(counts)
-    return DataFrame(dict(pdf=counts), index=x[1:-1])
+    pdf, _ = np.histogram(data, bins=bins, density=True)
+    return DataFrame(dict(pdf=pdf), index=x[1:-1])
 
 
 def event_density(df: DataFrame, columns: Sequence, num: int = 10) -> Dict:

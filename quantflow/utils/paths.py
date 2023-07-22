@@ -25,18 +25,22 @@ class Paths(BaseModel, arbitrary_types_allowed=True):
 
     @property
     def samples(self) -> int:
+        """Number of samples"""
         return self.data.shape[1]
 
     @property
     def time_steps(self) -> int:
+        """Number of time steps"""
         return self.data.shape[0] - 1
 
     @property
-    def time(self) -> np.ndarray:
+    def time(self) -> FloatArray:
+        """Time as numpy array"""
         return np.linspace(0.0, self.t, num=self.time_steps + 1)
 
     @property
     def df(self) -> pd.DataFrame:
+        """Paths as pandas DataFrame"""
         return pd.DataFrame(self.data, index=self.time)
 
     @property
@@ -49,15 +53,15 @@ class Paths(BaseModel, arbitrary_types_allowed=True):
         """Paths as list of list (for visualization tools)"""
         return self.data.transpose().tolist()
 
-    def mean(self) -> np.ndarray:
+    def mean(self) -> FloatArray:
         """Mean of paths"""
         return np.mean(self.data, axis=1)
 
-    def std(self) -> np.ndarray:
+    def std(self) -> FloatArray:
         """Standard deviation of paths"""
         return np.std(self.data, axis=1)
 
-    def var(self) -> np.ndarray:
+    def var(self) -> FloatArray:
         """Variance of paths"""
         return np.var(self.data, axis=1)
 
@@ -68,6 +72,7 @@ class Paths(BaseModel, arbitrary_types_allowed=True):
         )
 
     def cross_section(self, t: float | None = None) -> FloatArray:
+        """Cross section of paths at time t"""
         index = self.time_steps
         if t is not None:
             index = cast(int, t // self.dt)
@@ -95,21 +100,26 @@ class Paths(BaseModel, arbitrary_types_allowed=True):
         )
 
     def plot(self, **kwargs: Any) -> Any:
+        """Plot paths
+
+        It requires plotly installed
+        """
         return plot.plot_lines(self.df, **kwargs)
 
     @classmethod
     def normal_draws(
         cls,
         paths: int,
-        time_horizon: float,
+        time_horizon: float = 1,
         time_steps: int = 1000,
         antithetic_variates: bool = True,
     ) -> Paths:
         """Generate normal draws
 
-        paths: number of paths
-        time_horizon: time horizon
-        time_steps: number of time steps to arrive at horizon
+        :param paths: number of paths
+        :param time_horizon: time horizon
+        :param time_steps: number of time steps to arrive at horizon
+        :param antithetic_variates: whether to use antithetic variates
         """
         time_horizon / time_steps
         odd = 0

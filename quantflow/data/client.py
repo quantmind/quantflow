@@ -1,5 +1,6 @@
 import json
 import os
+from dataclasses import dataclass
 from typing import Any
 
 from aiohttp import ClientResponse, ClientSession
@@ -28,20 +29,26 @@ class HttpResponseError(RuntimeError):
         return json.dumps(self.data, indent=4)
 
 
+@dataclass
 class HttpClient:
     session: ClientSession | None = None
     user_agent: str = os.getenv("HTTP_USER_AGENT", "quantflow/data")
     content_type: str = "application/json"
+    session_owner: bool = False
     ResponseError: type[HttpResponseError] = HttpResponseError
-    ok_status = frozenset((200, 201))
+    ok_status: frozenset = frozenset((200, 201))
+
+    def new_session(self, **kwargs: Any) -> ClientSession:
+        return ClientSession(**kwargs)
 
     def get_session(self) -> ClientSession:
         if not self.session:
+            self.session_owner = True
             self.session = ClientSession()
         return self.session
 
     async def close(self) -> None:
-        if self.session:
+        if self.session and self.session_owner:
             await self.session.close()
             self.session = None
 
@@ -76,9 +83,6 @@ class HttpClient:
 
     def default_headers(self) -> dict[str, str]:
         return {"user-agent": self.user_agent, "accept": self.content_type}
-
-    def mock(self) -> None:
-        pass
 
     @classmethod
     async def response_error(cls, response: ClientResponse) -> ResponseType:

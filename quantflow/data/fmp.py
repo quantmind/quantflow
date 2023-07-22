@@ -1,22 +1,18 @@
 import os
+from dataclasses import dataclass
 from datetime import date, timedelta
 from typing import Any, cast
 
 import pandas as pd
 
-from .client import HttpClient, compact
 from ..utils.dates import isoformat
+from .client import HttpClient, compact
 
 
+@dataclass
 class FMP(HttpClient):
-    def __init__(
-        self,
-        *,
-        url: str = "https://financialmodelingprep.com/api",
-        key: str = "",
-    ) -> None:
-        self.url = url
-        self.key = key or os.environ.get("FMP_API_KEY")
+    url: str = "https://financialmodelingprep.com/api"
+    key: str = os.environ.get("FMP_API_KEY", "")
 
     async def stocks(self, **kw: Any) -> list[dict]:
         return await self.get_path("v3/stock/list", **kw)

@@ -11,20 +11,20 @@ kernelspec:
   name: python3
 ---
 
-# Poisson Sampling
+# Gaussian Sampling
 
-Evaluate the MC simulation for The Poisson process against the analytical PDF.
+Here we sample the gaussian OU process for different mean reversion speed and number of paths.
 
 ```{code-cell} ipython3
-from quantflow.sp.poisson import PoissonProcess
+from quantflow.sp.ou import Vasicek
 from quantflow.utils import plot
 import ipywidgets as widgets
 import plotly.graph_objects as go
 
 def simulate():
-    pr = PoissonProcess(intensity=intensity.value)
+    pr = Vasicek(rate=0.5, kappa=kappa.value)
     paths = pr.sample(samples.value, 1, 1000)
-    pdf = paths.pdf(delta=1)
+    pdf = paths.pdf(num_bins=50)
     pdf["simulation"] = pdf["pdf"]
     pdf["analytical"] = pr.marginal(1).pdf(pdf.index)
     return pdf
@@ -36,11 +36,11 @@ def on_intensity_change(change):
     fig.data[1].x = df.index
     fig.data[1].y = df["analytical"]
 
-intensity = widgets.IntSlider(description="intensity")
+kappa = widgets.FloatSlider(description="mean reversion", min=0.1, max=5)
 samples = widgets.IntSlider(description="paths", min=100, max=10000, step=100)
-intensity.value = 50
+kappa.value = 1
 samples.value = 1000
-intensity.observe(on_intensity_change)
+kappa.observe(on_intensity_change)
 samples.observe(on_intensity_change)
 
 df = simulate()
@@ -48,7 +48,7 @@ simulation = go.Bar(x=df.index, y=df["simulation"], name="simulation")
 analytical = go.Scatter(x=df.index, y=df["analytical"], name="analytical")
 fig = go.FigureWidget(data=[simulation, analytical])
 
-widgets.VBox([intensity, samples, fig])
+widgets.VBox([kappa, samples, fig])
 ```
 
 ```{code-cell} ipython3

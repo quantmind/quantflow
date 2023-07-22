@@ -7,3 +7,4 @@ API Reference
 
    sp
    options
+   utils

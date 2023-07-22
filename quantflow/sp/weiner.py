@@ -25,10 +25,10 @@ class WeinerProcess(StochasticProcess1D):
         return self.sample_from_draws(paths)
 
     def sample_from_draws(self, draws: Paths, *args: Paths) -> Paths:
-        self.sigma * np.sqrt(draws.dt)
+        sdt = self.sigma * np.sqrt(draws.dt)
         paths = np.zeros(draws.data.shape)
         paths[1:] = np.cumsum(draws.data[:-1], axis=0)
-        return Paths(t=draws.t, data=paths)
+        return Paths(t=draws.t, data=sdt * paths)
 
     def analytical_mean(self, t: FloatArrayLike) -> FloatArrayLike:
         return 0 * t

@@ -8,7 +8,7 @@ except ImportError:
     FMP = None  # type: ignore
 
 pytestmark = pytest.mark.skipif(
-    FMP is None or FMP().key is None, reason="No FMP API key found"
+    FMP is None or not FMP().key, reason="No FMP API key found"
 )
 
 

@@ -61,3 +61,15 @@ Heston
 
 .. autoclass:: Heston
    :members:
+
+
+JumpDiffision
+=======================
+
+.. module:: quantflow.sp.jump_diffusion
+
+.. autoclass:: JumpDiffision
+   :members:
+
+.. autoclass:: Merton
+   :members:

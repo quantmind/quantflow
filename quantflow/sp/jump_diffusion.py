@@ -25,7 +25,7 @@ class JumpDiffusion(StochasticProcess1D, Generic[D]):
     diffusion: WeinerProcess = Field(
         default_factory=WeinerProcess, description="diffusion"
     )
-    jumps: CompoundPoissonProcess[Normal] = Field(description="jump process")
+    jumps: CompoundPoissonProcess[D] = Field(description="jump process")
 
     def characteristic_exponent(self, t: FloatArrayLike, u: Vector) -> Vector:
         return self.diffusion.characteristic_exponent(
@@ -52,6 +52,8 @@ class JumpDiffusion(StochasticProcess1D, Generic[D]):
 
 
 class Merton(JumpDiffusion[Normal]):
+    """Merton jump-diffusion model"""
+
     @classmethod
     def create(
         cls,

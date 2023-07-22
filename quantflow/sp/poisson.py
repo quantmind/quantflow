@@ -134,16 +134,8 @@ class PoissonProcess(PoissonBase):
 
 
 class CompoundPoissonProcess(PoissonBase, Generic[D]):
-    r"""
-    1D Poisson process.
+    """Compound Poisson process."""
 
-    It's a process where the inter-arrival time is exponentially distributed
-    with rate :math:`\lambda`
-
-    .. attribute:: rate
-
-        The arrival rate of events. Must be positive.
-    """
     intensity: float = Field(default=1.0, ge=0, description="intensity rate")
     jumps: D = Field(description="Jump size distribution")
 
