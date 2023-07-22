@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "quantflow"
-version = "0.2.3"
+version = "0.2.4"
 description = "quantitative analysis"
 authors = ["Luca <luca@quantmind.com>"]
 license = "BSD-3-Clause"
