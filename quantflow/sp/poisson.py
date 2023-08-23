@@ -1,16 +1,18 @@
 from abc import abstractmethod
-from typing import Generic, TypeVar
+from typing import Any, Generic, TypeVar
 
 import numpy as np
 from pydantic import Field
+from scipy.integrate import simpson
 from scipy.optimize import Bounds
 from scipy.stats import poisson
 
 from ..utils.distributions import Distribution1D
 from ..utils.functions import factorial
 from ..utils.paths import Paths
+from ..utils.transforms import TransformResult
 from ..utils.types import FloatArray, FloatArrayLike, Vector
-from .base import Im, StochasticProcess1D
+from .base import Im, StochasticProcess1D, StochasticProcess1DMarginal
 
 D = TypeVar("D", bound=Distribution1D)
 
@@ -62,6 +64,9 @@ def poisson_arrivals(intensity: float, time_horizon: float = 1) -> list[float]:
 
 class PoissonProcess(PoissonBase):
     intensity: float = Field(default=1.0, ge=0, description="intensity rate")
+
+    def marginal(self, t: FloatArrayLike) -> StochasticProcess1DMarginal:
+        return MarginalDiscrete1D(process=self, t=t)
 
     def characteristic_exponent(self, t: Vector, u: Vector) -> Vector:
         return t * self.intensity * (1 - np.exp(Im * u))
@@ -159,3 +164,44 @@ class CompoundPoissonProcess(PoissonBase, Generic[D]):
     def analytical_variance(self, t: FloatArrayLike) -> FloatArrayLike:
         """Expected variance at a time horizon"""
         return self.intensity * t * (self.jumps.variance() + self.jumps.mean() ** 2)
+
+
+class MarginalDiscrete1D(StochasticProcess1DMarginal):
+    def pdf_from_characteristic(
+        self,
+        n: int | None = None,
+        **kwargs: Any,
+    ) -> TransformResult:
+        cdf = self.cdf_from_characteristic(n, **kwargs)
+        return cdf._replace(y=np.diff(cdf.y, prepend=0))
+
+    def cdf_from_characteristic(
+        self,
+        n: int | None = None,
+        *,
+        frequency_n: int | None = None,
+        simpson_rule: bool = True,
+        **kwargs: Any,
+    ) -> TransformResult:
+        n = n or 10
+        transform = self.get_transform(frequency_n, self.support, **kwargs)
+        frequency = transform.frequency_domain
+        c = self.characteristic(frequency)
+        a = 1 / np.pi
+        result = []
+        x = np.arange(n or 10)
+        for m in x:
+            d = np.sin(0.5 * frequency)
+            d[0] = 1.0
+            f = (
+                np.sin(0.5 * (m + 1) * frequency)
+                * (c * np.exp(-0.5 * Im * m * frequency)).real
+                / d
+            )
+            f[0] = c[0].real  # type: ignore[index]
+            if simpson_rule:
+                result.append(a * simpson(f, frequency))
+            else:
+                result.append(a * np.trapz(f, frequency))
+        pdf = np.maximum(np.diff(result, prepend=0), 0)
+        return TransformResult(x=x, y=np.cumsum(pdf))  # type: ignore[arg-type]

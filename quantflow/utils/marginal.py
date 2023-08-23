@@ -79,6 +79,15 @@ class Marginal1D(BaseModel, ABC, extra="forbid"):
         s = -(c1 - 2 * c0 + c2) / (d * d) - m * m
         return s.real
 
+    def cdf(self, x: FloatArrayLike) -> FloatArrayLike:
+        """
+        Compute the cumulative distribution function
+
+        :param n: Location in the stochastic process domain space. If a numpy array,
+            the output should have the same shape as the input.
+        """
+        raise NotImplementedError("Analytical CFD not available")
+
     def pdf(self, x: FloatArrayLike) -> FloatArrayLike:
         """
         Computes the probability density (or mass) function of the process.
@@ -90,7 +99,7 @@ class Marginal1D(BaseModel, ABC, extra="forbid"):
         :param n: Location in the stochastic process domain space. If a numpy array,
             the output should have the same shape as the input.
         """
-        return self.cdf(x) - self.cdf(x - 1)
+        raise NotImplementedError("Analytical PFD not available")
 
     def pdf_from_characteristic(
         self,
@@ -99,6 +108,7 @@ class Marginal1D(BaseModel, ABC, extra="forbid"):
         max_frequency: float | None = None,
         simpson_rule: bool = False,
         use_fft: bool = False,
+        frequency_n: int | None = None,
     ) -> TransformResult:
         """
         Compute the probability density function from the characteristic function.
@@ -112,7 +122,7 @@ class Marginal1D(BaseModel, ABC, extra="forbid"):
         :param use_fft: Use FFT for the transform. Default is False.
         """
         transform = self.get_transform(
-            n,
+            frequency_n or n,
             self.support,
             max_frequency=max_frequency,
             simpson_rule=simpson_rule,
@@ -120,6 +130,17 @@ class Marginal1D(BaseModel, ABC, extra="forbid"):
         )
         psi = cast(np.ndarray, self.characteristic(transform.frequency_domain))
         return transform(psi, use_fft=use_fft)
+
+    def cdf_from_characteristic(
+        self,
+        n: int | None = None,
+        *,
+        max_frequency: float | None = None,
+        simpson_rule: bool = False,
+        use_fft: bool = False,
+        frequency_n: int | None = None,
+    ) -> TransformResult:
+        raise NotImplementedError("CFD not available")
 
     def call_option(
         self,
@@ -213,15 +234,6 @@ class Marginal1D(BaseModel, ABC, extra="forbid"):
             domain_range=bounds,
             simpson_rule=simpson_rule,
         )
-
-    def cdf(self, x: FloatArrayLike) -> FloatArrayLike:
-        """
-        Compute the cumulative distribution function
-
-        :param n: Location in the stochastic process domain space. If a numpy array,
-            the output should have the same shape as the input.
-        """
-        raise NotImplementedError("Analytical CFD not available")
 
     def pdf_jacobian(self, x: FloatArrayLike) -> FloatArrayLike:
         """

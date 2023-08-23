@@ -33,8 +33,26 @@ The characteristic exponent is given by
 
 ```{code-cell} ipython3
 from quantflow.sp.poisson import PoissonProcess
-pr = PoissonProcess(intensity=2)
+pr = PoissonProcess(intensity=1)
 pr
+```
+
+```{code-cell} ipython3
+m = pr.marginal(0.1)
+import numpy as np
+cdf = m.cdf(np.arange(5))
+cdf
+```
+
+```{code-cell} ipython3
+n = 128*8
+m.cdf_from_characteristic(5, frequency_n=n).y
+```
+
+```{code-cell} ipython3
+cdf1 = m.cdf_from_characteristic(5, frequency_n=n).y
+cdf2 = m.cdf_from_characteristic(5, frequency_n=n, simpson_rule=False).y
+10000*np.max(np.abs(cdf-cdf1)), 10000*np.max(np.abs(cdf-cdf2))
 ```
 
 ### Marginal
@@ -44,7 +62,7 @@ import numpy as np
 from quantflow.utils import plot
 
 m = pr.marginal(1)
-plot.plot_marginal_pdf(m, 16)
+plot.plot_marginal_pdf(m, frequency_n=128*8)
 ```
 
 ```{code-cell} ipython3
@@ -206,8 +224,8 @@ The intensity function of a DSPP is given by:
 
 ```{code-cell} ipython3
 from quantflow.sp.dsp import DSP, PoissonProcess, CIR
-pr = DSP(intensity=CIR(sigma=1, kappa=1), poisson=PoissonProcess(intensity=3))
-pr2 = DSP(intensity=CIR(sigma=0.1, kappa=10), poisson=PoissonProcess(intensity=3))
+pr = DSP(intensity=CIR(sigma=1, kappa=1), poisson=PoissonProcess(intensity=1))
+pr2 = DSP(intensity=CIR(sigma=0.1, kappa=10), poisson=PoissonProcess(intensity=1))
 pr
 ```
 
@@ -216,10 +234,11 @@ import numpy as np
 from quantflow.utils import plot
 import plotly.graph_objects as go
 
-m = pr.marginal(1)
-pdf = m.pdf_from_characteristic(16)
-fig = plot.plot_marginal_pdf(m, 16, analytical=False, label=f"sigma={pr.intensity.sigma}")
-plot.plot_marginal_pdf(pr2.marginal(1), 16, analytical=False, fig=fig, marker_color="yellow", label=f"sigma={pr2.intensity.sigma}")
+n=16
+m = pr.marginal(2)
+pdf = m.pdf_from_characteristic(n)
+fig = plot.plot_marginal_pdf(m, n, analytical=False, label=f"sigma={pr.intensity.sigma}")
+plot.plot_marginal_pdf(pr2.marginal(1), n, analytical=False, fig=fig, marker_color="yellow", label=f"sigma={pr2.intensity.sigma}")
 fig.add_trace(go.Scatter(x=pdf.x, y=pr.poisson.marginal(1).pdf(pdf.x), name="Poisson", mode="markers", marker_color="blue"))
 ```
 
@@ -233,7 +252,7 @@ pr2.marginal(1).mean(), pr2.marginal(1).variance()
 
 ```{code-cell} ipython3
 from quantflow.utils.plot import plot_characteristic
-m = pr.marginal(1)
+m = pr.marginal(2)
 plot_characteristic(m)
 ```
 

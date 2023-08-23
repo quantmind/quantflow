@@ -24,7 +24,7 @@ black = "^23.3.0"
 pytest-cov = "^4.0.0"
 mypy = "^1.4.0"
 ghp-import = "^2.0.2"
-ruff = "^0.0.277"
+ruff = "^0.0.285"
 pytest-asyncio = "^0.21.1"
 
 

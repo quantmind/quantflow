@@ -36,6 +36,16 @@ def test_characteristic(poisson: PoissonProcess) -> None:
     assert pytest.approx(m2.variance_from_characteristic(), 0.001) == 4
 
 
+def test_poisson_cdf_from_characteristic(poisson: PoissonProcess) -> None:
+    m = poisson.marginal(0.1)
+    # m.pdf(x)
+    cdf1 = m.cdf(1.0 * np.arange(10))
+    cdf2 = m.cdf_from_characteristic(10, frequency_n=128 * 8).y
+    np.testing.assert_almost_equal(cdf1, cdf2, decimal=3)
+    # TODO: fix this
+    # np.testing.assert_almost_equal(pdf, c_pdf.y[:10])
+
+
 def test_poisson_pdf(poisson: PoissonProcess) -> None:
     m = poisson.marginal(1)
     analytical_tests(poisson)
@@ -68,3 +78,10 @@ def test_dsp_sample(dsp: DSP):
     assert mean[0] == 0
     std = paths.std()
     assert std[0] == 0
+
+
+def test_dsp_pdf(dsp: DSP):
+    m = dsp.marginal(1)
+    pdf1 = m.pdf_from_characteristic(32).y
+    pdf2 = m.pdf_from_characteristic(64).y
+    np.testing.assert_almost_equal(pdf2[:32], pdf1)

@@ -5,8 +5,9 @@ from pydantic import Field
 from scipy.optimize import Bounds
 
 from ..utils.types import FloatArray, FloatArrayLike, Vector
+from .base import StochasticProcess1DMarginal
 from .cir import CIR, IntensityProcess
-from .poisson import PoissonBase, PoissonProcess, poisson_arrivals
+from .poisson import MarginalDiscrete1D, PoissonBase, PoissonProcess, poisson_arrivals
 
 
 class DSP(PoissonBase):
@@ -22,6 +23,9 @@ class DSP(PoissonBase):
         default_factory=CIR, description="intensity process"
     )
     poisson: PoissonProcess = Field(default_factory=PoissonProcess, exclude=True)
+
+    def marginal(self, t: FloatArrayLike) -> StochasticProcess1DMarginal:
+        return MarginalDiscrete1D(process=self, t=t)
 
     def frequency_range(self, std: float, max_frequency: float | None = None) -> Bounds:
         """Frequency range of the process"""
