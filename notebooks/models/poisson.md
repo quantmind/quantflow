@@ -224,9 +224,9 @@ The intensity function of a DSPP is given by:
 
 ```{code-cell} ipython3
 from quantflow.sp.dsp import DSP, PoissonProcess, CIR
-pr = DSP(intensity=CIR(sigma=1, kappa=1), poisson=PoissonProcess(intensity=1))
-pr2 = DSP(intensity=CIR(sigma=0.1, kappa=10), poisson=PoissonProcess(intensity=1))
-pr
+pr = DSP(intensity=CIR(sigma=2, kappa=1), poisson=PoissonProcess(intensity=2))
+pr2 = DSP(intensity=CIR(rate=2, sigma=4, kappa=2, theta=2), poisson=PoissonProcess(intensity=1))
+pr, pr2
 ```
 
 ```{code-cell} ipython3
@@ -235,10 +235,10 @@ from quantflow.utils import plot
 import plotly.graph_objects as go
 
 n=16
-m = pr.marginal(2)
+m = pr.marginal(1)
 pdf = m.pdf_from_characteristic(n)
-fig = plot.plot_marginal_pdf(m, n, analytical=False, label=f"sigma={pr.intensity.sigma}")
-plot.plot_marginal_pdf(pr2.marginal(1), n, analytical=False, fig=fig, marker_color="yellow", label=f"sigma={pr2.intensity.sigma}")
+fig = plot.plot_marginal_pdf(m, n, analytical=False, label=f"rate={pr.intensity.rate}")
+plot.plot_marginal_pdf(pr2.marginal(1), n, analytical=False, fig=fig, marker_color="yellow", label=f"rate={pr2.intensity.rate}")
 fig.add_trace(go.Scatter(x=pdf.x, y=pr.poisson.marginal(1).pdf(pdf.x), name="Poisson", mode="markers", marker_color="blue"))
 ```
 
