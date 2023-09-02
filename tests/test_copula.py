@@ -1,3 +1,4 @@
+from decimal import Decimal
 from math import isclose
 
 import numpy as np
@@ -13,8 +14,8 @@ def test_independent_copula():
 
 
 def test_frank_copula():
-    c = FrankCopula(kappa=0.3)
-    assert c.kappa == 0.3
+    c = FrankCopula(kappa=Decimal("0.3"))
+    assert c.kappa == Decimal("0.3")
     assert c.tau() > 0
     assert c.rho() < 0
     assert c.jacobian(0.3, 0.4).shape == (3,)

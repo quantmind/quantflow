@@ -1,10 +1,12 @@
 from abc import ABC, abstractmethod
+from decimal import Decimal
 from math import isclose
 
 import numpy as np
 from pydantic import BaseModel, Field
 
 from quantflow.utils.functions import debye
+from quantflow.utils.numbers import ZERO
 from quantflow.utils.types import FloatArray, FloatArrayLike
 
 
@@ -71,10 +73,10 @@ class FrankCopula(Copula):
         u\right)-1\right)\left(\exp\left(-\kappa
         v\right)-1\right)}{\exp\left(-\kappa\right)-1}\right]
     """
-    kappa: float = Field(default=0, description="Frank copula parameter")
+    kappa: Decimal = Field(default=ZERO, description="Frank copula parameter")
 
     def __call__(self, u: FloatArrayLike, v: FloatArrayLike) -> FloatArrayLike:
-        k = self.kappa
+        k = float(self.kappa)
         if isclose(k, 0.0):
             return u * v
         eu = np.exp(-k * u)
@@ -84,20 +86,20 @@ class FrankCopula(Copula):
 
     def tau(self) -> float:
         """Kendall's tau"""
-        k = self.kappa
+        k = float(self.kappa)
         if isclose(k, 0.0):
             return 0
         return 1 + 4 * (debye(1, k) - 1) / k
 
     def rho(self) -> float:
         """Spearman's rho"""
-        k = self.kappa
+        k = float(self.kappa)
         if isclose(k, 0.0):
             return 0
         return 1 - 12 * (debye(2, -k) - debye(1, -k)) / k
 
     def jacobian(self, u: FloatArrayLike, v: FloatArrayLike) -> FloatArray:
-        k = self.kappa
+        k = float(self.kappa)
         if isclose(k, 0.0):
             return np.array([v, u, v * 0])
         eu = np.exp(-k * u)
