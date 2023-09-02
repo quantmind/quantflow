@@ -9,6 +9,7 @@ Numbers = Union[int, float, np.number]
 NumberType = Union[float, int, str, Number]
 Vector = Union[int, float, complex, np.ndarray]
 FloatArray = npt.NDArray[np.float_]
+IntArray = npt.NDArray[np.int_]
 FloatArrayLike = FloatArray | float
 
 
