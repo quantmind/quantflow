@@ -2,7 +2,7 @@ from datetime import datetime, timezone, date
 
 
 def utcnow() -> datetime:
-    return datetime.utcnow().replace(tzinfo=timezone.utc)
+    return datetime.now(timezone.utc)
 
 
 def isoformat(date: str | date) -> str:
