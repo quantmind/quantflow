@@ -37,22 +37,22 @@ jobs:
       - name: run tests
         run: make tests
       - name: upload coverage reports to codecov
-        if: matrix.python-version == '3.11'
+        if: matrix.python-version == '3.12'
         uses: codecov/codecov-action@v3
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
           files: ./build/coverage.xml
       - name: build book
-        if: ${{ matrix.python-version == '3.11' }}
+        if: ${{ matrix.python-version == '3.12' }}
         run: make book
       - name: publish book
-        if: ${{ matrix.python-version == '3.11' }}
+        if: ${{ matrix.python-version == '3.12' }}
         run: make publish-book
       - name: publish
-        if: ${{ matrix.python-version == '3.11' && github.event.head_commit.message == 'release' }}
+        if: ${{ matrix.python-version == '3.12' && github.event.head_commit.message == 'release' }}
         run: make publish
       - name: create github release
-        if: ${{ matrix.python-version == '3.12' && github.event.head_commit.message == 'release' }}
+        if: ${{ matrix.python-version == '3.13' && github.event.head_commit.message == 'release' }}
         uses: ncipollo/release-action@v1
         with:
           artifacts: "dist/*"
