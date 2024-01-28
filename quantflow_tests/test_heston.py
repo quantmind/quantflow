@@ -1,7 +1,7 @@
 import pytest
 
 from quantflow.sp.heston import Heston, HestonJ
-from tests.utils import characteristic_tests
+from quantflow_tests.utils import characteristic_tests
 
 
 @pytest.fixture

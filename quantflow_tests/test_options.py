@@ -14,7 +14,7 @@ from quantflow.options.surface import (
     surface_from_inputs,
 )
 from quantflow.sp.heston import Heston
-from tests.utils import has_plotly
+from quantflow_tests.utils import has_plotly
 
 a = np.asarray
 CROSS_SECTIONS = 8
@@ -27,7 +27,7 @@ def heston() -> OptionPricer[Heston]:
 
 @pytest.fixture
 def vol_surface() -> VolSurface:
-    with open("tests/volsurface.json") as fp:
+    with open("quantflow_tests/volsurface.json") as fp:
         return surface_from_inputs(VolSurfaceInputs(**json.load(fp)))
 
 

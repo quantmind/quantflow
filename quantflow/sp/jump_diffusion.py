@@ -22,6 +22,7 @@ class JumpDiffusion(StochasticProcess1D, Generic[D]):
         where N_t is a compound poisson process with intensity \lambda
         and jump distribution D
     """
+
     diffusion: WeinerProcess = Field(
         default_factory=WeinerProcess, description="diffusion"
     )

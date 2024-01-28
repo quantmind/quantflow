@@ -9,6 +9,11 @@ if [ "$1" = "fix" ] ; then
     RUFF_ARG="--fix"
 fi
 
-black quantflow tests ${BLACK_ARG}
-ruff quantflow tests ${RUFF_ARG}
-mypy quantflow tests
+echo black
+black quantflow quantflow_tests ${BLACK_ARG}
+echo ruff
+ruff quantflow quantflow_tests ${RUFF_ARG}
+echo mypy
+mypy quantflow
+echo mypy tests
+mypy quantflow_tests --explicit-package-bases

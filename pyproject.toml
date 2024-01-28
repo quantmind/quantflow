@@ -12,7 +12,7 @@ Repository = "https://github.com/quantmind/quantflow"
 Documentation = "https://quantmind.github.io/quantflow/"
 
 [tool.poetry.dependencies]
-python = ">=3.10,<3.12"
+python = ">=3.10,<3.13"
 numpy = "^1.22.3"
 scipy = "^1.10.1"
 pandas = "^2.0.1"
@@ -20,12 +20,12 @@ aiohttp = {version = "^3.8.1", optional = true}
 pydantic = "^2.0.2"
 
 [tool.poetry.group.dev.dependencies]
-black = "^23.3.0"
+black = "^24.1.1"
 pytest-cov = "^4.0.0"
 mypy = "^1.4.0"
 ghp-import = "^2.0.2"
-ruff = "^0.0.285"
-pytest-asyncio = "^0.21.1"
+ruff = "^0.1.14"
+pytest-asyncio = "^0.23.3"
 
 
 [tool.poetry.extras]
@@ -53,7 +53,7 @@ formats = "ipynb,myst"
 [tool.pytest.ini_options]
 asyncio_mode = "auto"
 testpaths = [
-    "tests"
+    "quantflow_tests"
 ]
 
 [tool.isort]
@@ -74,7 +74,7 @@ disallow_untyped_defs = true
 warn_no_return = true
 
 [[tool.mypy.overrides]]
-module = "tests.*"
+module = "quantflow_tests.*"
 disallow_untyped_defs = false
 
 [[tool.mypy.overrides]]

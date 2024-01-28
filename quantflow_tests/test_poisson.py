@@ -6,7 +6,7 @@ import pytest
 from quantflow.sp.dsp import DSP
 from quantflow.sp.poisson import CompoundPoissonProcess, PoissonProcess
 from quantflow.utils.distributions import Exponential
-from tests.utils import analytical_tests, characteristic_tests
+from quantflow_tests.utils import analytical_tests, characteristic_tests
 
 
 @pytest.fixture
