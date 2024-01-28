@@ -12,7 +12,7 @@ jobs:
     runs-on: ubuntu-latest
     env:
       PYTHON_ENV: ci
-      PYPI_PASSWORD: ${{ secrets.PYPI_PASSWORD }}
+      PYPI_TOKEN: ${{ secrets.PYPI_TOKEN }}
       FMP_API_KEY: ${{ secrets.FMP_API_KEY }}
     strategy:
       matrix:
