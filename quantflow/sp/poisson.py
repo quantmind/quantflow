@@ -200,7 +200,7 @@ class MarginalDiscrete1D(StochasticProcess1DMarginal):
             )
             f[0] = c[0].real  # type: ignore[index]
             if simpson_rule:
-                result.append(a * simpson(f, frequency))
+                result.append(a * simpson(f, x=frequency))
             else:
                 result.append(a * np.trapz(f, frequency))
         pdf = np.maximum(np.diff(result, prepend=0), 0)

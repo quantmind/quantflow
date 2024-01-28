@@ -6,7 +6,7 @@ import numpy as np
 import pandas as pd
 from numpy.random import normal
 from pydantic import BaseModel, Field
-from scipy.integrate import cumtrapz
+from scipy.integrate import cumulative_trapezoid
 
 from . import plot
 from .bins import pdf as bins_pdf
@@ -68,7 +68,8 @@ class Paths(BaseModel, arbitrary_types_allowed=True):
     def integrate(self) -> Paths:
         """Integrate paths"""
         return self.__class__(
-            t=self.t, data=cumtrapz(self.data, dx=self.dt, axis=0, initial=0)
+            t=self.t,
+            data=cumulative_trapezoid(self.data, dx=self.dt, axis=0, initial=0),
         )
 
     def cross_section(self, t: float | None = None) -> FloatArray:

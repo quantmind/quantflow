@@ -30,8 +30,7 @@ ZERO = Decimal("0")
 
 
 class VolSurfaceSecurity(Protocol):
-    def vol_surface_type(self) -> VolSecurityType:
-        ...
+    def vol_surface_type(self) -> VolSecurityType: ...
 
 
 S = TypeVar("S", bound=VolSurfaceSecurity)

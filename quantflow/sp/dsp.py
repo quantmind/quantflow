@@ -19,6 +19,7 @@ class DSP(PoissonBase):
 
     :param intensity: the stochastic intensity of the Poisson
     """
+
     intensity: IntensityProcess = Field(  # type ignore
         default_factory=CIR, description="intensity process"
     )

@@ -73,6 +73,7 @@ class FrankCopula(Copula):
         u\right)-1\right)\left(\exp\left(-\kappa
         v\right)-1\right)}{\exp\left(-\kappa\right)-1}\right]
     """
+
     kappa: Decimal = Field(default=ZERO, description="Frank copula parameter")
 
     def __call__(self, u: FloatArrayLike, v: FloatArrayLike) -> FloatArrayLike:

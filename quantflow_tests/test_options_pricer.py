@@ -2,7 +2,7 @@ import pytest
 
 from quantflow.options.pricer import OptionPricer
 from quantflow.sp.heston import HestonJ
-from tests.utils import has_plotly
+from quantflow_tests.utils import has_plotly
 
 
 @pytest.fixture

@@ -24,6 +24,7 @@ class Heston(StochasticProcess1D):
         d v_t = (a - \kappa v_t) dt + \nu \sqrt{v_t} dw^2_t
         \rho dt = \E[dw^1 dw^2]
     """
+
     variance_process: CIR = Field(default_factory=CIR, description="Variance process")
     rho: float = Field(default=0, ge=-1, le=1, description="Correlation")
 

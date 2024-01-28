@@ -37,6 +37,7 @@ class CIR(IntensityProcess):
     :param sigma: Volatility parameter :math:`\sigma`
     :param theta: Long term mean rate :math:`\theta`
     """
+
     sigma: float = Field(default=1.0, gt=0, description="Volatility")
     theta: float = Field(default=1.0, gt=0, description="Mean rate")
     sample_algo: SamplingAlgorithm = Field(
