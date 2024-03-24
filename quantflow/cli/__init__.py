@@ -9,6 +9,8 @@ from quantflow.data.fmp import FMP
 
 dotenv.load_dotenv()
 
+FREQUENCIES = tuple(FMP().historical_frequencies())
+
 
 @click.group()
 def qf():
@@ -41,16 +43,23 @@ def profile(symbol: str):
     show_default=True,
     help="Number of data points",
 )
-def chart(symbol: str, height: int, length: int):
+@click.option(
+    "-f",
+    "--frequency",
+    type=click.Choice(FREQUENCIES),
+    default="",
+    help="Number of data points",
+)
+def chart(symbol: str, height: int, length: int, frequency: str) -> None:
     """Symbol chart"""
-    df = asyncio.run(get_prices(symbol))
-    data = df["close"].tolist()
-    print(plot(data[:length], {"height": height}))
+    df = asyncio.run(get_prices(symbol, frequency))
+    data = list(reversed(df["close"].tolist()[:length]))
+    print(plot(data, {"height": height}))
 
 
-async def get_prices(symbol: str) -> pd.DataFrame:
+async def get_prices(symbol: str, frequency: str) -> pd.DataFrame:
     async with FMP() as cli:
-        return await cli.prices(symbol)
+        return await cli.prices(symbol, frequency)
 
 
 async def get_profile(symbol: str) -> dict:

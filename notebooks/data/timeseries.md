@@ -20,11 +20,15 @@ cli = FMP()
 ```
 
 ```{code-cell} ipython3
-prices = await cli.prices("aapl")
+prices = await cli.prices("ethusd")
 ```
 
 ```{code-cell} ipython3
 candlestick_plot(prices).update_layout(height=500)
+```
+
+```{code-cell} ipython3
+prices
 ```
 
 ```{code-cell} ipython3
