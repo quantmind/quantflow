@@ -29,6 +29,4 @@ pip install quantflow
 ## Command line tools
 
 When installing with the extra `data` dependencies, it is possible to use the command line tool `qf`
-```
-qf --help
-```
+
