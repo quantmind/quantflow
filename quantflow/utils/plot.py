@@ -185,7 +185,7 @@ def plot3d(
     return fig
 
 
-def candlestick_plot(df, slider: bool = True) -> Any:
+def candlestick_plot(df: pd.DataFrame, slider: bool = True) -> Any:
     fig = go.Figure(
         data=go.Candlestick(
             x=df["date"],

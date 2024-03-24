@@ -20,7 +20,7 @@ cli = FMP()
 ```
 
 ```{code-cell} ipython3
-prices = await cli.prices("ethusd")
+prices = await cli.prices("ethusd", frequency="")
 ```
 
 ```{code-cell} ipython3
@@ -28,7 +28,10 @@ candlestick_plot(prices).update_layout(height=500)
 ```
 
 ```{code-cell} ipython3
-prices
+from quantflow.utils.df import DFutils
+
+df = DFutils(prices).with_rogers_satchel().with_parkinson()
+df
 ```
 
 ```{code-cell} ipython3

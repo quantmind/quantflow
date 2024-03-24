@@ -15,14 +15,14 @@ Documentation = "https://quantmind.github.io/quantflow/"
 python = ">=3.10,<3.13"
 numpy = "^1.22.3"
 scipy = "^1.10.1"
-pandas = "^2.0.1"
 aiohttp = {version = "^3.8.1", optional = true}
 pydantic = "^2.0.2"
-pyarrow = "^15.0.0"
 ccy = {version="^1.4.0", extras=["cli"]}
 asciichart = "^0.1"
 python-dotenv = "^1.0.1"
 asciichartpy = "^1.5.25"
+prompt-toolkit = "^3.0.43"
+polars = {version = "^0.20.16", extras=["pandas", "pyarrow"]}
 
 [tool.poetry.group.dev.dependencies]
 black = "^24.1.1"
@@ -49,7 +49,7 @@ sympy = "^1.12"
 ipywidgets = "^8.0.7"
 
 [tool.poetry.scripts]
-qf = "quantflow.cli:qf"
+qf = "quantflow.cli:main"
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]
@@ -86,6 +86,7 @@ warn_no_return = true
 
 [[tool.mypy.overrides]]
 module = [
+    "asciichartpy.*",
     "quantflow_tests.*",
     "IPython.*",
     "pandas.*",

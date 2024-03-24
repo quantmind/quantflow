@@ -445,13 +445,13 @@ css = ["tinycss2 (>=1.1.0,<1.3)"]
 
 [[package]]
 name = "ccy"
-version = "1.4.0"
+version = "1.4.1"
 description = "Python currencies"
 optional = false
 python-versions = "<3.13,>=3.10"
 files = [
-    {file = "ccy-1.4.0-py3-none-any.whl", hash = "sha256:6e0640cf1ebf178acc8466b2026a769a42c9e2db3e71ea0228f9237265624c73"},
-    {file = "ccy-1.4.0.tar.gz", hash = "sha256:17f50a8e61c2a85e9d5d765a55de6cd9ca0f8dc4c1f31bbd81f301d4da620a3a"},
+    {file = "ccy-1.4.1-py3-none-any.whl", hash = "sha256:98ad7673e10d920931f218af60d5fda2b212a0642900039e3692296ae6d19277"},
+    {file = "ccy-1.4.1.tar.gz", hash = "sha256:16ef81dba4a287972e0c94f455c52213c9d8a3edf7a0d3a68c71b8f4b117f0f7"},
 ]
 
 [package.dependencies]
@@ -2410,6 +2410,48 @@ dev = ["pre-commit", "tox"]
 testing = ["pytest", "pytest-benchmark"]
 
 [[package]]
+name = "polars"
+version = "0.20.16"
+description = "Blazingly fast DataFrame library"
+optional = false
+python-versions = ">=3.8"
+files = [
+    {file = "polars-0.20.16-cp38-abi3-macosx_10_12_x86_64.whl", hash = "sha256:7530148621b541221b8a36cfad27cc576d77c0739e82d8383ee3a699935a5f63"},
+    {file = "polars-0.20.16-cp38-abi3-macosx_11_0_arm64.whl", hash = "sha256:92241d9aeb29de7c503d3b4f9191181f0831dd546ee6770e5c6fae3cead98edb"},
+    {file = "polars-0.20.16-cp38-abi3-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:2b48593c44a20f09f1eb1449ea43e2e5a4adf3c82faf1fba797fb7364cfa2ca4"},
+    {file = "polars-0.20.16-cp38-abi3-manylinux_2_24_aarch64.whl", hash = "sha256:0c504cfdc88f3e4262d5ecf637c10ae154565b94250ee4263a9f5f346397cf98"},
+    {file = "polars-0.20.16-cp38-abi3-win_amd64.whl", hash = "sha256:a1fa24ea374ff05766e43fe2f079d62edd682ade19e3e2d68526e9c7a3e23ddf"},
+    {file = "polars-0.20.16.tar.gz", hash = "sha256:7a9ebb85bfc9dd964490612b6fee2afbde91eee6bfaa590b731c7868d225210b"},
+]
+
+[package.dependencies]
+pandas = {version = "*", optional = true, markers = "extra == \"pandas\""}
+pyarrow = {version = ">=7.0.0", optional = true, markers = "extra == \"pandas\" or extra == \"pyarrow\""}
+
+[package.extras]
+adbc = ["adbc-driver-manager", "adbc-driver-sqlite"]
+all = ["polars[adbc,cloudpickle,connectorx,deltalake,fastexcel,fsspec,gevent,numpy,pandas,plot,pyarrow,pydantic,pyiceberg,sqlalchemy,timezone,xlsx2csv,xlsxwriter]"]
+cloudpickle = ["cloudpickle"]
+connectorx = ["connectorx (>=0.3.2)"]
+deltalake = ["deltalake (>=0.14.0)"]
+fastexcel = ["fastexcel (>=0.9)"]
+fsspec = ["fsspec"]
+gevent = ["gevent"]
+matplotlib = ["matplotlib"]
+numpy = ["numpy (>=1.16.0)"]
+openpyxl = ["openpyxl (>=3.0.0)"]
+pandas = ["pandas", "pyarrow (>=7.0.0)"]
+plot = ["hvplot (>=0.9.1)"]
+pyarrow = ["pyarrow (>=7.0.0)"]
+pydantic = ["pydantic"]
+pyiceberg = ["pyiceberg (>=0.5.0)"]
+pyxlsb = ["pyxlsb (>=1.0)"]
+sqlalchemy = ["pandas", "sqlalchemy"]
+timezone = ["backports-zoneinfo", "tzdata"]
+xlsx2csv = ["xlsx2csv (>=0.8.0)"]
+xlsxwriter = ["xlsxwriter"]
+
+[[package]]
 name = "prometheus-client"
 version = "0.20.0"
 description = "Python client for the Prometheus monitoring system."
@@ -4226,4 +4268,4 @@ data = ["aiohttp"]
 [metadata]
 lock-version = "2.0"
 python-versions = ">=3.10,<3.13"
-content-hash = "3e1553f88e82bcd9d132b247222dd809486bd442680f04126a47588768b1ec68"
+content-hash = "40b73df0123b17a4fd291b080635f85ccc5f2453ee6080103fdeb40fd3c46924"

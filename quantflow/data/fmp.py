@@ -62,7 +62,7 @@ class FMP(HttpClient):
     # Rating
 
     async def rating(self, ticker: str, **kw: Any) -> list[dict]:
-        """Company quote - real time"""
+        """Company rating - real time"""
         return await self.get_path(f"v3/rating/{ticker}", **kw)
 
     async def etf_holders(self, ticker: str, **kw: Any) -> list[dict]:
@@ -128,8 +128,8 @@ class FMP(HttpClient):
         return df
 
     # forex
-    def forex_list(self) -> list[str]:
-        return self.get_path("v3/symbol/available-forex-currency-pairs")
+    async def forex_list(self) -> list[dict]:
+        return await self.get_path("v3/symbol/available-forex-currency-pairs")
 
     def historical_frequencies(self) -> dict:
         return {

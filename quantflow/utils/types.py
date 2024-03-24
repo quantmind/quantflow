@@ -1,13 +1,14 @@
 from decimal import Decimal
 from typing import Optional, Union
 
+import pandas as pd
 import numpy as np
 import numpy.typing as npt
 
 Number = Decimal
 Numbers = Union[int, float, np.number]
 NumberType = Union[float, int, str, Number]
-Vector = Union[int, float, complex, np.ndarray]
+Vector = Union[int, float, complex, np.ndarray, pd.Series]
 FloatArray = npt.NDArray[np.float_]
 IntArray = npt.NDArray[np.int_]
 FloatArrayLike = FloatArray | float
