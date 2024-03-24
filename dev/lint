@@ -12,7 +12,7 @@ fi
 echo black
 black quantflow quantflow_tests ${BLACK_ARG}
 echo ruff
-ruff quantflow quantflow_tests ${RUFF_ARG}
+ruff check quantflow quantflow_tests ${RUFF_ARG}
 echo mypy
 mypy quantflow
 echo mypy tests
