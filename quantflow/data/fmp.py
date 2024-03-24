@@ -1,5 +1,5 @@
 import os
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from datetime import date, timedelta
 from typing import Any, cast
 
@@ -12,7 +12,7 @@ from .client import HttpClient, compact
 @dataclass
 class FMP(HttpClient):
     url: str = "https://financialmodelingprep.com/api"
-    key: str = os.environ.get("FMP_API_KEY", "")
+    key: str = field(default_factory=lambda: os.environ.get("FMP_API_KEY", ""))
 
     async def stocks(self, **kw: Any) -> list[dict]:
         return await self.get_path("v3/stock/list", **kw)
@@ -62,7 +62,7 @@ class FMP(HttpClient):
     # Rating
 
     async def rating(self, ticker: str, **kw: Any) -> list[dict]:
-        """Company quote - real time"""
+        """Company rating - real time"""
         return await self.get_path(f"v3/rating/{ticker}", **kw)
 
     async def etf_holders(self, ticker: str, **kw: Any) -> list[dict]:
@@ -111,7 +111,9 @@ class FMP(HttpClient):
             **self.params(compact(query=query, exchange=exchange, limit=limit), **kw),
         )
 
-    async def prices(self, ticker: str, frequency: str = "", **kw: Any) -> pd.DataFrame:
+    async def prices(
+        self, ticker: str, frequency: str = "", to_date: bool = False, **kw: Any
+    ) -> pd.DataFrame:
         base = (
             "historical-price-full/"
             if not frequency
@@ -121,9 +123,13 @@ class FMP(HttpClient):
         if isinstance(data, dict):
             data = data.get("historical", [])
         df = pd.DataFrame(data)
-        if "date" in df.columns:
+        if to_date and "date" in df.columns:
             df["date"] = pd.to_datetime(df["date"])
         return df
+
+    # forex
+    async def forex_list(self) -> list[dict]:
+        return await self.get_path("v3/symbol/available-forex-currency-pairs")
 
     def historical_frequencies(self) -> dict:
         return {

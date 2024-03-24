@@ -24,3 +24,9 @@ pip install quantflow
 * [quantflow.data](https://github.com/quantmind/quantflow/tree/main/quantflow/data) data APIs (requires `quantflow[data]`)
 * [quantflow.options](https://github.com/quantmind/quantflow/tree/main/quantflow/options) option pricing and calibration
 * [quantflow.sp](https://github.com/quantmind/quantflow/tree/main/quantflow/sp) stochastic process primitives
+
+
+## Command line tools
+
+When installing with the extra `data` dependencies, it is possible to use the command line tool `qf`
+

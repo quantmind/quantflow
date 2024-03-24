@@ -12,20 +12,24 @@ Repository = "https://github.com/quantmind/quantflow"
 Documentation = "https://quantmind.github.io/quantflow/"
 
 [tool.poetry.dependencies]
-python = ">=3.10,<3.13"
+python = ">=3.11,<3.13"
 numpy = "^1.22.3"
 scipy = "^1.10.1"
-pandas = "^2.0.1"
 aiohttp = {version = "^3.8.1", optional = true}
 pydantic = "^2.0.2"
-pyarrow = "^15.0.0"
+ccy = {version="^1.4.0", extras=["cli"]}
+asciichart = "^0.1"
+python-dotenv = "^1.0.1"
+asciichartpy = "^1.5.25"
+prompt-toolkit = "^3.0.43"
+polars = {version = "^0.20.16", extras=["pandas", "pyarrow"]}
 
 [tool.poetry.group.dev.dependencies]
 black = "^24.1.1"
 pytest-cov = "^4.0.0"
-mypy = "^1.4.0"
+mypy = "^1.9.0"
 ghp-import = "^2.0.2"
-ruff = "^0.1.14"
+ruff = "^0.3.4"
 pytest-asyncio = "^0.23.3"
 
 
@@ -36,13 +40,16 @@ data = ["aiohttp"]
 optional = true
 
 [tool.poetry.group.book.dependencies]
-jupyter-book = "^0.15.1"
-nbconvert = "^6.4.5"
+jupyter-book = "^1.0.0"
+nbconvert = "^7.16.3"
 jupytext = "^1.13.8"
-plotly = "^5.7.0"
+plotly = "^5.20.0"
 jupyterlab = "^4.0.2"
 sympy = "^1.12"
 ipywidgets = "^8.0.7"
+
+[tool.poetry.scripts]
+qf = "quantflow.cli:main"
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]
@@ -64,7 +71,7 @@ filterwarnings = [
 profile = "black"
 
 [tool.ruff]
-select = ["E", "F"]
+lint.select = ["E", "F"]
 extend-exclude = ["fluid_apps/db/migrations"]
 line-length = 88
 
@@ -78,21 +85,13 @@ disallow_untyped_defs = true
 warn_no_return = true
 
 [[tool.mypy.overrides]]
-module = "quantflow_tests.*"
+module = [
+    "asciichartpy.*",
+    "quantflow_tests.*",
+    "IPython.*",
+    "pandas.*",
+    "plotly.*",
+    "scipy.*"
+]
+ignore_missing_imports = true
 disallow_untyped_defs = false
-
-[[tool.mypy.overrides]]
-module = "IPython.*"
-ignore_missing_imports = true
-
-[[tool.mypy.overrides]]
-module = "pandas.*"
-ignore_missing_imports = true
-
-[[tool.mypy.overrides]]
-module = "plotly.*"
-ignore_missing_imports = true
-
-[[tool.mypy.overrides]]
-module = "scipy.*"
-ignore_missing_imports = true

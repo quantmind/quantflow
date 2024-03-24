@@ -1,7 +1,7 @@
 import json
 import os
 from dataclasses import dataclass
-from typing import Any
+from typing import Any, Self
 
 from aiohttp import ClientResponse, ClientSession
 from aiohttp.client_exceptions import ContentTypeError
@@ -52,7 +52,7 @@ class HttpClient:
             await self.session.close()
             self.session = None
 
-    async def __aenter__(self) -> "HttpClient":
+    async def __aenter__(self) -> Self:
         return self
 
     async def __aexit__(self, *args: Any) -> None:
