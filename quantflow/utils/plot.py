@@ -183,3 +183,18 @@ def plot3d(
     if kwargs:
         fig.update_layout(**kwargs)
     return fig
+
+
+def candlestick_plot(df, slider: bool = True) -> Any:
+    fig = go.Figure(
+        data=go.Candlestick(
+            x=df["date"],
+            open=df["open"],
+            high=df["high"],
+            low=df["low"],
+            close=df["close"],
+        )
+    )
+    if slider is False:
+        fig.update_layout(xaxis_rangeslider_visible=False)
+    return fig
