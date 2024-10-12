@@ -202,6 +202,6 @@ class MarginalDiscrete1D(StochasticProcess1DMarginal):
             if simpson_rule:
                 result.append(a * simpson(f, x=frequency))
             else:
-                result.append(a * np.trapz(f, frequency))
+                result.append(a * np.trapezoid(f, frequency))
         pdf = np.maximum(np.diff(result, prepend=0), 0)
         return TransformResult(x=x, y=np.cumsum(pdf))  # type: ignore[arg-type]

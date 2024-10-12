@@ -16,12 +16,12 @@ jobs:
       FMP_API_KEY: ${{ secrets.FMP_API_KEY }}
     strategy:
       matrix:
-        python-version: ["3.11", "3.12"]
+        python-version: ["3.11", "3.12", "3.13"]
 
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - name: Set up Python ${{ matrix.python-version }}
-        uses: actions/setup-python@v3
+        uses: actions/setup-python@v5
         with:
           python-version: ${{ matrix.python-version }}
       - name: Install poetry
@@ -51,11 +51,3 @@ jobs:
       - name: publish
         if: ${{ matrix.python-version == '3.12' && github.event.head_commit.message == 'release' }}
         run: make publish
-      - name: create github release
-        if: ${{ matrix.python-version == '3.13' && github.event.head_commit.message == 'release' }}
-        uses: ncipollo/release-action@v1
-        with:
-          artifacts: "dist/*"
-          token: ${{ secrets.GITHUB_TOKEN }}
-          draft: false
-          prerelease: steps.check-version.outputs.prerelease == 'true'

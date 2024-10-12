@@ -9,7 +9,7 @@ Number = Decimal
 Numbers = Union[int, float, np.number]
 NumberType = Union[float, int, str, Number]
 Vector = Union[int, float, complex, np.ndarray, pd.Series]
-FloatArray = npt.NDArray[np.float_]
+FloatArray = npt.NDArray[np.float64]
 IntArray = npt.NDArray[np.int_]
 FloatArrayLike = FloatArray | float
 

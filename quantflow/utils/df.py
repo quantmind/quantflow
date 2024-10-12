@@ -48,7 +48,9 @@ class DFutils:
         """
         c = 10000 / np.sqrt(4 * self.period * np.log(2))
         return self.clone(
-            df=self.df.with_columns(pk=c * (pl.col("high") / pl.col("low")).map(np.log))
+            df=self.df.with_columns(
+                pk=c * (pl.col("high") / pl.col("low")).map_elements(np.log)
+            )
         )
 
     def with_rogers_satchel(self) -> Self:
@@ -61,10 +63,10 @@ class DFutils:
             df=self.df.with_columns(
                 rs=c
                 * (
-                    (pl.col("high") / pl.col("open")).map(np.log)
-                    * (pl.col("high") / pl.col("close")).map(np.log)
-                    + (pl.col("low") / pl.col("open")).map(np.log)
-                    * (pl.col("low") / pl.col("close")).map(np.log)
-                ).map(np.sqrt)
+                    (pl.col("high") / pl.col("open")).map_elements(np.log)
+                    * (pl.col("high") / pl.col("close")).map_elements(np.log)
+                    + (pl.col("low") / pl.col("open")).map_elements(np.log)
+                    * (pl.col("low") / pl.col("close")).map_elements(np.log)
+                ).map_elements(np.sqrt)
             )
         )
