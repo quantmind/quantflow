@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "quantflow"
-version = "0.2.6"
+version = "0.2.7"
 description = "quantitative analysis"
 authors = ["Luca <luca@quantmind.com>"]
 license = "BSD-3-Clause"
@@ -12,23 +12,23 @@ Repository = "https://github.com/quantmind/quantflow"
 Documentation = "https://quantmind.github.io/quantflow/"
 
 [tool.poetry.dependencies]
-python = ">=3.11,<3.14"
+python = ">=3.11"
 scipy = "^1.14.1"
 aiohttp = {version = "^3.8.1", optional = true}
 pydantic = "^2.0.2"
-ccy = {version="^1.5.0", extras=["cli"]}
+ccy = {version="1.6.0", extras=["cli"]}
 asciichart = "^0.1"
 python-dotenv = "^1.0.1"
 asciichartpy = "^1.5.25"
 prompt-toolkit = "^3.0.43"
-polars = {version = "1.9.0", extras=["pandas", "pyarrow"]}
+polars = {version = "1.11.0", extras=["pandas", "pyarrow"]}
 
 [tool.poetry.group.dev.dependencies]
 black = "^24.1.1"
 pytest-cov = "^5.0.0"
-mypy = "^1.9.0"
+mypy = "^1.13.0"
 ghp-import = "^2.0.2"
-ruff = "^0.6.9"
+ruff = "^0.7.1"
 pytest-asyncio = "^0.24.0"
 
 
