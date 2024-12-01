@@ -27,7 +27,7 @@ jobs:
       - name: Install poetry
         run: pip install -U pip poetry
       - name: Install dependencies no book
-        run: poetry install
+        run: poetry install --all-extras
       - name: run tests no book
         run: make tests
       - name: Install dependencies

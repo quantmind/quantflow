@@ -5,6 +5,7 @@ from typing import Any, cast
 from fluid.utils.http_client import AioHttpClient
 from fluid.utils.data import compact_dict
 import pandas as pd
+from enum import StrEnum
 
 from quantflow.utils.dates import isoformat
 
@@ -13,6 +14,17 @@ from quantflow.utils.dates import isoformat
 class FMP(AioHttpClient):
     url: str = "https://financialmodelingprep.com/api"
     key: str = field(default_factory=lambda: os.environ.get("FMP_API_KEY", ""))
+
+    class freq(StrEnum):
+        """FMP historical frequencies"""
+
+        one_min = "1min"
+        five_min = "5min"
+        fifteen_min = "15min"
+        thirty_min = "30min"
+        one_hour = "1hour"
+        four_hour = "4hour"
+        daily = ""
 
     async def stocks(self, **kw: Any) -> list[dict]:
         return await self.get_path("v3/stock/list", **kw)
@@ -116,6 +128,7 @@ class FMP(AioHttpClient):
     async def prices(
         self, ticker: str, frequency: str = "", to_date: bool = False, **kw: Any
     ) -> pd.DataFrame:
+        """Historical prices, daily if frequency is not provided"""
         base = (
             "historical-price-full/"
             if not frequency
@@ -147,6 +160,10 @@ class FMP(AioHttpClient):
     def historical_frequencies_annulaized(self) -> dict:
         one_year = 525600
         return {k: v / one_year for k, v in self.historical_frequencies().items()}
+
+    # Crypto
+    async def crypto_list(self) -> list[dict]:
+        return await self.get_path("v3/symbol/available-cryptocurrencies")
 
     # Internals
     async def get_path(self, path: str, **kw: Any) -> list[dict]:
