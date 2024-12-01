@@ -2,15 +2,15 @@ import os
 from dataclasses import dataclass, field
 from datetime import date, timedelta
 from typing import Any, cast
-
+from fluid.utils.http_client import AioHttpClient
+from fluid.utils.data import compact_dict
 import pandas as pd
 
-from ..utils.dates import isoformat
-from .client import HttpClient, compact
+from quantflow.utils.dates import isoformat
 
 
 @dataclass
-class FMP(HttpClient):
+class FMP(AioHttpClient):
     url: str = "https://financialmodelingprep.com/api"
     key: str = field(default_factory=lambda: os.environ.get("FMP_API_KEY", ""))
 
@@ -80,7 +80,7 @@ class FMP(HttpClient):
         path = "ratios" if period else "ratios-ttm"
         return await self.get_path(
             f"v3/{path}/{ticker}",
-            **self.params(compact(period=period, limit=limit), **kw),
+            **self.params(compact_dict(period=period, limit=limit), **kw),
         )
 
     async def peers(self, *tickers: str, **kw: Any) -> list[dict]:
@@ -108,7 +108,9 @@ class FMP(HttpClient):
         path = "v3/search-ticker" if ticker else "v3/search"
         return await self.get_path(
             path,
-            **self.params(compact(query=query, exchange=exchange, limit=limit), **kw),
+            **self.params(
+                compact_dict(query=query, exchange=exchange, limit=limit), **kw
+            ),
         )
 
     async def prices(
