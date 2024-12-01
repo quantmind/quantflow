@@ -2,17 +2,29 @@ import os
 from dataclasses import dataclass, field
 from datetime import date, timedelta
 from typing import Any, cast
-
+from fluid.utils.http_client import AioHttpClient
+from fluid.utils.data import compact_dict
 import pandas as pd
+from enum import StrEnum
 
-from ..utils.dates import isoformat
-from .client import HttpClient, compact
+from quantflow.utils.dates import isoformat
 
 
 @dataclass
-class FMP(HttpClient):
+class FMP(AioHttpClient):
     url: str = "https://financialmodelingprep.com/api"
     key: str = field(default_factory=lambda: os.environ.get("FMP_API_KEY", ""))
+
+    class freq(StrEnum):
+        """FMP historical frequencies"""
+
+        one_min = "1min"
+        five_min = "5min"
+        fifteen_min = "15min"
+        thirty_min = "30min"
+        one_hour = "1hour"
+        four_hour = "4hour"
+        daily = ""
 
     async def stocks(self, **kw: Any) -> list[dict]:
         return await self.get_path("v3/stock/list", **kw)
@@ -80,7 +92,7 @@ class FMP(HttpClient):
         path = "ratios" if period else "ratios-ttm"
         return await self.get_path(
             f"v3/{path}/{ticker}",
-            **self.params(compact(period=period, limit=limit), **kw),
+            **self.params(compact_dict(period=period, limit=limit), **kw),
         )
 
     async def peers(self, *tickers: str, **kw: Any) -> list[dict]:
@@ -108,12 +120,15 @@ class FMP(HttpClient):
         path = "v3/search-ticker" if ticker else "v3/search"
         return await self.get_path(
             path,
-            **self.params(compact(query=query, exchange=exchange, limit=limit), **kw),
+            **self.params(
+                compact_dict(query=query, exchange=exchange, limit=limit), **kw
+            ),
         )
 
     async def prices(
         self, ticker: str, frequency: str = "", to_date: bool = False, **kw: Any
     ) -> pd.DataFrame:
+        """Historical prices, daily if frequency is not provided"""
         base = (
             "historical-price-full/"
             if not frequency
@@ -145,6 +160,10 @@ class FMP(HttpClient):
     def historical_frequencies_annulaized(self) -> dict:
         one_year = 525600
         return {k: v / one_year for k, v in self.historical_frequencies().items()}
+
+    # Crypto
+    async def crypto_list(self) -> list[dict]:
+        return await self.get_path("v3/symbol/available-cryptocurrencies")
 
     # Internals
     async def get_path(self, path: str, **kw: Any) -> list[dict]:
