@@ -1,7 +1,7 @@
 import asyncio
 import os
 from dataclasses import dataclass, field
-from typing import Any
+from typing import Any, Self
 
 import click
 import dotenv
@@ -29,12 +29,14 @@ def qf() -> None:
 
 @qf.command()
 @click.argument("symbol")
-def profile(symbol: str) -> None:
+@click.pass_context
+def profile(ctx: click.Context, symbol: str) -> None:
     """Company profile"""
+    app = QfApp.from_context(ctx)
     data = asyncio.run(get_profile(symbol))[0]
-    main.print(data.pop("description"))
+    app.print(data.pop("description"))
     df = pd.DataFrame(data.items(), columns=["Key", "Value"])
-    main.print(df_to_rich(df))
+    app.print(df_to_rich(df))
 
 
 @qf.command()
@@ -80,8 +82,12 @@ async def get_profile(symbol: str) -> list[dict]:
 
 
 @dataclass
-class App:
+class QfApp:
     console: Console = field(default_factory=Console)
+
+    @classmethod
+    def from_context(cls, ctx: click.Context) -> Self:
+        return ctx.obj  # type: ignore
 
     def __call__(self) -> None:
         os.makedirs(settings.SETTINGS_DIRECTORY, exist_ok=True)
@@ -116,12 +122,12 @@ class App:
         if not text:
             return
         elif text == "help":
-            return qf.main(["--help"], standalone_mode=False)
+            return qf.main(["--help"], standalone_mode=False, obj=self)
         elif text == "exit":
             raise click.Abort()
 
         try:
-            qf.main(text.split(), standalone_mode=False)
+            qf.main(text.split(), standalone_mode=False, obj=self)
         except click.exceptions.MissingParameter as e:
             self.error(e)
         except click.exceptions.NoSuchOption as e:

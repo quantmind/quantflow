@@ -50,7 +50,7 @@ sympy = "^1.12"
 ipywidgets = "^8.0.7"
 
 [tool.poetry.scripts]
-qf = "quantflow.cli:main"
+qf = "quantflow.cli.script:main"
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]
