@@ -15,13 +15,14 @@ Documentation = "https://quantmind.github.io/quantflow/"
 python = ">=3.11"
 scipy = "^1.14.1"
 pydantic = "^2.0.2"
-ccy = {version="1.6.0", extras=["cli"]}
-asciichart = "^0.1"
+ccy = {version="1.6.0"}
 python-dotenv = "^1.0.1"
-asciichartpy = "^1.5.25"
-prompt-toolkit = "^3.0.43"
 polars = {version = "^1.11.0", extras=["pandas", "pyarrow"]}
+asciichartpy = { version = "^1.5.25", optional = true }
+prompt-toolkit = { version = "^3.0.43", optional = true }
 aio-fluid = {version = "^1.2.1", extras=["http"], optional = true}
+rich = {version = "^13.9.4", optional = true}
+click = {version = "^8.1.7", optional = true}
 
 [tool.poetry.group.dev.dependencies]
 black = "^24.1.1"
@@ -34,6 +35,7 @@ pytest-asyncio = "^0.24.0"
 
 [tool.poetry.extras]
 data = ["aio-fluid"]
+cli = ["asciichartpy", "prompt-toolkit", "rich", "click"]
 
 [tool.poetry.group.book]
 optional = true
@@ -68,7 +70,6 @@ profile = "black"
 
 [tool.ruff]
 lint.select = ["E", "F"]
-extend-exclude = ["fluid_apps/db/migrations"]
 line-length = 88
 
 [tool.hatch.version]
