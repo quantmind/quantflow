@@ -28,5 +28,10 @@ pip install quantflow
 
 ## Command line tools
 
-When installing with the extra `data` dependencies, it is possible to use the command line tool `qf`
+The command line tools are available when installing with the extra `cli` and `data` dependencies.
 
+```bash
+pip install quantflow[cli,data]
+```
+
+It is possible to use the command line tool `qf` to download data and run pricing and calibration scripts.
