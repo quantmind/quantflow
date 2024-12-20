@@ -1,25 +1,15 @@
-import asyncio
 import os
 from dataclasses import dataclass, field
-from typing import Any, Self
+from typing import Any
 
 import click
-import dotenv
-import pandas as pd
-from asciichartpy import plot
-from ccy.cli.console import df_to_rich
 from prompt_toolkit import PromptSession
 from prompt_toolkit.history import FileHistory
 from rich.console import Console
 from rich.text import Text
 
-from quantflow.data.fmp import FMP
 
-from . import settings
-
-dotenv.load_dotenv()
-
-FREQUENCIES = tuple(FMP().historical_frequencies())
+from . import settings, commands
 
 
 @click.group()
@@ -27,67 +17,15 @@ def qf() -> None:
     pass
 
 
-@qf.command()
-@click.argument("symbol")
-@click.pass_context
-def profile(ctx: click.Context, symbol: str) -> None:
-    """Company profile"""
-    app = QfApp.from_context(ctx)
-    data = asyncio.run(get_profile(symbol))[0]
-    app.print(data.pop("description"))
-    df = pd.DataFrame(data.items(), columns=["Key", "Value"])
-    app.print(df_to_rich(df))
-
-
-@qf.command()
-@click.argument("symbol")
-@click.option(
-    "-h",
-    "--height",
-    type=int,
-    default=20,
-    show_default=True,
-    help="Chart height",
-)
-@click.option(
-    "-l",
-    "--length",
-    type=int,
-    default=100,
-    show_default=True,
-    help="Number of data points",
-)
-@click.option(
-    "-f",
-    "--frequency",
-    type=click.Choice(FREQUENCIES),
-    default="",
-    help="Number of data points",
-)
-def chart(symbol: str, height: int, length: int, frequency: str) -> None:
-    """Symbol chart"""
-    df = asyncio.run(get_prices(symbol, frequency))
-    data = list(reversed(df["close"].tolist()[:length]))
-    print(plot(data, {"height": height}))
-
-
-async def get_prices(symbol: str, frequency: str) -> pd.DataFrame:
-    async with FMP() as cli:
-        return await cli.prices(symbol, frequency)
-
-
-async def get_profile(symbol: str) -> list[dict]:
-    async with FMP() as cli:
-        return await cli.profile(symbol)
+qf.add_command(commands.exit)
+qf.add_command(commands.profile)
+qf.add_command(commands.search)
+qf.add_command(commands.chart)
 
 
 @dataclass
 class QfApp:
     console: Console = field(default_factory=Console)
-
-    @classmethod
-    def from_context(cls, ctx: click.Context) -> Self:
-        return ctx.obj  # type: ignore
 
     def __call__(self) -> None:
         os.makedirs(settings.SETTINGS_DIRECTORY, exist_ok=True)
@@ -123,12 +61,12 @@ class QfApp:
             return
         elif text == "help":
             return qf.main(["--help"], standalone_mode=False, obj=self)
-        elif text == "exit":
-            raise click.Abort()
 
         try:
             qf.main(text.split(), standalone_mode=False, obj=self)
         except click.exceptions.MissingParameter as e:
             self.error(e)
         except click.exceptions.NoSuchOption as e:
+            self.error(e)
+        except click.exceptions.UsageError as e:
             self.error(e)

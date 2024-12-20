@@ -1,3 +1,7 @@
+import dotenv
+
+dotenv.load_dotenv()
+
 try:
     from .app import QfApp
 except ImportError:
