@@ -32,7 +32,7 @@ def profile(ctx: click.Context, symbol: str) -> None:
     app = from_context(ctx)
     data = asyncio.run(get_profile(symbol))
     if not data:
-        app.error(f"Company {symbol} not found - try searching")
+        raise click.UsageError(f"Company {symbol} not found - try searching")
     else:
         d = data[0]
         app.print(d.pop("description") or "")
