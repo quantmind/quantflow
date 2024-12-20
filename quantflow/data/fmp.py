@@ -2,7 +2,7 @@ import os
 from dataclasses import dataclass, field
 from datetime import date, timedelta
 from typing import Any, cast
-from fluid.utils.http_client import AioHttpClient
+from .client import AioHttpClient
 from fluid.utils.data import compact_dict
 import pandas as pd
 from enum import StrEnum
