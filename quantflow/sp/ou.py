@@ -9,7 +9,7 @@ from scipy.stats import gamma, norm
 
 from ..utils.distributions import Exponential
 from ..utils.paths import Paths
-from ..utils.types import FloatArrayLike, Vector
+from ..utils.types import FloatArrayLike, Vector, Float
 from .base import Im, IntensityProcess
 from .poisson import CompoundPoissonProcess, D
 from .weiner import WeinerProcess
@@ -139,7 +139,12 @@ class GammaOU(NGOU[Exponential]):
         return Paths(t=time_horizon, data=paths)
 
     def _advance(
-        self, i: int, pp: np.ndarray, dt: float, arrival: float = 0, jump: float = 0
+        self,
+        i: int,
+        pp: np.ndarray,
+        dt: Float,
+        arrival: Float = 0,
+        jump: Float = 0,
     ) -> int:
         x = pp[i - 1]
         kappa = self.kappa

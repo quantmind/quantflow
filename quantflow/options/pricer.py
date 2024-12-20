@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from typing import Any, Generic, NamedTuple, TypeVar
+from typing import Any, Generic, NamedTuple, TypeVar, cast
 
 import numpy as np
 import pandas as pd
@@ -156,7 +156,7 @@ class OptionPricer(Generic[M]):
         moneyness_ttm = np.linspace(-max_moneyness_ttm, max_moneyness_ttm, support)
         implied = np.zeros((len(ttm), len(moneyness_ttm)))
         for i, t in enumerate(ttm):
-            maturity = self.maturity(t)
+            maturity = self.maturity(cast(float, t))
             implied[i, :] = maturity.interp(moneyness_ttm * np.sqrt(t)).implied_vols
         properties: dict = dict(
             xaxis_title="moneyness_ttm",

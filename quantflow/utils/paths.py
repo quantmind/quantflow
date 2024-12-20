@@ -51,7 +51,7 @@ class Paths(BaseModel, arbitrary_types_allowed=True):
     @property
     def ys(self) -> list[list[float]]:
         """Paths as list of list (for visualization tools)"""
-        return self.data.transpose().tolist()
+        return self.data.transpose().tolist()  # type: ignore
 
     def mean(self) -> FloatArray:
         """Mean of paths"""

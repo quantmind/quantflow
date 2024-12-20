@@ -1,4 +1,4 @@
-from typing import Dict, Sequence
+from typing import Sequence, cast, Any
 
 import numpy as np
 from pandas import DataFrame
@@ -13,9 +13,9 @@ def pdf(
     symmetric: float | None = None,
     precision: int = 6,
 ) -> DataFrame:
-    max_value = np.max(data)
-    min_value = np.min(data)
-    domain = max(abs(data)) if symmetric is not None else max_value - min_value
+    max_value = cast(float, np.max(data))
+    min_value = cast(float, np.min(data))
+    domain: float = max(abs(data)) if symmetric is not None else max_value - min_value  # type: ignore
     if num_bins is None:
         if not delta:
             num_bins = 50
@@ -39,7 +39,9 @@ def pdf(
     return DataFrame(dict(pdf=pdf), index=x[1:-1])
 
 
-def event_density(df: DataFrame, columns: Sequence, num: int = 10) -> Dict:
+def event_density(
+    df: DataFrame, columns: Sequence[str], num: int = 10
+) -> dict[str, Any]:
     """Calculate the probability density of the number of events
     in the dataframe columns
     """
@@ -48,5 +50,5 @@ def event_density(df: DataFrame, columns: Sequence, num: int = 10) -> Dict:
     for col in columns:
         counts, _ = np.histogram(df[col], bins=bins)
         counts = counts / np.sum(counts)
-        data[col] = counts[:num]
+        data[col] = counts[:num]  # type: ignore
     return data
