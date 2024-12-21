@@ -39,8 +39,8 @@ def delete(ctx: click.Context, key: str) -> None:
 def show(ctx: click.Context, key: str) -> None:
     """Show the value of an API key"""
     app = from_context(ctx)
-    if key := app.vault.get(key):
-        app.print(key)
+    if value := app.vault.get(key):
+        app.print(value)
     else:
         app.error(f"Key {key} not found")
 

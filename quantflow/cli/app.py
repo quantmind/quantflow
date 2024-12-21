@@ -7,7 +7,7 @@ from prompt_toolkit import PromptSession
 from prompt_toolkit.history import FileHistory
 from rich.console import Console
 from rich.text import Text
-from .commands import stocks, vault, rates
+from .commands import fred, stocks, vault
 from quantflow.data.vault import Vault
 from quantflow.data.fmp import FMP
 from quantflow.data.fred import Fred
@@ -28,7 +28,7 @@ def exit() -> None:
 
 qf.add_command(vault.vault)
 qf.add_command(stocks.stocks)
-qf.add_command(rates.rates)
+qf.add_command(fred.fred)
 
 
 @dataclass
