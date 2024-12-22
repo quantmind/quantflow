@@ -1,9 +1,11 @@
-from .client import AioHttpClient
-import pandas as pd
-from enum import StrEnum
-from dataclasses import dataclass, field
-from typing import Any, cast
 import os
+from dataclasses import dataclass, field
+from enum import StrEnum
+from typing import Any, cast
+
+import pandas as pd
+
+from .client import AioHttpClient
 
 
 @dataclass
@@ -12,15 +14,15 @@ class Fred(AioHttpClient):
     key: str = field(default_factory=lambda: os.environ.get("FRED_API_KEY", ""))
 
     class freq(StrEnum):
-        """FMP historical frequencies"""
+        """Fred historical frequencies"""
 
-        one_min = "1min"
-        five_min = "5min"
-        fifteen_min = "15min"
-        thirty_min = "30min"
-        one_hour = "1hour"
-        four_hour = "4hour"
-        daily = ""
+        d = "d"
+        w = "w"
+        bw = "bw"
+        m = "m"
+        q = "q"
+        sa = "sa"
+        a = "a"
 
     async def categiories(self, **kw: Any) -> dict:
         return await self.get_path("category", **kw)

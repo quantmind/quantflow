@@ -1,7 +1,9 @@
 from __future__ import annotations
 
+from typing import TYPE_CHECKING, Self, cast
+
 import click
-from typing import TYPE_CHECKING, cast, Self
+
 from quantflow.data.fmp import FMP
 from quantflow.data.fred import Fred
 

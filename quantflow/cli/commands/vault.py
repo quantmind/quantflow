@@ -1,6 +1,6 @@
 import click
-from .base import QuantGroup, QuantContext
 
+from .base import QuantContext, QuantGroup
 
 API_KEYS = ("fmp", "fred")
 

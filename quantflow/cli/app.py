@@ -1,18 +1,20 @@
 import os
 from dataclasses import dataclass, field
-from typing import Any
 from functools import partial
+from typing import Any
+
 import click
 from prompt_toolkit import PromptSession
 from prompt_toolkit.history import FileHistory
 from rich.console import Console
 from rich.text import Text
-from .commands import fred, stocks, vault
-from quantflow.data.vault import Vault
+
 from quantflow.data.fmp import FMP
 from quantflow.data.fred import Fred
+from quantflow.data.vault import Vault
 
 from . import settings
+from .commands import fred, stocks, vault
 
 
 @click.group()

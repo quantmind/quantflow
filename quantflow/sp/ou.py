@@ -9,7 +9,7 @@ from scipy.stats import gamma, norm
 
 from ..utils.distributions import Exponential
 from ..utils.paths import Paths
-from ..utils.types import FloatArrayLike, Vector, Float
+from ..utils.types import Float, FloatArrayLike, Vector
 from .base import Im, IntensityProcess
 from .poisson import CompoundPoissonProcess, D
 from .weiner import WeinerProcess

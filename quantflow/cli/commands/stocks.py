@@ -1,12 +1,15 @@
 from __future__ import annotations
 
-import click
 import asyncio
+
+import click
 import pandas as pd
 from asciichartpy import plot
 from ccy.cli.console import df_to_rich
+
 from quantflow.data.fmp import FMP
-from .base import QuantGroup, QuantContext
+
+from .base import QuantContext, QuantGroup
 
 FREQUENCIES = tuple(FMP().historical_frequencies())
 

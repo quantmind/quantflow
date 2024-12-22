@@ -1,4 +1,4 @@
-from typing import Sequence, cast, Any
+from typing import Any, Sequence, cast
 
 import numpy as np
 from pandas import DataFrame

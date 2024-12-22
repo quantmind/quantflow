@@ -1,16 +1,18 @@
 from __future__ import annotations
 
-import click
 import asyncio
-import pandas as pd
 from typing import TYPE_CHECKING
+
+import click
+import pandas as pd
 from asciichartpy import plot
+from ccy.cli.console import df_to_rich
 from fluid.utils.data import compact_dict
 from fluid.utils.http_client import HttpResponseError
-from ccy.cli.console import df_to_rich
-from quantflow.data.fmp import FMP
-from .base import QuantGroup, QuantContext
 
+from quantflow.data.fmp import FMP
+
+from .base import QuantContext, QuantGroup
 
 FREQUENCIES = tuple(FMP().historical_frequencies())
 
@@ -75,6 +77,7 @@ def data(series_id: str, length: int) -> None:
         ctx.qf.error(e)
     else:
         ctx.qf.print(df_to_rich(df))
+
 
 @fred.command()
 @click.argument("series-id")

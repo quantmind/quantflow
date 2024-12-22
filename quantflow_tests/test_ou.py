@@ -2,7 +2,7 @@ import pytest
 
 from quantflow.sp.bns import BNS
 from quantflow.sp.ou import GammaOU, Vasicek
-from quantflow_tests.utils import characteristic_tests, analytical_tests
+from quantflow_tests.utils import analytical_tests, characteristic_tests
 
 
 @pytest.fixture
