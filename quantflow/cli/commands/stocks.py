@@ -9,18 +9,17 @@ from ccy.cli.console import df_to_rich
 
 from quantflow.data.fmp import FMP
 
-from .base import QuantContext, QuantGroup
+from .base import QuantContext, quant_group
 
 FREQUENCIES = tuple(FMP().historical_frequencies())
 
 
-@click.group(invoke_without_command=True, cls=QuantGroup)
+@quant_group()
 def stocks() -> None:
     """Stocks commands"""
     ctx = QuantContext.current()
     if ctx.invoked_subcommand is None:
-        ctx.qf.print("Welcome to the stocks commands!")
-        ctx.qf.print(ctx.get_help())
+        ctx.set_as_section()
 
 
 @stocks.command()

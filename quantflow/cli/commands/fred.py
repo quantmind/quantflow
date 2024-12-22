@@ -12,7 +12,7 @@ from fluid.utils.http_client import HttpResponseError
 
 from quantflow.data.fred import Fred
 
-from .base import QuantContext, QuantGroup
+from .base import QuantContext, quant_group
 
 FREQUENCIES = tuple(Fred.freq)
 
@@ -20,13 +20,12 @@ if TYPE_CHECKING:
     pass
 
 
-@click.group(invoke_without_command=True, cls=QuantGroup)
+@quant_group()
 def fred() -> None:
-    """Federal Reserve of St. Louis data"""
+    """Federal Reserve of St. Louis data commands"""
     ctx = QuantContext.current()
     if ctx.invoked_subcommand is None:
-        ctx.qf.print("Welcome to FRED data commands!")
-        ctx.qf.print(ctx.get_help())
+        ctx.set_as_section()
 
 
 @fred.command()

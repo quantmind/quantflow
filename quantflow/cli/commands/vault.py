@@ -1,14 +1,16 @@
 import click
 
-from .base import QuantContext, QuantGroup
+from .base import QuantContext, quant_group
 
 API_KEYS = ("fmp", "fred")
 
 
-@click.group(invoke_without_command=True, cls=QuantGroup)
+@quant_group()
 def vault() -> None:
     """Manage vault secrets"""
-    pass
+    ctx = QuantContext.current()
+    if ctx.invoked_subcommand is None:
+        ctx.set_as_section()
 
 
 @vault.command()
