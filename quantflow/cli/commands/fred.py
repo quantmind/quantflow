@@ -10,11 +10,11 @@ from ccy.cli.console import df_to_rich
 from fluid.utils.data import compact_dict
 from fluid.utils.http_client import HttpResponseError
 
-from quantflow.data.fmp import FMP
+from quantflow.data.fred import Fred
 
 from .base import QuantContext, QuantGroup
 
-FREQUENCIES = tuple(FMP().historical_frequencies())
+FREQUENCIES = tuple(Fred.freq)
 
 if TYPE_CHECKING:
     pass
@@ -68,11 +68,19 @@ def series(category_id: str) -> None:
     show_default=True,
     help="Number of data points",
 )
-def data(series_id: str, length: int) -> None:
+@click.option(
+    "-f",
+    "--frequency",
+    type=click.Choice(FREQUENCIES),
+    default="d",
+    show_default=True,
+    help="Frequency of data",
+)
+def data(series_id: str, length: int, frequency: str) -> None:
     """Display a series data"""
     ctx = QuantContext.current()
     try:
-        df = asyncio.run(get_serie_data(ctx, series_id, length))
+        df = asyncio.run(get_serie_data(ctx, series_id, length, frequency))
     except HttpResponseError as e:
         ctx.qf.error(e)
     else:
@@ -97,11 +105,19 @@ def data(series_id: str, length: int) -> None:
     show_default=True,
     help="Number of data points",
 )
-def chart(series_id: str, height: int, length: int) -> None:
+@click.option(
+    "-f",
+    "--frequency",
+    type=click.Choice(FREQUENCIES),
+    default="w",
+    show_default=True,
+    help="Frequency of data",
+)
+def chart(series_id: str, height: int, length: int, frequency: str) -> None:
     """Chart a serie"""
     ctx = QuantContext.current()
     try:
-        df = asyncio.run(get_serie_data(ctx, series_id, length))
+        df = asyncio.run(get_serie_data(ctx, series_id, length, frequency))
     except HttpResponseError as e:
         ctx.qf.error(e)
     else:
@@ -119,6 +135,15 @@ async def get_series(ctx: QuantContext, category_id: str) -> dict:
         return await cli.series(params=compact_dict(category_id=category_id))
 
 
-async def get_serie_data(ctx: QuantContext, series_id: str, length: int) -> dict:
+async def get_serie_data(
+    ctx: QuantContext, series_id: str, length: int, frequency: str
+) -> dict:
     async with ctx.fred() as cli:
-        return await cli.serie_data(params=dict(series_id=series_id, limit=length))
+        return await cli.serie_data(
+            params=dict(
+                series_id=series_id,
+                limit=length,
+                frequency=frequency,
+                sort_order="desc",
+            )
+        )
