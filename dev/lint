@@ -1,14 +1,18 @@
 #!/usr/bin/env bash
 set -e
 
+ISORT_ARGS="-c"
 BLACK_ARG="--check"
 RUFF_ARG=""
 
 if [ "$1" = "fix" ] ; then
+    ISORT_ARGS=""
     BLACK_ARG=""
     RUFF_ARG="--fix"
 fi
 
+echo isort
+isort quantflow quantflow_tests ${ISORT_ARGS}
 echo black
 black quantflow quantflow_tests ${BLACK_ARG}
 echo ruff

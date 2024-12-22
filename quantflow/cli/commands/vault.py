@@ -1,11 +1,11 @@
 import click
-from .stocks import from_context
 
+from .base import QuantContext, QuantGroup
 
 API_KEYS = ("fmp", "fred")
 
 
-@click.group()
+@click.group(invoke_without_command=True, cls=QuantGroup)
 def vault() -> None:
     """Manage vault secrets"""
     pass
@@ -14,19 +14,17 @@ def vault() -> None:
 @vault.command()
 @click.argument("key", type=click.Choice(API_KEYS))
 @click.argument("value")
-@click.pass_context
-def add(ctx: click.Context, key: str, value: str) -> None:
+def add(key: str, value: str) -> None:
     """Add an API key to the vault"""
-    vault = from_context(ctx).vault
-    vault.add(key, value)
+    app = QuantContext.current().qf
+    app.vault.add(key, value)
 
 
 @vault.command()
 @click.argument("key")
-@click.pass_context
-def delete(ctx: click.Context, key: str) -> None:
+def delete(key: str) -> None:
     """Delete an API key from the vault"""
-    app = from_context(ctx)
+    app = QuantContext.current().qf
     if app.vault.delete(key):
         app.print(f"Deleted key {key}")
     else:
@@ -35,10 +33,9 @@ def delete(ctx: click.Context, key: str) -> None:
 
 @vault.command()
 @click.argument("key")
-@click.pass_context
-def show(ctx: click.Context, key: str) -> None:
+def show(key: str) -> None:
     """Show the value of an API key"""
-    app = from_context(ctx)
+    app = QuantContext.current().qf
     if value := app.vault.get(key):
         app.print(value)
     else:
@@ -46,9 +43,8 @@ def show(ctx: click.Context, key: str) -> None:
 
 
 @vault.command()
-@click.pass_context
-def keys(ctx: click.Context) -> None:
+def keys() -> None:
     """Show the keys in the vault"""
-    app = from_context(ctx)
+    app = QuantContext.current().qf
     for key in app.vault.keys():
         app.print(key)

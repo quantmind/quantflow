@@ -1,13 +1,28 @@
-from .client import AioHttpClient
-from dataclasses import dataclass, field
-from typing import Any, cast
 import os
+from dataclasses import dataclass, field
+from enum import StrEnum
+from typing import Any, cast
+
+import pandas as pd
+
+from .client import AioHttpClient
 
 
 @dataclass
 class Fred(AioHttpClient):
     url: str = "https://api.stlouisfed.org/fred"
     key: str = field(default_factory=lambda: os.environ.get("FRED_API_KEY", ""))
+
+    class freq(StrEnum):
+        """Fred historical frequencies"""
+
+        d = "d"
+        w = "w"
+        bw = "bw"
+        m = "m"
+        q = "q"
+        sa = "sa"
+        a = "a"
 
     async def categiories(self, **kw: Any) -> dict:
         return await self.get_path("category", **kw)
@@ -17,6 +32,14 @@ class Fred(AioHttpClient):
 
     async def series(self, **kw: Any) -> dict:
         return await self.get_path("category/series", **kw)
+
+    async def serie_data(self, *, to_date: bool = False, **kw: Any) -> pd.DataFrame:
+        data = await self.get_path("series/observations", **kw)
+        df = pd.DataFrame(data["observations"])
+        df["value"] = pd.to_numeric(df["value"])
+        if to_date and "date" in df.columns:
+            df["date"] = pd.to_datetime(df["date"])
+        return df
 
     # Internals
     async def get_path(self, path: str, **kw: Any) -> dict:

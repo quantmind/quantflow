@@ -1,9 +1,8 @@
 from typing import Self, TypeAlias
 
 import numpy as np
-import polars as pl
 import pandas as pd
-
+import polars as pl
 
 DataFrame: TypeAlias = pl.DataFrame | pd.DataFrame
 

@@ -1,9 +1,9 @@
 from decimal import Decimal
-from typing import Optional, Union, Any
+from typing import Any, Optional, Union
 
-import pandas as pd
 import numpy as np
 import numpy.typing as npt
+import pandas as pd
 
 Number = Decimal
 Float = float | np.floating[Any]
