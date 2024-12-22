@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Self, cast
+from typing import TYPE_CHECKING, Any, Self, cast
 
 import click
 
@@ -20,6 +20,12 @@ class QuantContext(click.Context):
     @property
     def qf(self) -> QfApp:
         return self.obj  # type: ignore
+
+    def set_as_section(self) -> None:
+        group = cast(QuantGroup, self.command)
+        group.add_command(back)
+        self.qf.set_section(group)
+        self.qf.print(self.get_help())
 
     def fmp(self) -> FMP:
         if key := self.qf.vault.get("fmp"):
@@ -41,3 +47,33 @@ class QuantCommand(click.Command):
 class QuantGroup(click.Group):
     context_class = QuantContext
     command_class = QuantCommand
+
+
+@click.command(cls=QuantCommand)
+def exit() -> None:
+    """Exit the program"""
+    raise click.Abort()
+
+
+@click.command(cls=QuantCommand)
+def help() -> None:
+    """display the commands"""
+    if ctx := QuantContext.current().parent:
+        cast(QuantContext, ctx).qf.print(ctx.get_help())
+
+
+@click.command(cls=QuantCommand)
+def back() -> None:
+    """Exit the current section"""
+    ctx = QuantContext.current()
+    ctx.qf.back()
+    ctx.qf.handle_command("help")
+
+
+def quant_group() -> Any:
+    return click.group(
+        cls=QuantGroup,
+        commands=[exit, help],
+        invoke_without_command=True,
+        add_help_option=False,
+    )
