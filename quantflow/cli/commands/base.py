@@ -77,3 +77,23 @@ def quant_group() -> Any:
         invoke_without_command=True,
         add_help_option=False,
     )
+
+
+class options:
+    length = click.option(
+        "-l",
+        "--length",
+        type=int,
+        default=100,
+        show_default=True,
+        help="Number of data points",
+    )
+    height = click.option(
+        "-h",
+        "--height",
+        type=int,
+        default=20,
+        show_default=True,
+        help="Chart height",
+    )
+    chart = click.option("-c", "--chart", is_flag=True, help="Display chart")

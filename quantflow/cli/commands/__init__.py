@@ -1,4 +1,5 @@
 from .base import QuantContext, quant_group
+from .crypto import crypto
 from .fred import fred
 from .stocks import stocks
 from .vault import vault
@@ -12,5 +13,6 @@ def quantflow() -> None:
 
 
 quantflow.add_command(vault)
+quantflow.add_command(crypto)
 quantflow.add_command(stocks)
 quantflow.add_command(fred)

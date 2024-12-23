@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import asyncio
-from typing import TYPE_CHECKING
 
 import click
 import pandas as pd
@@ -12,12 +11,9 @@ from fluid.utils.http_client import HttpResponseError
 
 from quantflow.data.fred import Fred
 
-from .base import QuantContext, quant_group
+from .base import QuantContext, options, quant_group
 
 FREQUENCIES = tuple(Fred.freq)
-
-if TYPE_CHECKING:
-    pass
 
 
 @quant_group()
@@ -44,7 +40,8 @@ def subcategories(category_id: str | None = None) -> None:
 
 @fred.command()
 @click.argument("category-id")
-def series(category_id: str) -> None:
+@click.option("-j", "--json", is_flag=True, help="Output as JSON")
+def series(category_id: str, json: bool = False) -> None:
     """List series for a Fred category"""
     ctx = QuantContext.current()
     try:
@@ -52,21 +49,28 @@ def series(category_id: str) -> None:
     except HttpResponseError as e:
         ctx.qf.error(e)
     else:
-        ctx.qf.print(data)
-        # df = pd.DataFrame(data["categories"], columns=["id", "name"])
-        # app.print(df_to_rich(df))
+        if json:
+            ctx.qf.print(data)
+        else:
+            df = pd.DataFrame(
+                data["seriess"],
+                columns=[
+                    "id",
+                    "popularity",
+                    "title",
+                    "frequency",
+                    "observation_start",
+                    "observation_end",
+                ],
+            ).sort_values("popularity", ascending=False)
+            ctx.qf.print(df_to_rich(df))
 
 
 @fred.command()
 @click.argument("series-id")
-@click.option(
-    "-l",
-    "--length",
-    type=int,
-    default=100,
-    show_default=True,
-    help="Number of data points",
-)
+@options.length
+@options.height
+@options.chart
 @click.option(
     "-f",
     "--frequency",
@@ -75,7 +79,7 @@ def series(category_id: str) -> None:
     show_default=True,
     help="Frequency of data",
 )
-def data(series_id: str, length: int, frequency: str) -> None:
+def data(series_id: str, length: int, height: int, chart: bool, frequency: str) -> None:
     """Display a series data"""
     ctx = QuantContext.current()
     try:
@@ -83,45 +87,11 @@ def data(series_id: str, length: int, frequency: str) -> None:
     except HttpResponseError as e:
         ctx.qf.error(e)
     else:
-        ctx.qf.print(df_to_rich(df))
-
-
-@fred.command()
-@click.argument("series-id")
-@click.option(
-    "-h",
-    "--height",
-    type=int,
-    default=20,
-    show_default=True,
-    help="Chart height",
-)
-@click.option(
-    "-l",
-    "--length",
-    type=int,
-    default=100,
-    show_default=True,
-    help="Number of data points",
-)
-@click.option(
-    "-f",
-    "--frequency",
-    type=click.Choice(FREQUENCIES),
-    default="w",
-    show_default=True,
-    help="Frequency of data",
-)
-def chart(series_id: str, height: int, length: int, frequency: str) -> None:
-    """Chart a serie"""
-    ctx = QuantContext.current()
-    try:
-        df = asyncio.run(get_serie_data(ctx, series_id, length, frequency))
-    except HttpResponseError as e:
-        ctx.qf.error(e)
-    else:
-        data = list(reversed(df["value"].tolist()[:length]))
-        ctx.qf.print(plot(data, {"height": height}))
+        if chart:
+            data = list(reversed(df["value"].tolist()[:length]))
+            ctx.qf.print(plot(data, {"height": height}))
+        else:
+            ctx.qf.print(df_to_rich(df))
 
 
 async def get_subcategories(ctx: QuantContext, category_id: str | None) -> dict:
