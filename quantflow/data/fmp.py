@@ -1,13 +1,16 @@
 import os
 from dataclasses import dataclass, field
 from datetime import date, timedelta
+from decimal import Decimal
 from enum import StrEnum
-from typing import Any, cast
+from typing import Any, Iterator, cast
 
+import inflection
 import pandas as pd
 from fluid.utils.data import compact_dict
 
 from quantflow.utils.dates import isoformat
+from quantflow.utils.numbers import to_decimal
 
 from .client import AioHttpClient
 
@@ -144,6 +147,33 @@ class FMP(AioHttpClient):
             df["date"] = pd.to_datetime(df["date"])
         return df
 
+    # Sector performance
+    async def sector_performance(
+        self,
+        *,
+        from_date: date | None = None,
+        to_date: date | None = None,
+        summary: bool = False,
+        params: dict | None = None,
+        **kw: Any,
+    ) -> dict | list[dict]:
+        if not from_date:
+            data = await self.get_path("v3/sectors-performance", params=params, **kw)
+            return {d["sector"]: Decimal(d["changesPercentage"][:-1]) for d in data}
+        else:
+            params = params.copy() if params is not None else {}
+            params.update(compact_dict({"from": from_date, "to": to_date}))
+            data = await self.get_path(
+                "v3/historical-sectors-performance", params=params, **kw
+            )
+            ts = [dict(nice_sector_performance(d)) for d in data]
+            return summary_sector_performance(ts) if summary else ts
+
+    async def sector_pe(self, **kw: Any) -> list[dict]:
+        return cast(
+            list[dict], await self.get_path("v4/sector_price_earning_ratio", **kw)
+        )
+
     # forex
     async def forex_list(self) -> list[dict]:
         return await self.get_path("v3/symbol/available-forex-currency-pairs")
@@ -182,3 +212,23 @@ class FMP(AioHttpClient):
         params = params.copy() if params is not None else {}
         params["apikey"] = self.key
         return {"params": params, **kw}
+
+
+def nice_sector_performance(d: dict) -> Iterator[tuple[str, Any]]:
+    for k, v in d.items():
+        if k == "date":
+            yield k, date.fromisoformat(v)
+        else:
+            kk = " ".join(w.title() for w in inflection.underscore(k).split("_")[:-2])
+            yield kk, v
+
+
+def summary_sector_performance(days: list[dict]) -> dict:
+    result = days[0].copy()
+    result.pop("date", None)
+    for d in days[1:]:
+        for k, v in d.items():
+            if k != "date":
+                p = result.get(k, 0)
+                result[k] = 100 * ((1.0 + p / 100) * (1.0 + v / 100) - 1.0)
+    return dict((k, to_decimal(round(v, 3))) for k, v in result.items())

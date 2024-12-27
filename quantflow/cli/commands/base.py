@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import enum
 from typing import TYPE_CHECKING, Any, Self, cast
 
 import click
@@ -9,6 +10,15 @@ from quantflow.data.fred import Fred
 
 if TYPE_CHECKING:
     from quantflow.cli.app import QfApp
+
+
+class HistoricalPeriod(enum.StrEnum):
+    day = "1d"
+    week = "1w"
+    month = "1m"
+    three_months = "3m"
+    six_months = "6m"
+    year = "1y"
 
 
 class QuantContext(click.Context):
@@ -97,3 +107,11 @@ class options:
         help="Chart height",
     )
     chart = click.option("-c", "--chart", is_flag=True, help="Display chart")
+    period = click.option(
+        "-p",
+        "--period",
+        type=click.Choice(tuple(p.value for p in HistoricalPeriod)),
+        default="1d",
+        show_default=True,
+        help="Historical period",
+    )

@@ -65,6 +65,9 @@ class Price(Generic[S]):
 
 @dataclass
 class SpotPrice(Price[S]):
+    open_interest: int = 0
+    volume: int = 0
+
     def inputs(self) -> SpotInput:
         return SpotInput(bid=self.bid, ask=self.ask)
 
@@ -72,6 +75,8 @@ class SpotPrice(Price[S]):
 @dataclass
 class FwdPrice(Price[S]):
     maturity: datetime
+    open_interest: int = 0
+    volume: int = 0
 
     def inputs(self) -> ForwardInput:
         return ForwardInput(
@@ -232,6 +237,8 @@ class OptionPrices(Generic[S]):
     security: S
     bid: OptionPrice
     ask: OptionPrice
+    open_interest: int = 0
+    volume: int = 0
 
     def prices(
         self,
@@ -310,6 +317,8 @@ class VolCrossSection(Generic[S]):
             rate_percent=rate_from_spot_and_forward(
                 spot.mid, self.forward.mid, self.maturity - ref_date
             ).percent,
+            open_interest=self.forward.open_interest,
+            volume=self.forward.volume,
         )
 
     def option_prices(
@@ -528,6 +537,8 @@ class VolCrossSectionLoader(Generic[S]):
         security: S,
         bid: Decimal = ZERO,
         ask: Decimal = ZERO,
+        open_interest: int = 0,
+        volume: int = 0,
     ) -> None:
         if strike not in self.strikes:
             self.strikes[strike] = Strike(strike=strike)
@@ -539,6 +550,8 @@ class VolCrossSectionLoader(Generic[S]):
             ask=OptionPrice(
                 price=ask, strike=strike, call=call, maturity=self.maturity, side="ask"
             ),
+            open_interest=open_interest,
+            volume=volume,
         )
         if call:
             self.strikes[strike].call = option
@@ -575,18 +588,42 @@ class GenericVolSurfaceLoader(Generic[S]):
             self.maturities[maturity] = VolCrossSectionLoader(maturity=maturity)
         return self.maturities[maturity]
 
-    def add_spot(self, security: S, bid: Decimal = ZERO, ask: Decimal = ZERO) -> None:
+    def add_spot(
+        self,
+        security: S,
+        bid: Decimal = ZERO,
+        ask: Decimal = ZERO,
+        open_interest: int = 0,
+        volume: int = 0,
+    ) -> None:
         if security.vol_surface_type() != VolSecurityType.spot:
             raise ValueError("Security is not a spot")
-        self.spot = SpotPrice(security, bid=bid, ask=ask)
+        self.spot = SpotPrice(
+            security,
+            bid=bid,
+            ask=ask,
+            open_interest=open_interest,
+            volume=volume,
+        )
 
     def add_forward(
-        self, security: S, maturity: datetime, bid: Decimal = ZERO, ask: Decimal = ZERO
+        self,
+        security: S,
+        maturity: datetime,
+        bid: Decimal = ZERO,
+        ask: Decimal = ZERO,
+        open_interest: int = 0,
+        volume: int = 0,
     ) -> None:
         if security.vol_surface_type() != VolSecurityType.forward:
             raise ValueError("Security is not a forward")
         self.get_or_create_maturity(maturity=maturity).forward = FwdPrice(
-            security, bid=bid, ask=ask, maturity=maturity
+            security,
+            bid=bid,
+            ask=ask,
+            maturity=maturity,
+            open_interest=open_interest,
+            volume=volume,
         )
 
     def add_option(
@@ -597,11 +634,19 @@ class GenericVolSurfaceLoader(Generic[S]):
         call: bool,
         bid: Decimal = ZERO,
         ask: Decimal = ZERO,
+        open_interest: int = 0,
+        volume: int = 0,
     ) -> None:
         if security.vol_surface_type() != VolSecurityType.option:
             raise ValueError("Security is not an option")
         self.get_or_create_maturity(maturity=maturity).add_option(
-            strike, call, security, bid=bid, ask=ask
+            strike,
+            call,
+            security,
+            bid=bid,
+            ask=ask,
+            open_interest=open_interest,
+            volume=volume,
         )
 
     def surface(self, ref_date: datetime | None = None) -> VolSurface[S]:

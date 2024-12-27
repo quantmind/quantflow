@@ -4,7 +4,7 @@ jupytext:
     extension: .md
     format_name: myst
     format_version: 0.13
-    jupytext_version: 1.14.7
+    jupytext_version: 1.16.6
 kernelspec:
   display_name: Python 3 (ipykernel)
   language: python
@@ -18,50 +18,10 @@ In this notebook we illustrate the use of the Volatility Surface tool in the lib
 First thing, fetch the data
 
 ```{code-cell} ipython3
-from quantflow.data.client import HttpClient
+from quantflow.data.deribit import Deribit
 
-deribit_url = "https://test.deribit.com/api/v2/public/get_book_summary_by_currency"
-async with HttpClient() as cli:
-    futures = await cli.get(deribit_url, params=dict(currency="BTC", kind="future"))
-    options = await cli.get(deribit_url, params=dict(currency="BTC", kind="option"))
-```
-
-```{code-cell} ipython3
-from decimal import Decimal
-from quantflow.options.surface import VolSurfaceLoader, VolSecurityType
-from datetime import timezone
-from dateutil.parser import parse
-
-def parse_maturity(v: str):
-    return parse(v).replace(tzinfo=timezone.utc, hour=8)
-    
-loader = VolSurfaceLoader()
-
-for future in futures["result"]:
-    if (bid := future["bid_price"]) and (ask := future["ask_price"]):
-        maturity = future["instrument_name"].split("-")[-1]
-        if maturity == "PERPETUAL":
-            loader.add_spot(VolSecurityType.spot, bid=Decimal(bid), ask=Decimal(ask))
-        else:
-            loader.add_forward(
-                VolSecurityType.forward,
-                maturity=parse_maturity(maturity),
-                bid=Decimal(str(bid)),
-                ask=Decimal(str(ask))
-            )
-
-for option in options["result"]:
-    if (bid := option["bid_price"]) and (ask := option["ask_price"]):
-        _, maturity, strike, ot = option["instrument_name"].split("-")
-        loader.add_option(
-            VolSecurityType.option,
-            strike=Decimal(strike),
-            maturity=parse_maturity(maturity),
-            call=ot == "C",
-            bid=Decimal(str(bid)),
-            ask=Decimal(str(ask))
-        )
-    
+async with Deribit() as cli:
+    loader = await cli.volatility_surface_loader("eth")
 ```
 
 Once we have loaded the data, we create the surface and display the term-structure of forwards
@@ -70,6 +30,10 @@ Once we have loaded the data, we create the surface and display the term-structu
 vs = loader.surface()
 vs.maturities = vs.maturities[1:]
 vs.term_structure()
+```
+
+```{code-cell} ipython3
+vs.spot
 ```
 
 ## bs method
@@ -135,10 +99,11 @@ pricer.model
 ```
 
 ```{code-cell} ipython3
-cal.plot(index=4, max_moneyness_ttm=1)
+cal.plot(index=6, max_moneyness_ttm=1)
 ```
 
-## Serialization
+## 
+Serialization
 
 It is possible to save the vol surface into a json file so it can be recreated for testing or for serialization/deserialization.
 
