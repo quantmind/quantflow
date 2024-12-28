@@ -19,10 +19,11 @@ It is a statistics which can be used to test if a time-series is mean reverting 
 
 +++
 
-## Study the Weiner process OHLC
+## Study with the Weiner Process
 
-We want to construct a mechanism to estimate the hurst exponent via OHLC data.
-In order to evaluate results agains known solution we take the Weiner process as generator of timeseries. In this way we know exactly what the variance should be.
+We want to construct a mechanism to estimate the Hurst exponent via OHLC data because it is widely available from data provider and easily constructed as an online signal during trading.
+
+In order to evaluate results against known solutions, we consider the Weiner process as generator of timeseries.
 
 ```{code-cell} ipython3
 from quantflow.sp.weiner import WeinerProcess
@@ -37,11 +38,24 @@ df = paths.as_datetime_df(start=start_of_day()).reset_index()
 df
 ```
 
-At this point we estimate the standard deviation using the **realized variance** along the path (we use the scaled flag so that the standard deviation is caled by the square-root of time step)
+### Realized Variance
+
+At this point we estimate the standard deviation using the **realized variance** along the path (we use the scaled flag so that the standard deviation is caled by the square-root of time step). The value should be close to the **sigma** of the weiner process
 
 ```{code-cell} ipython3
 float(paths.path_std(scaled=True)[0])
 ```
+
+### Range-base Variance estimators
+
+We now turn our attention to range-based volatility estimators. These estimators depends on OHLC timeseries, which are widely available from data providers such as [FMP](https://site.financialmodelingprep.com/).
+To analyze range-based variance estimators, we use he **quantflow.ta.OHLC** tool which allows to down-sample a timeserie to OHLC series and estimate variance with three different estimators
+
+* **Parkinson** (1980)
+* **Garman & Klass** (1980)
+* **Rogers & Satchell** (1991)
+
+See {cite:p}`molnar` for a detailed overview of the properties of range-based estimators.
 
 ```{code-cell} ipython3
 from quantflow.ta.ohlc import OHLC
