@@ -4,7 +4,7 @@ jupytext:
     extension: .md
     format_name: myst
     format_version: 0.13
-    jupytext_version: 1.14.7
+    jupytext_version: 1.16.6
 kernelspec:
   display_name: Python 3 (ipykernel)
   language: python
@@ -57,13 +57,13 @@ which means the process admits a stationary probability distribution equal to
     x_t \sim N\left(\theta, \frac{\sigma^2}{2\kappa}\right)\ \ t\rightarrow\infty
 \end{equation}
 
-```{code-cell} ipython3
+```{code-cell}
 from quantflow.sp.ou import Vasicek
 pr = Vasicek()
 pr
 ```
 
-```{code-cell} ipython3
+```{code-cell}
 pr.sample(20, time_horizon=1, time_steps=1000).plot().update_traces(
     line_width=0.5
 ).update_layout(
@@ -71,12 +71,12 @@ pr.sample(20, time_horizon=1, time_steps=1000).plot().update_traces(
 )
 ```
 
-```{code-cell} ipython3
+```{code-cell}
 m = pr.marginal(1)
 m.mean(), m.std()
 ```
 
-```{code-cell} ipython3
+```{code-cell}
 m.mean_from_characteristic(), m.std_from_characteristic()
 ```
 
@@ -125,7 +125,7 @@ The library provides an implementation of the non-gaussian OU process in the for
 
 In this case, the BDLP is an exponential compound Poisson process with Lévy density $\lambda\beta e^{-\beta x}$, in other words, the [exponential compound Poisson](./poisson.md) process with intensity $\lambda$ and decay $\beta$.
 
-```{code-cell} ipython3
+```{code-cell}
 from quantflow.sp.ou import GammaOU
 
 pr = GammaOU.create(decay=10, kappa=5)
@@ -140,11 +140,11 @@ The charatecristic exponent of the $\Gamma$-OU process is given by, see {cite:p}
     \phi_{u, t} = -x_{0} i u e^{-\kappa t} - \lambda\ln\left(\frac{\beta-iue^{-\kappa t}}{\beta -iu}\right)
 \end{equation}
 
-```{code-cell} ipython3
+```{code-cell}
 pr.marginal(1).mean(), pr.marginal(1).std()
 ```
 
-```{code-cell} ipython3
+```{code-cell}
 import numpy as np
 from quantflow.utils import plot
 
@@ -152,14 +152,14 @@ m = pr.marginal(5)
 plot.plot_marginal_pdf(m, 128)
 ```
 
-```{code-cell} ipython3
+```{code-cell}
 from quantflow.utils.plot import plot_characteristic
 plot_characteristic(m)
 ```
 
 ### Sampling Gamma OU
 
-```{code-cell} ipython3
+```{code-cell}
 from quantflow.sp.ou import GammaOU
 pr = GammaOU.create(decay=10, kappa=5)
 
@@ -170,7 +170,7 @@ pr.sample(50, time_horizon=1, time_steps=1000).plot().update_traces(line_width=0
 
 Test the simulated meand and stadard deviation against the values from the invariant gamma distribution.
 
-```{code-cell} ipython3
+```{code-cell}
 import pandas as pd
 from quantflow.utils import plot
 
@@ -180,7 +180,7 @@ df = pd.DataFrame(mean, index=paths.time)
 plot.plot_lines(df)
 ```
 
-```{code-cell} ipython3
+```{code-cell}
 std = dict(std=pr.marginal(paths.time).std(), simulated=paths.std())
 df = pd.DataFrame(std, index=paths.time)
 plot.plot_lines(df)
@@ -198,6 +198,6 @@ The integration of the OU process can be achieved by multiplying both sides of t
     x_t &= x_0 e^{-\kappa t} + \int_0^t e^{-\kappa\left(t - s\right)} d z_s
 \end{align}
 
-```{code-cell} ipython3
+```{code-cell}
 
 ```

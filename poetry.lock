@@ -4798,4 +4798,4 @@ data = ["aio-fluid"]
 [metadata]
 lock-version = "2.0"
 python-versions = ">=3.11"
-content-hash = "945f85a4526b83f35e916bb16c00d24c25e34667b1e606ddf906ef348c73b2e8"
+content-hash = "1e04c99ee3e0472ff9fde2a84cb1d44554699bf5837b7a1f83ff3eb1d53db145"

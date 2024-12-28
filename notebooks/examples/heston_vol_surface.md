@@ -4,7 +4,7 @@ jupytext:
     extension: .md
     format_name: myst
     format_version: 0.13
-    jupytext_version: 1.14.7
+    jupytext_version: 1.16.6
 kernelspec:
   display_name: Python 3 (ipykernel)
   language: python
@@ -13,7 +13,7 @@ kernelspec:
 
 # Heston Volatility Surface
 
-```{code-cell} ipython3
+```{code-cell}
 from quantflow.sp.heston import HestonJ
 from quantflow.options.pricer import OptionPricer
 
@@ -29,13 +29,13 @@ pricer = OptionPricer(model=HestonJ.create(
 pricer
 ```
 
-```{code-cell} ipython3
+```{code-cell}
 pricer.plot3d(max_moneyness_ttm=1.5, support=31).update_layout(
     height=800,
     title="Heston volatility surface",
 )
 ```
 
-```{code-cell} ipython3
+```{code-cell}
 
 ```

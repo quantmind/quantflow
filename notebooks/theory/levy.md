@@ -6,7 +6,7 @@ jupytext:
     extension: .md
     format_name: myst
     format_version: 0.13
-    jupytext_version: 1.14.7
+    jupytext_version: 1.16.6
 kernelspec:
   display_name: Python 3 (ipykernel)
   language: python
@@ -116,6 +116,6 @@ When the intensity process is affine, the Laplace transform takes the following 
 
 where coefficients $a$ and $b$ satisfy Riccati ODEs, which can be solved numerically and, in some cases, analytically.
 
-```{code-cell} ipython3
+```{code-cell}
 
 ```

@@ -5,7 +5,7 @@ jupytext:
     extension: .md
     format_name: myst
     format_version: 0.13
-    jupytext_version: 1.14.7
+    jupytext_version: 1.16.6
 kernelspec:
   display_name: Python 3 (ipykernel)
   language: python
@@ -30,13 +30,13 @@ Importantly, the process remains positive if the Feller condition is satisfied
 
 In the code, the initial value of the process, ${\bf x}_0$, is given by the `rate` field, for example, a CIR process can be created via
 
-```{code-cell} ipython3
+```{code-cell}
 from quantflow.sp.cir import CIR
 pr = CIR(rate=1.0, kappa=2.0, sigma=1.2)
 pr
 ```
 
-```{code-cell} ipython3
+```{code-cell}
 pr.is_positive
 ```
 
@@ -49,18 +49,18 @@ The model has a closed-form solution for the mean, the variance, and the [margin
 {\mathbb Var}[x_t] &= x_0 \frac{\sigma^2}{\kappa}\left(e^{-\kappa t} - e^{-2 \kappa t}\right) + \frac{\theta \sigma^2}{2\kappa}\left(1 - e^{-\kappa t}\right)^2 \\
 \end{align}
 
-```{code-cell} ipython3
+```{code-cell}
 m = pr.marginal(1)
 m.mean(), m.variance()
 ```
 
-```{code-cell} ipython3
+```{code-cell}
 m.mean_from_characteristic(), m.variance_from_characteristic()
 ```
 
 The code below show the computed PDF via FRFT and the analytical formula above
 
-```{code-cell} ipython3
+```{code-cell}
 from quantflow.utils import plot
 import numpy as np
 plot.plot_marginal_pdf(m, 128, max_frequency=20)
@@ -82,7 +82,7 @@ c &= \frac{\gamma + \kappa}{2 u} \\
 d &= \frac{\gamma - \kappa}{2 u}
 \end{align}
 
-```{code-cell} ipython3
+```{code-cell}
 from quantflow.utils import plot
 m = pr.marginal(0.5)
 plot.plot_characteristic(m)
@@ -94,17 +94,17 @@ The code offers three sampling algorithms, both guarantee positiveness even if t
 
 The first sampling algorithm is the explicit Euler *full truncation* algorithm where the process is allowed to go below zero, at which point the process becomes deterministic with an upward drift of $\kappa \theta$, see {cite:p}`heston-calibration` and {cite:p}`heston-simulation` for a detailed discussion.
 
-```{code-cell} ipython3
+```{code-cell}
 from quantflow.sp.cir import CIR
 pr = CIR(rate=1.0, kappa=1.0, sigma=2.0, sample_algo="euler")
 pr
 ```
 
-```{code-cell} ipython3
+```{code-cell}
 pr.is_positive
 ```
 
-```{code-cell} ipython3
+```{code-cell}
 pr.sample(20, time_horizon=1, time_steps=1000).plot().update_traces(line_width=0.5)
 ```
 
@@ -112,22 +112,22 @@ The second sampling algorithm is the implicit Milstein scheme, a refinement of t
 
 The third algorithm is a fully implicit one that guarantees positiveness of the process if the Feller condition is met.
 
-```{code-cell} ipython3
+```{code-cell}
 pr = CIR(rate=1.0, kappa=1.0, sigma=0.8)
 pr
 ```
 
-```{code-cell} ipython3
+```{code-cell}
 pr.sample(20, time_horizon=1, time_steps=1000).plot().update_traces(line_width=0.5)
 ```
 
 Sampling with a mean reversion speed 20 times larger
 
-```{code-cell} ipython3
+```{code-cell}
 pr.kappa = 20; pr
 ```
 
-```{code-cell} ipython3
+```{code-cell}
 pr.sample(20, time_horizon=1, time_steps=1000).plot().update_traces(line_width=0.5)
 ```
 
@@ -135,7 +135,7 @@ pr.sample(20, time_horizon=1, time_steps=1000).plot().update_traces(line_width=0
 
 In this section we compare the performance of the three sampling algorithms in estimating the mean and and standard deviation.
 
-```{code-cell} ipython3
+```{code-cell}
 from quantflow.sp.cir import CIR
 
 params = dict(rate=0.8, kappa=1.5, sigma=1.2)
@@ -148,7 +148,7 @@ prs = [
 ]
 ```
 
-```{code-cell} ipython3
+```{code-cell}
 import pandas as pd
 from quantflow.utils import plot
 from quantflow.utils.paths import Paths
@@ -164,7 +164,7 @@ df = pd.DataFrame(mean, index=draws.time)
 plot.plot_lines(df)
 ```
 
-```{code-cell} ipython3
+```{code-cell}
 std = dict(std=pr.marginal(draws.time).std())
 std.update({pr.sample_algo.name: pr.sample_from_draws(draws).std() for pr in prs})
 df = pd.DataFrame(std, index=draws.time)

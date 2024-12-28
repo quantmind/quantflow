@@ -4,7 +4,7 @@ jupytext:
     extension: .md
     format_name: myst
     format_version: 0.13
-    jupytext_version: 1.14.7
+    jupytext_version: 1.16.6
 kernelspec:
   display_name: Python 3 (ipykernel)
   language: python
@@ -28,7 +28,7 @@ This means that the characteristic function of $y_t=x_{\tau_t}$ can be represent
      &= e^{-a_{t,u} - b_{t,u} \nu_0}
 \end{align}
 
-```{code-cell} ipython3
+```{code-cell}
 
 ```
 
@@ -39,10 +39,10 @@ This means that the characteristic function of $y_t=x_{\tau_t}$ can be represent
     b_t &= \frac{1 - e^{-\kappa t}}{\kappa} \\
 \end{align}
 
-```{code-cell} ipython3
+```{code-cell}
 
 ```
 
-```{code-cell} ipython3
+```{code-cell}
 
 ```

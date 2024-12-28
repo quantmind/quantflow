@@ -27,6 +27,7 @@ parts:
   - file: applications/overview
     sections:
     - file: applications/volatility_surface
+    - file: applications/hurst
     - file: applications/calibration
 
   - file: examples/overview

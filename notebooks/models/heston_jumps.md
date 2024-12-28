@@ -4,7 +4,7 @@ jupytext:
     extension: .md
     format_name: myst
     format_version: 0.13
-    jupytext_version: 1.14.7
+    jupytext_version: 1.16.6
 kernelspec:
   display_name: Python 3 (ipykernel)
   language: python
@@ -32,7 +32,7 @@ where $j_t$ is a double exponential Compound Poisson process which adds three ad
 
 The jump process is independent of the other Brownian motions.
 
-```{code-cell} ipython3
+```{code-cell}
 from quantflow.sp.heston import HestonJ
 pr = HestonJ.create(
     vol=0.6,
@@ -46,25 +46,25 @@ pr = HestonJ.create(
 pr
 ```
 
-```{code-cell} ipython3
+```{code-cell}
 from quantflow.utils import plot
 plot.plot_marginal_pdf(pr.marginal(0.1), 128, normal=True, analytical=False)
 ```
 
-```{code-cell} ipython3
+```{code-cell}
 from quantflow.options.pricer import OptionPricer
 from quantflow.sp.heston import Heston
 pricer = OptionPricer(pr)
 pricer
 ```
 
-```{code-cell} ipython3
+```{code-cell}
 fig = None
 for ttm in (0.05, 0.1, 0.2, 0.4, 0.6, 1):
     fig = pricer.maturity(ttm).plot(fig=fig, name=f"t={ttm}")
 fig.update_layout(title="Implied black vols", height=500)
 ```
 
-```{code-cell} ipython3
+```{code-cell}
 
 ```

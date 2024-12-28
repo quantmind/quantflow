@@ -5,7 +5,7 @@ jupytext:
     extension: .md
     format_name: myst
     format_version: 0.13
-    jupytext_version: 1.14.7
+    jupytext_version: 1.16.6
 kernelspec:
   display_name: Python 3 (ipykernel)
   language: python
@@ -48,7 +48,7 @@ This is the very famous convexity correction which appears in all diffusion driv
     c_t = \frac{\sigma^2 t}{2}
 \end{equation}
 
-```{code-cell} ipython3
+```{code-cell}
 from quantflow.sp.weiner import WeinerProcess
 pr = WeinerProcess(sigma=0.5)
 -pr.characteristic_exponent(1, complex(0,-1))
@@ -56,7 +56,7 @@ pr = WeinerProcess(sigma=0.5)
 
 which is the same as
 
-```{code-cell} ipython3
+```{code-cell}
 pr.convexity_correction(1)
 ```
 
@@ -109,7 +109,7 @@ is provided by $\Psi_{-i\alpha}$ being finite, which means the characteristic fu
 
 Here we illustrate how to use the characteristic function integration with the classical [Weiner process](https://en.wikipedia.org/wiki/Wiener_process).
 
-```{code-cell} ipython3
+```{code-cell}
 from quantflow.sp.weiner import WeinerProcess
 ttm=1
 p = WeinerProcess(sigma=0.5)
@@ -119,7 +119,7 @@ m = p.marginal(ttm)
 m.std()
 ```
 
-```{code-cell} ipython3
+```{code-cell}
 import plotly.express as px
 import plotly.graph_objects as go
 from quantflow.options.bs import black_call
@@ -132,6 +132,6 @@ fig.add_trace(go.Scatter(x=r.x, y=b, name="analytical", line=dict()))
 fig.show()
 ```
 
-```{code-cell} ipython3
+```{code-cell}
 
 ```
