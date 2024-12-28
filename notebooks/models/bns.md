@@ -4,7 +4,7 @@ jupytext:
     extension: .md
     format_name: myst
     format_version: 0.13
-    jupytext_version: 1.14.7
+    jupytext_version: 1.16.6
 kernelspec:
   display_name: Python 3 (ipykernel)
   language: python
@@ -30,14 +30,14 @@ This means that the characteristic function of $y_t$ can be represented as
 
 $\phi_{w, u}$ is the characteristic exponent of $w_1$. The second equivalence is a consequence of $w$ and $\tau$ being independent, as discussed in [the time-changed Lévy](./levy.md) process section.
 
-```{code-cell} ipython3
+```{code-cell}
 from quantflow.sp.bns import BNS
 
 pr = BNS.create(vol=0.5, decay=10, kappa=10, rho=-1)
 pr
 ```
 
-```{code-cell} ipython3
+```{code-cell}
 from quantflow.utils import plot
 m = pr.marginal(2)
 plot.plot_characteristic(m, max_frequency=10)
@@ -45,11 +45,11 @@ plot.plot_characteristic(m, max_frequency=10)
 
 ## Marginal Distribution
 
-```{code-cell} ipython3
+```{code-cell}
 m.mean(), m.std()
 ```
 
-```{code-cell} ipython3
+```{code-cell}
 plot.plot_marginal_pdf(m, 128, normal=True, analytical=False)
 ```
 
@@ -82,11 +82,11 @@ we obtain
 
 Here we use [sympy](https://www.sympy.org/en/index.html) to derive the integral in the characteristic function.
 
-```{code-cell} ipython3
+```{code-cell}
 import sympy as sym
 ```
 
-```{code-cell} ipython3
+```{code-cell}
 k =  sym.Symbol("k")
 iβ = sym.Symbol("iβ")
 γ = sym.Symbol("γ")
@@ -95,17 +95,17 @@ s = sym.Symbol("s")
 ϕ
 ```
 
-```{code-cell} ipython3
+```{code-cell}
 r = sym.integrate(ϕ, s)
 sym.simplify(r)
 ```
 
-```{code-cell} ipython3
+```{code-cell}
 import numpy as np
 f = lambda x: x*np.log(x)
 f(0.001)
 ```
 
-```{code-cell} ipython3
+```{code-cell}
 
 ```

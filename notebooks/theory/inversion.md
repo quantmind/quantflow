@@ -5,7 +5,7 @@ jupytext:
     extension: .md
     format_name: myst
     format_version: 0.13
-    jupytext_version: 1.14.7
+    jupytext_version: 1.16.6
 kernelspec:
   display_name: Python 3 (ipykernel)
   language: python
@@ -72,26 +72,26 @@ which means $\delta_u$ and $\delta_x$ cannot be chosen indipendently.
 
 As an example, let us invert the characteristic function of the Weiber process, which yields the standard distribution.
 
-```{code-cell} ipython3
+```{code-cell}
 from quantflow.sp.weiner import WeinerProcess
 p = WeinerProcess(sigma=0.5)
 m = p.marginal(0.2)
 m.std()
 ```
 
-```{code-cell} ipython3
+```{code-cell}
 from quantflow.utils import plot
 
 plot.plot_characteristic(m)
 ```
 
-```{code-cell} ipython3
+```{code-cell}
 from quantflow.utils import plot
 import numpy as np
 plot.plot_marginal_pdf(m, 128, use_fft=True, max_frequency=20)
 ```
 
-```{code-cell} ipython3
+```{code-cell}
 plot.plot_marginal_pdf(m, 128*8, use_fft=True, max_frequency=8*20)
 ```
 
@@ -113,7 +113,7 @@ z &= \left(\left[e^{i j^2 \zeta/2}\right]_{j=0}^{N-1}, \left[e^{i\left(N-j\right
 
 We can now reduce the number of points needed for the discretization and achieve higher accuracy by properly selecting the domain discretization independently.
 
-```{code-cell} ipython3
+```{code-cell}
 plot.plot_marginal_pdf(m, 128)
 ```
 

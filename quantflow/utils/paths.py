@@ -86,7 +86,7 @@ class Paths(BaseModel, arbitrary_types_allowed=True):
         scale = self.dt if scaled else 1.0
         return np.mean(self.data, axis=0) / scale
 
-    def path_std(self, *, scaled: bool = False) -> FloatArray:
+    def paths_std(self, *, scaled: bool = False) -> FloatArray:
         """standard deviation for each path
 
         If scaled is True, the standard deviation is scaled by the square
@@ -95,7 +95,7 @@ class Paths(BaseModel, arbitrary_types_allowed=True):
         scale = np.sqrt(self.dt) if scaled else 1.0
         return np.std(np.diff(self.data, axis=0), axis=0) / scale
 
-    def path_var(self, *, scaled: bool = False) -> FloatArray:
+    def paths_var(self, *, scaled: bool = False) -> FloatArray:
         """variance for each path
 
         If scaled is True, the variance is scaled by the time step

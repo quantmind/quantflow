@@ -35,6 +35,10 @@ book:				## Build static jupyter {book}
 nbconvert:			## Convert notebooks to myst markdown
 	poetry run ./dev/nbconvert
 
+.PHONY: nbsync
+nbsync:				## Sync python myst notebooks to .ipynb files - needed for vs notebook development
+	poetry run ./dev/nbsync
+
 .PHONY: sphinx-config
 sphinx-config:			## Build sphinx config
 	poetry run jupyter-book config sphinx notebooks

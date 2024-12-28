@@ -4,7 +4,7 @@ jupytext:
     extension: .md
     format_name: myst
     format_version: 0.13
-    jupytext_version: 1.14.7
+    jupytext_version: 1.16.6
 kernelspec:
   display_name: Python 3 (ipykernel)
   language: python
@@ -23,21 +23,21 @@ The characteristic exponent of $w$ is
     \phi_{w, u} = \frac{\sigma^2 u^2}{2}
 \end{equation}
 
-```{code-cell} ipython3
+```{code-cell}
 from quantflow.sp.weiner import WeinerProcess
 
 pr = WeinerProcess(sigma=0.5)
 pr
 ```
 
-```{code-cell} ipython3
+```{code-cell}
 from quantflow.utils import plot
 # create the marginal at time in the future
 m = pr.marginal(1)
 plot.plot_characteristic(m, n=32)
 ```
 
-```{code-cell} ipython3
+```{code-cell}
 from quantflow.utils import plot
 import numpy as np
 plot.plot_marginal_pdf(m, 128)
@@ -45,14 +45,14 @@ plot.plot_marginal_pdf(m, 128)
 
 ## Test Option Pricing
 
-```{code-cell} ipython3
+```{code-cell}
 from quantflow.options.pricer import OptionPricer
 from quantflow.sp.weiner import WeinerProcess
 pricer = OptionPricer(WeinerProcess(sigma=0.2))
 pricer
 ```
 
-```{code-cell} ipython3
+```{code-cell}
 import plotly.express as px
 import plotly.graph_objects as go
 from quantflow.options.bs import black_call
@@ -64,10 +64,10 @@ fig.add_trace(go.Scatter(x=b.moneyness_ttm, y=b.time_value, name=b.name, line=di
 fig.show()
 ```
 
-```{code-cell} ipython3
+```{code-cell}
 pricer.maturity(0.1).plot()
 ```
 
-```{code-cell} ipython3
+```{code-cell}
 
 ```

@@ -4,7 +4,7 @@ jupytext:
     extension: .md
     format_name: myst
     format_version: 0.13
-    jupytext_version: 1.14.7
+    jupytext_version: 1.16.6
 kernelspec:
   display_name: Python 3 (ipykernel)
   language: python
@@ -17,7 +17,7 @@ The library allows to create a vast array of jump-diffusion models. The most fam
 
 ## Merton Model
 
-```{code-cell} ipython3
+```{code-cell}
 from quantflow.sp.jump_diffusion import Merton
 
 pr = Merton.create(diffusion_percentage=0.2, jump_intensity=50, jump_skew=-0.5)
@@ -26,12 +26,12 @@ pr
 
 ### Marginal Distribution
 
-```{code-cell} ipython3
+```{code-cell}
 m = pr.marginal(0.02)
 m.std(), m.std_from_characteristic()
 ```
 
-```{code-cell} ipython3
+```{code-cell}
 from quantflow.utils import plot
 
 plot.plot_marginal_pdf(m, 128, normal=True, analytical=False, log_y=True)
@@ -39,7 +39,7 @@ plot.plot_marginal_pdf(m, 128, normal=True, analytical=False, log_y=True)
 
 ### Characteristic Function
 
-```{code-cell} ipython3
+```{code-cell}
 plot.plot_characteristic(m)
 ```
 
@@ -47,13 +47,13 @@ plot.plot_characteristic(m)
 
 We can price options using the `OptionPricer` tooling.
 
-```{code-cell} ipython3
+```{code-cell}
 from quantflow.options.pricer import OptionPricer
 pricer = OptionPricer(pr)
 pricer
 ```
 
-```{code-cell} ipython3
+```{code-cell}
 fig = None
 for ttm in (0.05, 0.1, 0.2, 0.4, 0.6, 1):
     fig = pricer.maturity(ttm).plot(fig=fig, name=f"t={ttm}")
@@ -67,7 +67,7 @@ For very short time-to-maturities, however, the model has no problem in producin
 
 ### MC paths
 
-```{code-cell} ipython3
+```{code-cell}
 pr.sample(20, time_horizon=1, time_steps=1000).plot().update_traces(line_width=0.5)
 ```
 
@@ -75,6 +75,6 @@ pr.sample(20, time_horizon=1, time_steps=1000).plot().update_traces(line_width=0
 
 This is a variation of the Mertoin model, where the jump distribution is a double exponential, one for the negative jumps and one for the positive jumps.
 
-```{code-cell} ipython3
+```{code-cell}
 from 
 ```

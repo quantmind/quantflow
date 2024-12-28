@@ -4,7 +4,7 @@ jupytext:
     extension: .md
     format_name: myst
     format_version: 0.13
-    jupytext_version: 1.14.7
+    jupytext_version: 1.16.6
 kernelspec:
   display_name: Python 3 (ipykernel)
   language: python
@@ -74,6 +74,6 @@ The inversion formula for these distributions is given by
     {\mathbb P}\left(x=k\right) = \frac{1}{2\pi}\int_{-\pi}^\pi e^{-iuk}\Phi_{x, u} du
 \end{equation}
 
-```{code-cell} ipython3
+```{code-cell}
 
 ```

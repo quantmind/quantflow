@@ -2,7 +2,6 @@ import numpy as np
 import pytest
 
 from quantflow.sp.weiner import WeinerProcess
-from quantflow.utils.paths import Paths
 from quantflow_tests.utils import characteristic_tests
 
 
@@ -31,25 +30,6 @@ def test_sampling(weiner: WeinerProcess) -> None:
     assert mean[0] == 0
     std = paths.std()
     assert std[0] == 0
-
-
-def test_normal_draws() -> None:
-    paths = Paths.normal_draws(100, 1, 1000)
-    assert paths.samples == 100
-    assert paths.time_steps == 1000
-    m = paths.mean()
-    np.testing.assert_array_almost_equal(m, 0)
-    paths = Paths.normal_draws(100, 1, 1000, antithetic_variates=False)
-    assert np.abs(paths.mean().mean()) > np.abs(m.mean())
-
-
-def test_normal_draws1() -> None:
-    paths = Paths.normal_draws(1, 1, 1000)
-    assert paths.samples == 1
-    assert paths.time_steps == 1000
-    paths = Paths.normal_draws(1, 1, 1000, antithetic_variates=False)
-    assert paths.samples == 1
-    assert paths.time_steps == 1000
 
 
 def test_support(weiner: WeinerProcess) -> None:

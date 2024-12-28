@@ -4,7 +4,7 @@ jupytext:
     extension: .md
     format_name: myst
     format_version: 0.13
-    jupytext_version: 1.14.7
+    jupytext_version: 1.16.6
 kernelspec:
   display_name: Python 3 (ipykernel)
   language: python
@@ -15,7 +15,7 @@ kernelspec:
 
 Evaluate the MC simulation for The Poisson process against the analytical PDF.
 
-```{code-cell} ipython3
+```{code-cell}
 from quantflow.sp.poisson import PoissonProcess
 from quantflow.utils import plot
 import ipywidgets as widgets
@@ -51,6 +51,6 @@ fig = go.FigureWidget(data=[simulation, analytical])
 widgets.VBox([intensity, samples, fig])
 ```
 
-```{code-cell} ipython3
+```{code-cell}
 
 ```
