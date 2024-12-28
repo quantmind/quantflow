@@ -1,14 +1,13 @@
-from dataclasses import dataclass
 from datetime import timedelta
 
 import numpy as np
 import polars as pl
+from pydantic import BaseModel
 
 from .base import DataFrame, to_polars
 
 
-@dataclass
-class OHLC:
+class OHLC(BaseModel):
     """Aggregates OHLC data over a given period and serie
 
     Optionally calculates the range-based variance estimators for the serie.
@@ -50,7 +49,7 @@ class OHLC:
     def __call__(self, df: DataFrame) -> pl.DataFrame:
         """Returns a dataframe with OHLC data sampled over the given period"""
         result = (
-            to_polars(df)
+            to_polars(df, copy=True)
             .group_by_dynamic(self.index_column, every=self.period)
             .agg(
                 pl.col(self.serie).first().alias(f"{self.serie}_open"),

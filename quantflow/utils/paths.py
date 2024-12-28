@@ -19,10 +19,13 @@ class Paths(BaseModel, arbitrary_types_allowed=True):
     """Paths of a stochastic process"""
 
     t: float = Field(description="time horizon")
+    """Time horizon - the unit of time is not specified"""
     data: FloatArray = Field(description="paths")
+    """Paths of the stochastic process"""
 
     @property
     def dt(self) -> float:
+        """Time step"""
         return self.t / self.time_steps
 
     @property
@@ -64,16 +67,41 @@ class Paths(BaseModel, arbitrary_types_allowed=True):
         return pd.date_range(start=start, end=end, periods=self.time_steps + 1)
 
     def mean(self) -> FloatArray:
-        """Mean of paths"""
+        """Paths cross-section mean"""
         return np.mean(self.data, axis=1)
 
     def std(self) -> FloatArray:
-        """Standard deviation of paths"""
+        """Paths cross-section standard deviation"""
         return np.std(self.data, axis=1)
 
     def var(self) -> FloatArray:
-        """Variance of paths"""
+        """Paths cross-section variance"""
         return np.var(self.data, axis=1)
+
+    def paths_mean(self, *, scaled: bool = False) -> FloatArray:
+        """mean for each path
+
+        If scaled is True, the mean is scaled by the time step
+        """
+        scale = self.dt if scaled else 1.0
+        return np.mean(self.data, axis=0) / scale
+
+    def path_std(self, *, scaled: bool = False) -> FloatArray:
+        """standard deviation for each path
+
+        If scaled is True, the standard deviation is scaled by the square
+        root of the time step
+        """
+        scale = np.sqrt(self.dt) if scaled else 1.0
+        return np.std(np.diff(self.data, axis=0), axis=0) / scale
+
+    def path_var(self, *, scaled: bool = False) -> FloatArray:
+        """variance for each path
+
+        If scaled is True, the variance is scaled by the time step
+        """
+        scale = self.dt if scaled else 1.0
+        return np.var(np.diff(self.data, axis=0), axis=0) / scale
 
     def as_datetime_df(
         self, *, start: datetime | None = None, unit: str = "d"
