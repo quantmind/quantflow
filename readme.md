@@ -21,7 +21,7 @@ pip install quantflow
 
 ## Modules
 
-* [quantflow.cli](https://github.com/quantmind/quantflow/tree/main/quantflow/cli) aommand line client (requires `quantflow[cli,data]`)
+* [quantflow.cli](https://github.com/quantmind/quantflow/tree/main/quantflow/cli) command line client (requires `quantflow[cli,data]`)
 * [quantflow.data](https://github.com/quantmind/quantflow/tree/main/quantflow/data) data APIs (requires `quantflow[data]`)
 * [quantflow.options](https://github.com/quantmind/quantflow/tree/main/quantflow/options) option pricing and calibration
 * [quantflow.sp](https://github.com/quantmind/quantflow/tree/main/quantflow/sp) stochastic process primitives

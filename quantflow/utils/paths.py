@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from datetime import datetime
 from typing import Any, cast
 
 import numpy as np
@@ -10,6 +11,7 @@ from scipy.integrate import cumulative_trapezoid
 
 from . import plot
 from .bins import pdf as bins_pdf
+from .dates import utcnow
 from .types import FloatArray
 
 
@@ -53,6 +55,14 @@ class Paths(BaseModel, arbitrary_types_allowed=True):
         """Paths as list of list (for visualization tools)"""
         return self.data.transpose().tolist()  # type: ignore
 
+    def dates(
+        self, *, start: datetime | None = None, unit: str = "d"
+    ) -> pd.DatetimeIndex:
+        """Dates of paths as a pandas DatetimeIndex"""
+        start = start or utcnow()
+        end = start + pd.to_timedelta(self.t, unit=unit)
+        return pd.date_range(start=start, end=end, periods=self.time_steps + 1)
+
     def mean(self) -> FloatArray:
         """Mean of paths"""
         return np.mean(self.data, axis=1)
@@ -64,6 +74,12 @@ class Paths(BaseModel, arbitrary_types_allowed=True):
     def var(self) -> FloatArray:
         """Variance of paths"""
         return np.var(self.data, axis=1)
+
+    def as_datetime_df(
+        self, *, start: datetime | None = None, unit: str = "d"
+    ) -> pd.DataFrame:
+        """Paths as pandas DataFrame with datetime index"""
+        return pd.DataFrame(self.data, index=self.dates(start=start, unit=unit))
 
     def integrate(self) -> Paths:
         """Integrate paths"""
