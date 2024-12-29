@@ -36,9 +36,6 @@ make tests
 ```
 make notebook
 ```
-
-+++
-
 ## Documentation
 
 The documentation is built using [Jupyter book](https://jupyterbook.org/en/stable/intro.html) which supports an *extended version of Jupyter Markdown* called "MyST Markdown".
@@ -50,3 +47,9 @@ To build the documentation website
 make book
 ```
 Navigate to the `notebook/_build/html` directory to find the `index.html` file you can open on your browser.
+
+## Developing with VS code
+
+If you develop with VS code we provide several tooling for easing developing.
+
+* **Notebooks development**: you can use the provided tasks to synchronize notbooks with markdown `myst` files by `Ctrl+Shift+B`
