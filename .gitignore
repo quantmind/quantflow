@@ -1,7 +1,6 @@
 #
 # IDEs
 .idea
-.vscode
 *.sublime-workspace
 
 #
