@@ -1,0 +1,23 @@
+# This CITATION.cff file was generated with cffinit.
+# Visit https://bit.ly/cffinit to generate yours today!
+
+cff-version: 1.2.0
+title: quantflow
+message: >-
+  If you use this software, please cite it using the
+  metadata from this file.
+type: software
+authors:
+  - given-names: Luca
+    family-names: Sbardella
+    email: luca@quantmind.com
+  - name: quantmind
+repository-code: 'https://github.com/quantmind/quantflow'
+url: 'https://quantmind.github.io/quantflow/'
+abstract: Quantitative finance and derivative pricing
+keywords:
+  - finance
+  - option-pricing
+  - quantitative-finance
+  - timeseries
+license: BSD-3-Clause

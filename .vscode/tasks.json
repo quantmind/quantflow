@@ -1,0 +1,16 @@
+{
+    "tasks": [
+      {
+        "label": "JupyText Sync",
+        "type": "shell",
+        "command": "${command:python.interpreterPath} -m jupytext ${file} -s",
+        "group": {
+          "kind": "build",
+          "isDefault": true
+        },
+        "presentation": {
+          "reveal": "never",
+        }
+      }
+    ]
+  }

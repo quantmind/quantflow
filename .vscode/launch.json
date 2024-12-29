@@ -1,0 +1,21 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+
+        {
+            "name": "PyTest",
+            "type": "debugpy",
+            "request": "launch",
+            "cwd": "${workspaceFolder}",
+            "console": "integratedTerminal",
+            "module": "pytest",
+            "env": {},
+            "justMyCode": false,
+            "args": [
+                "-x",
+                "-vvv",
+                "quantflow_tests/test_utils.py",
+            ]
+        },
+    ]
+}
