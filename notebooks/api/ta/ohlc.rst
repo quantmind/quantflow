@@ -7,6 +7,5 @@ OHLC
 .. autoclass:: OHLC
    :members:
    :member-order: groupwise
-   :member-order: groupwise
    :autosummary:
    :autosummary-nosignatures:
