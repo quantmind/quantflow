@@ -7,8 +7,8 @@ from pydantic import Field
 from scipy.optimize import Bounds
 from scipy.stats import gamma, norm
 
+from ..ta.paths import Paths
 from ..utils.distributions import Exponential
-from ..utils.paths import Paths
 from ..utils.types import Float, FloatArrayLike, Vector
 from .base import Im, IntensityProcess
 from .poisson import CompoundPoissonProcess, D

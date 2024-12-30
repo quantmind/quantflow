@@ -2,7 +2,7 @@
 Paths
 ===========
 
-.. module:: quantflow.utils.paths
+.. module:: quantflow.ta.paths
 
 .. autoclass:: Paths
    :members:

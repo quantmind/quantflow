@@ -7,5 +7,4 @@ Utils
 .. toctree::
     :maxdepth: 1
 
-    paths
     marginal1d

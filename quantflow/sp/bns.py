@@ -4,7 +4,7 @@ import numpy as np
 from pydantic import Field
 from scipy.special import xlogy
 
-from ..utils.paths import Paths
+from ..ta.paths import Paths
 from ..utils.types import FloatArrayLike, Vector
 from .base import Im, StochasticProcess1D
 from .ou import GammaOU

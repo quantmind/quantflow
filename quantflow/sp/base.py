@@ -7,9 +7,9 @@ import numpy as np
 from pydantic import BaseModel, ConfigDict, Field
 from scipy.optimize import Bounds
 
+from quantflow.ta.paths import Paths
 from quantflow.utils.marginal import Marginal1D, default_bounds
 from quantflow.utils.numbers import sigfig
-from quantflow.utils.paths import Paths
 from quantflow.utils.transforms import lower_bound, upper_bound
 from quantflow.utils.types import FloatArray, FloatArrayLike, Vector
 

@@ -5,8 +5,8 @@ from typing import Generic, Self
 import numpy as np
 from pydantic import Field
 
+from ..ta.paths import Paths
 from ..utils.distributions import Normal
-from ..utils.paths import Paths
 from ..utils.types import FloatArrayLike, Vector
 from .base import StochasticProcess1D
 from .poisson import CompoundPoissonProcess, D

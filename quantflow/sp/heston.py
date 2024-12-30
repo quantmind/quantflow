@@ -3,8 +3,8 @@ from __future__ import annotations
 import numpy as np
 from pydantic import Field
 
+from ..ta.paths import Paths
 from ..utils.distributions import DoubleExponential, Exponential
-from ..utils.paths import Paths
 from ..utils.types import FloatArrayLike, Vector
 from .base import StochasticProcess1D
 from .cir import CIR
