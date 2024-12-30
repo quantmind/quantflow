@@ -19,6 +19,13 @@ The characteristic function of a random variable $x$ is the Fourier transform of
 \begin{equation}
  \Phi_{x,u} = {\mathbb E}\left[e^{i u x_t}\right] = \int e^{i u x} P^x\left(dx\right)
 \end{equation}
+
+## Hurst Exponent
+
+The Hurst exponent is a measure of the long-term memory of time series. The Hurst exponent is a measure of the relative tendency of a time series either to regress strongly to the mean or to cluster in a direction.
+
+Check this study on the [Hurst exponent with OHLC data](./applications/hurst).
+
 ## Moneyness
 
 Monenyness is used in the context of option pricing and it is defined as

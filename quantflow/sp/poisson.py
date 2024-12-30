@@ -64,6 +64,7 @@ def poisson_arrivals(intensity: float, time_horizon: float = 1) -> list[float]:
 
 class PoissonProcess(PoissonBase):
     intensity: float = Field(default=1.0, ge=0, description="intensity rate")
+    """Intensity rate of the Poisson process"""
 
     def marginal(self, t: FloatArrayLike) -> StochasticProcess1DMarginal:
         return MarginalDiscrete1D(process=self, t=t)
@@ -103,7 +104,7 @@ class PoissonProcess(PoissonBase):
         .. math::
             :label: poisson_cdf
 
-            F_{X}\left(n\right)=\frac{\Gamma\left(\left\lfloor n+1\right\rfloor
+            F\left(n\right)=\frac{\Gamma\left(\left\lfloor n+1\right\rfloor
             ,\lambda\right)}{\left\lfloor n\right\rfloor !}
 
         where :math:`\Gamma` is the upper incomplete gamma function.
@@ -116,9 +117,10 @@ class PoissonProcess(PoissonBase):
 
         It's given by
 
-        \begin{equation}
-           f_{X}\left(n\right)=\frac{\lambda^{n}e^{-\lambda}}{n!}
-        \end{equation}
+        .. math::
+            :label: poisson_pdf
+
+            f\left(n\right)=\frac{\lambda^{n}e^{-\lambda}}{n!}
         """
         return poisson.pmf(n, t * self.intensity)
 
@@ -129,6 +131,7 @@ class PoissonProcess(PoissonBase):
         It's given by
 
         .. math::
+            :label: poisson_cdf_jacobian
 
             \frac{\partial F}{\partial\lambda}=-\frac{\lambda^{\left\lfloor
             n\right\rfloor }e^{-\lambda}}{\left\lfloor n\right\rfloor !}

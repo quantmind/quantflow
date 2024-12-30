@@ -135,6 +135,10 @@ class CIR(IntensityProcess):
         return Bounds(0, np.inf)
 
     def analytical_mean(self, t: FloatArrayLike) -> FloatArrayLike:
+        """Analytical mean of the process at time `t`
+
+        This has a closed form solution.
+        """
         ekt = self.ekt(t)
         return self.rate * ekt + self.theta * (1 - ekt)
 
