@@ -7,9 +7,9 @@ from scipy.integrate import simpson
 from scipy.optimize import Bounds
 from scipy.stats import poisson
 
+from ..ta.paths import Paths
 from ..utils.distributions import Distribution1D
 from ..utils.functions import factorial
-from ..utils.paths import Paths
 from ..utils.transforms import TransformResult
 from ..utils.types import FloatArray, FloatArrayLike, Vector
 from .base import Im, StochasticProcess1D, StochasticProcess1DMarginal

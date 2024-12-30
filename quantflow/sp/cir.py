@@ -7,7 +7,7 @@ from scipy.optimize import Bounds
 
 from quantflow.utils.types import FloatArrayLike, Vector
 
-from ..utils.paths import Paths
+from ..ta.paths import Paths
 from .base import Im, IntensityProcess
 
 

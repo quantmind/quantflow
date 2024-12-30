@@ -9,10 +9,10 @@ from numpy.random import normal
 from pydantic import BaseModel, Field
 from scipy.integrate import cumulative_trapezoid
 
-from . import plot
-from .bins import pdf as bins_pdf
-from .dates import utcnow
-from .types import FloatArray
+from quantflow.utils import plot
+from quantflow.utils.bins import pdf as bins_pdf
+from quantflow.utils.dates import utcnow
+from quantflow.utils.types import FloatArray
 
 
 class Paths(BaseModel, arbitrary_types_allowed=True):
@@ -57,6 +57,10 @@ class Paths(BaseModel, arbitrary_types_allowed=True):
     def ys(self) -> list[list[float]]:
         """Paths as list of list (for visualization tools)"""
         return self.data.transpose().tolist()  # type: ignore
+
+    def path(self, i: int) -> FloatArray:
+        """Path i"""
+        return self.data[:, i]
 
     def dates(
         self, *, start: datetime | None = None, unit: str = "d"
@@ -115,6 +119,22 @@ class Paths(BaseModel, arbitrary_types_allowed=True):
             t=self.t,
             data=cumulative_trapezoid(self.data, dx=self.dt, axis=0, initial=0),
         )
+
+    def hurst_exponent(self, steps: int | None = None) -> float:
+        """Estimate the Hurst exponent from all paths
+
+        :param steps: number of lags to consider, if not provided it uses
+            half of the time steps capped at 100
+        """
+        ts = self.time_steps // 2
+        n = min(steps or ts, 100)
+        lags = []
+        tau = []
+        for lag in range(2, n):
+            variances = np.var(self.data[lag:, :] - self.data[:-lag, :], axis=0)
+            tau.extend(variances)
+            lags.extend([lag] * self.samples)
+        return float(np.polyfit(np.log(lags), np.log(tau), 1)[0]) / 2.0
 
     def cross_section(self, t: float | None = None) -> FloatArray:
         """Cross section of paths at time t"""

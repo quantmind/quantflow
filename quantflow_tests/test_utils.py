@@ -1,7 +1,7 @@
 import numpy as np
 
+from quantflow.ta.paths import Paths
 from quantflow.utils.numbers import round_to_step, to_decimal
-from quantflow.utils.paths import Paths
 
 
 def test_round_to_step():

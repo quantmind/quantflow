@@ -8,3 +8,4 @@ Timeseries Analysis
     :maxdepth: 1
 
     ohlc
+    paths
