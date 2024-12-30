@@ -26,12 +26,10 @@ class StochasticProcess(BaseModel, ABC, extra="forbid"):
         """Sample paths from the process given a set of draws"""
 
     @abstractmethod
-    def sample(
-        self, paths: int, time_horizon: float = 1, time_steps: int = 100
-    ) -> Paths:
+    def sample(self, n: int, time_horizon: float = 1, time_steps: int = 100) -> Paths:
         """Generate random paths from the process.
 
-        :param paths: Number of paths
+        :param n: number of paths
         :param time_horizon: time horizon
         :param time_steps: number of time steps to arrive at horizon
         """

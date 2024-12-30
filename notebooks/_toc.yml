@@ -36,9 +36,7 @@ parts:
     - file: examples/poisson_sampling
     - file: examples/heston_vol_surface
 
-  - file: api/overview.rst
-    sections:
-    - file: api/sp.rst
+  - file: api/index.rst
 
 - caption: Reference
   chapters:

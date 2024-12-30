@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Generic
+from typing import Generic, Self
 
 import numpy as np
 from pydantic import Field
@@ -14,13 +14,14 @@ from .weiner import WeinerProcess
 
 
 class JumpDiffusion(StochasticProcess1D, Generic[D]):
-    r"""A jump-diffusion model
+    r"""A generic jump-diffusion model
 
-    math::
+    .. math::
         dx_t = \sigma d w_t + d N_t
 
-        where N_t is a compound poisson process with intensity \lambda
-        and jump distribution D
+    where :math:`w_t` is a Weiner process with standard deviation :math:`\sigma`
+    and :math:`N_t` is a compound poisson process
+    with intensity :math:`\lambda` and jump distribution `D`
     """
 
     diffusion: WeinerProcess = Field(
@@ -62,7 +63,9 @@ class Merton(JumpDiffusion[Normal]):
         diffusion_percentage: float = 0.5,
         jump_intensity: float = 100,
         jump_skew: float = 0.0,
-    ) -> Merton:
+    ) -> Self:
+        """Create a Merton jump-diffusion model with a given volatility,
+        diffusion percentage, jump skewness, and jump intensity"""
         variance = vol * vol
         jump_std = 1.0
         jump_mean = 0.0

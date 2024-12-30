@@ -1,10 +1,6 @@
 ==================================
-Options Calibration and Pricing
-==================================
-
-
 VolSurface
-==================
+==================================
 
 .. module:: quantflow.options.surface
 
