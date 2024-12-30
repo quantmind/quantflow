@@ -61,7 +61,7 @@ class Paths(BaseModel, arbitrary_types_allowed=True):
     def path(self, i: int) -> FloatArray:
         """Path i"""
         return self.data[:, i]
-    
+
     def dates(
         self, *, start: datetime | None = None, unit: str = "d"
     ) -> pd.DatetimeIndex:
@@ -120,10 +120,14 @@ class Paths(BaseModel, arbitrary_types_allowed=True):
             data=cumulative_trapezoid(self.data, dx=self.dt, axis=0, initial=0),
         )
 
-    def hurst_exponent(self, lags: int | None = None) -> float:
-        """Estimate the Hurst exponent of the paths"""
+    def hurst_exponent(self, steps: int | None = None) -> float:
+        """Estimate the Hurst exponent from all paths
+
+        :param steps: number of lags to consider, if not provided it uses
+            half of the time steps capped at 100
+        """
         ts = self.time_steps // 2
-        n = min(lags or ts, 100)
+        n = min(steps or ts, 100)
         lags = []
         tau = []
         for lag in range(2, n):
