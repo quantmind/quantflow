@@ -6,3 +6,7 @@ Weiner process
 
 .. autoclass:: WeinerProcess
    :members:
+   :member-order: groupwise
+   :autosummary:
+   :autosummary-nosignatures:
+

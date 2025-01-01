@@ -20,14 +20,29 @@ def black_put(
 
 
 def black_price(
-    k: np.ndarray, sigma: FloatArrayLike, ttm: FloatArrayLike, s: FloatArrayLike
+    k: np.ndarray,
+    sigma: FloatArrayLike,
+    ttm: FloatArrayLike,
+    s: FloatArrayLike,
 ) -> np.ndarray:
-    """Calculate the Black call option price from
+    """Calculate the Black call/put option prices in forward terms
+    from the following params
 
-    1) a vector of log(strikes/forward)
-    2) a corresponding vector of implied volatilities (0.2 for 20%)
-    3) time to maturity
-    4) s as the call/put flag, 1 for calls, -1 for puts
+    .. math::
+        c &= \\frac{C}{F} = N(d1) - e^k N(d2)
+
+        p &= \\frac{C}{F} = -N(-d1) + e^k N(-d2)
+
+        d1 &= \\frac{-k + \\frac{\sigma^2 t}{2}}{\sigma \sqrt{t}}
+
+        d2 &= d1 - \sigma \sqrt{t}
+
+    :param k: a vector of :math:`\log{\\frac{K}{F}}` also known as moneyness
+    :param sigma: a corresponding vector of implied volatilities (0.2 for 20%)
+    :param ttm: time to maturity
+    :param s: the call/put flag, 1 for calls, -1 for puts
+
+    The results are option prices divided by the forward price.
     """
     sig2 = sigma * sigma * ttm
     sig = np.sqrt(sig2)
@@ -37,8 +52,17 @@ def black_price(
 
 
 def black_vega(k: np.ndarray, sigma: np.ndarray, ttm: FloatArrayLike) -> np.ndarray:
-    """Calculate the Black option vega from the log strike,
+    """Calculate the Black option vega from the moneyness,
     volatility and time to maturity.
+
+    .. math::
+
+        \\nu = \\frac{\\partial c}{\\partial \sigma} =
+            \\frac{\\partial p}{\\partial \sigma} = N'(d1) \sqrt{t}
+
+    :param k: a vector of moneyness, see above
+    :param sigma: a corresponding vector of implied volatilities (0.2 for 20%)
+    :param ttm: time to maturity
 
     Same formula for both calls and puts.
     """
@@ -55,12 +79,13 @@ def implied_black_volatility(
     initial_sigma: FloatArray,
     call_put: FloatArrayLike,
 ) -> RootResults:
-    """Calculate the implied block volatility from
+    """Calculate the implied block volatility via Newton's method
 
-    1) a vector of log(strikes/forward)
-    2) a corresponding vector of call_price/forward
-    3) time to maturity and
-    4) initial volatility guess
+    :param k: a vector of log(strikes/forward) also known as moneyness
+    :param price: a corresponding vector of option_price/forward
+    :param ttm: time to maturity
+    :param initial_sigma: a vector of initial volatility guesses
+    :param call_put: a vector of call/put flags, 1 for calls, -1 for puts
     """
     return newton(
         lambda x: black_price(k, x, ttm, call_put) - price,

@@ -14,19 +14,20 @@ from .poisson import CompoundPoissonProcess
 class Heston(StochasticProcess1D):
     r"""The Heston stochastic volatility model
 
-    THe classical square-root stochastic volatility model of Heston (1993)
-    can be regarded as a standard Brownian motion $x_t$ time changed by a CIR
+    The classical square-root stochastic volatility model of Heston (1993)
+    can be regarded as a standard Brownian motion :math:`x_t` time changed by a CIR
     activity rate process.
 
     .. math::
-
-        d x_t = d w^1_t \\
-        d v_t = (a - \kappa v_t) dt + \nu \sqrt{v_t} dw^2_t
-        \rho dt = \E[dw^1 dw^2]
+        d x_t &= d w^1_t \\
+        d v_t &= \kappa (\theta - v_t) dt + \nu \sqrt{v_t} dw^2_t \\
+        \rho dt &= {\tt E}[dw^1 dw^2]
     """
 
     variance_process: CIR = Field(default_factory=CIR, description="Variance process")
+    """The variance process is a Cox-Ingersoll-Ross (:class:`.CIR`) process"""
     rho: float = Field(default=0, ge=-1, le=1, description="Correlation")
+    """Correlation between the Brownian motions - provides the leverage effect"""
 
     @classmethod
     def create(

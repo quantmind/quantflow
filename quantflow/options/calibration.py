@@ -59,11 +59,16 @@ class VolModelCalibration(ABC, Generic[M]):
     """Calibration of a stochastic volatility model"""
 
     pricer: OptionPricer[M]
+    """The option pricer for the model"""
     vol_surface: VolSurface[Any]
+    """The volatility surface"""
     minimize_method: str | None = None
+    """The optimization method to use"""
     moneyness_weight: float = 0.5
+    """The weight for moneyness"""
     options: dict[ModelCalibrationEntryKey, OptionEntry] = field(default_factory=dict)
-
+    """The options to calibrate"""
+    
     def __post_init__(self) -> None:
         if not self.options:
             self.vol_surface.bs()
@@ -177,7 +182,8 @@ class VolModelCalibration(ABC, Generic[M]):
 
 @dataclass
 class HestonCalibration(VolModelCalibration[Heston]):
-    """Calibration of a stochastic volatility model"""
+    """A :class:`.VolModelCalibration` for the :class:`.Heston`
+    stochastic volatility model"""
 
     feller_penalize: float = 0.0
 

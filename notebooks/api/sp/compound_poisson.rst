@@ -6,3 +6,7 @@ Compound Poisson
 
 .. autoclass:: CompoundPoissonProcess
    :members:
+   :member-order: groupwise
+   :autosummary:
+   :autosummary-nosignatures:
+

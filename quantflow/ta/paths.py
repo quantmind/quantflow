@@ -16,7 +16,10 @@ from quantflow.utils.types import FloatArray
 
 
 class Paths(BaseModel, arbitrary_types_allowed=True):
-    """Paths of a stochastic process"""
+    """Paths of a stochastic process
+
+    This is the output from a simulation of a stochastic process.
+    """
 
     t: float = Field(description="time horizon")
     """Time horizon - the unit of time is not specified"""
@@ -184,7 +187,9 @@ class Paths(BaseModel, arbitrary_types_allowed=True):
         :param paths: number of paths
         :param time_horizon: time horizon
         :param time_steps: number of time steps to arrive at horizon
-        :param antithetic_variates: whether to use antithetic variates
+        :param antithetic_variates: whether to use `antithetic variates`_
+
+        .. _antithetic variates: https://en.wikipedia.org/wiki/Antithetic_variates
         """
         time_horizon / time_steps
         odd = 0

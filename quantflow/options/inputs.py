@@ -10,10 +10,11 @@ from pydantic import BaseModel
 P = TypeVar("P")
 
 
-class VolSecurityType(str, enum.Enum):
-    spot = "spot"
-    forward = "forward"
-    option = "option"
+class VolSecurityType(enum.StrEnum):
+    """Type of security for the volatility surface"""
+    spot = enum.auto()
+    forward = enum.auto()
+    option = enum.auto()
 
     def vol_surface_type(self) -> VolSecurityType:
         return self

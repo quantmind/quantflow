@@ -8,12 +8,13 @@ from typing import Any, Generic, Iterator, NamedTuple, Protocol, TypeVar
 
 import numpy as np
 import pandas as pd
+from ccy.core.daycounter import ActAct, DayCounter
 
 from quantflow.utils import plot
+from quantflow.utils.dates import utcnow
 from quantflow.utils.interest_rates import rate_from_spot_and_forward
+from quantflow.utils.numbers import Number, sigfig, to_decimal
 
-from ..utils.dates import utcnow
-from ..utils.numbers import Number, sigfig, to_decimal
 from .bs import black_price, implied_black_volatility
 from .inputs import (
     ForwardInput,
@@ -27,6 +28,7 @@ from .inputs import (
 
 INITIAL_VOL = 0.5
 ZERO = Decimal("0")
+default_day_counter = ActAct()
 
 
 class VolSurfaceSecurity(Protocol):
@@ -34,11 +36,6 @@ class VolSurfaceSecurity(Protocol):
 
 
 S = TypeVar("S", bound=VolSurfaceSecurity)
-
-
-def time_to_maturity(maturity: datetime, ref_date: datetime) -> float:
-    delta = maturity - ref_date
-    return (delta.days + delta.seconds / 86400) / 365
 
 
 class OptionSelection(enum.Enum):
@@ -117,10 +114,16 @@ class OptionPrice:
         forward: Number | None = None,
         ref_date: datetime | None = None,
         maturity: datetime | None = None,
+        day_counter: DayCounter | None = None,
         call: bool = True,
     ) -> OptionPrice:
+        """Create an option price
+
+        mainly used for testing
+        """
         ref_date = ref_date or utcnow()
         maturity = maturity or ref_date + timedelta(days=365)
+        day_counter = day_counter or default_day_counter
         return cls(
             price=to_decimal(price),
             strike=to_decimal(strike),
@@ -128,7 +131,7 @@ class OptionPrice:
             implied_vol=implied_vol,
             call=call,
             maturity=maturity,
-            ttm=time_to_maturity(maturity, ref_date),
+            ttm=day_counter.dcf(ref_date, maturity),
         )
 
     @property
@@ -266,6 +269,8 @@ class OptionPrices(Generic[S]):
 
 @dataclass
 class Strike(Generic[S]):
+    """Option prices for a single strike"""
+
     strike: Decimal
     call: OptionPrices[S] | None = None
     put: OptionPrices[S] | None = None
@@ -299,16 +304,22 @@ class Strike(Generic[S]):
 
 @dataclass
 class VolCrossSection(Generic[S]):
+    """Represents a cross section of a volatility surface at a specific maturity."""
     maturity: datetime
+    """Maturity date of the cross section"""
     forward: FwdPrice[S]
     """Forward price of the underlying asset at the time of the cross section"""
     strikes: tuple[Strike[S], ...]
     """Tuple of sorted strikes and their corresponding option prices"""
+    day_counter: DayCounter = default_day_counter
+    """Day counter for time to maturity calculations - by default it uses Act/Act"""
 
     def ttm(self, ref_date: datetime) -> float:
-        return time_to_maturity(self.maturity, ref_date)
+        """Time to maturity in years"""
+        return self.day_counter.dcf(ref_date, self.maturity)
 
     def info_dict(self, ref_date: datetime, spot: SpotPrice[S]) -> dict:
+        """Return a dictionary with information about the cross section"""
         return dict(
             maturity=self.maturity,
             ttm=self.ttm(ref_date),
@@ -329,11 +340,11 @@ class VolCrossSection(Generic[S]):
         initial_vol: float = INITIAL_VOL,
         converged: bool = True,
     ) -> Iterator[OptionPrice]:
-        ttm = time_to_maturity(self.maturity, ref_date)
+        """Iterator over option prices in the cross section"""
         for s in self.strikes:
             yield from s.option_prices(
                 self.forward.mid,
-                ttm,
+                self.ttm(ref_date),
                 select=select,
                 initial_vol=initial_vol,
                 converged=converged,
@@ -351,11 +362,42 @@ class VolCrossSection(Generic[S]):
 
 @dataclass
 class VolSurface(Generic[S]):
+    """Represents a volatility surface, which captures the implied volatility of an
+    option for different strikes and maturities.
+
+    Key Concepts:
+
+    * **Implied Volatility:** The market's expectation of future volatility, derived
+        from the price of an option using a pricing model (e.g., Black-Scholes).
+    * **Strike Price:** The price at which the underlying asset can be bought
+        (call option) or sold (put option) at the option's expiry.
+    * **Time to Maturity:** The time remaining until the option's expiration date.
+    * **Volatility Smile/Skew:** The often-observed phenomenon where implied
+        volatility varies across different strike prices for the same maturity.
+        Typically, it forms a "smile" or "skew" shape.
+
+    This class provides a structure for storing and manipulating volatility
+    surface data. It can be used for various tasks, such as:
+
+    * **Option pricing and risk management:** Using the surface to determine the
+        appropriate volatility input for pricing models.
+    * **Volatility arbitrage:** Identifying mispricings in options by comparing
+        market prices to model prices derived from the surface.
+    * **Market analysis:** Understanding market sentiment and expectations of
+        future volatility.
+    """
+
     ref_date: datetime
+    """Reference date for the volatility surface"""
     spot: SpotPrice[S]
+    """Spot price of the underlying asset"""
     maturities: tuple[VolCrossSection[S], ...]
+    """Sorted tuple of :class:`.VolCrossSection` for different maturities"""
+    day_counter: DayCounter = default_day_counter
+    """Day counter for time to maturity calculations - by default it uses Act/Act"""
 
     def securities(self) -> Iterator[SpotPrice[S] | FwdPrice[S] | OptionPrices[S]]:
+        """Iterator over all securities in the volatility surface"""
         yield self.spot
         for maturity in self.maturities:
             yield from maturity.securities()
@@ -467,7 +509,10 @@ class VolSurface(Generic[S]):
         """Organize option prices in a numpy arrays for black volatility calculation"""
         options = list(
             self.option_prices(
-                select=select, index=index, initial_vol=initial_vol, converged=converged
+                select=select,
+                index=index,
+                initial_vol=initial_vol,
+                converged=converged,
             )
         )
         moneyness = []
@@ -529,6 +574,7 @@ class VolCrossSectionLoader(Generic[S]):
     """Forward price of the underlying asset at the time of the cross section"""
     strikes: dict[Decimal, Strike[S]] = field(default_factory=dict)
     """List of strikes and their corresponding option prices"""
+    day_counter: DayCounter = default_day_counter
 
     def add_option(
         self,
@@ -545,10 +591,18 @@ class VolCrossSectionLoader(Generic[S]):
         option = OptionPrices(
             security,
             bid=OptionPrice(
-                price=bid, strike=strike, call=call, maturity=self.maturity, side="bid"
+                price=bid,
+                strike=strike,
+                call=call,
+                maturity=self.maturity,
+                side="bid",
             ),
             ask=OptionPrice(
-                price=ask, strike=strike, call=call, maturity=self.maturity, side="ask"
+                price=ask,
+                strike=strike,
+                call=call,
+                maturity=self.maturity,
+                side="ask",
             ),
             open_interest=open_interest,
             volume=volume,
@@ -569,7 +623,10 @@ class VolCrossSectionLoader(Generic[S]):
             strikes.append(sk)
         return (
             VolCrossSection(
-                maturity=self.maturity, forward=self.forward, strikes=tuple(strikes)
+                maturity=self.maturity,
+                forward=self.forward,
+                strikes=tuple(strikes),
+                day_counter=self.day_counter,
             )
             if strikes
             else None
@@ -582,10 +639,14 @@ class GenericVolSurfaceLoader(Generic[S]):
 
     spot: SpotPrice[S] | None = None
     maturities: dict[datetime, VolCrossSectionLoader[S]] = field(default_factory=dict)
+    day_counter: DayCounter = default_day_counter
 
     def get_or_create_maturity(self, maturity: datetime) -> VolCrossSectionLoader[S]:
         if maturity not in self.maturities:
-            self.maturities[maturity] = VolCrossSectionLoader(maturity=maturity)
+            self.maturities[maturity] = VolCrossSectionLoader(
+                maturity=maturity,
+                day_counter=self.day_counter,
+            )
         return self.maturities[maturity]
 
     def add_spot(
@@ -596,6 +657,7 @@ class GenericVolSurfaceLoader(Generic[S]):
         open_interest: int = 0,
         volume: int = 0,
     ) -> None:
+        """Add a spot to the volatility surface loader"""
         if security.vol_surface_type() != VolSecurityType.spot:
             raise ValueError("Security is not a spot")
         self.spot = SpotPrice(
@@ -615,6 +677,7 @@ class GenericVolSurfaceLoader(Generic[S]):
         open_interest: int = 0,
         volume: int = 0,
     ) -> None:
+        """Add a forward to the volatility surface loader"""
         if security.vol_surface_type() != VolSecurityType.forward:
             raise ValueError("Security is not a forward")
         self.get_or_create_maturity(maturity=maturity).forward = FwdPrice(
@@ -637,6 +700,7 @@ class GenericVolSurfaceLoader(Generic[S]):
         open_interest: int = 0,
         volume: int = 0,
     ) -> None:
+        """Add an option to the volatility surface loader"""
         if security.vol_surface_type() != VolSecurityType.option:
             raise ValueError("Security is not an option")
         self.get_or_create_maturity(maturity=maturity).add_option(
@@ -661,11 +725,17 @@ class GenericVolSurfaceLoader(Generic[S]):
             ref_date=ref_date or utcnow(),
             spot=self.spot,
             maturities=tuple(maturities),
+            day_counter=self.day_counter,
         )
 
 
 class VolSurfaceLoader(GenericVolSurfaceLoader[VolSecurityType]):
     def add(self, input: VolSurfaceInput[Any]) -> None:
+        """Add a volatility security input to the loader
+
+        :params input: The input data for the security,
+            it can be spot, forward or option
+        """
         if isinstance(input, SpotInput):
             self.add_spot(VolSecurityType.spot, bid=input.bid, ask=input.ask)
         elif isinstance(input, ForwardInput):

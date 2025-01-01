@@ -6,3 +6,7 @@ Poisson process
 
 .. autoclass:: PoissonProcess
    :members:
+   :member-order: groupwise
+   :autosummary:
+   :autosummary-nosignatures:
+

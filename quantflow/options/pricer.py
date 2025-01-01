@@ -110,16 +110,18 @@ class OptionPricer(Generic[M]):
     model: M
     """The stochastic process"""
     ttm: dict[int, MaturityPricer] = field(default_factory=dict, repr=False)
-    """Cache for the maturity pricer"""
+    """Cache for :class:`.MaturityPricer`"""
     n: int = 128
     max_moneyness_ttm: float = 1.5
+    """Max moneyness"""
 
     def reset(self) -> None:
         """Clear the cache"""
         self.ttm.clear()
 
     def maturity(self, ttm: float, **kwargs: Any) -> MaturityPricer:
-        """Get the maturity cache or create a new one and return it"""
+        """Get a :class:`.MaturityPricer` from cache or create
+        a new one and return it"""
         ttm_int = int(TTM_FACTOR * ttm)
         if ttm_int not in self.ttm:
             ttmr = ttm_int / TTM_FACTOR
