@@ -12,6 +12,9 @@ if TYPE_CHECKING:
     from quantflow.cli.app import QfApp
 
 
+FREQUENCIES = tuple(FMP().historical_frequencies())
+
+
 class HistoricalPeriod(enum.StrEnum):
     day = "1d"
     week = "1w"
@@ -121,4 +124,11 @@ class options:
         type=int,
         default=-1,
         help="maturity index",
+    )
+    frequency = click.option(
+        "-f",
+        "--frequency",
+        type=click.Choice(FREQUENCIES),
+        default="",
+        help="Frequency of data - if not provided it is daily",
     )
