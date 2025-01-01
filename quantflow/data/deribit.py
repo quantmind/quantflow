@@ -4,7 +4,7 @@ from typing import Any, cast
 
 import pandas as pd
 from dateutil.parser import parse
-from fluid.utils.http_client import AioHttpClient, HttpResponse
+from fluid.utils.http_client import AioHttpClient, HttpResponse, HttpResponseError
 
 from quantflow.options.surface import VolSecurityType, VolSurfaceLoader
 from quantflow.utils.numbers import round_to_step, to_decimal
@@ -118,6 +118,8 @@ class Deribit(AioHttpClient):
 
     async def to_result(self, response: HttpResponse) -> list[dict]:
         data = await response.json()
+        if "error" in data:
+            raise HttpResponseError(response, data["error"])
         return cast(list[dict], data["result"])
 
     async def to_df(self, response: HttpResponse) -> pd.DataFrame:

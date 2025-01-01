@@ -33,6 +33,7 @@ def volatility(currency: str, length: int, height: int, chart: bool) -> None:
     """Provides information about historical volatility for given cryptocurrency"""
     ctx = QuantContext.current()
     df = asyncio.run(get_volatility(ctx, currency))
+    df["volatility"] = df["volatility"].map(lambda p: round_to_step(p, "0.01"))
     if chart:
         data = df["volatility"].tolist()[:length]
         ctx.qf.print(plot(data, {"height": height}))
@@ -99,7 +100,13 @@ def prices(symbol: str, height: int, length: int, chart: bool, frequency: str) -
         data = list(reversed(df["close"].tolist()[:length]))
         ctx.qf.print(plot(data, {"height": height}))
     else:
-        ctx.qf.print(df_to_rich(df[["date", "open", "high", "low", "close", "volume"]]))
+        ctx.qf.print(
+            df_to_rich(
+                df[["date", "open", "high", "low", "close", "volume"]].sort_values(
+                    "date"
+                )
+            )
+        )
 
 
 async def get_volatility(ctx: QuantContext, currency: str) -> pd.DataFrame:
