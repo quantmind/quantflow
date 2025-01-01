@@ -1298,6 +1298,20 @@ files = [
 ]
 
 [[package]]
+name = "holidays"
+version = "0.63"
+description = "Open World Holidays Framework"
+optional = true
+python-versions = ">=3.9"
+files = [
+    {file = "holidays-0.63-py3-none-any.whl", hash = "sha256:f834a86635e4593eb3d8c76c9b4207ca11b200767b53cdef3468b9fe71401412"},
+    {file = "holidays-0.63.tar.gz", hash = "sha256:0e0fe872c9c4c18bbdf0ddf34990d99f077484ba21d28e14e7d1ad1643b72544"},
+]
+
+[package.dependencies]
+python-dateutil = "*"
+
+[[package]]
 name = "httpcore"
 version = "1.0.7"
 description = "A minimal low-level HTTP client."
@@ -4846,10 +4860,10 @@ test = ["big-O", "importlib-resources", "jaraco.functools", "jaraco.itertools", 
 type = ["pytest-mypy"]
 
 [extras]
-cli = ["asciichartpy", "click", "prompt-toolkit", "rich"]
+cli = ["asciichartpy", "click", "holidays", "prompt-toolkit", "rich"]
 data = ["aio-fluid"]
 
 [metadata]
 lock-version = "2.0"
 python-versions = ">=3.11"
-content-hash = "5e3a1765799e7bff439c28c03b36410bda71fff281e4115edd902cd4e64fe193"
+content-hash = "7f77b4834db8d3c1f603d39bff59af77fb77e022c0c63fac802f2175e631446f"
