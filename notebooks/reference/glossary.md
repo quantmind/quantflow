@@ -45,9 +45,20 @@ Moneyness is used in the context of option pricing and it is defined as
 
 where $K$ is the strike and $F$ is the Forward price. A positive value implies strikes above the forward, which means put options are in the money and call options are out of the money.
 
-```{code-cell}
 
-```
+## Moneyness Time Adjusted
+
+The time-adjusted moneyness is used in the context of option pricing in order to compare options with different maturities. It is defined as
+
+\begin{equation}
+    \frac{1}{\sqrt{T}}\ln\frac{K}{F}
+\end{equation}
+
+where $K$ is the strike and $F$ is the Forward price and $T$ is the time to maturity.
+
+The key reason for dividing by the square root of time-to-maturity is related to how volatility and price movement behave over time.
+The price of the underlying asset is subject to random fluctuations, if these fluctuations follow a Brownian motion than the
+standard deviation of the price movement will increase with the square root of time.
 
 ## Probability Density Function (PDF)
 

@@ -14,6 +14,13 @@ def parse_maturity(v: str) -> datetime:
 
 
 class Deribit(AioHttpClient):
+    """Deribit API client
+
+    Fetch market and static data from `Deribit`_.
+
+    .. _Deribit: https://docs.deribit.com/
+    """
+
     url = "https://www.deribit.com/api/v2"
 
     async def get_book_summary_by_instrument(self, **kw: Any) -> list[dict]:
@@ -38,7 +45,7 @@ class Deribit(AioHttpClient):
         return await self.get_path("public/get_historical_volatility", **kw)
 
     async def volatility_surface_loader(self, currency: str) -> VolSurfaceLoader:
-        """Create the volatility surface loader for a given crypto-currency"""
+        """Create a :class:`.VolSurfaceLoader` for a given crypto-currency"""
         loader = VolSurfaceLoader()
         futures = await self.get_book_summary_by_currency(
             params=dict(currency=currency, kind="future")

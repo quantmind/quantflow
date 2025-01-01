@@ -10,3 +10,9 @@ Heston process
    :autosummary:
    :autosummary-nosignatures:
 
+
+.. autoclass:: HestonJ
+   :members:
+   :member-order: groupwise
+   :autosummary:
+   :autosummary-nosignatures:

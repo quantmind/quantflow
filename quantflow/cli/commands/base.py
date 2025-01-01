@@ -115,3 +115,10 @@ class options:
         show_default=True,
         help="Historical period",
     )
+    index = click.option(
+        "-i",
+        "--index",
+        type=int,
+        default=-1,
+        help="maturity index",
+    )

@@ -24,6 +24,7 @@ aio-fluid = {version = "^1.2.1", extras=["http"], optional = true}
 rich = {version = "^13.9.4", optional = true}
 click = {version = "^8.1.7", optional = true}
 holidays = {version = "^0.63", optional = true}
+async-cache = {version = "^1.1.1", optional = true}
 
 [tool.poetry.group.dev.dependencies]
 black = "^24.1.1"
@@ -37,7 +38,14 @@ isort = "^5.13.2"
 
 [tool.poetry.extras]
 data = ["aio-fluid"]
-cli = ["asciichartpy", "prompt-toolkit", "rich", "click", "holidays"]
+cli = [
+    "asciichartpy",
+    "async-cache",
+    "prompt-toolkit",
+    "rich",
+    "click",
+    "holidays"
+]
 
 [tool.poetry.group.book]
 optional = true
@@ -89,6 +97,7 @@ warn_no_return = true
 [[tool.mypy.overrides]]
 module = [
     "asciichartpy.*",
+    "cache.*",
     "quantflow_tests.*",
     "IPython.*",
     "pandas.*",

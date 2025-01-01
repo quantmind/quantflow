@@ -8,15 +8,21 @@ from typing import Any, Iterator, cast
 import inflection
 import pandas as pd
 from fluid.utils.data import compact_dict
+from fluid.utils.http_client import AioHttpClient
 
 from quantflow.utils.dates import isoformat
 from quantflow.utils.numbers import to_decimal
 
-from .client import AioHttpClient
-
 
 @dataclass
 class FMP(AioHttpClient):
+    """Financial Modeling Prep API client
+
+    Fetch market and financial data from `Financial Modeling Prep`_.
+
+    .. _Financial Modeling Prep: https://financialmodelingprep.com/developer/docs/
+    """
+
     url: str = "https://financialmodelingprep.com/api"
     key: str = field(default_factory=lambda: os.environ.get("FMP_API_KEY", ""))
 

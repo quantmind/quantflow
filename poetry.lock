@@ -361,6 +361,16 @@ astroid = ["astroid (>=2,<4)"]
 test = ["astroid (>=2,<4)", "pytest", "pytest-cov", "pytest-xdist"]
 
 [[package]]
+name = "async-cache"
+version = "1.1.1"
+description = "An asyncio Cache"
+optional = true
+python-versions = ">=3.3"
+files = [
+    {file = "async-cache-1.1.1.tar.gz", hash = "sha256:81aa9ccd19fb06784aaf30bd5f2043dc0a23fc3e998b93d0c2c17d1af9803393"},
+]
+
+[[package]]
 name = "async-lru"
 version = "2.0.4"
 description = "Simple LRU cache for asyncio"
@@ -4860,10 +4870,10 @@ test = ["big-O", "importlib-resources", "jaraco.functools", "jaraco.itertools", 
 type = ["pytest-mypy"]
 
 [extras]
-cli = ["asciichartpy", "click", "holidays", "prompt-toolkit", "rich"]
+cli = ["asciichartpy", "async-cache", "click", "holidays", "prompt-toolkit", "rich"]
 data = ["aio-fluid"]
 
 [metadata]
 lock-version = "2.0"
 python-versions = ">=3.11"
-content-hash = "7f77b4834db8d3c1f603d39bff59af77fb77e022c0c63fac802f2175e631446f"
+content-hash = "4adb25f3945d56e114d65ba0edecd2e1389dedc4a149603dcdcc874f76b83fe5"

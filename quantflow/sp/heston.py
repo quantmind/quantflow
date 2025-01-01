@@ -80,12 +80,29 @@ class Heston(StochasticProcess1D):
 
 
 class HestonJ(Heston):
+    r"""The Heston stochastic volatility model with jumps
+
+    The Heston model with jumps is an extension of the classical square-root
+    stochastic volatility model of Heston (1993) with the addition of jump
+    processes. The jumps are modeled as compound Poisson processes with
+    exponential jump sizes.
+
+    .. math::
+        d x_t &= d w^1_t + d N^+_t - d N^-_t\\
+        d v_t &= \kappa (\theta - v_t) dt + \nu \sqrt{v_t} dw^2_t \\
+        \rho dt &= {\tt E}[dw^1 dw^2]
+    """
+
     jumps_up: CompoundPoissonProcess[Exponential] = Field(
         description="positive jumps process"
     )
+    """Positive jumps process driven by a compound Poisson process with jumps
+    sizes which follow an exponential distribution"""
     jumps_down: CompoundPoissonProcess[Exponential] = Field(
         description="negative jumps process"
     )
+    """jumps process driven by a compound Poisson process with jumps
+    sizes which follow an exponential distribution"""
 
     @classmethod
     def create(
@@ -99,6 +116,7 @@ class HestonJ(Heston):
         jump_fraction: float = 0.1,  # percentage of variance due to jumps
         jump_asymmetry: float = 1,
     ) -> HestonJ:
+        """Create an Heston model with jumps by specifying the jump parameters"""
         if jump_fraction <= 0 or jump_fraction >= 1:
             raise ValueError("jump_percentage must be between 0 and 1")
         total_variance = vol * vol
@@ -127,6 +145,8 @@ class HestonJ(Heston):
         )
 
     def characteristic_exponent(self, t: FloatArrayLike, u: Vector) -> Vector:
+        """The characteristic exponent is given by the sum of the exponent of the
+        classic Heston model and the exponent of the jumps"""
         return (
             super().characteristic_exponent(t, u)
             + self.jumps_up.characteristic_exponent(t, u)

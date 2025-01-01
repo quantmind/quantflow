@@ -456,7 +456,7 @@ class VolSurface(Generic[S]):
         index: int | None = None,
         initial_vol: float = INITIAL_VOL,
     ) -> list[OptionPrice]:
-        """calculate Black-Scholes implied volatilities for all options
+        """calculate Black-Scholes implied volatility for all options
         in the surface"""
         d = self.as_array(
             select=select, index=index, initial_vol=initial_vol, converged=False
