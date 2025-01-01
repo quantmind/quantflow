@@ -29,3 +29,7 @@ Vol Surface
    :member-order: groupwise
    :autosummary:
    :autosummary-nosignatures:
+
+
+.. autoclass:: OptionSelection
+   :members:

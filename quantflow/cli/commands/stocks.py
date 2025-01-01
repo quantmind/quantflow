@@ -11,12 +11,9 @@ from ccy import period as to_period
 from ccy.cli.console import df_to_rich
 from ccy.tradingcentres import prevbizday
 
-from quantflow.data.fmp import FMP
 from quantflow.utils.dates import utcnow
 
 from .base import HistoricalPeriod, QuantContext, options, quant_group
-
-FREQUENCIES = tuple(FMP().historical_frequencies())
 
 
 @quant_group()
@@ -56,13 +53,7 @@ def search(text: str) -> None:
 @click.argument("symbol")
 @options.height
 @options.length
-@click.option(
-    "-f",
-    "--frequency",
-    type=click.Choice(FREQUENCIES),
-    default="",
-    help="Frequency of data - if not provided it is daily",
-)
+@options.frequency
 def chart(symbol: str, height: int, length: int, frequency: str) -> None:
     """Symbol chart"""
     ctx = QuantContext.current()

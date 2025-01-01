@@ -6,6 +6,7 @@ from typing import Any
 import click
 from prompt_toolkit import PromptSession
 from prompt_toolkit.completion import NestedCompleter
+from prompt_toolkit.formatted_text import HTML
 from prompt_toolkit.history import FileHistory
 from rich.console import Console
 from rich.text import Text
@@ -38,6 +39,7 @@ class QfApp:
                         self.prompt_message(),
                         completer=self.prompt_completer(),
                         complete_while_typing=True,
+                        bottom_toolbar=self.bottom_toolbar,
                     )
                 except KeyboardInterrupt:
                     break
@@ -82,3 +84,15 @@ class QfApp:
             click.exceptions.UsageError,
         ) as e:
             self.error(e)
+
+    def bottom_toolbar(self) -> HTML:
+        sections = "/".join([str(section.name) for section in self.sections])
+        back = (
+            (' <b><style bg="ansired">back</style></b> ' "to exit the current section,")
+            if len(self.sections) > 1
+            else ""
+        )
+        return HTML(
+            f"Your are in <strong>{sections}</strong>, type{back} "
+            '<b><style bg="ansired">exit</style></b> to exit'
+        )

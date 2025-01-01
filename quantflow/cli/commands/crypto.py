@@ -10,8 +10,10 @@ from ccy.cli.console import df_to_rich
 
 from quantflow.data.deribit import Deribit
 from quantflow.options.surface import VolSurface
+from quantflow.utils.numbers import round_to_step
 
 from .base import QuantContext, options, quant_group
+from .stocks import get_prices
 
 
 @quant_group()
@@ -64,13 +66,40 @@ def implied_vol(currency: str, index: int, height: int, chart: bool) -> None:
     index_or_none = None if index < 0 else index
     vs.bs(index=index_or_none)
     df = vs.options_df(index=index_or_none)
-    df["implied_vol"] = df["implied_vol"] * 100
-    df = df.round({"ttm": 4, "moneyness": 4, "moneyness_ttm": 4, "implied_vol": 5})
     if chart:
-        data = df["implied_vol"].tolist()
+        data = (df["implied_vol"] * 100).tolist()
         ctx.qf.print(plot(data, {"height": height}))
     else:
+        df[["ttm", "moneyness", "moneyness_ttm"]] = df[
+            ["ttm", "moneyness", "moneyness_ttm"]
+        ].map("{:.4f}".format)
+        df["implied_vol"] = df["implied_vol"].map("{:.2%}".format)
+        df["price"] = df["price"].map(lambda p: round_to_step(p, vs.tick_size_options))
+        df["forward_price"] = df["forward_price"].map(
+            lambda p: round_to_step(p, vs.tick_size_forwards)
+        )
         ctx.qf.print(df_to_rich(df))
+
+
+@crypto.command()
+@click.argument("symbol")
+@options.height
+@options.length
+@options.chart
+@options.frequency
+def prices(symbol: str, height: int, length: int, chart: bool, frequency: str) -> None:
+    """Fetch OHLC prices for given cryptocurrency"""
+    ctx = QuantContext.current()
+    df = asyncio.run(get_prices(ctx, symbol, frequency))
+    if df.empty:
+        raise click.UsageError(
+            f"No data for {symbol} - are you sure the symbol exists?"
+        )
+    if chart:
+        data = list(reversed(df["close"].tolist()[:length]))
+        ctx.qf.print(plot(data, {"height": height}))
+    else:
+        ctx.qf.print(df_to_rich(df[["date", "open", "high", "low", "close", "volume"]]))
 
 
 async def get_volatility(ctx: QuantContext, currency: str) -> pd.DataFrame:

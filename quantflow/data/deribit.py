@@ -1,4 +1,5 @@
 from datetime import datetime, timezone
+from decimal import Decimal
 from typing import Any, cast
 
 import pandas as pd
@@ -6,7 +7,7 @@ from dateutil.parser import parse
 from fluid.utils.http_client import AioHttpClient, HttpResponse
 
 from quantflow.options.surface import VolSecurityType, VolSurfaceLoader
-from quantflow.utils.numbers import round_to_step
+from quantflow.utils.numbers import round_to_step, to_decimal
 
 
 def parse_maturity(v: str) -> datetime:
@@ -55,12 +56,13 @@ class Deribit(AioHttpClient):
         )
         instruments = await self.get_instruments(params=dict(currency=currency))
         instrument_map = {i["instrument_name"]: i for i in instruments}
-
+        min_tick_size = Decimal("inf")
         for future in futures:
             if (bid_ := future["bid_price"]) and (ask_ := future["ask_price"]):
                 name = future["instrument_name"]
                 meta = instrument_map[name]
-                tick_size = meta["tick_size"]
+                tick_size = to_decimal(meta["tick_size"])
+                min_tick_size = min(min_tick_size, tick_size)
                 bid = round_to_step(bid_, tick_size)
                 ask = round_to_step(ask_, tick_size)
                 if meta["settlement_period"] == "perpetual":
@@ -85,12 +87,15 @@ class Deribit(AioHttpClient):
                         open_interest=int(future["open_interest"]),
                         volume=int(future["volume_usd"]),
                     )
+        loader.tick_size_forwards = min_tick_size
 
+        min_tick_size = Decimal("inf")
         for option in options:
             if (bid_ := option["bid_price"]) and (ask_ := option["ask_price"]):
                 name = option["instrument_name"]
                 meta = instrument_map[name]
-                tick_size = meta["tick_size"]
+                tick_size = to_decimal(meta["tick_size"])
+                min_tick_size = min(min_tick_size, tick_size)
                 loader.add_option(
                     VolSecurityType.option,
                     strike=round_to_step(meta["strike"], tick_size),
@@ -103,7 +108,7 @@ class Deribit(AioHttpClient):
                     bid=round_to_step(bid_, tick_size),
                     ask=round_to_step(ask_, tick_size),
                 )
-
+        loader.tick_size_options = min_tick_size
         return loader
 
     # Internal methods

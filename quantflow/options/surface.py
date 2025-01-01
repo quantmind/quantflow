@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import enum
+import warnings
 from dataclasses import dataclass, field
 from datetime import datetime, timedelta
 from decimal import Decimal
@@ -39,14 +40,21 @@ S = TypeVar("S", bound=VolSurfaceSecurity)
 
 
 class OptionSelection(enum.Enum):
-    """Option selection method"""
+    """Option selection method
+
+    This enum is used to select which one between calls and puts are used
+    for calculating implied volatility and other operations
+    """
 
     best = enum.auto()
-    """Select the best bid/ask options - the ones which are otm"""
+    """Select the best bid/ask options.
+
+    These are the options which are Out of the Money, where their
+    intrinsic value is zero"""
     call = enum.auto()
-    """Select the call options"""
+    """Select the call options only"""
     put = enum.auto()
-    """Select the put options"""
+    """Select the put options only"""
 
 
 @dataclass
@@ -179,6 +187,10 @@ class OptionPrice:
         else:
             return self.price
 
+    @property
+    def option_type(self) -> str:
+        return "call" if self.call else "put"
+
     def can_price(self, converged: bool, select: OptionSelection) -> bool:
         if self.price_time > ZERO and not np.isnan(self.implied_vol):
             if not self.converged and converged is True:
@@ -221,7 +233,7 @@ class OptionPrice:
             price=float(self.price),
             price_bp=float(self.price_bp),
             forward_price=float(self.forward_price),
-            call=self.call,
+            type=self.option_type,
             side=self.side,
         )
 
@@ -396,6 +408,10 @@ class VolSurface(Generic[S]):
     """Sorted tuple of :class:`.VolCrossSection` for different maturities"""
     day_counter: DayCounter = default_day_counter
     """Day counter for time to maturity calculations - by default it uses Act/Act"""
+    tick_size_forwards: Decimal | None = None
+    """Tick size for rounding forward and spot prices - optional"""
+    tick_size_options: Decimal | None = None
+    """Tick size for rounding option prices - optional"""
 
     def securities(self) -> Iterator[SpotPrice[S] | FwdPrice[S] | OptionPrices[S]]:
         """Iterator over all securities in the volatility surface"""
@@ -457,17 +473,30 @@ class VolSurface(Generic[S]):
         initial_vol: float = INITIAL_VOL,
     ) -> list[OptionPrice]:
         """calculate Black-Scholes implied volatility for all options
-        in the surface"""
+        in the surface
+
+        :param select: the :class:`.OptionSelection` method
+        :param index: Index of the cross section to use, if None use all
+        :param initial_vol: Initial volatility for the root finding algorithm
+
+        Some options may not converge, in this case the implied volatility is not
+        calculated correctly and the option is marked as not converged.
+        """
         d = self.as_array(
-            select=select, index=index, initial_vol=initial_vol, converged=False
+            select=select,
+            index=index,
+            initial_vol=initial_vol,
+            converged=False,
         )
-        result = implied_black_volatility(
-            k=d.moneyness,
-            price=d.price,
-            ttm=d.ttm,
-            initial_sigma=d.implied_vol,
-            call_put=d.call_put,
-        )
+        with warnings.catch_warnings():
+            warnings.simplefilter("ignore")
+            result = implied_black_volatility(
+                k=d.moneyness,
+                price=d.price,
+                ttm=d.ttm,
+                initial_sigma=d.implied_vol,
+                call_put=d.call_put,
+            )
         for option, implied_vol, converged in zip(
             d.options, result.root, result.converged
         ):
@@ -495,7 +524,10 @@ class VolSurface(Generic[S]):
     ) -> pd.DataFrame:
         """Time frame of Black-Scholes call input data"""
         data = self.option_prices(
-            select=select, index=index, initial_vol=initial_vol, converged=converged
+            select=select,
+            index=index,
+            initial_vol=initial_vol,
+            converged=converged,
         )
         return pd.DataFrame([d._asdict() for d in data])
 
@@ -639,8 +671,15 @@ class GenericVolSurfaceLoader(Generic[S]):
     """Helper class to build a volatility surface from a list of securities"""
 
     spot: SpotPrice[S] | None = None
+    """Spot price of the underlying asset"""
     maturities: dict[datetime, VolCrossSectionLoader[S]] = field(default_factory=dict)
+    """Dictionary of maturities and their corresponding cross section loaders"""
     day_counter: DayCounter = default_day_counter
+    """Day counter for time to maturity calculations - by default it uses Act/Act"""
+    tick_size_forwards: Decimal | None = None
+    """Tick size for rounding forward and spot prices - optional"""
+    tick_size_options: Decimal | None = None
+    """Tick size for rounding option prices - optional"""
 
     def get_or_create_maturity(self, maturity: datetime) -> VolCrossSectionLoader[S]:
         if maturity not in self.maturities:
@@ -727,6 +766,8 @@ class GenericVolSurfaceLoader(Generic[S]):
             spot=self.spot,
             maturities=tuple(maturities),
             day_counter=self.day_counter,
+            tick_size_forwards=self.tick_size_forwards,
+            tick_size_options=self.tick_size_options,
         )
 
 

@@ -24,8 +24,25 @@ This documentation is organized into a few major sections.
 * **Stochastic Processes** cover all the stochastic models supported and their use
 * **Applications** show case the real-world use cases
 * **Examples** random examples
-* **API Reference** python API reference``
+* **API Reference** python API reference
 
-```{code-cell} ipython3
+## Installation
 
+To install the library use
 ```
+pip install quantflow
+```
+
+
+## Optional dependencies
+
+Quantflow comes with two optional dependencies:
+
+* `data` for data retrieval, to install it use
+  ```
+  pip install quantflow[data]
+  ```
+* `cli` for command line interface, to install it use
+  ```
+  pip install quantflow[data,cli]
+  ```
