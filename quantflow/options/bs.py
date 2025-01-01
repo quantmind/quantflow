@@ -25,19 +25,19 @@ def black_price(
     ttm: FloatArrayLike,
     s: FloatArrayLike,
 ) -> np.ndarray:
-    """Calculate the Black call/put option prices in forward terms
+    r"""Calculate the Black call/put option prices in forward terms
     from the following params
 
     .. math::
-        c &= \\frac{C}{F} = N(d1) - e^k N(d2)
+        c &= \frac{C}{F} = N(d1) - e^k N(d2)
 
-        p &= \\frac{C}{F} = -N(-d1) + e^k N(-d2)
+        p &= \frac{C}{F} = -N(-d1) + e^k N(-d2)
 
-        d1 &= \\frac{-k + \\frac{\sigma^2 t}{2}}{\sigma \sqrt{t}}
+        d1 &= \frac{-k + \frac{\sigma^2 t}{2}}{\sigma \sqrt{t}}
 
         d2 &= d1 - \sigma \sqrt{t}
 
-    :param k: a vector of :math:`\log{\\frac{K}{F}}` also known as moneyness
+    :param k: a vector of :math:`\log{\frac{K}{F}}` also known as moneyness
     :param sigma: a corresponding vector of implied volatilities (0.2 for 20%)
     :param ttm: time to maturity
     :param s: the call/put flag, 1 for calls, -1 for puts
@@ -52,13 +52,13 @@ def black_price(
 
 
 def black_vega(k: np.ndarray, sigma: np.ndarray, ttm: FloatArrayLike) -> np.ndarray:
-    """Calculate the Black option vega from the moneyness,
+    r"""Calculate the Black option vega from the moneyness,
     volatility and time to maturity.
 
     .. math::
 
-        \\nu = \\frac{\\partial c}{\\partial \sigma} =
-            \\frac{\\partial p}{\\partial \sigma} = N'(d1) \sqrt{t}
+        \nu = \frac{\partial c}{\partial \sigma} =
+            \frac{\partial p}{\partial \sigma} = N'(d1) \sqrt{t}
 
     :param k: a vector of moneyness, see above
     :param sigma: a corresponding vector of implied volatilities (0.2 for 20%)

@@ -68,7 +68,7 @@ class VolModelCalibration(ABC, Generic[M]):
     """The weight for moneyness"""
     options: dict[ModelCalibrationEntryKey, OptionEntry] = field(default_factory=dict)
     """The options to calibrate"""
-    
+
     def __post_init__(self) -> None:
         if not self.options:
             self.vol_surface.bs()

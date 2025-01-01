@@ -12,6 +12,7 @@ P = TypeVar("P")
 
 class VolSecurityType(enum.StrEnum):
     """Type of security for the volatility surface"""
+
     spot = enum.auto()
     forward = enum.auto()
     option = enum.auto()

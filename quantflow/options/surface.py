@@ -305,6 +305,7 @@ class Strike(Generic[S]):
 @dataclass
 class VolCrossSection(Generic[S]):
     """Represents a cross section of a volatility surface at a specific maturity."""
+
     maturity: datetime
     """Maturity date of the cross section"""
     forward: FwdPrice[S]
