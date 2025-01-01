@@ -4,6 +4,7 @@ from functools import partial
 from typing import Any
 
 import click
+from fluid.utils.http_client import HttpResponseError
 from prompt_toolkit import PromptSession
 from prompt_toolkit.completion import NestedCompleter
 from prompt_toolkit.formatted_text import HTML
@@ -82,6 +83,7 @@ class QfApp:
             click.exceptions.MissingParameter,
             click.exceptions.NoSuchOption,
             click.exceptions.UsageError,
+            HttpResponseError,
         ) as e:
             self.error(e)
 
