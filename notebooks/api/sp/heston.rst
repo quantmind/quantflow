@@ -6,3 +6,7 @@ Heston process
 
 .. autoclass:: Heston
    :members:
+   :member-order: groupwise
+   :autosummary:
+   :autosummary-nosignatures:
+

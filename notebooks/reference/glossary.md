@@ -15,9 +15,18 @@ kernelspec:
 
 ## Characteristic Function
 
-The characteristic function of a random variable $x$ is the Fourier transform of $P^x$, where $P^x$ is the distrubution measure of $x$
+The characteristic function of a random variable $X$ is the Fourier transform of $f_X$, where $f_X$ is the probability density function
+of $X$
 \begin{equation}
- \Phi_{x,u} = {\mathbb E}\left[e^{i u x_t}\right] = \int e^{i u x} P^x\left(dx\right)
+ \Phi_{X,u} = {\mathbb E}\left[e^{i u X_t}\right] = \int e^{i u x} f_X\left(x\right) dx
+\end{equation}
+
+## Cumulative Distribution Function (CDF)
+
+The cumulative distribution function (CDF), or just distribution function,
+of a real-valued random variable $X$ is the function given by
+\begin{equation}
+    F_X(x) = P(X \leq x)
 \end{equation}
 
 ## Hurst Exponent
@@ -28,7 +37,7 @@ Check this study on the [Hurst exponent with OHLC data](./applications/hurst).
 
 ## Moneyness
 
-Monenyness is used in the context of option pricing and it is defined as
+Moneyness is used in the context of option pricing and it is defined as
 
 \begin{equation}
     \ln\frac{K}{F}
@@ -39,3 +48,12 @@ where $K$ is the strike and $F$ is the Forward price. A positive value implies s
 ```{code-cell}
 
 ```
+
+## Probability Density Function (PDF)
+
+The [probability density function](https://en.wikipedia.org/wiki/Probability_density_function)
+ (PDF), or density, of a continuous random variable, is a function that describes the relative likelihood for this random variable to take on a given value. It is related to the CDF by the formula
+
+\begin{equation}
+    F_X(x) = \int_{-\infty}^x f_X(s) ds
+\end{equation}

@@ -15,7 +15,7 @@ Documentation = "https://quantmind.github.io/quantflow/"
 python = ">=3.11"
 scipy = "^1.14.1"
 pydantic = "^2.0.2"
-ccy = {version="1.6.0"}
+ccy = { version = "^1.7.1" }
 python-dotenv = "^1.0.1"
 polars = {version = "^1.11.0", extras=["pandas", "pyarrow"]}
 asciichartpy = { version = "^1.5.25", optional = true }
@@ -23,11 +23,12 @@ prompt-toolkit = { version = "^3.0.43", optional = true }
 aio-fluid = {version = "^1.2.1", extras=["http"], optional = true}
 rich = {version = "^13.9.4", optional = true}
 click = {version = "^8.1.7", optional = true}
+holidays = {version = "^0.63", optional = true}
 
 [tool.poetry.group.dev.dependencies]
 black = "^24.1.1"
 pytest-cov = "^6.0.0"
-mypy = "^1.13.0"
+mypy = "^1.14.1"
 ghp-import = "^2.0.2"
 ruff = "^0.8.1"
 pytest-asyncio = "^0.25.0"
@@ -36,7 +37,7 @@ isort = "^5.13.2"
 
 [tool.poetry.extras]
 data = ["aio-fluid"]
-cli = ["asciichartpy", "prompt-toolkit", "rich", "click"]
+cli = ["asciichartpy", "prompt-toolkit", "rich", "click", "holidays"]
 
 [tool.poetry.group.book]
 optional = true

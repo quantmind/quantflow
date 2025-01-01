@@ -8,3 +8,7 @@ The Cox–Ingersoll–Ross (CIR) model
 
 .. autoclass:: CIR
    :members:
+   :member-order: groupwise
+   :autosummary:
+   :autosummary-nosignatures:
+

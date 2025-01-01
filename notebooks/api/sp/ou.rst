@@ -10,7 +10,13 @@ These are the classes that implement gaussian and non-gaussian
 
 .. autoclass:: Vasicek
    :members:
+   :member-order: groupwise
+   :autosummary:
+   :autosummary-nosignatures:
 
 
 .. autoclass:: GammaOU
    :members:
+   :member-order: groupwise
+   :autosummary:
+   :autosummary-nosignatures:
