@@ -8,11 +8,25 @@ from .types import FloatArray
 
 def pdf(
     data: FloatArray,
+    *,
     num_bins: int | None = None,
     delta: float | None = None,
     symmetric: float | None = None,
     precision: int = 6,
 ) -> DataFrame:
+    """Extract a probability density function from the data as a DataFrame
+    with index given by the bin centers and a single column `pdf` with the
+    estimated probability density function values
+
+    :param data: the data to extract the PDF from
+    :param num_bins: the number of bins to use in the histogram,
+        if not provided it is calculated from the `delta` parameter (if provided)
+        or set to 50
+    :param delta: the spacing between bins, if not provided it is calculated
+        from the `num_bins`
+    :param symmetric: if provided, the bins are centered around this value
+    :param precision: the precision to use in the calculation
+    """
     max_value = cast(float, np.max(data))
     min_value = cast(float, np.min(data))
     domain: float = max(abs(data)) if symmetric is not None else max_value - min_value  # type: ignore

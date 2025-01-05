@@ -32,20 +32,23 @@ class MaturityPricer(NamedTuple):
     moneyness: FloatArray
     """Moneyness as log Strike/Forward"""
     call: FloatArray
-    """Call prices"""
+    """Call prices for the given :attr`.moneyness`"""
     name: str = ""
     """Name of the model"""
 
     @property
     def moneyness_ttm(self) -> FloatArray:
+        """Time adjusted moneyness array"""
         return self.moneyness / np.sqrt(self.ttm)
 
     @property
     def time_value(self) -> FloatArray:
+        """Time value of the option"""
         return self.call - self.intrinsic_value
 
     @property
     def intrinsic_value(self) -> FloatArray:
+        """Intrinsic value of the option"""
         return get_intrinsic_value(self.moneyness)
 
     @property
@@ -73,7 +76,7 @@ class MaturityPricer(NamedTuple):
         )
 
     def call_price(self, moneyness: float) -> float:
-        """Call price a single option"""
+        """Price a single call option"""
         return float(np.interp(moneyness, self.moneyness, self.call))
 
     def interp(self, moneyness: FloatArray) -> MaturityPricer:
@@ -108,15 +111,16 @@ class OptionPricer(Generic[M]):
     """Pricer for options"""
 
     model: M
-    """The stochastic process"""
+    """The stochastic process used for pricing"""
     ttm: dict[int, MaturityPricer] = field(default_factory=dict, repr=False)
-    """Cache for :class:`.MaturityPricer`"""
+    """Cache for :class:`.MaturityPricer` for different time to maturity"""
     n: int = 128
+    """NUmber of discretization points for the marginal distribution"""
     max_moneyness_ttm: float = 1.5
-    """Max moneyness"""
+    """Max time-adjusted moneyness to calculate prices"""
 
     def reset(self) -> None:
-        """Clear the cache"""
+        """Clear the :attr:`.ttm` cache"""
         self.ttm.clear()
 
     def maturity(self, ttm: float, **kwargs: Any) -> MaturityPricer:
@@ -139,7 +143,13 @@ class OptionPricer(Generic[M]):
         return self.ttm[ttm_int]
 
     def call_price(self, ttm: float, moneyness: float) -> float:
-        """Price a single call option"""
+        """Price a single call option
+
+        :param ttm: Time to maturity
+        :param moneyness: Moneyness as log(Strike/Forward)
+
+        This method will use the cache to get the maturity pricer if possible
+        """
         return self.maturity(ttm).call_price(moneyness)
 
     def plot3d(

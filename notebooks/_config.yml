@@ -9,8 +9,8 @@ logo: assets/quantflow-light.svg
 # Force re-execution of notebooks on each build.
 # See https://jupyterbook.org/content/execute.html
 execute:
-  #execute_notebooks: "off"
-  execute_notebooks: force
+  execute_notebooks: "off"
+  #execute_notebooks: force
 
 # Define the name of the latex output file for PDF builds
 latex:
@@ -56,7 +56,6 @@ sphinx:
     }
   extra_extensions:
     - "sphinx.ext.autodoc"
-    - "sphinx_autodoc_typehints"
     - "sphinx.ext.autosummary"
     - "sphinx.ext.intersphinx"
     - "sphinx_autosummary_accessors"

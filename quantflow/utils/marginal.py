@@ -59,19 +59,17 @@ class Marginal1D(BaseModel, ABC, extra="forbid"):
         """Standard deviation at a time horizon"""
         return np.sqrt(self.variance())
 
-    def mean_from_characteristic(self) -> FloatArrayLike:
+    def mean_from_characteristic(self, *, d: float = 0.001) -> FloatArrayLike:
         """Calculate mean as first derivative of characteristic function at 0"""
-        d = 0.001
         m = -0.5 * 1j * (self.characteristic(d) - self.characteristic(-d)) / d
-        return cast(complex, m).real
+        return m.real
 
     def std_from_characteristic(self) -> FloatArrayLike:
         """Calculate standard deviation as square root of variance"""
         return np.sqrt(self.variance_from_characteristic())
 
-    def variance_from_characteristic(self) -> FloatArrayLike:
+    def variance_from_characteristic(self, *, d: float = 0.001) -> FloatArrayLike:
         """Calculate variance as second derivative of characteristic function at 0"""
-        d = 0.001
         c1 = self.characteristic(d)
         c0 = self.characteristic(0)
         c2 = self.characteristic(-d)

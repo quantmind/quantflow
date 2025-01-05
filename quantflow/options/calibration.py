@@ -56,16 +56,20 @@ class OptionEntry:
 
 @dataclass
 class VolModelCalibration(ABC, Generic[M]):
-    """Calibration of a stochastic volatility model"""
+    """Abstract class for calibration of a stochastic volatility model"""
 
     pricer: OptionPricer[M]
-    """The option pricer for the model"""
+    """The :class:`.OptionPricer` for the model"""
     vol_surface: VolSurface[Any]
-    """The volatility surface"""
+    """The :class:`.VolSurface` to calibrate the model with"""
     minimize_method: str | None = None
-    """The optimization method to use"""
-    moneyness_weight: float = 0.5
-    """The weight for moneyness"""
+    """The optimization method to use - if None, the default is used"""
+    moneyness_weight: float = 0.0
+    """The weight for penalize moneyness as it moves away from 0
+
+    The weight is applied as exp(-moneyness_weight * moneyness), therefore
+    a value of 0 won't penalize moneyness at all
+    """
     options: dict[ModelCalibrationEntryKey, OptionEntry] = field(default_factory=dict)
     """The options to calibrate"""
 
@@ -81,11 +85,17 @@ class VolModelCalibration(ABC, Generic[M]):
 
     @abstractmethod
     def get_params(self) -> np.ndarray:
-        """Get the parameters of the model"""
+        """Get the parameters of the model
+
+        Must be implemented by the subclass
+        """
 
     @abstractmethod
     def set_params(self, params: np.ndarray) -> None:
-        """Set the parameters of the model"""
+        """Set the parameters of the model
+
+        Must be implemented by the subclass
+        """
 
     @property
     def model(self) -> M:
@@ -138,6 +148,8 @@ class VolModelCalibration(ABC, Generic[M]):
         )
 
     def cost_weight(self, ttm: float, moneyness: float) -> float:
+        """Calculate the weight for the cost function for
+        a given time to maturity and moneyness"""
         return np.exp(-self.moneyness_weight * moneyness)
 
     def penalize(self) -> float:

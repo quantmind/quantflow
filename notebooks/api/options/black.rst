@@ -6,6 +6,8 @@ Black Pricing
 
 .. autofunction:: black_price
 
+.. autofunction:: black_delta
+
 .. autofunction:: black_vega
 
 .. autofunction:: implied_black_volatility

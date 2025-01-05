@@ -31,7 +31,7 @@ def black_price(
     .. math::
         c &= \frac{C}{F} = N(d1) - e^k N(d2)
 
-        p &= \frac{C}{F} = -N(-d1) + e^k N(-d2)
+        p &= \frac{P}{F} = -N(-d1) + e^k N(-d2)
 
         d1 &= \frac{-k + \frac{\sigma^2 t}{2}}{\sigma \sqrt{t}}
 
@@ -42,13 +42,40 @@ def black_price(
     :param ttm: time to maturity
     :param s: the call/put flag, 1 for calls, -1 for puts
 
-    The results are option prices divided by the forward price.
+    The results are option prices divided by the forward price also known as
+    option prices in forward terms.
     """
     sig2 = sigma * sigma * ttm
     sig = np.sqrt(sig2)
     d1 = (-k + 0.5 * sig2) / sig
     d2 = d1 - sig
     return s * norm.cdf(s * d1) - s * np.exp(k) * norm.cdf(s * d2)
+
+
+def black_delta(
+    k: np.ndarray,
+    sigma: FloatArrayLike,
+    ttm: FloatArrayLike,
+    s: FloatArrayLike,
+) -> np.ndarray:
+    r"""Calculate the Black call/put option delta from the moneyness,
+    volatility and time to maturity.
+
+    .. math::
+        \begin{align}
+            \delta_c &= \frac{\partial C}{\partial F} = N(d1) \\
+            \delta_p &= \frac{\partial P}{\partial F} = N(d1) - 1
+        \end{align}
+
+    :param k: a vector of moneyness, see above
+    :param sigma: a corresponding vector of implied volatilities (0.2 for 20%)
+    :param ttm: time to maturity
+    :param s: the call/put flag, 1 for calls, -1 for puts
+    """
+    sig2 = sigma * sigma * ttm
+    sig = np.sqrt(sig2)
+    d1 = (-k + 0.5 * sig2) / sig
+    return norm.cdf(d1) - 0.5 * (1 - s)
 
 
 def black_vega(k: np.ndarray, sigma: np.ndarray, ttm: FloatArrayLike) -> np.ndarray:
