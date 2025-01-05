@@ -29,6 +29,7 @@ notebook:			## Run Jupyter notebook server
 .PHONY: book
 book:				## Build static jupyter {book}
 	poetry run jupyter-book build notebooks --all
+	cp notebooks/CNAME notebooks/_build/html/CNAME
 
 
 .PHONY: nbconvert

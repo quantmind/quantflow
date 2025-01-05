@@ -13,7 +13,11 @@ def heston() -> Heston:
 @pytest.fixture
 def heston_jumps() -> HestonJ[DoubleExponential]:
     return HestonJ.exponential(
-        vol=0.5, kappa=1, sigma=0.5, jump_intensity=50, jump_fraction=0.3
+        vol=0.5,
+        kappa=1,
+        sigma=0.5,
+        jump_intensity=50,
+        jump_fraction=0.3,
     )
 
 
