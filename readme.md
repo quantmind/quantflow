@@ -8,7 +8,7 @@
 
 Quantitative analysis and pricing tools.
 
-Documentation is available as [quantflow jupyter book](https://quantmind.github.io/quantflow/).
+Documentation is available as [quantflow jupyter book](https://quantflow.quantmind.com).
 
 ## Installation
 

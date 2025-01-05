@@ -8,3 +8,5 @@ Utils
     :maxdepth: 1
 
     marginal1d
+    distributions
+    bins

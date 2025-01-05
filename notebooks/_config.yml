@@ -56,7 +56,6 @@ sphinx:
     }
   extra_extensions:
     - "sphinx.ext.autodoc"
-    - "sphinx_autodoc_typehints"
     - "sphinx.ext.autosummary"
     - "sphinx.ext.intersphinx"
     - "sphinx_autosummary_accessors"

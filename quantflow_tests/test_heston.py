@@ -1,6 +1,7 @@
 import pytest
 
 from quantflow.sp.heston import Heston, HestonJ
+from quantflow.utils.distributions import DoubleExponential
 from quantflow_tests.utils import characteristic_tests
 
 
@@ -10,8 +11,8 @@ def heston() -> Heston:
 
 
 @pytest.fixture
-def heston_jumps() -> HestonJ:
-    return HestonJ.create(
+def heston_jumps() -> HestonJ[DoubleExponential]:
+    return HestonJ.exponential(
         vol=0.5, kappa=1, sigma=0.5, jump_intensity=50, jump_fraction=0.3
     )
 
@@ -30,5 +31,4 @@ def test_heston_jumps_characteristic(heston_jumps: HestonJ) -> None:
     m = heston_jumps.marginal(1)
     characteristic_tests(m)
     assert m.mean() == 0.0
-    # TODO: fix this
-    # assert m.std() == pytest.approx(0.5)
+    assert m.std() == pytest.approx(0.5)

@@ -7,14 +7,14 @@ jupytext:
     format_version: 0.13
     jupytext_version: 1.16.6
 kernelspec:
-  display_name: Python 3 (ipykernel)
+  display_name: .venv
   language: python
   name: python3
 ---
 
 # Poisson Processes
 
-In this section, we look at the family of pure jump processes which are Lévy provcesses.
+In this section, we look at the family of pure jump processes which are Lévy processes.
 The most common process is the Poisson process.
 
 ## Poisson Process
@@ -31,25 +31,25 @@ The characteristic exponent is given by
 \phi_{N_t, u} = t \lambda \left(1 - e^{iu}\right)
 \end{equation}
 
-```{code-cell}
+```{code-cell} ipython3
 from quantflow.sp.poisson import PoissonProcess
 pr = PoissonProcess(intensity=1)
 pr
 ```
 
-```{code-cell}
+```{code-cell} ipython3
 m = pr.marginal(0.1)
 import numpy as np
 cdf = m.cdf(np.arange(5))
 cdf
 ```
 
-```{code-cell}
+```{code-cell} ipython3
 n = 128*8
 m.cdf_from_characteristic(5, frequency_n=n).y
 ```
 
-```{code-cell}
+```{code-cell} ipython3
 cdf1 = m.cdf_from_characteristic(5, frequency_n=n).y
 cdf2 = m.cdf_from_characteristic(5, frequency_n=n, simpson_rule=False).y
 10000*np.max(np.abs(cdf-cdf1)), 10000*np.max(np.abs(cdf-cdf2))
@@ -57,7 +57,7 @@ cdf2 = m.cdf_from_characteristic(5, frequency_n=n, simpson_rule=False).y
 
 ### Marginal
 
-```{code-cell}
+```{code-cell} ipython3
 import numpy as np
 from quantflow.utils import plot
 
@@ -65,14 +65,14 @@ m = pr.marginal(1)
 plot.plot_marginal_pdf(m, frequency_n=128*8)
 ```
 
-```{code-cell}
+```{code-cell} ipython3
 from quantflow.utils.plot import plot_characteristic
 plot_characteristic(m)
 ```
 
 ### Sampling Poisson
 
-```{code-cell}
+```{code-cell} ipython3
 p = pr.sample(10, time_horizon=10, time_steps=1000)
 p.plot().update_traces(line_width=1)
 ```
@@ -101,11 +101,11 @@ The mean and variance of the compund Poisson is given by
     {\mathbb Var}\left[x_t^2\right] &= \lambda t \left({\mathbb Var}\left[j\right] + {\mathbb E}\left[j\right]^2\right)
 \end{align}
 
-### Exponential Compound Poisson Process
+## Exponential Compound Poisson Process
 
-The library includes the Exponential Poisson Process, a compound Poisson process where the jump sizes are sampled from an exponential distribution.
+The Exponential Poisson Process is a compound Poisson process where the jump sizes are sampled from an exponential distribution. To create an Exponential Compound Poisson process we simply pass the `Exponential` distribution as the jump distribution.
 
-```{code-cell}
+```{code-cell} ipython3
 from quantflow.sp.poisson import CompoundPoissonProcess
 from quantflow.utils.distributions import Exponential
 
@@ -113,21 +113,21 @@ pr = CompoundPoissonProcess(intensity=1, jumps=Exponential(decay=1))
 pr
 ```
 
-```{code-cell}
+```{code-cell} ipython3
 from quantflow.utils.plot import plot_characteristic
 m = pr.marginal(1)
 plot_characteristic(m)
 ```
 
-```{code-cell}
+```{code-cell} ipython3
 m.mean(), m.mean_from_characteristic()
 ```
 
-```{code-cell}
+```{code-cell} ipython3
 m.variance(), m.variance_from_characteristic()
 ```
 
-```{code-cell}
+```{code-cell} ipython3
 pr.sample(10, time_horizon=10, time_steps=1000).plot().update_traces(line_width=1)
 ```
 
@@ -135,7 +135,7 @@ pr.sample(10, time_horizon=10, time_steps=1000).plot().update_traces(line_width=
 
 Here we test the simulated mean and standard deviation against the analytical values.
 
-```{code-cell}
+```{code-cell} ipython3
 import pandas as pd
 from quantflow.utils import plot
 
@@ -145,7 +145,7 @@ df = pd.DataFrame(mean, index=paths.time)
 plot.plot_lines(df)
 ```
 
-```{code-cell}
+```{code-cell} ipython3
 std = dict(std=pr.marginal(paths.time).std(), simulated=paths.std())
 df = pd.DataFrame(std, index=paths.time)
 plot.plot_lines(df)
@@ -155,19 +155,19 @@ plot.plot_lines(df)
 
 A compound Poisson process with a normal jump distribution
 
-```{code-cell}
+```{code-cell} ipython3
 from quantflow.utils.distributions import Normal
 from quantflow.sp.poisson import CompoundPoissonProcess
 pr = CompoundPoissonProcess(intensity=10, jumps=Normal(mu=0.01, sigma=0.1))
 pr
 ```
 
-```{code-cell}
+```{code-cell} ipython3
 m = pr.marginal(1)
 m.mean(), m.std()
 ```
 
-```{code-cell}
+```{code-cell} ipython3
 m.mean_from_characteristic(), m.std_from_characteristic()
 ```
 
@@ -222,14 +222,14 @@ The intensity function of a DSPP is given by:
 {\mathbb P}\left(N_T - N_t = n\right) = {\mathbb E}_t\left[e^{-\Lambda_{t,T}} \frac{\Lambda_{t, T}^n}{n!}\right] = \frac{1}{n!}
 \end{equation}
 
-```{code-cell}
+```{code-cell} ipython3
 from quantflow.sp.dsp import DSP, PoissonProcess, CIR
 pr = DSP(intensity=CIR(sigma=2, kappa=1), poisson=PoissonProcess(intensity=2))
 pr2 = DSP(intensity=CIR(rate=2, sigma=4, kappa=2, theta=2), poisson=PoissonProcess(intensity=1))
 pr, pr2
 ```
 
-```{code-cell}
+```{code-cell} ipython3
 import numpy as np
 from quantflow.utils import plot
 import plotly.graph_objects as go
@@ -242,28 +242,28 @@ plot.plot_marginal_pdf(pr2.marginal(1), n, analytical=False, fig=fig, marker_col
 fig.add_trace(go.Scatter(x=pdf.x, y=pr.poisson.marginal(1).pdf(pdf.x), name="Poisson", mode="markers", marker_color="blue"))
 ```
 
-```{code-cell}
+```{code-cell} ipython3
 pr.marginal(1).mean(), pr.marginal(1).variance()
 ```
 
-```{code-cell}
+```{code-cell} ipython3
 pr2.marginal(1).mean(), pr2.marginal(1).variance()
 ```
 
-```{code-cell}
+```{code-cell} ipython3
 from quantflow.utils.plot import plot_characteristic
 m = pr.marginal(2)
 plot_characteristic(m)
 ```
 
-```{code-cell}
+```{code-cell} ipython3
 pr.sample(10, time_horizon=10, time_steps=1000).plot().update_traces(line_width=1)
 ```
 
-```{code-cell}
+```{code-cell} ipython3
 m.characteristic(2)
 ```
 
-```{code-cell}
+```{code-cell} ipython3
 m.characteristic(-2).conj()
 ```
