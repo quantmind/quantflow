@@ -114,10 +114,10 @@ class DoubleExponential(Exponential):
         \end{align}
 
     where `m` is the :attr:`.loc` parameter, :math:`\lambda` is the :attr:`.decay`
-    parameter, and :math:`\kappa` is the asymmetric :attr:`.k` parameter.
+    parameter, and :math:`\kappa` is the asymmetric :attr:`.kappa` parameter.
 
-    The Laplace distribution is similar to the Gaussian/normal distribution,
-    but is sharper at the peak and has fatter tails.
+    The Asymmetric Laplace distribution is similar to the Gaussian/normal distribution,
+    but is sharper at the peak, it has fatter tails and allow for skewness.
     It represents the difference between two independent, exponential random variables.
 
     .. _ALD: https://en.wikipedia.org/wiki/Asymmetric_Laplace_distribution
@@ -129,6 +129,11 @@ class DoubleExponential(Exponential):
     r"""The exponential decay rate :math:`\lambda`"""
     kappa: float = Field(default=1, gt=0, description="asymmetric parameter")
     """Asymmetric parameter - when k=1, the distribution is symmetric"""
+
+    @property
+    def log_kappa(self) -> float:
+        """The log of the :attr:`.kappa` parameter"""
+        return np.log(self.kappa)
 
     @classmethod
     def from_moments(

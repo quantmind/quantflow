@@ -116,8 +116,7 @@ class HestonJ(Heston, Generic[D]):
 
     The Heston model with jumps is an extension of the classical square-root
     stochastic volatility model of Heston (1993) with the addition of jump
-    processes. The jumps are modeled as compound Poisson processes with
-    doubly-exponential jump sizes given by the
+    processes. The jumps are modeled as compound Poisson processes
 
     .. math::
         d x_t &= d w^1_t + d N_t\\
@@ -142,7 +141,7 @@ class HestonJ(Heston, Generic[D]):
         jump_fraction: float = 0.1,  # percentage of variance due to jumps
         jump_asymmetry: float = 1,
     ) -> HestonJ[DoubleExponential]:
-        r"""Create an Heston model with jumps.
+        r"""Create an Heston model with :class:`.DoubleExponential` jumps.
 
         To understand the parameters lets introduce the following notation:
 

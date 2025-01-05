@@ -2,12 +2,13 @@ import pytest
 
 from quantflow.options.pricer import OptionPricer
 from quantflow.sp.heston import HestonJ
+from quantflow.utils.distributions import DoubleExponential
 from quantflow_tests.utils import has_plotly
 
 
 @pytest.fixture
-def pricer() -> OptionPricer[HestonJ]:
-    return OptionPricer(HestonJ.create(vol=0.5, kappa=1, sigma=0.8, rho=0))
+def pricer() -> OptionPricer[HestonJ[DoubleExponential]]:
+    return OptionPricer(HestonJ.exponential(vol=0.5, kappa=1, sigma=0.8, rho=0))
 
 
 @pytest.mark.skipif(not has_plotly, reason="Plotly not installed")

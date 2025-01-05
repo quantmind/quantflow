@@ -64,7 +64,7 @@ def poisson_arrivals(intensity: float, time_horizon: float = 1) -> list[float]:
 
 class PoissonProcess(PoissonBase):
     intensity: float = Field(default=1.0, ge=0, description="intensity rate")
-    """Intensity rate of the Poisson process"""
+    r"""Intensity rate :math:`\lambda` of the Poisson process"""
 
     def marginal(self, t: FloatArrayLike) -> StochasticProcess1DMarginal:
         return MarginalDiscrete1D(process=self, t=t)
@@ -142,12 +142,26 @@ class PoissonProcess(PoissonBase):
 
 
 class CompoundPoissonProcess(PoissonBase, Generic[D]):
-    """Compound Poisson process."""
+    """A generic Compound Poisson process."""
 
     intensity: float = Field(default=1.0, ge=0, description="intensity rate")
+    r"""Intensity rate :math:`\lambda` of the Poisson process
+
+    It determines the number of jumps in the same way as the :class:`.PoissonProcess`
+    """
     jumps: D = Field(description="Jump size distribution")
+    """Jump size distribution"""
 
     def characteristic_exponent(self, t: FloatArrayLike, u: Vector) -> Vector:
+        r"""The characteristic exponent of the Compound Poisson process,
+        given by
+
+        .. math::
+            \phi_{x_t,u} = t\lambda \left(1 - \Phi_{j,u}\right)
+
+        where :math:`\Phi_{j,u}` is the characteristic function
+        of the jump distribution
+        """
         return t * self.intensity * (1 - self.jumps.characteristic(u))
 
     def arrivals(self, time_horizon: float = 1) -> list[float]:

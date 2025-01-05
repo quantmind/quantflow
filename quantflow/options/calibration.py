@@ -11,8 +11,9 @@ import pandas as pd
 from scipy.optimize import Bounds, OptimizeResult, minimize
 
 from quantflow.sp.base import StochasticProcess1D
-from quantflow.sp.heston import Heston
+from quantflow.sp.heston import Heston, HestonJ
 from quantflow.utils import plot
+from quantflow.utils.distributions import DoubleExponential
 
 from .pricer import OptionPricer
 from .surface import OptionPrice, VolSurface
@@ -123,7 +124,7 @@ class VolModelCalibration(ABC, Generic[M]):
         return replace(self, options=options)
 
     def get_bounds(self) -> Bounds | None:  # pragma: no cover
-        """Get the bounds for the calibration"""
+        """Get the parameter bounds for the calibration"""
         return None
 
     def get_constraints(self) -> Sequence[dict[str, Any]] | None:
@@ -225,6 +226,54 @@ class HestonCalibration(VolModelCalibration[Heston]):
         self.model.variance_process.kappa = params[2]
         self.model.variance_process.sigma = params[3]
         self.model.rho = params[4]
+
+    def penalize(self) -> float:
+        kt = 2 * self.model.variance_process.kappa * self.model.variance_process.theta
+        neg = max(0.5 * self.model.variance_process.sigma2 - kt, 0)
+        return self.feller_penalize * neg * neg
+
+
+@dataclass
+class HestonJCalibration(VolModelCalibration[HestonJ[DoubleExponential]]):
+    """A :class:`.VolModelCalibration` for the :class:`.HestonJ`
+    stochastic volatility model with :class:`.DoubleExponential`
+    jumps
+    """
+
+    feller_penalize: float = 0.0
+
+    def get_bounds(self) -> Sequence[Bounds] | None:
+        vol_range = self.implied_vol_range()
+        vol_lb = 0.5 * vol_range.lb[0]
+        vol_ub = 1.5 * vol_range.ub[0]
+        return Bounds(
+            [vol_lb * vol_lb, vol_lb * vol_lb, 0.0, 0.0, -0.9],
+            [vol_ub * vol_ub, vol_ub * vol_ub, np.inf, np.inf, 0],
+        )
+
+    def get_params(self) -> np.ndarray:
+        return np.asarray(
+            [
+                self.model.variance_process.rate,
+                self.model.variance_process.theta,
+                self.model.variance_process.kappa,
+                self.model.variance_process.sigma,
+                self.model.rho,
+                self.model.jumps.intensity,
+                self.model.jumps.jumps.decay,
+                self.model.jumps.jumps.log_kappa,
+            ]
+        )
+
+    def set_params(self, params: np.ndarray) -> None:
+        self.model.variance_process.rate = params[0]
+        self.model.variance_process.theta = params[1]
+        self.model.variance_process.kappa = params[2]
+        self.model.variance_process.sigma = params[3]
+        self.model.rho = params[4]
+        self.model.jumps.intensity = params[5]
+        self.model.jumps.jumps.decay = params[6]
+        self.model.jumps.jumps.kappa = np.exp(params[7])
 
     def penalize(self) -> float:
         kt = 2 * self.model.variance_process.kappa * self.model.variance_process.theta
