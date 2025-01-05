@@ -6,14 +6,14 @@ jupytext:
     format_version: 0.13
     jupytext_version: 1.16.6
 kernelspec:
-  display_name: Python 3 (ipykernel)
+  display_name: .venv
   language: python
   name: python3
 ---
 
 # Heston Model with Jumps
 
-THe models complements the standard [Heston](./heston.md) stochastic volatility model, with the addition of a double exponential Compound Poisson process.
+The models complements the standard [Heston](./heston.md) stochastic volatility model, with the addition of a double exponential Compound Poisson process.
 The Compound Poisson process adds a jump component to the Heston diffusion SDEs which control the volatility smile and skew for shorter maturities.
 
 \begin{align}
@@ -32,9 +32,9 @@ where $j_t$ is a double exponential Compound Poisson process which adds three ad
 
 The jump process is independent of the other Brownian motions.
 
-```{code-cell}
+```{code-cell} ipython3
 from quantflow.sp.heston import HestonJ
-pr = HestonJ.create(
+pr = HestonJ.exponential(
     vol=0.6,
     kappa=2,
     sigma=0.8,
@@ -46,25 +46,25 @@ pr = HestonJ.create(
 pr
 ```
 
-```{code-cell}
+```{code-cell} ipython3
 from quantflow.utils import plot
 plot.plot_marginal_pdf(pr.marginal(0.1), 128, normal=True, analytical=False)
 ```
 
-```{code-cell}
+```{code-cell} ipython3
 from quantflow.options.pricer import OptionPricer
 from quantflow.sp.heston import Heston
 pricer = OptionPricer(pr)
 pricer
 ```
 
-```{code-cell}
+```{code-cell} ipython3
 fig = None
 for ttm in (0.05, 0.1, 0.2, 0.4, 0.6, 1):
     fig = pricer.maturity(ttm).plot(fig=fig, name=f"t={ttm}")
 fig.update_layout(title="Implied black vols", height=500)
 ```
 
-```{code-cell}
+```{code-cell} ipython3
 
 ```

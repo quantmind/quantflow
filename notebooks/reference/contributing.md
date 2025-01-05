@@ -48,8 +48,21 @@ make book
 ```
 Navigate to the `notebook/_build/html` directory to find the `index.html` file you can open on your browser.
 
+## Notebooks
+
+To run the notebooks you can use the provided `make` command.
+
+```
+make notebook
+```
+
+This will start a jupyter notebook server and open the browser with the notebook interface.
+You will be able to run the notebooks and see the results interactively (the book doesn't have interactive widgets).
+
 ## Developing with VS code
 
 If you develop with VS code we provide several tooling for easing developing.
 
-* **Notebooks development**: you can use the provided tasks to synchronize notbooks with markdown `myst` files by `Ctrl+Shift+B`
+* **Notebooks development**: you can use the provided tasks to synchronize notebooks with markdown `myst` files by `Ctrl+Shift+B`. This allows to interact with the notebooks on VS code rather than jupyter interface.
+
++++
