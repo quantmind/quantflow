@@ -16,15 +16,21 @@ kernelspec:
 
 A library for quantitative analysis and pricing.
 
-<img src="https://raw.githubusercontent.com/quantmind/quantflow/main/notebooks/assets/heston.gif" alt="Heston volatility surface" width="400">
+```{grid}
+```{grid-item}
+```{image} _static/heston.gif
+:alt: Heston volatility surface
+:width: 400px
+```{grid-item}
+```
 
 
 This documentation is organized into a few major sections.
-* **Theory** cover some important concept used throughout the library, for the curious reader
-* **Stochastic Processes** cover all the stochastic models supported and their use
-* **Applications** show case the real-world use cases
-* **Examples** random examples
-* **API Reference** python API reference
+* [Theory](./theory/overview.md) cover some important concept used throughout the library, for the curious reader
+* [Stochastic models](./models/overview.md) cover all the stochastic models supported and their use
+* [Applications](./applications/overview.md) show case the real-world use cases
+* [Examples](./examples/overview.md) random examples
+* [API Reference](./api/index.rst) python API reference
 
 ## Installation
 

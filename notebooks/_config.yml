@@ -48,6 +48,8 @@ parse:
 sphinx:
   recursive_update: true
   config:
+    html_static_path:
+      - assets
     html_js_files:
     # required by plotly charts
     - https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js
