@@ -18,6 +18,11 @@ class Distribution1D(Marginal1D):
     def sample(self, n: int) -> np.ndarray:
         """Sample from the distribution"""
 
+    @classmethod
+    def from_variance_and_asymmetry(cls, variance: float, asymmetry: float) -> Self:
+        """Create a distribution from variance and asymmetry"""
+        raise NotImplementedError
+
 
 class Exponential(Distribution1D):
     r"""A :class:`.Marginal1D` for the `Exponential distribution`_
@@ -75,6 +80,11 @@ class Exponential(Distribution1D):
 class Normal(Distribution1D):
     mu: float = Field(default=0, description="mean")
     sigma: float = Field(default=1, gt=0, description="standard deviation")
+
+    @classmethod
+    def from_variance_and_asymmetry(cls, variance: float, asymmetry: float) -> Self:
+        """The normal distribution is symmetric, so the asymmetry is ignored"""
+        return cls(mu=0, sigma=np.sqrt(variance))
 
     @property
     def sigma2(self) -> float:
@@ -134,6 +144,10 @@ class DoubleExponential(Exponential):
     def log_kappa(self) -> float:
         """The log of the :attr:`.kappa` parameter"""
         return np.log(self.kappa)
+
+    @classmethod
+    def from_variance_and_asymmetry(cls, variance: float, asymmetry: float) -> Self:
+        return cls.from_moments(variance=variance, kappa=np.exp(asymmetry))
 
     @classmethod
     def from_moments(

@@ -6,7 +6,7 @@ jupytext:
     format_version: 0.13
     jupytext_version: 1.16.6
 kernelspec:
-  display_name: Python 3 (ipykernel)
+  display_name: .venv
   language: python
   name: python3
 ---
@@ -19,7 +19,7 @@ The general definition of an Ornstein-Uhlebeck (OU) process is as the solution o
     d x_t = -\kappa x_t dt + d z_t
 \end{equation}
 
-where $z$, with $z_0 = 0$, is a [Lévy](./levy.md) process. As $z_t$ drives the OU process, it is usually referred to as a background driving Lévy process (**BDLP**).
+where $z$, with $z_0 = 0$, is a [Lévy](../theory/levy.md) process. As $z_t$ drives the OU process, it is usually referred to as a background driving Lévy process (**BDLP**).
 
 The OU process can be integrated into the formula (see Appendix below).
 
@@ -57,13 +57,13 @@ which means the process admits a stationary probability distribution equal to
     x_t \sim N\left(\theta, \frac{\sigma^2}{2\kappa}\right)\ \ t\rightarrow\infty
 \end{equation}
 
-```{code-cell}
+```{code-cell} ipython3
 from quantflow.sp.ou import Vasicek
-pr = Vasicek()
+pr = Vasicek(kappa=2)
 pr
 ```
 
-```{code-cell}
+```{code-cell} ipython3
 pr.sample(20, time_horizon=1, time_steps=1000).plot().update_traces(
     line_width=0.5
 ).update_layout(
@@ -71,12 +71,12 @@ pr.sample(20, time_horizon=1, time_steps=1000).plot().update_traces(
 )
 ```
 
-```{code-cell}
+```{code-cell} ipython3
 m = pr.marginal(1)
 m.mean(), m.std()
 ```
 
-```{code-cell}
+```{code-cell} ipython3
 m.mean_from_characteristic(), m.std_from_characteristic()
 ```
 
@@ -105,7 +105,7 @@ where $m_n$ are the jump times of the Poisson process $N_{\kappa t} and $j_n$ ar
 
 ### Integrated Intensity
 
-One of the advantages of these OU processes is that they offer a great deal of analytical tractability. For example, the integrated value of the process, which can be used as a time change for [Lévy processes](./levy.md), is given by
+One of the advantages of these OU processes is that they offer a great deal of analytical tractability. For example, the integrated value of the process, which can be used as a time change for [Lévy processes](../theory/levy.md), is given by
 
 \begin{align}
    \int_0^t x_s ds &= \epsilon_t x_0 + \int_0^t \epsilon_{t-s} d z_{\kappa s} = \frac{z_{\kappa t} - x_t + x_0}{\kappa}\\
@@ -125,7 +125,7 @@ The library provides an implementation of the non-gaussian OU process in the for
 
 In this case, the BDLP is an exponential compound Poisson process with Lévy density $\lambda\beta e^{-\beta x}$, in other words, the [exponential compound Poisson](./poisson.md) process with intensity $\lambda$ and decay $\beta$.
 
-```{code-cell}
+```{code-cell} ipython3
 from quantflow.sp.ou import GammaOU
 
 pr = GammaOU.create(decay=10, kappa=5)
@@ -140,11 +140,11 @@ The charatecristic exponent of the $\Gamma$-OU process is given by, see {cite:p}
     \phi_{u, t} = -x_{0} i u e^{-\kappa t} - \lambda\ln\left(\frac{\beta-iue^{-\kappa t}}{\beta -iu}\right)
 \end{equation}
 
-```{code-cell}
+```{code-cell} ipython3
 pr.marginal(1).mean(), pr.marginal(1).std()
 ```
 
-```{code-cell}
+```{code-cell} ipython3
 import numpy as np
 from quantflow.utils import plot
 
@@ -152,14 +152,14 @@ m = pr.marginal(5)
 plot.plot_marginal_pdf(m, 128)
 ```
 
-```{code-cell}
+```{code-cell} ipython3
 from quantflow.utils.plot import plot_characteristic
 plot_characteristic(m)
 ```
 
 ### Sampling Gamma OU
 
-```{code-cell}
+```{code-cell} ipython3
 from quantflow.sp.ou import GammaOU
 pr = GammaOU.create(decay=10, kappa=5)
 
@@ -170,7 +170,7 @@ pr.sample(50, time_horizon=1, time_steps=1000).plot().update_traces(line_width=0
 
 Test the simulated meand and stadard deviation against the values from the invariant gamma distribution.
 
-```{code-cell}
+```{code-cell} ipython3
 import pandas as pd
 from quantflow.utils import plot
 
@@ -180,7 +180,7 @@ df = pd.DataFrame(mean, index=paths.time)
 plot.plot_lines(df)
 ```
 
-```{code-cell}
+```{code-cell} ipython3
 std = dict(std=pr.marginal(paths.time).std(), simulated=paths.std())
 df = pd.DataFrame(std, index=paths.time)
 plot.plot_lines(df)
@@ -198,6 +198,6 @@ The integration of the OU process can be achieved by multiplying both sides of t
     x_t &= x_0 e^{-\kappa t} + \int_0^t e^{-\kappa\left(t - s\right)} d z_s
 \end{align}
 
-```{code-cell}
+```{code-cell} ipython3
 
 ```

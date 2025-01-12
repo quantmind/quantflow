@@ -30,39 +30,47 @@ where $j_t$ is a double exponential Compound Poisson process which adds three ad
 * the jump percentage (fraction) contribution to the total variance
 * the jump asymmetry is defined as a parameter greater than 0; 1 means jump are symmetric
 
-The jump process is independent of the other Brownian motions.
+The jump process is independent from the Brownian motions. See [HestonJ](../api/sp/heston.rst#quantflow.sp.heston.HestonJ) for python
+API documentation.
 
 ```{code-cell} ipython3
 from quantflow.sp.heston import HestonJ
-pr = HestonJ.exponential(
+from quantflow.utils.distributions import DoubleExponential
+pr = HestonJ.create(
+    DoubleExponential,
     vol=0.6,
     kappa=2,
     sigma=0.8,
-    rho=-0.2,
+    rho=-0.0,
     jump_intensity=50,
     jump_fraction=0.2,
-    jump_asymmetry=1.2
+    jump_asymmetry=0.0
 )
 pr
 ```
 
 ```{code-cell} ipython3
 from quantflow.utils import plot
-plot.plot_marginal_pdf(pr.marginal(0.1), 128, normal=True, analytical=False)
+plot.plot_marginal_pdf(pr.marginal(0.5), 128, normal=True, analytical=False)
 ```
 
 ```{code-cell} ipython3
 from quantflow.options.pricer import OptionPricer
-from quantflow.sp.heston import Heston
 pricer = OptionPricer(pr)
 pricer
 ```
 
 ```{code-cell} ipython3
+
 fig = None
 for ttm in (0.05, 0.1, 0.2, 0.4, 0.6, 1):
+
     fig = pricer.maturity(ttm).plot(fig=fig, name=f"t={ttm}")
 fig.update_layout(title="Implied black vols", height=500)
+```
+
+```{code-cell} ipython3
+
 ```
 
 ```{code-cell} ipython3

@@ -14,11 +14,3 @@ The most famous jump-diffusion model is the Merton model, which was introduced b
    :member-order: groupwise
    :autosummary:
    :autosummary-nosignatures:
-
-
-
-.. autoclass:: Merton
-   :members:
-   :member-order: groupwise
-   :autosummary:
-   :autosummary-nosignatures:

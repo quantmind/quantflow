@@ -7,7 +7,7 @@ jupytext:
     format_version: 0.13
     jupytext_version: 1.16.6
 kernelspec:
-  display_name: Python 3 (ipykernel)
+  display_name: .venv
   language: python
   name: python3
 ---
@@ -31,20 +31,20 @@ This means that the characteristic function of $y_t=x_{\tau_t}$ can be represent
      &= e^{-a_{t,u} - b_{t,u} \nu_0}
 \end{align}
 
-```{code-cell}
+```{code-cell} ipython3
 from quantflow.sp.heston import Heston
 pr = Heston.create(vol=0.6, kappa=2, sigma=1.5, rho=-0.1)
 pr
 ```
 
-```{code-cell}
+```{code-cell} ipython3
 # check that the variance CIR process is positive
 pr.variance_process.is_positive, pr.variance_process.marginal(1).std()
 ```
 
 ## Characteristic Function
 
-```{code-cell}
+```{code-cell} ipython3
 from quantflow.utils import plot
 m = pr.marginal(0.1)
 plot.plot_characteristic(m)
@@ -58,26 +58,26 @@ The immaginary part of the characteristic function is given by the correlation c
 
 Here we compare the marginal distribution at a time in the future $t=1$ with a normal distribution with the same standard deviation.
 
-```{code-cell}
+```{code-cell} ipython3
 plot.plot_marginal_pdf(m, 128, normal=True, analytical=False)
 ```
 
 Using log scale on the y axis highlighs the probability on the tails much better
 
-```{code-cell}
+```{code-cell} ipython3
 plot.plot_marginal_pdf(m, 128, normal=True, analytical=False, log_y=True)
 ```
 
 ## Option pricing
 
-```{code-cell}
+```{code-cell} ipython3
 from quantflow.options.pricer import OptionPricer
 from quantflow.sp.heston import Heston
 pricer = OptionPricer(Heston.create(vol=0.6, kappa=2, sigma=0.8, rho=-0.2))
 pricer
 ```
 
-```{code-cell}
+```{code-cell} ipython3
 import plotly.express as px
 import plotly.graph_objects as go
 from quantflow.options.bs import black_call
@@ -89,7 +89,7 @@ fig.add_trace(go.Scatter(x=r.moneyness_ttm, y=b.time_value, name=b.name, line=di
 fig.show()
 ```
 
-```{code-cell}
+```{code-cell} ipython3
 fig = None
 for ttm in (0.05, 0.1, 0.2, 0.4, 0.6, 1):
     fig = pricer.maturity(ttm).plot(fig=fig, name=f"t={ttm}")
@@ -102,17 +102,17 @@ The simulation of the Heston model is heavily dependent on the simulation of the
 
 The code implements algorithms from {cite:p}heston-simulation
 
-```{code-cell}
+```{code-cell} ipython3
 from quantflow.sp.heston import Heston
 pr = Heston.create(vol=0.6, kappa=2, sigma=0.8, rho=-0.4)
 pr
 ```
 
-```{code-cell}
+```{code-cell} ipython3
 pr.sample(20, time_horizon=1, time_steps=1000).plot().update_traces(line_width=0.5)
 ```
 
-```{code-cell}
+```{code-cell} ipython3
 import pandas as pd
 from quantflow.utils import plot
 
@@ -122,12 +122,12 @@ df = pd.DataFrame(mean, index=paths.time)
 plot.plot_lines(df)
 ```
 
-```{code-cell}
+```{code-cell} ipython3
 std = dict(std=pr.marginal(paths.time).std(), simulated=paths.std())
 df = pd.DataFrame(std, index=paths.time)
 plot.plot_lines(df)
 ```
 
-```{code-cell}
+```{code-cell} ipython3
 
 ```

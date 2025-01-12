@@ -36,7 +36,7 @@ The independence and stationarity of the increments of the Lévy process imply t
 
 where the **characteristic exponent** $\phi_{x_1,u}$ is given by the [Lévy–Khintchine formula](https://en.wikipedia.org/wiki/L%C3%A9vy_process).
 
-There are several Lévy processes in the literature, including, importantly, the [Poisson process](./poisson.md), the compound Poisson process, and the Brownian motion.
+There are several Lévy processes in the literature, including, importantly, the [Poisson process](../models/poisson.md), the compound Poisson process, and the Brownian motion.
 
 +++
 
