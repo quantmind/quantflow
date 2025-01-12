@@ -1,12 +1,11 @@
 from __future__ import annotations
 
-from typing import Generic, Self
+from typing import Generic
 
 import numpy as np
 from pydantic import Field
 
 from ..ta.paths import Paths
-from ..utils.distributions import Normal
 from ..utils.types import FloatArrayLike, Vector
 from .base import StochasticProcess1D
 from .poisson import CompoundPoissonProcess, D
@@ -52,35 +51,39 @@ class JumpDiffusion(StochasticProcess1D, Generic[D]):
     def analytical_variance(self, t: FloatArrayLike) -> FloatArrayLike:
         return self.diffusion.analytical_variance(t) + self.jumps.analytical_variance(t)
 
-
-class Merton(JumpDiffusion[Normal]):
-    """Merton jump-diffusion model"""
-
     @classmethod
     def create(
         cls,
+        jump_distribution: type[D],
         vol: float = 0.5,
-        diffusion_percentage: float = 0.5,
         jump_intensity: float = 100,
-        jump_skew: float = 0.0,
-    ) -> Self:
-        """Create a Merton jump-diffusion model with a given volatility,
-        diffusion percentage, jump skewness, and jump intensity"""
+        jump_fraction: float = 0.5,
+        jump_asymmetry: float = 0.0,
+    ) -> JumpDiffusion[D]:
+        """Create a jump-diffusion model with a given jump distribution, volatility
+        and jump fraction.
+
+        :param vol: total annualized standard deviation
+        :param jump_intensity: The average number of jumps per year
+        :param jump_fraction: The fraction of variance due to jumps (between 0 and 1)
+        :param jump_asymmetry: The asymmetry of the jump distribution (0 for symmetric,
+            only used by distributions with asymmetry)
+
+        If the jump distribution is set to the :class:`.Normal` distribution, the
+        model reduces to a Merton jump-diffusion model.
+        """
         variance = vol * vol
-        jump_std = 1.0
-        jump_mean = 0.0
-        if diffusion_percentage > 1:
-            raise ValueError("diffusion_percentage must be less than 1")
-        elif diffusion_percentage < 0:
-            raise ValueError("diffusion_percentage must be greater than 0")
-        elif diffusion_percentage == 1:
-            jump_intensity = 0
+        if jump_fraction >= 1:
+            raise ValueError("jump_fraction must be less than 1")
+        elif jump_fraction <= 0:
+            raise ValueError("jump_fraction must be greater than 0")
         else:
-            jump_std = np.sqrt(variance * (1 - diffusion_percentage) / jump_intensity)
-            jump_mean = jump_skew / jump_intensity
-        return cls(
-            diffusion=WeinerProcess(sigma=np.sqrt(variance * diffusion_percentage)),
-            jumps=CompoundPoissonProcess[Normal](
-                intensity=jump_intensity, jumps=Normal(mu=jump_mean, sigma=jump_std)
-            ),
-        )
+            jump_variance = variance * jump_fraction
+            jump_distribution_variance = jump_variance / jump_intensity
+            jumps = jump_distribution.from_variance_and_asymmetry(
+                jump_distribution_variance, jump_asymmetry
+            )
+            return cls(
+                diffusion=WeinerProcess(sigma=np.sqrt(variance * (1 - jump_fraction))),
+                jumps=CompoundPoissonProcess(intensity=jump_intensity, jumps=jumps),
+            )

@@ -33,7 +33,7 @@ of a real-valued random variable $X$ is the function given by
 
 The Hurst exponent is a measure of the long-term memory of time series. The Hurst exponent is a measure of the relative tendency of a time series either to regress strongly to the mean or to cluster in a direction.
 
-Check this study on the [Hurst exponent with OHLC data](./applications/hurst).
+Check this study on the [Hurst exponent with OHLC data](../applications/hurst).
 
 ## Moneyness
 

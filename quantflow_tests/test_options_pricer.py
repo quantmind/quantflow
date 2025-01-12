@@ -8,7 +8,9 @@ from quantflow_tests.utils import has_plotly
 
 @pytest.fixture
 def pricer() -> OptionPricer[HestonJ[DoubleExponential]]:
-    return OptionPricer(HestonJ.exponential(vol=0.5, kappa=1, sigma=0.8, rho=0))
+    return OptionPricer(
+        HestonJ.create(DoubleExponential, vol=0.5, kappa=1, sigma=0.8, rho=0)
+    )
 
 
 @pytest.mark.skipif(not has_plotly, reason="Plotly not installed")

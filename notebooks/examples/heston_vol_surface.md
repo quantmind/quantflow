@@ -11,21 +11,24 @@ kernelspec:
   name: python3
 ---
 
-# Heston Volatility Surface
+# HestonJ Volatility Surface
 
-Here we study the Implied volatility surface of the Heston model. The Heston model is a stochastic volatility model that is widely used in the finance industry to price options.
+Here we study the Implied volatility surface of the Heston model with jumps.
+The Heston model is a stochastic volatility model that is widely used in the finance industry to price options.
 
 ```{code-cell} ipython3
 from quantflow.sp.heston import HestonJ
+from quantflow.utils.distributions import DoubleExponential
 from quantflow.options.pricer import OptionPricer
 
-pricer = OptionPricer(model=HestonJ.exponential(
+pricer = OptionPricer(model=HestonJ.create(
+    DoubleExponential,
     vol=0.5,
     kappa=2,
-    rho=0.0,
-    sigma=0.6,
+    rho=-0.2,
+    sigma=0.8,
     jump_fraction=0.5,
-    jump_asymmetry=1.0
+    jump_asymmetry=0.2
 ))
 pricer
 ```

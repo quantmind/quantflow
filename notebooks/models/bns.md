@@ -28,7 +28,7 @@ This means that the characteristic function of $y_t$ can be represented as
     &= {\mathbb E}\left[\exp{\left(-\tau_t \phi_{w, u} + i u \rho z_{\kappa t}\right)}\right]
 \end{align}
 
-$\phi_{w, u}$ is the characteristic exponent of $w_1$. The second equivalence is a consequence of $w$ and $\tau$ being independent, as discussed in [the time-changed Lévy](./levy.md) process section.
+$\phi_{w, u}$ is the characteristic exponent of $w_1$. The second equivalence is a consequence of $w$ and $\tau$ being independent, as discussed in [the time-changed Lévy](../theory/levy.md) process section.
 
 ```{code-cell}
 from quantflow.sp.bns import BNS

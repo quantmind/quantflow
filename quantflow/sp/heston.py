@@ -6,11 +6,11 @@ import numpy as np
 from pydantic import Field
 
 from quantflow.ta.paths import Paths
-from quantflow.utils.distributions import DoubleExponential
 from quantflow.utils.types import FloatArrayLike, Vector
 
 from .base import StochasticProcess1D
 from .cir import CIR
+from .jump_diffusion import JumpDiffusion
 from .poisson import CompoundPoissonProcess, D
 
 
@@ -112,24 +112,31 @@ class Heston(StochasticProcess1D):
 
 
 class HestonJ(Heston, Generic[D]):
-    r"""The Heston stochastic volatility model with jumps
+    r"""A generic Heston stochastic volatility model with jumps
 
     The Heston model with jumps is an extension of the classical square-root
     stochastic volatility model of Heston (1993) with the addition of jump
-    processes. The jumps are modeled as compound Poisson processes
+    processes. The jumps are modeled via a compound Poisson process
 
     .. math::
         d x_t &= d w^1_t + d N_t\\
         d v_t &= \kappa (\theta - v_t) dt + \nu \sqrt{v_t} dw^2_t \\
         \rho dt &= {\tt E}[dw^1 dw^2]
+
+    This model is generic and therefore allows for different types of jumps
+    distributions **D**.
+
+    The Bates model is obtained by using the
+    :class:`.Normal` distribution for the jump sizes.
     """
 
     jumps: CompoundPoissonProcess[D] = Field(description="jumps process")
-    """Jump process driven by a compound Poisson process"""
+    """Jump process driven by a :class:`.CompoundPoissonProcess`"""
 
     @classmethod
-    def exponential(
+    def create(  # type: ignore [override]
         cls,
+        jump_distribution: type[D],
         *,
         rate: float = 1.0,
         vol: float = 0.5,
@@ -139,8 +146,8 @@ class HestonJ(Heston, Generic[D]):
         theta: float | None = None,
         jump_intensity: float = 100,  # number of jumps per year
         jump_fraction: float = 0.1,  # percentage of variance due to jumps
-        jump_asymmetry: float = 1,
-    ) -> HestonJ[DoubleExponential]:
+        jump_asymmetry: float = 0.0,
+    ) -> HestonJ[D]:
         r"""Create an Heston model with :class:`.DoubleExponential` jumps.
 
         To understand the parameters lets introduce the following notation:
@@ -163,22 +170,23 @@ class HestonJ(Heston, Generic[D]):
             variance and price processes
         :param theta: The long-term mean of the variance process, if `None`, it
             defaults to the diffusion variance given by :math:`{\tt var}_d`
-        :param jump_intensity: The number of jumps per year
-        :param jump_fraction: The percentage of variance due to jumps
-        :param jump_asymmetry: The asymmetry of the jump distribution (1 for symmetric)
-        :param jump_distribution: The distribution of the jumps, either 'normal'
-            or 'double_exponential' (default)
+        :param jump_intensity: The average number of jumps per year
+        :param jump_fraction: The fraction of variance due to jumps (between 0 and 1)
+        :param jump_asymmetry: The asymmetry of the jump distribution
+            (0 for symmetric jumps)
+        :param jump_distribution: The distribution of the jumps
+            (normal distribution for the Merton model)
         """
-        if jump_fraction <= 0 or jump_fraction >= 1:
-            raise ValueError("jump_percentage must be between 0 and 1")
-        total_variance = vol * vol
-        jump_variance = total_variance * jump_fraction
-        diffusion_variance = total_variance - jump_variance
-        jump_distribution_variance = jump_variance / jump_intensity
-        jumps = DoubleExponential.from_moments(
-            variance=jump_distribution_variance, kappa=jump_asymmetry
+        jd = JumpDiffusion.create(
+            jump_distribution,
+            vol=vol,
+            jump_intensity=jump_intensity,
+            jump_fraction=jump_fraction,
+            jump_asymmetry=jump_asymmetry,
         )
-        return HestonJ[DoubleExponential](
+        total_variance = vol * vol
+        diffusion_variance = total_variance * (1 - jump_fraction)
+        return cls(
             variance_process=CIR(
                 rate=rate * diffusion_variance,
                 kappa=kappa,
@@ -186,10 +194,7 @@ class HestonJ(Heston, Generic[D]):
                 theta=theta if theta is not None else diffusion_variance,
             ),
             rho=rho,
-            jumps=CompoundPoissonProcess(
-                intensity=jump_intensity,
-                jumps=jumps,
-            ),
+            jumps=jd.jumps,
         )
 
     def characteristic_exponent(self, t: FloatArrayLike, u: Vector) -> Vector:
