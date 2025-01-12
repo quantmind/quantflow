@@ -9,7 +9,7 @@ from quantflow_tests.utils import has_plotly
 @pytest.fixture
 def pricer() -> OptionPricer[HestonJ[DoubleExponential]]:
     return OptionPricer(
-        HestonJ.create(DoubleExponential, vol=0.5, kappa=1, sigma=0.8, rho=0)
+        model=HestonJ.create(DoubleExponential, vol=0.5, kappa=1, sigma=0.8, rho=0)
     )
 
 

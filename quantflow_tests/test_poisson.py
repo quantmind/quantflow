@@ -5,7 +5,7 @@ import pytest
 
 from quantflow.sp.dsp import DSP
 from quantflow.sp.poisson import CompoundPoissonProcess, PoissonProcess
-from quantflow.utils.distributions import Exponential
+from quantflow.utils.distributions import DoubleExponential, Exponential, Normal
 from quantflow_tests.utils import analytical_tests, characteristic_tests
 
 
@@ -85,3 +85,17 @@ def test_dsp_pdf(dsp: DSP):
     pdf1 = m.pdf_from_characteristic(32).y
     pdf2 = m.pdf_from_characteristic(64).y
     np.testing.assert_almost_equal(pdf2[:32], pdf1)
+
+
+def test_compound_create_double_exponential():
+    poi = CompoundPoissonProcess.create(DoubleExponential, jump_intensity=20, vol=0.5)
+    assert poi.intensity == 20
+    assert poi.analytical_mean(0.1) == 0
+    assert poi.analytical_std(0.1) == 0.5 * np.sqrt(0.1)
+
+
+def test_compound_create():
+    poi = CompoundPoissonProcess.create(Normal, jump_intensity=20, vol=0.5)
+    assert poi.intensity == 20
+    assert poi.analytical_mean(0.1) == 0
+    assert poi.analytical_std(0.1) == 0.5 * np.sqrt(0.1)

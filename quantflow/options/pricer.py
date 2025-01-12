@@ -1,10 +1,10 @@
 from __future__ import annotations
 
-from dataclasses import dataclass, field
 from typing import Any, Generic, NamedTuple, TypeVar, cast
 
 import numpy as np
 import pandas as pd
+from pydantic import BaseModel, Field
 
 from quantflow.sp.base import StochasticProcess1D
 from quantflow.utils import plot
@@ -106,13 +106,14 @@ class MaturityPricer(NamedTuple):
         return plot.plot_vol_cross(self.df, series=series, **kwargs)
 
 
-@dataclass
-class OptionPricer(Generic[M]):
+class OptionPricer(BaseModel, Generic[M], arbitrary_types_allowed=True):
     """Pricer for options"""
 
     model: M
     """The stochastic process used for pricing"""
-    ttm: dict[int, MaturityPricer] = field(default_factory=dict, repr=False)
+    ttm: dict[int, MaturityPricer] = Field(
+        default_factory=dict, repr=False, exclude=True
+    )
     """Cache for :class:`.MaturityPricer` for different time to maturity"""
     n: int = 128
     """NUmber of discretization points for the marginal distribution"""

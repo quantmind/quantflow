@@ -19,14 +19,16 @@ class JumpDiffusion(StochasticProcess1D, Generic[D]):
         dx_t = \sigma d w_t + d N_t
 
     where :math:`w_t` is a Weiner process with standard deviation :math:`\sigma`
-    and :math:`N_t` is a compound poisson process
-    with intensity :math:`\lambda` and jump distribution `D`
+    and :math:`N_t` is a :class:`.CompoundPoissonProcess`
+    with intensity :math:`\lambda` and generic jump distribution `D`
     """
 
     diffusion: WeinerProcess = Field(
         default_factory=WeinerProcess, description="diffusion"
     )
+    """The diffusion process is a standard :class:`.WeinerProcess`"""
     jumps: CompoundPoissonProcess[D] = Field(description="jump process")
+    """The jump process is a generic :class:`.CompoundPoissonProcess`"""
 
     def characteristic_exponent(self, t: FloatArrayLike, u: Vector) -> Vector:
         return self.diffusion.characteristic_exponent(
@@ -63,6 +65,8 @@ class JumpDiffusion(StochasticProcess1D, Generic[D]):
         """Create a jump-diffusion model with a given jump distribution, volatility
         and jump fraction.
 
+        :param jump_distribution: The distribution of jump sizes (currently only
+            :class:`.Normal` and :class:`.DoubleExponential` are supported)
         :param vol: total annualized standard deviation
         :param jump_intensity: The average number of jumps per year
         :param jump_fraction: The fraction of variance due to jumps (between 0 and 1)

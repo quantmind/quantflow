@@ -160,6 +160,8 @@ class HestonJ(Heston, Generic[D]):
                 v_0 &= {\tt rate}\cdot{\tt var}_d
             \end{align}
 
+        :param jump_distribution: The distribution of jump size (currently only
+            :class:`.Normal` and :class:`.DoubleExponential` are supported)
         :param rate: define the initial value of the variance process
         :param vol: The standard deviation of the price process, normalized by the
             square root of time, as time tends to infinity
@@ -174,8 +176,6 @@ class HestonJ(Heston, Generic[D]):
         :param jump_fraction: The fraction of variance due to jumps (between 0 and 1)
         :param jump_asymmetry: The asymmetry of the jump distribution
             (0 for symmetric jumps)
-        :param jump_distribution: The distribution of the jumps
-            (normal distribution for the Merton model)
         """
         jd = JumpDiffusion.create(
             jump_distribution,
