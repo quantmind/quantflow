@@ -16,16 +16,28 @@ from .weiner import WeinerProcess
 
 
 class Vasicek(IntensityProcess):
-    """Gaussian OU process, also know as the Vasiceck model.
+    r"""Gaussian OU process, also know as the `Vasiceck model`_.
 
-    Strictly, it is not an intensity process since it is not positive
+    Historically, the Vasicek model was used to model the short rate, but it can be
+    used to model any process that reverts to a mean level at a rate proportional to
+    the difference between the current level and the mean level.
+
+    .. math::
+        dx_t = \kappa (\theta - x_t) dt + \sigma dw_t
+
+    It derives from :class:`.IntensityProcess`, although, it is not strictly
+    an intensity process since it is not positive.
+
+    .. _`Vasiceck model`: https://en.wikipedia.org/wiki/Vasicek_model
     """
 
     bdlp: WeinerProcess = Field(
         default_factory=WeinerProcess,
         description="Background driving Weiner process",
     )
+    """Background driving Weiner process"""
     theta: float = Field(default=1.0, gt=0, description="Mean rate")
+    r"""Mean rate :math:`\theta`"""
 
     def characteristic_exponent(self, t: FloatArrayLike, u: Vector) -> Vector:
         mu = self.analytical_mean(t)

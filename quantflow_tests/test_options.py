@@ -22,7 +22,7 @@ CROSS_SECTIONS = 8
 
 @pytest.fixture
 def heston() -> OptionPricer[Heston]:
-    return OptionPricer(Heston.create(vol=0.5, kappa=1, sigma=0.8, rho=0))
+    return OptionPricer(model=Heston.create(vol=0.5, kappa=1, sigma=0.8, rho=0))
 
 
 @pytest.fixture

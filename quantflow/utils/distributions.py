@@ -23,6 +23,18 @@ class Distribution1D(Marginal1D):
         """Create a distribution from variance and asymmetry"""
         raise NotImplementedError
 
+    def asymmetry(self) -> float:
+        """Asymmetry of the distribution"""
+        raise NotImplementedError
+
+    def set_variance(self, variance: float) -> None:
+        """Set the variance of the distribution"""
+        raise NotImplementedError
+
+    def set_asymmetry(self, asymmetry: float) -> None:
+        """Set the asymmetry of the distribution"""
+        raise NotImplementedError
+
 
 class Exponential(Distribution1D):
     r"""A :class:`.Marginal1D` for the `Exponential distribution`_
@@ -108,6 +120,10 @@ class Normal(Distribution1D):
             self.mu + std_mult * self.sigma,
             points,
         )
+
+    def set_variance(self, variance: float) -> None:
+        """Set the variance of the distribution"""
+        self.sigma = np.sqrt(variance)
 
 
 class DoubleExponential(Exponential):
@@ -204,3 +220,15 @@ class DoubleExponential(Exponential):
             self.mean() + std_mult * self.std(),
             points,
         )
+
+    def asymmetry(self) -> float:
+        """Asymmetry of the distribution"""
+        return np.log(self.kappa)
+
+    def set_variance(self, variance: float) -> None:
+        """Set the variance of the distribution"""
+        k2 = self.kappa * self.kappa
+        self.decay = np.sqrt((1 + k2 * k2) / (variance * k2))
+
+    def set_asymmetry(self, asymmetry: float) -> None:
+        self.kappa = np.exp(asymmetry)

@@ -169,7 +169,9 @@ class IntensityProcess(StochasticProcess1D):
     """
 
     rate: float = Field(default=1.0, gt=0, description="Instantaneous initial rate")
+    r"""Instantaneous initial rate :math:`r_0`"""
     kappa: float = Field(default=1.0, gt=0, description="Mean reversion speed")
+    r"""Mean reversion speed :math:`\kappa`"""
 
     @abstractmethod
     def integrated_log_laplace(self, t: FloatArrayLike, u: Vector) -> Vector:

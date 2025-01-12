@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from abc import abstractmethod
 from typing import Any, Generic, TypeVar
 
@@ -7,11 +9,12 @@ from scipy.integrate import simpson
 from scipy.optimize import Bounds
 from scipy.stats import poisson
 
-from ..ta.paths import Paths
-from ..utils.distributions import Distribution1D
-from ..utils.functions import factorial
-from ..utils.transforms import TransformResult
-from ..utils.types import FloatArray, FloatArrayLike, Vector
+from quantflow.ta.paths import Paths
+from quantflow.utils.distributions import Distribution1D
+from quantflow.utils.functions import factorial
+from quantflow.utils.transforms import TransformResult
+from quantflow.utils.types import FloatArray, FloatArrayLike, Vector
+
 from .base import Im, StochasticProcess1D, StochasticProcess1DMarginal
 
 D = TypeVar("D", bound=Distribution1D)
@@ -144,7 +147,7 @@ class PoissonProcess(PoissonBase):
 class CompoundPoissonProcess(PoissonBase, Generic[D]):
     """A generic Compound Poisson process."""
 
-    intensity: float = Field(default=1.0, ge=0, description="intensity rate")
+    intensity: float = Field(default=1.0, gt=0, description="jump intensity rate")
     r"""Intensity rate :math:`\lambda` of the Poisson process
 
     It determines the number of jumps in the same way as the :class:`.PoissonProcess`
@@ -181,6 +184,32 @@ class CompoundPoissonProcess(PoissonBase, Generic[D]):
     def analytical_variance(self, t: FloatArrayLike) -> FloatArrayLike:
         """Expected variance at a time horizon"""
         return self.intensity * t * (self.jumps.variance() + self.jumps.mean() ** 2)
+
+    @classmethod
+    def create(
+        cls,
+        jump_distribution: type[D],
+        *,
+        vol: float = 0.5,
+        jump_intensity: float = 100,
+        jump_asymmetry: float = 0.0,
+    ) -> CompoundPoissonProcess[D]:
+        """Create a Compound Poisson process with a given jump distribution, volatility,
+        jump intensity a nd jump asymmetry .
+
+        :param jump_distribution: The distribution of jump size (currently only
+            :class:`.Normal` and :class:`.DoubleExponential` are supported)
+        :param vol: Annualized standard deviation
+        :param jump_intensity: The average number of jumps per year
+        :param jump_asymmetry: The asymmetry of the jump distribution (0 for symmetric,
+            only used by distributions with asymmetry)
+        """
+        variance = vol * vol
+        jump_distribution_variance = variance / jump_intensity
+        jumps = jump_distribution.from_variance_and_asymmetry(
+            jump_distribution_variance, jump_asymmetry
+        )
+        return cls(intensity=jump_intensity, jumps=jumps)
 
 
 class MarginalDiscrete1D(StochasticProcess1DMarginal):

@@ -1,19 +1,20 @@
 from __future__ import annotations
 
 from abc import ABC, abstractmethod
-from dataclasses import dataclass, field, replace
+from dataclasses import dataclass, field
 from datetime import datetime
 from decimal import Decimal
 from typing import Any, Generic, NamedTuple, Sequence, TypeVar
 
 import numpy as np
 import pandas as pd
+from pydantic import BaseModel, Field
 from scipy.optimize import Bounds, OptimizeResult, minimize
 
 from quantflow.sp.base import StochasticProcess1D
 from quantflow.sp.heston import Heston, HestonJ
+from quantflow.sp.jump_diffusion import D
 from quantflow.utils import plot
-from quantflow.utils.distributions import DoubleExponential
 
 from .pricer import OptionPricer
 from .surface import OptionPrice, VolSurface
@@ -55,26 +56,34 @@ class OptionEntry:
         return self._prince_range
 
 
-@dataclass
-class VolModelCalibration(ABC, Generic[M]):
+class VolModelCalibration(BaseModel, ABC, Generic[M], arbitrary_types_allowed=True):
     """Abstract class for calibration of a stochastic volatility model"""
 
     pricer: OptionPricer[M]
     """The :class:`.OptionPricer` for the model"""
-    vol_surface: VolSurface[Any]
+    vol_surface: VolSurface[Any] = Field(repr=False)
     """The :class:`.VolSurface` to calibrate the model with"""
     minimize_method: str | None = None
     """The optimization method to use - if None, the default is used"""
-    moneyness_weight: float = 0.0
-    """The weight for penalize moneyness as it moves away from 0
+    moneyness_weight: float = Field(default=0.0, ge=0.0)
+    """The weight for penalize options with moneyness as it moves away from 0
 
     The weight is applied as exp(-moneyness_weight * moneyness), therefore
     a value of 0 won't penalize moneyness at all
     """
-    options: dict[ModelCalibrationEntryKey, OptionEntry] = field(default_factory=dict)
+    ttm_weight: float = Field(default=0.0, ge=0.0, le=1.0)
+    """The weight for penalize options with ttm as it approaches 0
+
+    The weight is applied as `1 - ttm_weight*exp(-ttm)`, therefore
+    a value of 0 won't penalize ttm at all, a value of 1 will penalize
+    options with ttm->0 the most
+    """
+    options: dict[ModelCalibrationEntryKey, OptionEntry] = Field(
+        default_factory=dict, repr=False
+    )
     """The options to calibrate"""
 
-    def __post_init__(self) -> None:
+    def model_post_init(self, _ctx: Any) -> None:
         if not self.options:
             self.vol_surface.bs()
             for option in self.vol_surface.option_prices():
@@ -121,7 +130,7 @@ class VolModelCalibration(ABC, Generic[M]):
         for key, entry in self.options.items():
             if entry.implied_vol_range().ub <= exclude_above:
                 options[key] = entry
-        return replace(self, options=options)
+        return self.model_copy(update=dict(options=options))
 
     def get_bounds(self) -> Bounds | None:  # pragma: no cover
         """Get the parameter bounds for the calibration"""
@@ -193,7 +202,6 @@ class VolModelCalibration(ABC, Generic[M]):
         )
 
 
-@dataclass
 class HestonCalibration(VolModelCalibration[Heston]):
     """A :class:`.VolModelCalibration` for the :class:`.Heston`
     stochastic volatility model"""
@@ -233,8 +241,7 @@ class HestonCalibration(VolModelCalibration[Heston]):
         return self.feller_penalize * neg * neg
 
 
-@dataclass
-class HestonJCalibration(VolModelCalibration[HestonJ[DoubleExponential]]):
+class HestonJCalibration(VolModelCalibration[HestonJ[D]], Generic[D]):
     """A :class:`.VolModelCalibration` for the :class:`.HestonJ`
     stochastic volatility model with :class:`.DoubleExponential`
     jumps
@@ -248,22 +255,24 @@ class HestonJCalibration(VolModelCalibration[HestonJ[DoubleExponential]]):
         vol_ub = 1.5 * vol_range.ub[0]
         return Bounds(
             [vol_lb * vol_lb, vol_lb * vol_lb, 0.0, 0.0, -0.9],
-            [vol_ub * vol_ub, vol_ub * vol_ub, np.inf, np.inf, 0],
+            [vol_ub * vol_ub, vol_ub * vol_ub, np.inf, np.inf, 0.0],
         )
 
     def get_params(self) -> np.ndarray:
-        return np.asarray(
-            [
-                self.model.variance_process.rate,
-                self.model.variance_process.theta,
-                self.model.variance_process.kappa,
-                self.model.variance_process.sigma,
-                self.model.rho,
-                self.model.jumps.intensity,
-                self.model.jumps.jumps.decay,
-                self.model.jumps.jumps.log_kappa,
-            ]
-        )
+        params = [
+            self.model.variance_process.rate,
+            self.model.variance_process.theta,
+            self.model.variance_process.kappa,
+            self.model.variance_process.sigma,
+            self.model.rho,
+            self.model.jumps.intensity,
+            self.model.jumps.jumps.variance(),
+        ]
+        try:
+            params.append(self.model.jumps.jumps.asymmetry())
+        except NotImplementedError:
+            pass
+        return np.asarray(params)
 
     def set_params(self, params: np.ndarray) -> None:
         self.model.variance_process.rate = params[0]
@@ -272,8 +281,11 @@ class HestonJCalibration(VolModelCalibration[HestonJ[DoubleExponential]]):
         self.model.variance_process.sigma = params[3]
         self.model.rho = params[4]
         self.model.jumps.intensity = params[5]
-        self.model.jumps.jumps.decay = params[6]
-        self.model.jumps.jumps.kappa = np.exp(params[7])
+        self.model.jumps.jumps.set_variance(params[6])
+        try:
+            self.model.jumps.jumps.set_asymmetry(params[7])
+        except IndexError:
+            pass
 
     def penalize(self) -> float:
         kt = 2 * self.model.variance_process.kappa * self.model.variance_process.theta
