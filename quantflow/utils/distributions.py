@@ -24,7 +24,10 @@ class Distribution1D(Marginal1D):
         raise NotImplementedError
 
     def asymmetry(self) -> float:
-        """Asymmetry of the distribution"""
+        """Asymmetry of the distribution, 0 for symmetric
+
+        Implemented by distributions that have asymmetry
+        """
         raise NotImplementedError
 
     def set_variance(self, variance: float) -> None:
@@ -32,12 +35,15 @@ class Distribution1D(Marginal1D):
         raise NotImplementedError
 
     def set_asymmetry(self, asymmetry: float) -> None:
-        """Set the asymmetry of the distribution"""
+        """Set the asymmetry of the distribution
+
+        Implemented by distributions that have asymmetry
+        """
         raise NotImplementedError
 
 
 class Exponential(Distribution1D):
-    r"""A :class:`.Marginal1D` for the `Exponential distribution`_
+    r"""A :class:`.Distribution1D` for the `Exponential distribution`_
 
     The exponential distribution is a continuous probability distribution with PDF
     given by
@@ -90,8 +96,21 @@ class Exponential(Distribution1D):
 
 
 class Normal(Distribution1D):
+    r"""A :class:`.Distribution1D` for the `Normal distribution`_
+
+    The normal distribution is a continuous probability distribution with PDF
+    given by
+
+    .. math::
+        f(x) = \frac{e^{-\frac{\left(x - \mu\right)^2}{2\sigma^2}}}{\sqrt{2\pi\sigma^2}}
+
+    .. _Normal distribution: https://en.wikipedia.org/wiki/Normal_distribution
+    """
+
     mu: float = Field(default=0, description="mean")
+    r"""The mean :math:`\mu` of the normal distribution"""
     sigma: float = Field(default=1, gt=0, description="standard deviation")
+    r"""The standard deviation :math:`\sigma` of the normal distribution"""
 
     @classmethod
     def from_variance_and_asymmetry(cls, variance: float, asymmetry: float) -> Self:
@@ -188,7 +207,8 @@ class DoubleExponential(Exponential):
         r"""Characteristic function of the double exponential distribution
 
         .. math::
-            \phi(u) = \frac{e^{i u \mu}}{1 - \sigma^2 u^2}
+            \phi(u) = \frac{e^{i u m}}{\left(1 + \frac{i u \kappa}{\lambda}\right)
+                \left(1 - \frac{i u}{\lambda \kappa}\right)}
         """
         den = (1.0 + 1j * u * self.kappa / self.decay) * (
             1.0 - 1j * u / (self.kappa * self.decay)

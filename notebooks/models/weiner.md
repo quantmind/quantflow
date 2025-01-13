@@ -18,7 +18,7 @@ In this document, we use the term Weiner process $w_t$ to indicate a Brownian mo
 1. $w_t$ is Lévy process
 2. $d w_t = w_{t+dt}-w_t \sim N\left(0, \sigma dt\right)$ where $N$ is the normal distribution
 
-The characteristic exponent of $w$ is
+The [](characteristic-exponent) of $w$ is
 \begin{equation}
     \phi_{w, u} = \frac{\sigma^2 u^2}{2}
 \end{equation}

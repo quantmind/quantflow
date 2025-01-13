@@ -19,16 +19,16 @@ The most common process is the Poisson process.
 
 ## Poisson Process
 
-The Poisson Process $N_t$ with intensity parameter $\lambda > 0$ is a Lévy process with values in $N$ such that each $N_t$ has a [Poisson distribution](https://en.wikipedia.org/wiki/Poisson_distribution) with parameter $\lambda t$, that is
+The Poisson Process $n_t$ with intensity parameter $\lambda > 0$ is a Lévy process with values in ${\mathbb N}$ such that each $n_t$ has a [Poisson distribution](https://en.wikipedia.org/wiki/Poisson_distribution) with parameter $\lambda t$, that is
 
 \begin{equation}
-    P\left(N_t=n\right) = \frac{\left(\lambda t\right)^n}{n!}e^{-\lambda t}
+    {\mathbb P}_{n_t}\left(n_t=n\right) = \frac{\left(\lambda t\right)^n}{n!}e^{-\lambda t}
 \end{equation}
 
-The characteristic exponent is given by
+The [](characteristic-exponent) is given by
 
 \begin{equation}
-\phi_{N_t, u} = t \lambda \left(1 - e^{iu}\right)
+\phi_{n_t, u} = t \lambda \left(1 - e^{iu}\right)
 \end{equation}
 
 ```{code-cell} ipython3

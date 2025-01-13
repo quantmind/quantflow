@@ -15,19 +15,29 @@ kernelspec:
 
 ## Characteristic Function
 
-The characteristic function of a random variable $X$ is the Fourier transform of $f_X$, where $f_X$ is the probability density function
-of $X$
+The [characteristic function](../theory/characteristic.md) of a random variable $x$ is the Fourier transform of ${\mathbb P}_x$,
+where ${\mathbb P}_x$ is the distrubution measure of $x$.
+
 \begin{equation}
- \Phi_{X,u} = {\mathbb E}\left[e^{i u X_t}\right] = \int e^{i u x} f_X\left(x\right) dx
+ \Phi_{x,u} = {\mathbb E}\left[e^{i u x}\right] = \int e^{i u s} {\mathbb P}_x\left(d s\right)
 \end{equation}
+
+If $x$ is a continuous random variable, than the characteristic function is the Fourier transform of the PDF $f_x$.
+
+\begin{equation}
+ \Phi_{x,u} = {\mathbb E}\left[e^{i u x}\right] = \int e^{i u s} f_x\left(s\right) ds
+\end{equation}
+
 
 ## Cumulative Distribution Function (CDF)
 
 The cumulative distribution function (CDF), or just distribution function,
-of a real-valued random variable $X$ is the function given by
+of a real-valued random variable $x$ is the function given by
 \begin{equation}
-    F_X(x) = P(X \leq x)
+    F_x(s) = {\mathbb P}_x(x \leq s)
 \end{equation}
+
+where ${\mathbb P}_x$ is the distrubution measure of $x$.
 
 ## Hurst Exponent
 
@@ -66,5 +76,5 @@ The [probability density function](https://en.wikipedia.org/wiki/Probability_den
  (PDF), or density, of a continuous random variable, is a function that describes the relative likelihood for this random variable to take on a given value. It is related to the CDF by the formula
 
 \begin{equation}
-    F_X(x) = \int_{-\infty}^x f_X(s) ds
+    F_x(x) = \int_{-\infty}^x f_x(s) ds
 \end{equation}
