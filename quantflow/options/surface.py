@@ -2,10 +2,10 @@ from __future__ import annotations
 
 import enum
 import warnings
-from dataclasses import dataclass, field
+from dataclasses import dataclass, field, replace
 from datetime import datetime, timedelta
 from decimal import Decimal
-from typing import Any, Generic, Iterator, NamedTuple, Protocol, TypeVar
+from typing import Any, Generic, Iterator, NamedTuple, Protocol, Self, TypeVar
 
 import numpy as np
 import pandas as pd
@@ -429,6 +429,10 @@ class VolSurface(Generic[S]):
         return pd.DataFrame(
             cross.info_dict(self.ref_date, self.spot) for cross in self.maturities
         )
+
+    def trim(self, num_maturities: int) -> Self:
+        """Create a new volatility surface with the last `num_maturities` maturities"""
+        return replace(self, maturities=self.maturities[-num_maturities:])
 
     def option_prices(
         self,
