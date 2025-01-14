@@ -95,34 +95,48 @@ def plot_characteristic(m: Marginal1D, n: int | None = None, **kwargs: Any) -> A
 
 
 def plot_vol_surface(
-    data: Any,
+    data: pd.DataFrame,
     *,
     model: pd.DataFrame | None = None,
-    template: str = PLOTLY_THEME,
     marker_size: int = 10,
+    x_series: str = "moneyness_ttm",
     series: str = "implied_vol",
+    color_series: str = "side",
+    fig: Any | None = None,
+    fig_params: dict | None = None,
     **kwargs: Any
 ) -> Any:
     check_plotly()
+    # Define a color map for the categorical values
+    color_map = {"bid": "blue", "ask": "red"}
+    colors = data[color_series].map(color_map)
+    fig_params = fig_params or {}
+    fig_: go.Figure = fig or go.Figure()
     params = dict(
-        x="moneyness_ttm",
-        y=series,
-        color="side",
-        template=template,
+        mode="markers",
+        marker=dict(color=colors),
+        **kwargs,
     )
-    params.update(kwargs)
-    fig = px.scatter(data, **params)
+    fig_.add_trace(
+        go.Scatter(
+            x=data[x_series],
+            y=data[series],
+            **params,
+        ),
+        **fig_params,
+    )
     if model is not None:
-        fig.add_trace(
+        fig_.add_trace(
             go.Scatter(
                 x=model["moneyness_ttm"],
                 y=model[series],
                 name="model",
                 mode="lines",
-            )
+            ),
+            **fig_params,
         )
-    fig.update_traces(marker_size=marker_size)
-    return fig
+    fig_.update_traces(marker_size=marker_size)
+    return fig_
 
 
 def plot_vol_surface_3d(

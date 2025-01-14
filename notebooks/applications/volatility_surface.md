@@ -6,14 +6,14 @@ jupytext:
     format_version: 0.13
     jupytext_version: 1.16.6
 kernelspec:
-  display_name: Python 3 (ipykernel)
+  display_name: .venv
   language: python
   name: python3
 ---
 
 # Volatility Surface
 
-In this notebook we illustrate the use of the Volatility Surface tool in the library. We use [deribit](https://docs.deribit.com/) options on BTCUSD as example.
+In this notebook we illustrate the use of the Volatility Surface tool in the library. We use [deribit](https://docs.deribit.com/) options on ETHUSD as example.
 
 First thing, fetch the data
 
@@ -28,7 +28,7 @@ Once we have loaded the data, we create the surface and display the term-structu
 
 ```{code-cell} ipython3
 vs = loader.surface()
-vs.maturities = vs.maturities[1:]
+vs.maturities = vs.maturities
 vs.term_structure()
 ```
 
@@ -58,7 +58,22 @@ df
 The plot function is enabled only if [plotly](https://plotly.com/python/) is installed
 
 ```{code-cell} ipython3
-vs.plot().update_layout(height=500, title="BTC Volatility Surface")
+from plotly.subplots import make_subplots
+
+# consider 6 expiries
+vs6 = vs.trim(6)
+
+titles = []
+for row in range(2):
+    for col in range(3):
+        index = row * 3 + col
+        titles.append(f"Expiry {vs6.maturities[index].maturity}")
+fig = make_subplots(rows=2, cols=3, subplot_titles=titles).update_layout(height=600, title="ETH Volatility Surface")
+for row in range(2):
+    for col in range(3):
+        index = row * 3 + col
+        vs6.plot(index=index, fig=fig, showlegend=False, fig_params=dict(row=row+1, col=col+1))
+fig
 ```
 
 The `moneyness_ttm` is defined as
@@ -70,7 +85,7 @@ The `moneyness_ttm` is defined as
 where $T$ is the time-to-maturity.
 
 ```{code-cell} ipython3
-vs.plot3d().update_layout(height=800, title="BTC Volatility Surface", scene_camera=dict(eye=dict(x=1, y=-2, z=1)))
+vs6.plot3d().update_layout(height=800, title="ETH Volatility Surface", scene_camera=dict(eye=dict(x=1, y=-2, z=1)))
 ```
 
 ## Model Calibration
@@ -78,16 +93,18 @@ vs.plot3d().update_layout(height=800, title="BTC Volatility Surface", scene_came
 We can now use the Vol Surface to calibrate the Heston stochastic volatility model.
 
 ```{code-cell} ipython3
-from quantflow.options.calibration import HestonCalibration, OptionPricer
-from quantflow.sp.heston import Heston
+from quantflow.options.calibration import HestonJCalibration, OptionPricer
+from quantflow.utils.distributions import DoubleExponential
+from quantflow.sp.heston import HestonJ
 
-pricer = OptionPricer(Heston.create(vol=0.5))
-cal = HestonCalibration(pricer=pricer, vol_surface=vs, moneyness_weight=-0)
+model = HestonJ.create(DoubleExponential, vol=0.8, sigma=1.5, kappa=0.5, rho=0.1, jump_intensity=50, jump_fraction=0.3)
+pricer = OptionPricer(model=model)
+cal = HestonJCalibration(pricer=pricer, vol_surface=vs6, moneyness_weight=-0)
 len(cal.options)
 ```
 
 ```{code-cell} ipython3
-cal.model
+cal.model.model_dump()
 ```
 
 ```{code-cell} ipython3
@@ -99,7 +116,7 @@ pricer.model
 ```
 
 ```{code-cell} ipython3
-cal.plot(index=6, max_moneyness_ttm=1)
+cal.plot(index=5, max_moneyness_ttm=1)
 ```
 
 ## 

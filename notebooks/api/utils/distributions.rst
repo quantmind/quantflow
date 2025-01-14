@@ -4,6 +4,13 @@ Distributions
 
 .. module:: quantflow.utils.distributions
 
+.. autoclass:: Distribution1D
+   :members:
+   :member-order: groupwise
+   :autosummary:
+   :autosummary-nosignatures:
+
+
 .. autoclass:: Exponential
    :members:
    :member-order: groupwise
