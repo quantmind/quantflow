@@ -253,10 +253,31 @@ class HestonJCalibration(VolModelCalibration[HestonJ[D]], Generic[D]):
         vol_range = self.implied_vol_range()
         vol_lb = 0.5 * vol_range.lb[0]
         vol_ub = 1.5 * vol_range.ub[0]
-        return Bounds(
-            [vol_lb * vol_lb, vol_lb * vol_lb, 0.0, 0.0, -0.9],
-            [vol_ub * vol_ub, vol_ub * vol_ub, np.inf, np.inf, 0.0],
-        )
+        lower = [
+            (0.5 * vol_lb) ** 2,  # rate
+            (0.5 * vol_lb) ** 2,  # theta
+            0.001,  # kappa - mean reversion speed
+            0.001,  # sigma - vol of vol
+            -0.9,  # correlation
+            1.0,  # jump intensity
+            (0.01 * vol_lb) ** 2,  # jump variance
+        ]
+        upper = [
+            (1.5 * vol_ub) ** 2,  # rate
+            (1.5 * vol_ub) ** 2,  # theta
+            np.inf,  # kappa
+            np.inf,  # sigma
+            0.0,  # correlation
+            np.inf,  # jump intensity
+            (0.5 * vol_ub) ** 2,  # jump variance
+        ]
+        try:
+            self.model.jumps.jumps.asymmetry()
+            lower.append(-2.0)  # jump asymmetry
+            upper.append(2.0)
+        except NotImplementedError:
+            pass
+        return Bounds(lower, upper)
 
     def get_params(self) -> np.ndarray:
         params = [
