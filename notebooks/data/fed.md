@@ -11,27 +11,28 @@ kernelspec:
   name: python3
 ---
 
-## Timeseries
+# Federal Reserve Data
 
 ```{code-cell} ipython3
-from quantflow.data.fmp import FMP
-from quantflow.utils.plot import candlestick_plot
-cli = FMP()
+from quantflow.data.fed import FederalReserve
 ```
 
 ```{code-cell} ipython3
-prices = await cli.prices("ethusd", frequency="")
+async with FederalReserve() as fed:
+    rates = await fed.ref_rates()
 ```
 
 ```{code-cell} ipython3
-candlestick_plot(prices).update_layout(height=500)
+rates
 ```
 
 ```{code-cell} ipython3
-from quantflow.utils.df import DFutils
+async with FederalReserve() as fed:
+    curves = await fed.yield_curves()
+```
 
-df = DFutils(prices).with_rogers_satchel().with_parkinson()
-df
+```{code-cell} ipython3
+curves
 ```
 
 ```{code-cell} ipython3

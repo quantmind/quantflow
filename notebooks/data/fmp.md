@@ -16,45 +16,45 @@ kernelspec:
 
 The library provides a python client for the [Financial Modelling Prep API](https://site.financialmodelingprep.com/developer/docs). To use the client one needs to provide the API key aither directly to the client or via the `FMP_API_KEY` environment variable. The API offers 1 minute, 5 minutes, 15 minutes, 30 minutes, 1 hour and daily historical prices.
 
-```{code-cell}
+```{code-cell} ipython3
 from quantflow.data.fmp import FMP
 cli = FMP()
 cli.url
 ```
 
-```{code-cell}
+```{code-cell} ipython3
 stock = "KNOS.L"
 ```
 
 ## Company Profile
 
-```{code-cell}
+```{code-cell} ipython3
 d = await cli.profile(stock)
 d
 ```
 
-```{code-cell}
+```{code-cell} ipython3
 c = await cli.peers(stock)
 c
 ```
 
 ## Executive trading
 
-```{code-cell}
+```{code-cell} ipython3
 stock = "KNOS.L"
 ```
 
-```{code-cell}
+```{code-cell} ipython3
 await cli.executives(stock)
 ```
 
-```{code-cell}
+```{code-cell} ipython3
 await cli.insider_trading(stock)
 ```
 
 ## News
 
-```{code-cell}
+```{code-cell} ipython3
 c = await cli.news(stock)
 c
 ```

@@ -14,5 +14,6 @@ pip install quantflow[data]
     :maxdepth: 1
 
     fmp
+    fed
     fred
     deribit
