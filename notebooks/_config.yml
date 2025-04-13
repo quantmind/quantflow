@@ -2,8 +2,8 @@
 # Learn more at https://jupyterbook.org/customize/config.html
 
 title: Quantflow library
-author: Quantmind Team
-copyright: "2024"
+author: <a href="https://quantmind.com">quantmind</a>
+copyright: "2014-2025"
 logo: assets/quantflow-light.svg
 
 # Force re-execution of notebooks on each build.
