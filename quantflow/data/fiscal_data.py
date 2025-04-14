@@ -46,7 +46,17 @@ class FiscalData(AioHttpClient):
 
     async def get_all(self, path: str, params: dict[str, str]) -> list:
         """Get all data from the API"""
-        url = f"{self.url}{path}"
-        payload = await self.get(url, params=params)
-        data = payload["data"]
-        return data
+        next_url: str | None = f"{self.url}{path}"
+        full_data = []
+        while next_url:
+            payload = await self.get(next_url, params=params)
+            full_data.extend(payload["data"])
+            params = {}
+            if links := payload.get("links"):
+                if next_path := links.get("next"):
+                    next_url = f"{self.url}{next_path}"
+                else:
+                    next_url = None
+            else:
+                next_url = None
+        return full_data

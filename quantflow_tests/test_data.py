@@ -4,6 +4,7 @@ import pytest
 from aiohttp.client_exceptions import ClientError
 
 from quantflow.data.fed import FederalReserve
+from quantflow.data.fiscal_data import FiscalData
 from quantflow.data.fmp import FMP
 
 pytestmark = pytest.mark.skipif(not FMP().key, reason="No FMP API key found")
@@ -45,6 +46,17 @@ async def test_fed_rates() -> None:
     try:
         async with FederalReserve() as fed:
             df = await fed.ref_rates()
+            assert df is not None
+            assert df.shape[0] > 0
+            assert df.shape[1] == 2
+    except (ConnectionError, ClientError) as e:
+        pytest.skip(f"Skipping test_fed due to network issue: {e}")
+
+
+async def __test_fiscal_data() -> None:
+    try:
+        async with FiscalData() as fd:
+            df = await fd.securities()
             assert df is not None
             assert df.shape[0] > 0
             assert df.shape[1] == 2
