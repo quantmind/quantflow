@@ -1,0 +1,644 @@
+
+<!DOCTYPE html>
+
+
+<html lang="en" data-content_root="../" >
+
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>Exponential Sampling &#8212; Quantflow library</title>
+  
+  
+  
+  <script data-cfasync="false">
+    document.documentElement.dataset.mode = localStorage.getItem("mode") || "";
+    document.documentElement.dataset.theme = localStorage.getItem("theme") || "";
+  </script>
+  
+  <!-- Loaded before other Sphinx assets -->
+  <link href="../_static/styles/theme.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+<link href="../_static/styles/bootstrap.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+<link href="../_static/styles/pydata-sphinx-theme.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+
+  
+  <link href="../_static/vendor/fontawesome/6.5.2/css/all.min.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+  <link rel="preload" as="font" type="font/woff2" crossorigin href="../_static/vendor/fontawesome/6.5.2/webfonts/fa-solid-900.woff2" />
+<link rel="preload" as="font" type="font/woff2" crossorigin href="../_static/vendor/fontawesome/6.5.2/webfonts/fa-brands-400.woff2" />
+<link rel="preload" as="font" type="font/woff2" crossorigin href="../_static/vendor/fontawesome/6.5.2/webfonts/fa-regular-400.woff2" />
+
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=03e43079" />
+    <link rel="stylesheet" type="text/css" href="../_static/styles/sphinx-book-theme.css?v=eba8b062" />
+    <link rel="stylesheet" type="text/css" href="../_static/togglebutton.css?v=13237357" />
+    <link rel="stylesheet" type="text/css" href="../_static/copybutton.css?v=76b2166b" />
+    <link rel="stylesheet" type="text/css" href="../_static/mystnb.4510f1fc1dee50b3e5859aac5469c37c29e427902b24a333a5f9fcb2f0b3ac41.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/sphinx-thebe.css?v=4fa983c6" />
+    <link rel="stylesheet" type="text/css" href="../_static/sphinx-design.min.css?v=95c83b7e" />
+  
+  <!-- Pre-loaded scripts that we'll load fully later -->
+  <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=dfe6caa3a7d634c4db9b" />
+<link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=dfe6caa3a7d634c4db9b" />
+  <script src="../_static/vendor/fontawesome/6.5.2/js/all.min.js?digest=dfe6caa3a7d634c4db9b"></script>
+
+    <script src="../_static/documentation_options.js?v=9eb32ce0"></script>
+    <script src="../_static/doctools.js?v=9a2dae69"></script>
+    <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
+    <script src="../_static/copybutton.js?v=f281be69"></script>
+    <script src="../_static/scripts/sphinx-book-theme.js?v=887ef09a"></script>
+    <script>let toggleHintShow = 'Click to show';</script>
+    <script>let toggleHintHide = 'Click to hide';</script>
+    <script>let toggleOpenOnPrint = 'true';</script>
+    <script src="../_static/togglebutton.js?v=4a39c7ea"></script>
+    <script>var togglebuttonSelector = '.toggle, .admonition.dropdown';</script>
+    <script src="../_static/design-tabs.js?v=f930bc37"></script>
+    <script async="async" src="https://www.googletagmanager.com/gtag/js?id=G-CM0DR45HDR"></script>
+    <script>
+                window.dataLayer = window.dataLayer || [];
+                function gtag(){ dataLayer.push(arguments); }
+                gtag('js', new Date());
+                gtag('config', 'G-CM0DR45HDR');
+            </script>
+    <script>const THEBE_JS_URL = "https://unpkg.com/thebe@0.8.2/lib/index.js"; const thebe_selector = ".thebe,.cell"; const thebe_selector_input = "pre"; const thebe_selector_output = ".output, .cell_output"</script>
+    <script async="async" src="../_static/sphinx-thebe.js?v=c100c467"></script>
+    <script>var togglebuttonSelector = '.toggle, .admonition.dropdown';</script>
+    <script>
+                window.dataLayer = window.dataLayer || [];
+                function gtag(){ dataLayer.push(arguments); }
+                gtag('js', new Date());
+                gtag('config', 'G-CM0DR45HDR');
+            </script>
+    <script>const THEBE_JS_URL = "https://unpkg.com/thebe@0.8.2/lib/index.js"; const thebe_selector = ".thebe,.cell"; const thebe_selector_input = "pre"; const thebe_selector_output = ".output, .cell_output"</script>
+    <script>window.MathJax = {"options": {"processHtmlClass": "tex2jax_process|mathjax_process|math|output_area"}}</script>
+    <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <script type="application/vnd.jupyter.widget-state+json">{"state": {"03af68bf740b460e86f4cd54589352a7": {"model_name": "LayoutModel", "model_module": "@jupyter-widgets/base", "model_module_version": "2.0.0", "state": {"_model_module": "@jupyter-widgets/base", "_model_module_version": "2.0.0", "_model_name": "LayoutModel", "_view_count": null, "_view_module": "@jupyter-widgets/base", "_view_module_version": "2.0.0", "_view_name": "LayoutView", "align_content": null, "align_items": null, "align_self": null, "border_bottom": null, "border_left": null, "border_right": null, "border_top": null, "bottom": null, "display": null, "flex": null, "flex_flow": null, "grid_area": null, "grid_auto_columns": null, "grid_auto_flow": null, "grid_auto_rows": null, "grid_column": null, "grid_gap": null, "grid_row": null, "grid_template_areas": null, "grid_template_columns": null, "grid_template_rows": null, "height": null, "justify_content": null, "justify_items": null, "left": null, "margin": null, "max_height": null, "max_width": null, "min_height": null, "min_width": null, "object_fit": null, "object_position": null, "order": null, "overflow": null, "padding": null, "right": null, "top": null, "visibility": null, "width": null}}, "9a3be081dc2b4c868aa3d9f56bf81f5e": {"model_name": "SliderStyleModel", "model_module": "@jupyter-widgets/controls", "model_module_version": "2.0.0", "state": {"_model_module": "@jupyter-widgets/controls", "_model_module_version": "2.0.0", "_model_name": "SliderStyleModel", "_view_count": null, "_view_module": "@jupyter-widgets/base", "_view_module_version": "2.0.0", "_view_name": "StyleView", "description_width": "", "handle_color": null}}, "c289c69146e44a55b8847522f0f80871": {"model_name": "FloatSliderModel", "model_module": "@jupyter-widgets/controls", "model_module_version": "2.0.0", "state": {"_dom_classes": [], "_model_module": "@jupyter-widgets/controls", "_model_module_version": "2.0.0", "_model_name": "FloatSliderModel", "_view_count": null, "_view_module": "@jupyter-widgets/controls", "_view_module_version": "2.0.0", "_view_name": "FloatSliderView", "behavior": "drag-tap", "continuous_update": true, "description": "asymmetry (log of k)", "description_allow_html": false, "disabled": false, "layout": "IPY_MODEL_03af68bf740b460e86f4cd54589352a7", "max": 2.0, "min": -2.0, "orientation": "horizontal", "readout": true, "readout_format": ".2f", "step": 0.1, "style": "IPY_MODEL_9a3be081dc2b4c868aa3d9f56bf81f5e", "tabbable": null, "tooltip": null, "value": 0.0}}, "4b560c6fe9a94b10ba4e76fb551fd776": {"model_name": "LayoutModel", "model_module": "@jupyter-widgets/base", "model_module_version": "2.0.0", "state": {"_model_module": "@jupyter-widgets/base", "_model_module_version": "2.0.0", "_model_name": "LayoutModel", "_view_count": null, "_view_module": "@jupyter-widgets/base", "_view_module_version": "2.0.0", "_view_name": "LayoutView", "align_content": null, "align_items": null, "align_self": null, "border_bottom": null, "border_left": null, "border_right": null, "border_top": null, "bottom": null, "display": null, "flex": null, "flex_flow": null, "grid_area": null, "grid_auto_columns": null, "grid_auto_flow": null, "grid_auto_rows": null, "grid_column": null, "grid_gap": null, "grid_row": null, "grid_template_areas": null, "grid_template_columns": null, "grid_template_rows": null, "height": null, "justify_content": null, "justify_items": null, "left": null, "margin": null, "max_height": null, "max_width": null, "min_height": null, "min_width": null, "object_fit": null, "object_position": null, "order": null, "overflow": null, "padding": null, "right": null, "top": null, "visibility": null, "width": null}}, "90da4df9405c4f79bd7641349bc9a4b4": {"model_name": "SliderStyleModel", "model_module": "@jupyter-widgets/controls", "model_module_version": "2.0.0", "state": {"_model_module": "@jupyter-widgets/controls", "_model_module_version": "2.0.0", "_model_name": "SliderStyleModel", "_view_count": null, "_view_module": "@jupyter-widgets/base", "_view_module_version": "2.0.0", "_view_name": "StyleView", "description_width": "", "handle_color": null}}, "d9bbc2a6630d4998826a31162adbf181": {"model_name": "IntSliderModel", "model_module": "@jupyter-widgets/controls", "model_module_version": "2.0.0", "state": {"_dom_classes": [], "_model_module": "@jupyter-widgets/controls", "_model_module_version": "2.0.0", "_model_name": "IntSliderModel", "_view_count": null, "_view_module": "@jupyter-widgets/controls", "_view_module_version": "2.0.0", "_view_name": "IntSliderView", "behavior": "drag-tap", "continuous_update": true, "description": "paths", "description_allow_html": false, "disabled": false, "layout": "IPY_MODEL_4b560c6fe9a94b10ba4e76fb551fd776", "max": 10000, "min": 100, "orientation": "horizontal", "readout": true, "readout_format": "d", "step": 100, "style": "IPY_MODEL_90da4df9405c4f79bd7641349bc9a4b4", "tabbable": null, "tooltip": null, "value": 1000}}, "cbeda81256454829b3ae461d3167af9c": {"model_name": "FigureModel", "model_module": "jupyterlab-plotly", "model_module_version": "^5.24.1", "state": {"_config": {"plotlyServerURL": "https://plot.ly"}, "_data": [{"name": "simulation", "x": {"dtype": "float64", "shape": [103]}, "y": {"dtype": "float64", "shape": [103]}, "type": "bar", "uid": "666093e3-5d5d-4d10-8ab6-e6a5ba4c3ddf"}, {"mode": "markers", "name": "from characteristic", "x": {"dtype": "float64", "shape": [128]}, "y": {"dtype": "float64", "shape": [128]}, "type": "scatter", "uid": "3d8bd021-9fb0-4e37-a787-8817167b56f8"}, {"name": "analytical", "x": {"dtype": "float64", "shape": [103]}, "y": {"dtype": "float64", "shape": [103]}, "type": "scatter", "uid": "a1eeacb1-c179-4ace-afc3-37fc13fe38d4"}], "_dom_classes": [], "_js2py_layoutDelta": {}, "_js2py_pointsCallback": {}, "_js2py_relayout": {}, "_js2py_restyle": {}, "_js2py_traceDeltas": {}, "_js2py_update": {}, "_last_layout_edit_id": 0, "_last_trace_edit_id": 0, "_layout": {}, "_model_module": "jupyterlab-plotly", "_model_module_version": "^5.24.1", "_model_name": "FigureModel", "_py2js_addTraces": {}, "_py2js_animate": {}, "_py2js_deleteTraces": {}, "_py2js_moveTraces": {}, "_py2js_relayout": null, "_py2js_removeLayoutProps": {}, "_py2js_removeTraceProps": {}, "_py2js_restyle": {}, "_py2js_update": {}, "_view_count": 0, "_view_module": "jupyterlab-plotly", "_view_module_version": "^5.24.1", "_view_name": "FigureView", "tabbable": null, "tooltip": null}, "buffers": [{"data": "KGGm7V8pFMDeH+9VK8MTwJTeN772XBPASp2AJsL2EsAAXMmOjZASwLYaEvdYKhLAbNlaXyTEEcAimKPH710RwNhW7C+79xDAjhU1mIaREMBE1H0AUisQwPQljdE6ig/AYKMeotG9DsDMILByaPENwDieQUP/JA3ApBvTE5ZYDMAQmWTkLIwLwHwW9rTDvwrA6JOHhVrzCcBUERlW8SYJwMCOqiaIWgjALAw89x6OB8CYic3HtcEGwAQHX5hM9QXAcITwaOMoBcDcAYI5elwEwEh/EwoRkAPAtPyk2qfDAsAgejarPvcBwIz3x3vVKgHA+HRZTGxeAMDI5NU5BiT/v6Df+Nozi/2/eNobfGHy+79Q1T4dj1n6vyjQYb68wPi/AMuEX+on97/YxacAGI/1v7DAyqFF9vO/iLvtQnNd8r9gthDkoMTwv3BiZwqdV+6/IFitTPgl67/QTfOOU/Tnv4BDOdGuwuS/MDl/EwqR4b/AXYqryr7cvyBJFjCBW9a/AGlEaW/wz7/AP1xy3CnDvwBa0O0ljam/AEvQ7SWNqT8APFxy3CnDP0BlRGlv8M8/QEcWMIFb1j/gW4qryr7cP0A4fxMKkeE/kEI50a7C5D/gTPOOU/TnPzBXrUz4Jes/gGFnCp1X7j/otRDkoMTwPxC77UJzXfI/OMDKoUX28z9gxacAGI/1P4jKhF/qJ/c/sM9hvrzA+D/Y1D4dj1n6PwDaG3xh8vs/KN/42jOL/T9Q5NU5BiT/P7x0WUxsXgBAUPfHe9UqAUDkeTarPvcBQHj8pNqnwwJADH8TChGQA0CgAYI5elwEQDSE8GjjKAVAyAZfmEz1BUBcic3HtcEGQPALPPcejgdAhI6qJohaCEAYERlW8SYJQKyTh4Va8wlAQBb2tMO/CkDUmGTkLIwLQGgb0xOWWAxA/J1BQ/8kDUCQILByaPENQCSjHqLRvQ5AuCWN0TqKD0Am1H0AUisQQHAVNZiGkRBAulbsL7v3EEAEmKPH710RQE7ZWl8kxBFAmBoS91gqEkDiW8mOjZASQCydgCbC9hJAdt43vvZcE0DAH+9VK8MTQAphpu1fKRRAVKJdhZSPFEA=", "encoding": "base64", "path": ["_data", 0, "x", "buffer"]}, {"data": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAze50RdyEhD/N7nRF3ISEPwAAAAAAAAAAze50RdyElD8AAAAAAAAAAM3udEXchIQ/ze50RdyEhD/N7nRF3ISEP83udEXchIQ/ze50RdyEhD8AAAAAAAAAAM3udEXchIQ/ze50RdyEhD8AAAAAAAAAAM3udEXchIQ/ze50RdyElD+AKtJWE6apP83udEXchIQ/ze50RdyEpD/N7nRF3ISEP83udEXchKQ/gCrSVhOmqT+AKtJWE6apP1nIgN+uNrw/81DGvED0sT8zZi9oSseuP/NQxrxA9ME/powjzncVtz/N7nRF3IS0P9+fHYGOPMM/ze50RdyExD+mjCPOdxXHP6aMI853Fcc/WciA3642vD+mjCPOdxXHP4Aq0lYTpsk/uT3MCSrN1T+S23qSxV3YPzDl9+tQcdY/N32wSy2i4T+8vgOGIyPeP83udEXchOQ/dRHiej0f5j9p+PGeZ5jiP/bR/Tg6Sto/0G+swdXa3D9WR0ljteDTPzDl9+tQcdY/BgJv+PKr0D/N7nRF3ITUP0OWoCcDKdU/gCrSVhOmyT8zZi9oSse+P83udEXchLQ/RhfYo/x+zT9ZyIDfrja8PzNmL2hKx74/gCrSVhOmqT8zZi9oSseuPzNmL2hKx64/M2YvaErHrj/N7nRF3ISUPwAAAAAAAAAAze50RdyElD+AKtJWE6apP/NQxrxA9LE/M2YvaErHrj/N7nRF3ISEP83udEXchKQ/ze50RdyElD/N7nRF3ISEPwAAAAAAAAAAze50RdyElD/N7nRF3ISUP83udEXchJQ/AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAM3udEXchIQ/AAAAAAAAAADN7nRF3ISEPwAAAAAAAAAAAAAAAAAAAAA=", "encoding": "base64", "path": ["_data", 0, "y", "buffer"]}, {"data": "////////D8D//////38PwP///////w7A//////9/DsD///////8NwP//////fw3A////////DMD//////38MwP///////wvA//////9/C8D///////8KwP//////fwrA////////CcD//////38JwP///////wjA//////9/CMD///////8HwAAAAAAAgAfAAAAAAAAAB8AAAAAAAIAGwAAAAAAAAAbAAAAAAACABcAAAAAAAAAFwAAAAAAAgATAAAAAAAAABMAAAAAAAIADwAAAAAAAAAPAAAAAAACAAsAAAAAAAAACwAAAAAAAgAHAAAAAAAAAAcAAAAAAAIAAwP////////+/AAAAAAAA/78AAAAAAAD+vwAAAAAAAP2/AAAAAAAA/L8AAAAAAAD7vwAAAAAAAPq/AAAAAAAA+b8AAAAAAAD4vwAAAAAAAPe/AAAAAAAA9r8AAAAAAAD1vwAAAAAAAPS/AAAAAAAA878AAAAAAADyvwAAAAAAAPG/AAAAAAAA8L8AAAAAAADuvwAAAAAAAOy/AAAAAAAA6r8AAAAAAADovwAAAAAAAOa/AAAAAAAA5L8AAAAAAADivwAAAAAAAOC/AAAAAAAA3L8AAAAAAADYvwAAAAAAANS/AAAAAAAA0L8AAAAAAADIvwAAAAAAAMC/AAAAAAAAsL8AAAAAAAAAAMD//////68/4P//////vz/w///////HP/D//////88/+P//////0z/4///////XP/j//////9s/+P//////3z/8///////hP/z//////+M//P//////5T/8///////nP/z//////+k//P//////6z/8///////tP/z//////+8//v//////8D/+///////xP/7///////I//v//////8z/+///////0P/7///////U//v//////9j/+///////3P/7///////g//v//////+T/+///////6P/7///////s//v///////D/+///////9P/7///////4//v///////z///////38AQP///////wBA//////9/AUD///////8BQP//////fwJA////////AkD//////38DQP///////wNA//////9/BED///////8EQP//////fwVA////////BUD//////38GQP///////wZA//////9/B0D///////8HQP//////fwhA////////CED//////38JQP///////wlA//////9/CkD///////8KQP//////fwtA////////C0D//////38MQP///////wxA//////9/DUD///////8NQP//////fw5A////////DkD//////38PQA==", "encoding": "base64", "path": ["_data", 1, "x", "buffer"]}, {"data": "AKAjux4+YT+FMF2XR4RmP0/EOYm6gGs/srrTcpgibD/VdumRGX9qP5WxkB9+KWw/WDzecUJRcT9YAiKYp5R0P+gD2LX8j3U/ZkoVhzs8dT92AL+lG6R2P7TdMNd4xno/kUpsahcofz/HomC6UZSAP8DcF5Db1YA/lL8tjeQDgj+/tGidMMOEP+UT7Ddcx4c/lbxRj4CQiT/LQFHIY4OKP+12TdFLeIw/wicuFcEgkD+m9zeyCkGSP3Ig94V9wJM/yOx6wHTJlD/TZDWQj2OWP2cQVLFjFJk/8e33eAAknD8Ol6MSzZKeP+fgr0eGQKA/PyNHSXyMoT/+P+TmZIKjPyXIqoa2wKU/ooXSRmKxpz+r4wca/l2pPyBfKz5Hcqs/vICeTN9brj9qF6tlNtmwP+FXW/8pYbI/RT9cSR/Gsz8qa/jWem21PzW9Y75Pn7c/ksF3fAQjuj8gSdSi5Ym8P14mBBCyzb4/pKHkK0K1wD+31gIPQGHCP+I7NWheS8Q/xLgKvAcsxj+Xp0PMlvrHP1ZFy2FYB8o/Z47dhk6ZzD8ScYik04vPP9Lg5hP/PNE/qSBZduGn0j/6nQXu5z/UP9u7IX0VP9Y/BG3zwsSN2D968ZmSTdbaP4IVlpMD/dw/4qv/PU9p3z/lNckT2lDhP26HK0YJQOM/1H9fSlHu5D93Le7ERpvlP9R/X0pR7uQ/bocrRglA4z/mNckT2lDhP+Wr/z1Pad8/hBWWkwP93D998ZmSTdbaPwZt88LEjdg/3bshfRU/1j/znQXu5z/UP6IgWXbhp9I/yODmE/880T8AcYik04vPP1aO3YZOmcw/RkXLYVgHyj+pp0PMlvrHP924CrwHLMY/+zs1aF5LxD/N1gIPQGHCP7eh5CtCtcA/eSYEELLNvj8zSdSi5Ym8P5vBd3wEI7o/Or1jvk+ftz8fa/jWem21Pyg/XEkfxrM/vFdb/ylhsj9IF6tlNtmwP4qAnkzfW64/BV8rPkdyqz+e4wca/l2pP66F0kZisac/QciqhrbApT8dQOTmZIKjP3MjR0l8jKE/BeGvR4ZAoD8sl6MSzZKeP9nt93gAJJw/SRBUsWMUmT+wZDWQj2OWP7LsesB0yZQ/ZyD3hX3Akz+s9zeyCkGSP+EnLhXBIJA/CXdN0Ut4jD/jQFHIY4OKP7O8UY+AkIk/nxXsN1zHhz8gtmidMMOEP0LALY3kA4I/o9wXkNvVgD/0oWC6UZSAP2FIbGoXKH8/utsw13jGej+k/r6lG6R2P7BJFYc7PHU/GATYtfyPdT84AyKYp5R0P8g93nFCUXE/i7OQH34pbD+cd+mRGX9qPz2503KYImw/1sM5ibqAaz9WMF2XR4RmPw==", "encoding": "base64", "path": ["_data", 1, "y", "buffer"]}, {"data": "KGGm7V8pFMDeH+9VK8MTwJTeN772XBPASp2AJsL2EsAAXMmOjZASwLYaEvdYKhLAbNlaXyTEEcAimKPH710RwNhW7C+79xDAjhU1mIaREMBE1H0AUisQwPQljdE6ig/AYKMeotG9DsDMILByaPENwDieQUP/JA3ApBvTE5ZYDMAQmWTkLIwLwHwW9rTDvwrA6JOHhVrzCcBUERlW8SYJwMCOqiaIWgjALAw89x6OB8CYic3HtcEGwAQHX5hM9QXAcITwaOMoBcDcAYI5elwEwEh/EwoRkAPAtPyk2qfDAsAgejarPvcBwIz3x3vVKgHA+HRZTGxeAMDI5NU5BiT/v6Df+Nozi/2/eNobfGHy+79Q1T4dj1n6vyjQYb68wPi/AMuEX+on97/YxacAGI/1v7DAyqFF9vO/iLvtQnNd8r9gthDkoMTwv3BiZwqdV+6/IFitTPgl67/QTfOOU/Tnv4BDOdGuwuS/MDl/EwqR4b/AXYqryr7cvyBJFjCBW9a/AGlEaW/wz7/AP1xy3CnDvwBa0O0ljam/AEvQ7SWNqT8APFxy3CnDP0BlRGlv8M8/QEcWMIFb1j/gW4qryr7cP0A4fxMKkeE/kEI50a7C5D/gTPOOU/TnPzBXrUz4Jes/gGFnCp1X7j/otRDkoMTwPxC77UJzXfI/OMDKoUX28z9gxacAGI/1P4jKhF/qJ/c/sM9hvrzA+D/Y1D4dj1n6PwDaG3xh8vs/KN/42jOL/T9Q5NU5BiT/P7x0WUxsXgBAUPfHe9UqAUDkeTarPvcBQHj8pNqnwwJADH8TChGQA0CgAYI5elwEQDSE8GjjKAVAyAZfmEz1BUBcic3HtcEGQPALPPcejgdAhI6qJohaCEAYERlW8SYJQKyTh4Va8wlAQBb2tMO/CkDUmGTkLIwLQGgb0xOWWAxA/J1BQ/8kDUCQILByaPENQCSjHqLRvQ5AuCWN0TqKD0Am1H0AUisQQHAVNZiGkRBAulbsL7v3EEAEmKPH710RQE7ZWl8kxBFAmBoS91gqEkDiW8mOjZASQCydgCbC9hJAdt43vvZcE0DAH+9VK8MTQAphpu1fKRRAVKJdhZSPFEA=", "encoding": "base64", "path": ["_data", 2, "x", "buffer"]}, {"data": "Ta/nERiWQj9lnrJSbGdFP8pbgyYbpkg/ikGvirhiTD816kbwLVhQP8Z4o7uA0lI/mPSHb/2sVT93jNshOPZYP9W5rrH6vlw/LmubRk2NYD/XU1C8rQ9jP6KXMKdw82U/CcEWf1lHaT9She6zaBxtP27gO0UZw3A/0d4RkqFNcz+YJI7YyDp2P2wef4yCmXk/XQoFYAZ7fT/iN1MdlPmAPx/JJcNejIM/oLfW6wiDhj+NYR2jtuyJPx9F6JDX2o0/5EQsB8AwkT+MKP7d58uTPyo/s9IzzJY/XMvbJvlAmj+w/hUu4DueP0DoSEKfaKE/ziNceT8MpD9ZMV6ITBanPxB+qYZNlqo/K4e8KySerj9Zg3kVNKGxP+rzajRoTbQ/mKXCEVZhtz+vTZ48t+y6P9Hz44qnAb8/vbf0zoDawT9ePdu2ZI/EP/nSm31Trcc/rgQfzjlEyz9u45dZbmbPP79zb8SHFNI/F8L+sDfS1D8o9ZTkR/rXP7ceAszYnNs/fMoRs3zM3z9GTTVTS0/iP3dt5NvjFeU/Vm7k2+MV5T8JTjVTS0/iP87LEbN8zN8/2x8CzNic2z8l9pTkR/rXP/XC/rA30tQ/fnRvxIcU0j+75JdZbmbPP9AFH845RMs/9dObfVOtxz85Ptu2ZI/EP3u49M6A2sE/F/XjiqcBvz/NTp48t+y6P5GmwhFWYbc/wvRqNGhNtD8VhHkVNKGxP3CIvCsknq4/K3+phk2Wqj9OMl6ITBanP6AkXHk/DKQ/+ehIQp9ooT/x/xUu4DueP3XM2yb5QJo/H0Cz0jPMlj9hKf7d58uTP55FLAfAMJE/WEbokNfajT+jYh2jtuyJP5K41usIg4Y/8cklw16Mgz+UOFMdlPmAP5MLBWAGe30/eB9/jIKZeT+BJY7YyDp2P5vfEZKhTXM/HuE7RRnDcD+Ehu6zaBxtPxLCFn9ZR2k/jpgwp3DzZT+kVFC8rQ9jP+Frm0ZNjWA/C7uusfq+XD+EjdshOPZYP3z1h2/9rFU/i3mju4DSUj/g6kbwLVhQP7RCr4q4Ykw/zFyDJhumSD9Fn7JSbGdFPxGw5xEYlkI/6nccGLkjQD8=", "encoding": "base64", "path": ["_data", 2, "y", "buffer"]}]}, "7ae72456122c444ebcb5d1890433d3fc": {"model_name": "LayoutModel", "model_module": "@jupyter-widgets/base", "model_module_version": "2.0.0", "state": {"_model_module": "@jupyter-widgets/base", "_model_module_version": "2.0.0", "_model_name": "LayoutModel", "_view_count": null, "_view_module": "@jupyter-widgets/base", "_view_module_version": "2.0.0", "_view_name": "LayoutView", "align_content": null, "align_items": null, "align_self": null, "border_bottom": null, "border_left": null, "border_right": null, "border_top": null, "bottom": null, "display": null, "flex": null, "flex_flow": null, "grid_area": null, "grid_auto_columns": null, "grid_auto_flow": null, "grid_auto_rows": null, "grid_column": null, "grid_gap": null, "grid_row": null, "grid_template_areas": null, "grid_template_columns": null, "grid_template_rows": null, "height": null, "justify_content": null, "justify_items": null, "left": null, "margin": null, "max_height": null, "max_width": null, "min_height": null, "min_width": null, "object_fit": null, "object_position": null, "order": null, "overflow": null, "padding": null, "right": null, "top": null, "visibility": null, "width": null}}, "c478469eee464b6ab8161b88b45bd211": {"model_name": "VBoxModel", "model_module": "@jupyter-widgets/controls", "model_module_version": "2.0.0", "state": {"_dom_classes": [], "_model_module": "@jupyter-widgets/controls", "_model_module_version": "2.0.0", "_model_name": "VBoxModel", "_view_count": null, "_view_module": "@jupyter-widgets/controls", "_view_module_version": "2.0.0", "_view_name": "VBoxView", "box_style": "", "children": ["IPY_MODEL_c289c69146e44a55b8847522f0f80871", "IPY_MODEL_d9bbc2a6630d4998826a31162adbf181", "IPY_MODEL_cbeda81256454829b3ae461d3167af9c"], "layout": "IPY_MODEL_7ae72456122c444ebcb5d1890433d3fc", "tabbable": null, "tooltip": null}}}, "version_major": 2, "version_minor": 0}</script>
+    <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+    <script crossorigin="anonymous" data-jupyter-widgets-cdn="https://cdn.jsdelivr.net/npm/" src="https://cdn.jsdelivr.net/npm/@jupyter-widgets/html-manager@1.0.6/dist/embed-amd.js"></script>
+    <script>DOCUMENTATION_OPTIONS.pagename = 'examples/exponential_sampling';</script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+    <link rel="icon" href="../_static/quantflow-logo.png"/>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Poisson Sampling" href="poisson_sampling.html" />
+    <link rel="prev" title="Gaussian Sampling" href="gaussian_sampling.html" />
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <meta name="docsearch:language" content="en"/>
+  </head>
+  
+  
+  <body data-bs-spy="scroll" data-bs-target=".bd-toc-nav" data-offset="180" data-bs-root-margin="0px 0px -60%" data-default-mode="">
+
+  
+  
+  <div id="pst-skip-link" class="skip-link d-print-none"><a href="#main-content">Skip to main content</a></div>
+  
+  <div id="pst-scroll-pixel-helper"></div>
+  
+  <button type="button" class="btn rounded-pill" id="pst-back-to-top">
+    <i class="fa-solid fa-arrow-up"></i>Back to top</button>
+
+  
+  <input type="checkbox"
+          class="sidebar-toggle"
+          id="pst-primary-sidebar-checkbox"/>
+  <label class="overlay overlay-primary" for="pst-primary-sidebar-checkbox"></label>
+  
+  <input type="checkbox"
+          class="sidebar-toggle"
+          id="pst-secondary-sidebar-checkbox"/>
+  <label class="overlay overlay-secondary" for="pst-secondary-sidebar-checkbox"></label>
+  
+  <div class="search-button__wrapper">
+    <div class="search-button__overlay"></div>
+    <div class="search-button__search-container">
+<form class="bd-search d-flex align-items-center"
+      action="../search.html"
+      method="get">
+  <i class="fa-solid fa-magnifying-glass"></i>
+  <input type="search"
+         class="form-control"
+         name="q"
+         id="search-input"
+         placeholder="Search this book..."
+         aria-label="Search this book..."
+         autocomplete="off"
+         autocorrect="off"
+         autocapitalize="off"
+         spellcheck="false"/>
+  <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd>K</kbd></span>
+</form></div>
+  </div>
+
+  <div class="pst-async-banner-revealer d-none">
+  <aside id="bd-header-version-warning" class="d-none d-print-none" aria-label="Version warning"></aside>
+</div>
+
+  
+    <header class="bd-header navbar navbar-expand-lg bd-navbar d-print-none">
+    </header>
+  
+
+  <div class="bd-container">
+    <div class="bd-container__inner bd-page-width">
+      
+      
+      
+      <div class="bd-sidebar-primary bd-sidebar">
+        
+
+  
+  <div class="sidebar-header-items sidebar-primary__section">
+    
+    
+    
+    
+  </div>
+  
+    <div class="sidebar-primary-items__start sidebar-primary__section">
+        <div class="sidebar-primary-item">
+
+  
+    
+  
+
+<a class="navbar-brand logo" href="../index.html">
+  
+  
+  
+  
+  
+    
+    
+      
+    
+    
+    <img src="../_static/quantflow-light.svg" class="logo__image only-light" alt="Quantflow library - Home"/>
+    <script>document.write(`<img src="../_static/quantflow-light.svg" class="logo__image only-dark" alt="Quantflow library - Home"/>`);</script>
+  
+  
+</a></div>
+        <div class="sidebar-primary-item">
+
+ <script>
+ document.write(`
+   <button class="btn search-button-field search-button__button" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="fa-solid fa-magnifying-glass"></i>
+    <span class="search-button__default-text">Search</span>
+    <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+   </button>
+ `);
+ </script></div>
+        <div class="sidebar-primary-item"><nav class="bd-links bd-docs-nav" aria-label="Main">
+    <div class="bd-toc-item navbar-nav active">
+        <p aria-level="2" class="caption" role="heading"><span class="caption-text">Topic Guides</span></p>
+<ul class="current nav bd-sidenav">
+<li class="toctree-l1 has-children"><a class="reference internal" href="../theory/overview.html">Theory</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="../theory/levy.html">Lévy process</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../theory/characteristic.html">Characteristic Function</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../theory/inversion.html">From Characteristic Function to PDF</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../theory/option_pricing.html">Option Pricing</a></li>
+</ul>
+</details></li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="../models/overview.html">Stochastic Processes</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="../models/weiner.html">Weiner Process</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../models/poisson.html">Poisson Processes</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../models/jump_diffusion.html">Jump Diffusion Models</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../models/cir.html">CIR process</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../models/ou.html">OU Process</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../models/heston.html">Heston Model and Option Pricing</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../models/heston_jumps.html">Heston Model with Jumps</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../models/bns.html">BNS Model</a></li>
+</ul>
+</details></li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="../applications/overview.html">Applications</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="../applications/volatility_surface.html">Volatility Surface</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../applications/hurst.html">Hurst Exponent</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../applications/calibration.html">Calibration</a></li>
+</ul>
+</details></li>
+<li class="toctree-l1 current active has-children"><a class="reference internal" href="overview.html">Examples</a><details open="open"><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="gaussian_sampling.html">Gaussian Sampling</a></li>
+<li class="toctree-l2 current active"><a class="current reference internal" href="#">Exponential Sampling</a></li>
+<li class="toctree-l2"><a class="reference internal" href="poisson_sampling.html">Poisson Sampling</a></li>
+<li class="toctree-l2"><a class="reference internal" href="heston_vol_surface.html">HestonJ Volatility Surface</a></li>
+</ul>
+</details></li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="../api/index.html">API Reference</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2 has-children"><a class="reference internal" href="../api/sp/index.html">Stochastic Process</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l3"><a class="reference internal" href="../api/sp/weiner.html">Weiner process</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../api/sp/poisson.html">Poisson process</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../api/sp/compound_poisson.html">Compound Poisson</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../api/sp/ou.html">OU Processes</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../api/sp/cir.html">CIR</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../api/sp/jump_diffusion.html">Jump diffusions</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../api/sp/heston.html">Heston process</a></li>
+</ul>
+</details></li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="../api/options/index.html">Option Pricing</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l3"><a class="reference internal" href="../api/options/vol_surface.html">Vol Surface</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../api/options/black.html">Black Pricing</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../api/options/pricer.html">Option Pricer</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../api/options/calibration.html">Vol Model Calibration</a></li>
+</ul>
+</details></li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="../api/ta/index.html">Timeseries Analysis</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l3"><a class="reference internal" href="../api/ta/ohlc.html">OHLC</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../api/ta/paths.html">Paths</a></li>
+</ul>
+</details></li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="../api/data/index.html">Data fetching</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l3"><a class="reference internal" href="../api/data/fmp.html">FMP</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../api/data/fed.html">Federal Reserve</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../api/data/fred.html">Fred</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../api/data/deribit.html">Deribit</a></li>
+</ul>
+</details></li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="../api/utils/index.html">Utils</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l3"><a class="reference internal" href="../api/utils/marginal1d.html">Marginal1D</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../api/utils/distributions.html">Distributions</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../api/utils/bins.html">Bins</a></li>
+</ul>
+</details></li>
+</ul>
+</details></li>
+</ul>
+<p aria-level="2" class="caption" role="heading"><span class="caption-text">Reference</span></p>
+<ul class="nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="../reference/contributing.html">Contributing</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../reference/glossary.html">Glossary</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../reference/biblio.html">Bibliography</a></li>
+</ul>
+
+    </div>
+</nav></div>
+    </div>
+  
+  
+  <div class="sidebar-primary-items__end sidebar-primary__section">
+  </div>
+  
+  <div id="rtd-footer-container"></div>
+
+
+      </div>
+      
+      <main id="main-content" class="bd-main" role="main">
+        
+        
+
+<div class="sbt-scroll-pixel-helper"></div>
+
+          <div class="bd-content">
+            <div class="bd-article-container">
+              
+              <div class="bd-header-article d-print-none">
+<div class="header-article-items header-article__inner">
+  
+    <div class="header-article-items__start">
+      
+        <div class="header-article-item"><button class="sidebar-toggle primary-toggle btn btn-sm" title="Toggle primary sidebar" data-bs-placement="bottom" data-bs-toggle="tooltip">
+  <span class="fa-solid fa-bars"></span>
+</button></div>
+      
+    </div>
+  
+  
+    <div class="header-article-items__end">
+      
+        <div class="header-article-item">
+
+<div class="article-header-buttons">
+
+
+
+
+
+<div class="dropdown dropdown-source-buttons">
+  <button class="btn dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false" aria-label="Source repositories">
+    <i class="fab fa-github"></i>
+  </button>
+  <ul class="dropdown-menu">
+      
+      
+      
+      <li><a href="https://github.com/quantmind/quantflow" target="_blank"
+   class="btn btn-sm btn-source-repository-button dropdown-item"
+   title="Source repository"
+   data-bs-placement="left" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fab fa-github"></i>
+  </span>
+<span class="btn__text-container">Repository</span>
+</a>
+</li>
+      
+      
+      
+      
+      <li><a href="https://github.com/quantmind/quantflow/edit/main/notebooks/examples/exponential_sampling.md" target="_blank"
+   class="btn btn-sm btn-source-edit-button dropdown-item"
+   title="Suggest edit"
+   data-bs-placement="left" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fas fa-pencil-alt"></i>
+  </span>
+<span class="btn__text-container">Suggest edit</span>
+</a>
+</li>
+      
+      
+      
+      
+      <li><a href="https://github.com/quantmind/quantflow/issues/new?title=Issue%20on%20page%20%2Fexamples/exponential_sampling.html&body=Your%20issue%20content%20here." target="_blank"
+   class="btn btn-sm btn-source-issues-button dropdown-item"
+   title="Open an issue"
+   data-bs-placement="left" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fas fa-lightbulb"></i>
+  </span>
+<span class="btn__text-container">Open issue</span>
+</a>
+</li>
+      
+  </ul>
+</div>
+
+
+
+
+
+
+<div class="dropdown dropdown-download-buttons">
+  <button class="btn dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false" aria-label="Download this page">
+    <i class="fas fa-download"></i>
+  </button>
+  <ul class="dropdown-menu">
+      
+      
+      
+      <li><a href="../_sources/examples/exponential_sampling.md" target="_blank"
+   class="btn btn-sm btn-download-source-button dropdown-item"
+   title="Download source file"
+   data-bs-placement="left" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fas fa-file"></i>
+  </span>
+<span class="btn__text-container">.md</span>
+</a>
+</li>
+      
+      
+      
+      
+      <li>
+<button onclick="window.print()"
+  class="btn btn-sm btn-download-pdf-button dropdown-item"
+  title="Print to PDF"
+  data-bs-placement="left" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fas fa-file-pdf"></i>
+  </span>
+<span class="btn__text-container">.pdf</span>
+</button>
+</li>
+      
+  </ul>
+</div>
+
+
+
+
+<button onclick="toggleFullScreen()"
+  class="btn btn-sm btn-fullscreen-button"
+  title="Fullscreen mode"
+  data-bs-placement="bottom" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fas fa-expand"></i>
+  </span>
+
+</button>
+
+
+
+<script>
+document.write(`
+  <button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button" title="light/dark" aria-label="light/dark" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="theme-switch fa-solid fa-sun fa-lg" data-mode="light"></i>
+    <i class="theme-switch fa-solid fa-moon fa-lg" data-mode="dark"></i>
+    <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg" data-mode="auto"></i>
+  </button>
+`);
+</script>
+
+
+<script>
+document.write(`
+  <button class="btn btn-sm pst-navbar-icon search-button search-button__button" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="fa-solid fa-magnifying-glass fa-lg"></i>
+  </button>
+`);
+</script>
+
+</div></div>
+      
+    </div>
+  
+</div>
+</div>
+              
+              
+
+<div id="jb-print-docs-body" class="onlyprint">
+    <h1>Exponential Sampling</h1>
+    <!-- Table of contents -->
+    <div id="print-main-content">
+        <div id="jb-print-toc">
+            
+        </div>
+    </div>
+</div>
+
+              
+                
+<div id="searchbox"></div>
+                <article class="bd-article">
+                  
+  <section class="tex2jax_ignore mathjax_ignore" id="exponential-sampling">
+<h1>Exponential Sampling<a class="headerlink" href="#exponential-sampling" title="Link to this heading">#</a></h1>
+<p>Here we sample the Asymmetric Laplace distribution. We will set the mean to 0 and the variance to 1 so that the distribution is fully determined by the asymmetric parameter <span class="math notranslate nohighlight">\(\kappa\)</span>.</p>
+<div class="admonition-interactive-notebook-not-enabled-in-docs-how-to-run-it-interactively admonition">
+<p class="admonition-title">Interactive notebook not enabled in docs - how to run it interactively?</p>
+<p>The widget below is not enabled in the documentation. You can run the notebook to see the widget in action, see <a class="reference internal" href="../reference/contributing.html"><span class="std std-doc">contributing</span></a> for instructions on how to run the notebook.</p>
+</div>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">quantflow.utils.distributions</span><span class="w"> </span><span class="kn">import</span> <span class="n">DoubleExponential</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">quantflow.utils</span><span class="w"> </span><span class="kn">import</span> <span class="n">bins</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">ipywidgets</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">widgets</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">plotly.graph_objects</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">go</span>
+
+<span class="k">def</span><span class="w"> </span><span class="nf">simulate</span><span class="p">():</span>
+    <span class="n">pr</span> <span class="o">=</span> <span class="n">DoubleExponential</span><span class="o">.</span><span class="n">from_moments</span><span class="p">(</span><span class="n">kappa</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="n">asym</span><span class="o">.</span><span class="n">value</span><span class="p">))</span>
+    <span class="n">data</span> <span class="o">=</span> <span class="n">pr</span><span class="o">.</span><span class="n">sample</span><span class="p">(</span><span class="n">samples</span><span class="o">.</span><span class="n">value</span><span class="p">)</span>
+    <span class="n">pdf</span> <span class="o">=</span> <span class="n">bins</span><span class="o">.</span><span class="n">pdf</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">num_bins</span><span class="o">=</span><span class="mi">50</span><span class="p">,</span> <span class="n">symmetric</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+    <span class="n">pdf</span><span class="p">[</span><span class="s2">&quot;simulation&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">pdf</span><span class="p">[</span><span class="s2">&quot;pdf&quot;</span><span class="p">]</span>
+    <span class="n">pdf</span><span class="p">[</span><span class="s2">&quot;analytical&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">pr</span><span class="o">.</span><span class="n">pdf</span><span class="p">(</span><span class="n">pdf</span><span class="o">.</span><span class="n">index</span><span class="p">)</span>
+    <span class="n">cha</span> <span class="o">=</span> <span class="n">pr</span><span class="o">.</span><span class="n">pdf_from_characteristic</span><span class="p">()</span>
+    <span class="k">return</span> <span class="n">pdf</span><span class="p">,</span> <span class="n">cha</span>
+
+<span class="k">def</span><span class="w"> </span><span class="nf">on_change</span><span class="p">(</span><span class="n">change</span><span class="p">):</span>
+    <span class="n">df</span><span class="p">,</span> <span class="n">cha</span> <span class="o">=</span> <span class="n">simulate</span><span class="p">()</span>
+    <span class="n">fig</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">x</span> <span class="o">=</span> <span class="n">df</span><span class="o">.</span><span class="n">index</span>
+    <span class="n">fig</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">y</span> <span class="o">=</span> <span class="n">df</span><span class="p">[</span><span class="s2">&quot;simulation&quot;</span><span class="p">]</span>
+    <span class="n">fig</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">x</span> <span class="o">=</span> <span class="n">df</span><span class="o">.</span><span class="n">index</span>
+    <span class="n">fig</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">y</span> <span class="o">=</span> <span class="n">df</span><span class="p">[</span><span class="s2">&quot;analytical&quot;</span><span class="p">]</span>
+    <span class="n">fig</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span><span class="o">.</span><span class="n">x</span> <span class="o">=</span> <span class="n">cha</span><span class="o">.</span><span class="n">x</span>
+    <span class="n">fig</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span><span class="o">.</span><span class="n">y</span> <span class="o">=</span> <span class="n">cha</span><span class="o">.</span><span class="n">y</span>
+
+<span class="n">asym</span> <span class="o">=</span> <span class="n">widgets</span><span class="o">.</span><span class="n">FloatSlider</span><span class="p">(</span><span class="n">description</span><span class="o">=</span><span class="s2">&quot;asymmetry (log of k)&quot;</span><span class="p">,</span> <span class="nb">min</span><span class="o">=-</span><span class="mi">2</span><span class="p">,</span> <span class="nb">max</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
+<span class="n">samples</span> <span class="o">=</span> <span class="n">widgets</span><span class="o">.</span><span class="n">IntSlider</span><span class="p">(</span><span class="n">description</span><span class="o">=</span><span class="s2">&quot;paths&quot;</span><span class="p">,</span> <span class="nb">min</span><span class="o">=</span><span class="mi">100</span><span class="p">,</span> <span class="nb">max</span><span class="o">=</span><span class="mi">10000</span><span class="p">,</span> <span class="n">step</span><span class="o">=</span><span class="mi">100</span><span class="p">)</span>
+<span class="n">asym</span><span class="o">.</span><span class="n">value</span> <span class="o">=</span> <span class="mi">0</span>
+<span class="n">samples</span><span class="o">.</span><span class="n">value</span> <span class="o">=</span> <span class="mi">1000</span>
+<span class="n">asym</span><span class="o">.</span><span class="n">observe</span><span class="p">(</span><span class="n">on_change</span><span class="p">)</span>
+<span class="n">samples</span><span class="o">.</span><span class="n">observe</span><span class="p">(</span><span class="n">on_change</span><span class="p">)</span>
+
+<span class="n">df</span><span class="p">,</span> <span class="n">cha</span> <span class="o">=</span> <span class="n">simulate</span><span class="p">()</span>
+<span class="n">simulation</span> <span class="o">=</span> <span class="n">go</span><span class="o">.</span><span class="n">Bar</span><span class="p">(</span><span class="n">x</span><span class="o">=</span><span class="n">df</span><span class="o">.</span><span class="n">index</span><span class="p">,</span> <span class="n">y</span><span class="o">=</span><span class="n">df</span><span class="p">[</span><span class="s2">&quot;simulation&quot;</span><span class="p">],</span> <span class="n">name</span><span class="o">=</span><span class="s2">&quot;simulation&quot;</span><span class="p">)</span>
+<span class="n">analytical</span> <span class="o">=</span> <span class="n">go</span><span class="o">.</span><span class="n">Scatter</span><span class="p">(</span><span class="n">x</span><span class="o">=</span><span class="n">df</span><span class="o">.</span><span class="n">index</span><span class="p">,</span> <span class="n">y</span><span class="o">=</span><span class="n">df</span><span class="p">[</span><span class="s2">&quot;analytical&quot;</span><span class="p">],</span> <span class="n">name</span><span class="o">=</span><span class="s2">&quot;analytical&quot;</span><span class="p">)</span>
+<span class="n">cha</span> <span class="o">=</span> <span class="n">go</span><span class="o">.</span><span class="n">Scatter</span><span class="p">(</span><span class="n">x</span><span class="o">=</span><span class="n">cha</span><span class="o">.</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="o">=</span><span class="n">cha</span><span class="o">.</span><span class="n">y</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s2">&quot;from characteristic&quot;</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s2">&quot;markers&quot;</span><span class="p">)</span>
+<span class="n">fig</span> <span class="o">=</span> <span class="n">go</span><span class="o">.</span><span class="n">FigureWidget</span><span class="p">(</span><span class="n">data</span><span class="o">=</span><span class="p">[</span><span class="n">simulation</span><span class="p">,</span> <span class="n">cha</span><span class="p">,</span> <span class="n">analytical</span><span class="p">])</span>
+
+<span class="n">widgets</span><span class="o">.</span><span class="n">VBox</span><span class="p">([</span><span class="n">asym</span><span class="p">,</span> <span class="n">samples</span><span class="p">,</span> <span class="n">fig</span><span class="p">])</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<script type="application/vnd.jupyter.widget-view+json">{"version_major": 2, "version_minor": 0, "model_id": "c478469eee464b6ab8161b88b45bd211"}</script></div>
+</div>
+</section>
+
+    <script type="text/x-thebe-config">
+    {
+        requestKernel: true,
+        binderOptions: {
+            repo: "binder-examples/jupyter-stacks-datascience",
+            ref: "master",
+        },
+        codeMirrorConfig: {
+            theme: "abcdef",
+            mode: "python"
+        },
+        kernelOptions: {
+            name: "python3",
+            path: "./examples"
+        },
+        predefinedOutput: true
+    }
+    </script>
+    <script>kernelName = 'python3'</script>
+
+                </article>
+              
+
+              
+              
+              
+              
+                <footer class="prev-next-footer d-print-none">
+                  
+<div class="prev-next-area">
+    <a class="left-prev"
+       href="gaussian_sampling.html"
+       title="previous page">
+      <i class="fa-solid fa-angle-left"></i>
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">previous</p>
+        <p class="prev-next-title">Gaussian Sampling</p>
+      </div>
+    </a>
+    <a class="right-next"
+       href="poisson_sampling.html"
+       title="next page">
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">next</p>
+        <p class="prev-next-title">Poisson Sampling</p>
+      </div>
+      <i class="fa-solid fa-angle-right"></i>
+    </a>
+</div>
+                </footer>
+              
+            </div>
+            
+            
+              
+            
+          </div>
+          <footer class="bd-footer-content">
+            
+<div class="bd-footer-content__inner container">
+  
+  <div class="footer-item">
+    
+<p class="component-author">
+By <a href="https://quantmind.com">quantmind</a>
+</p>
+
+  </div>
+  
+  <div class="footer-item">
+    
+
+  <p class="copyright">
+    
+      © Copyright 2014-2025.
+      <br/>
+    
+  </p>
+
+  </div>
+  
+  <div class="footer-item">
+    
+  </div>
+  
+  <div class="footer-item">
+    
+  </div>
+  
+</div>
+          </footer>
+        
+
+      </main>
+    </div>
+  </div>
+  
+  <!-- Scripts loaded after <body> so the DOM is not blocked -->
+  <script src="../_static/scripts/bootstrap.js?digest=dfe6caa3a7d634c4db9b"></script>
+<script src="../_static/scripts/pydata-sphinx-theme.js?digest=dfe6caa3a7d634c4db9b"></script>
+
+  <footer class="bd-footer">
+  </footer>
+  </body>
+</html>
