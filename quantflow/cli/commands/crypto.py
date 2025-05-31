@@ -8,7 +8,7 @@ from asciichartpy import plot
 from cache import AsyncTTL
 from ccy.cli.console import df_to_rich
 
-from quantflow.data.deribit import Deribit
+from quantflow.data.deribit import Deribit, InstrumentKind
 from quantflow.options.surface import VolSurface
 from quantflow.utils.numbers import round_to_step
 
@@ -26,11 +26,32 @@ def crypto() -> None:
 
 @crypto.command()
 @click.argument("currency")
+@click.option(
+    "-k",
+    "--kind",
+    type=click.Choice(list(InstrumentKind)),
+    default=InstrumentKind.spot.value,
+)
+def instruments(currency: str, kind: str) -> None:
+    """Provides information about instruments
+
+    Instruments for given cryptocurrency from Deribit API"""
+    ctx = QuantContext.current()
+    data = asyncio.run(get_instruments(ctx, currency, kind))
+    df = pd.DataFrame(data)
+    ctx.qf.print(df_to_rich(df))
+
+
+@crypto.command()
+@click.argument("currency")
 @options.length
 @options.height
 @options.chart
 def volatility(currency: str, length: int, height: int, chart: bool) -> None:
-    """Provides information about historical volatility for given cryptocurrency"""
+    """Provides information about historical volatility
+
+    Historical volatility for given cryptocurrency from Deribit API
+    """
     ctx = QuantContext.current()
     df = asyncio.run(get_volatility(ctx, currency))
     df["volatility"] = df["volatility"].map(lambda p: round_to_step(p, "0.01"))
@@ -109,9 +130,16 @@ def prices(symbol: str, height: int, length: int, chart: bool, frequency: str) -
         )
 
 
+async def get_instruments(ctx: QuantContext, currency: str, kind: str) -> list[dict]:
+    async with Deribit() as client:
+        return await client.get_instruments(
+            currency=currency, kind=InstrumentKind(kind)
+        )
+
+
 async def get_volatility(ctx: QuantContext, currency: str) -> pd.DataFrame:
     async with Deribit() as client:
-        return await client.get_volatility(params=dict(currency=currency))
+        return await client.get_volatility(currency)
 
 
 @AsyncTTL(time_to_live=10)

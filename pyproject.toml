@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "quantflow"
-version = "0.3.2"
+version = "0.3.3"
 description = "quantitative analysis"
 authors = ["Luca <luca@quantmind.com>"]
 license = "BSD-3-Clause"
@@ -17,21 +17,21 @@ scipy = "^1.14.1"
 pydantic = "^2.0.2"
 ccy = { version = "^1.7.1" }
 python-dotenv = "^1.0.1"
-polars = {version = "^1.11.0", extras=["pandas", "pyarrow"]}
+polars = { version = "^1.11.0", extras = ["pandas", "pyarrow"] }
 asciichartpy = { version = "^1.5.25", optional = true }
 prompt-toolkit = { version = "^3.0.43", optional = true }
-aio-fluid = {version = "^1.2.1", extras=["http"], optional = true}
-rich = {version = "^13.9.4", optional = true}
-click = {version = "^8.1.7", optional = true}
-holidays = {version = "^0.63", optional = true}
-async-cache = {version = "^1.1.1", optional = true}
+aio-fluid = { version = "^1.2.1", extras = ["http"], optional = true }
+rich = { version = "^13.9.4", optional = true }
+click = { version = "^8.1.7", optional = true }
+holidays = { version = "^0.63", optional = true }
+async-cache = { version = "^1.1.1", optional = true }
 
 [tool.poetry.group.dev.dependencies]
 black = "^25.1.0"
 pytest-cov = "^6.0.0"
 mypy = "^1.14.1"
 ghp-import = "^2.0.2"
-ruff = "^0.11.2"
+ruff = "^0.11.12"
 pytest-asyncio = "^0.26.0"
 isort = "^6.0.1"
 
@@ -44,7 +44,7 @@ cli = [
     "prompt-toolkit",
     "rich",
     "click",
-    "holidays"
+    "holidays",
 ]
 
 [tool.poetry.group.book]
@@ -74,9 +74,7 @@ formats = "ipynb,myst"
 
 [tool.pytest.ini_options]
 asyncio_mode = "auto"
-testpaths = [
-    "quantflow_tests"
-]
+testpaths = ["quantflow_tests"]
 
 [tool.isort]
 profile = "black"
@@ -102,7 +100,7 @@ module = [
     "IPython.*",
     "pandas.*",
     "plotly.*",
-    "scipy.*"
+    "scipy.*",
 ]
 ignore_missing_imports = true
 disallow_untyped_defs = false

@@ -18,8 +18,23 @@ The library provides a python client for the [Financial Modelling Prep API](http
 
 ```{code-cell} ipython3
 from quantflow.data.fmp import FMP
+import pandas as pd
 cli = FMP()
 cli.url
+```
+
+## Get path
+
+```{code-cell} ipython3
+d = await cli.get_path("stock-list")
+pd.DataFrame(d)
+```
+
+## Search
+
+```{code-cell} ipython3
+d = await cli.search("electric")
+pd.DataFrame(d)
 ```
 
 ```{code-cell} ipython3
@@ -41,7 +56,7 @@ c
 ## Executive trading
 
 ```{code-cell} ipython3
-stock = "KNOS.L"
+stock = "AAPL"
 ```
 
 ```{code-cell} ipython3
@@ -57,4 +72,9 @@ await cli.insider_trading(stock)
 ```{code-cell} ipython3
 c = await cli.news(stock)
 c
+```
+
+```{code-cell} ipython3
+p = await cli.market_risk_premium()
+pd.DataFrame(p)
 ```

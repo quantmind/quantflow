@@ -51,7 +51,6 @@ class FiscalData(AioHttpClient):
         while next_url:
             payload = await self.get(next_url, params=params)
             full_data.extend(payload["data"])
-            params = {}
             if links := payload.get("links"):
                 if next_path := links.get("next"):
                     next_url = f"{self.url}{next_path}"

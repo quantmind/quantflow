@@ -20,10 +20,10 @@ class FMP(AioHttpClient):
 
     Fetch market and financial data from `Financial Modeling Prep`_.
 
-    .. _Financial Modeling Prep: https://financialmodelingprep.com/developer/docs/
+    .. _Financial Modeling Prep: https://site.financialmodelingprep.com/developer/docs/stable
     """
 
-    url: str = "https://financialmodelingprep.com/api"
+    url: str = "https://financialmodelingprep.com/stable"
     key: str = field(default_factory=lambda: os.environ.get("FMP_API_KEY", ""))
 
     class freq(StrEnum):
@@ -37,22 +37,28 @@ class FMP(AioHttpClient):
         four_hour = "4hour"
         daily = ""
 
+    async def market_risk_premium(self) -> list[dict]:
+        """Market risk premium"""
+        return await self.get_path("market-risk-premium")
+
     async def stocks(self, **kw: Any) -> list[dict]:
-        return await self.get_path("v3/stock/list", **kw)
+        return await self.get_path("stock-list", **kw)
 
     async def etfs(self, **kw: Any) -> list[dict]:
-        return await self.get_path("v3/etf/list", **kw)
+        return await self.get_path("etf-list", **kw)
 
     async def indices(self, **kw: Any) -> list[dict]:
-        return await self.get_path("v3/quotes/index", **kw)
+        """Retrieve a comprehensive list of stock market indexes
+        across global exchanges"""
+        return await self.get_path("index-list", **kw)
 
     async def profile(self, *tickers: str, **kw: Any) -> list[dict]:
         """Company profile - minute"""
-        return await self.get_path(f"v3/profile/{self.join(*tickers)}", **kw)
+        return await self.get_path(f"profile/{self.join(*tickers)}", **kw)
 
     async def quote(self, *tickers: str, **kw: Any) -> list[dict]:
         """Company quote - real time"""
-        return await self.get_path(f"v3/quote/{self.join(*tickers)}", **kw)
+        return await self.get_path(f"quote/{self.join(*tickers)}", **kw)
 
     # calendars
 
@@ -68,28 +74,28 @@ class FMP(AioHttpClient):
         if not to_date:
             to_date = date.today() + timedelta(days=7)
         params = {"from": isoformat(from_date), "to": isoformat(to_date)}
-        return await self.get_path("v3/stock_dividend_calendar", params=params, **kw)
+        return await self.get_path("stock_dividend_calendar", params=params, **kw)
 
     # Executives
 
     async def executives(self, ticker: str, **kw: Any) -> list[dict]:
         """Company quote - real time"""
-        return await self.get_path(f"v3/key-executives/{ticker}", **kw)
+        return await self.get_path(f"key-executives/{ticker}", **kw)
 
     async def insider_trading(self, ticker: str, **kw: Any) -> list[dict]:
         """Company Insider Trading"""
         return await self.get_path(
-            "v4/insider-trading", **self.params(dict(symbol=ticker), **kw)
+            "insider-trading", **self.params(dict(symbol=ticker), **kw)
         )
 
     # Rating
 
     async def rating(self, ticker: str, **kw: Any) -> list[dict]:
         """Company rating - real time"""
-        return await self.get_path(f"v3/rating/{ticker}", **kw)
+        return await self.get_path(f"rating/{ticker}", **kw)
 
     async def etf_holders(self, ticker: str, **kw: Any) -> list[dict]:
-        return await self.get_path(f"v3/etf-holder/{ticker}", **kw)
+        return await self.get_path(f"etf-holder/{ticker}", **kw)
 
     async def ratios(
         self,
@@ -102,7 +108,7 @@ class FMP(AioHttpClient):
         the trailing 12 months"""
         path = "ratios" if period else "ratios-ttm"
         return await self.get_path(
-            f"v3/{path}/{ticker}",
+            f"{path}/{ticker}",
             **self.params(compact_dict(period=period, limit=limit), **kw),
         )
 
@@ -110,14 +116,14 @@ class FMP(AioHttpClient):
         """Stock peers based on sector, exchange and market cap"""
         kwargs = self.params(**kw)
         kwargs["params"]["symbol"] = self.join(*tickers)
-        return await self.get_path("v4/stock_peers", **kwargs)
+        return await self.get_path("stock_peers", **kwargs)
 
     async def news(self, *tickers: str, **kw: Any) -> list[dict]:
         """Company quote - real time"""
         kwargs = self.params(**kw)
         if tickers:
             kwargs["params"]["tickers"] = self.join(*tickers)
-        return await self.get_path("v3/stock_news", **kwargs)
+        return await self.get_path("stock_news", **kwargs)
 
     async def search(
         self,
@@ -125,10 +131,10 @@ class FMP(AioHttpClient):
         *,
         exchange: str | None = None,
         limit: int | None = None,
-        ticker: bool = False,
+        symbol: bool = False,
         **kw: Any,
     ) -> list[dict]:
-        path = "v3/search-ticker" if ticker else "v3/search"
+        path = "search-symbol" if symbol else "search-name"
         return await self.get_path(
             path,
             **self.params(
@@ -137,15 +143,20 @@ class FMP(AioHttpClient):
         )
 
     async def prices(
-        self, ticker: str, frequency: str = "", to_date: bool = False, **kw: Any
+        self,
+        symbol: str,
+        frequency: str = "",
+        to_date: bool = False,
+        **kw: Any,
     ) -> pd.DataFrame:
         """Historical prices, daily if frequency is not provided"""
-        base = (
-            "historical-price-full/"
+        path = (
+            "historical-price-eod/full"
             if not frequency
             else f"historical-chart/{frequency}"
         )
-        data = await self.get_path(f"v3/{base}/{ticker}", **kw)
+        kw.update(params=dict(symbol=symbol))
+        data = await self.get_path(path, **kw)
         if isinstance(data, dict):
             data = data.get("historical", [])
         df = pd.DataFrame(data)
@@ -164,25 +175,23 @@ class FMP(AioHttpClient):
         **kw: Any,
     ) -> dict | list[dict]:
         if not from_date:
-            data = await self.get_path("v3/sectors-performance", params=params, **kw)
+            data = await self.get_path("sectors-performance", params=params, **kw)
             return {d["sector"]: Decimal(d["changesPercentage"][:-1]) for d in data}
         else:
             params = params.copy() if params is not None else {}
             params.update(compact_dict({"from": from_date, "to": to_date}))
             data = await self.get_path(
-                "v3/historical-sectors-performance", params=params, **kw
+                "historical-sectors-performance", params=params, **kw
             )
             ts = [dict(nice_sector_performance(d)) for d in data]
             return summary_sector_performance(ts) if summary else ts
 
     async def sector_pe(self, **kw: Any) -> list[dict]:
-        return cast(
-            list[dict], await self.get_path("v4/sector_price_earning_ratio", **kw)
-        )
+        return cast(list[dict], await self.get_path("sector_price_earning_ratio", **kw))
 
     # forex
     async def forex_list(self) -> list[dict]:
-        return await self.get_path("v3/symbol/available-forex-currency-pairs")
+        return await self.get_path("symbol/available-forex-currency-pairs")
 
     def historical_frequencies(self) -> dict:
         return {
@@ -201,7 +210,7 @@ class FMP(AioHttpClient):
 
     # Crypto
     async def crypto_list(self) -> list[dict]:
-        return await self.get_path("v3/symbol/available-cryptocurrencies")
+        return await self.get_path("symbol/available-cryptocurrencies")
 
     # Internals
     async def get_path(self, path: str, **kw: Any) -> list[dict]:
