@@ -25,6 +25,15 @@ def stocks() -> None:
 
 
 @stocks.command()
+def indices() -> None:
+    """Search companies"""
+    ctx = QuantContext.current()
+    data = asyncio.run(get_indices(ctx))
+    df = pd.DataFrame(data)
+    ctx.qf.print(df_to_rich(df))
+
+
+@stocks.command()
 @click.argument("symbol")
 def profile(symbol: str) -> None:
     """Company profile"""
@@ -76,6 +85,11 @@ def sectors(period: str) -> None:
         "performance", ascending=False
     )
     ctx.qf.print(df_to_rich(df))
+
+
+async def get_indices(ctx: QuantContext) -> list[dict]:
+    async with ctx.fmp() as cli:
+        return await cli.indices()
 
 
 async def get_prices(ctx: QuantContext, symbol: str, frequency: str) -> pd.DataFrame:

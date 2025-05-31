@@ -22,3 +22,12 @@ def isoformat(date: str | date) -> str:
 
 def start_of_day(dt: date | None = None) -> datetime:
     return as_utc(dt).replace(hour=0, minute=0, second=0, microsecond=0)
+
+
+def as_date(dt: date | None = None) -> date:
+    if dt is None:
+        return date.today()
+    elif isinstance(dt, datetime):
+        return dt.date()
+    else:
+        return dt

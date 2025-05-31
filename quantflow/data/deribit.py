@@ -1,9 +1,12 @@
+import enum
+from dataclasses import dataclass
 from datetime import datetime, timezone
 from decimal import Decimal
 from typing import Any, cast
 
 import pandas as pd
 from dateutil.parser import parse
+from fluid.utils.data import compact_dict
 from fluid.utils.http_client import AioHttpClient, HttpResponse, HttpResponseError
 
 from quantflow.options.surface import VolSecurityType, VolSurfaceLoader
@@ -14,47 +17,79 @@ def parse_maturity(v: str) -> datetime:
     return parse(v).replace(tzinfo=timezone.utc, hour=8)
 
 
+class InstrumentKind(enum.StrEnum):
+    """Instrument kind for Deribit API."""
+
+    future = enum.auto()
+    option = enum.auto()
+    spot = enum.auto()
+    future_combo = enum.auto()
+    option_combo = enum.auto()
+
+
+@dataclass
 class Deribit(AioHttpClient):
     """Deribit API client
 
-    Fetch market and static data from `Deribit`_.
+    Fetch market and static data from `Deribit`_ API.
 
     .. _Deribit: https://docs.deribit.com/
     """
 
-    url = "https://www.deribit.com/api/v2"
+    url: str = "https://www.deribit.com/api/v2"
 
-    async def get_book_summary_by_instrument(self, **kw: Any) -> list[dict]:
-        kw.update(callback=self.to_result)
+    async def get_book_summary_by_instrument(
+        self,
+        instrument_name: str,
+        **kw: Any,
+    ) -> list[dict]:
+        """Get the book summary for a given instrument."""
+        kw.update(params=dict(instrument_name=instrument_name), callback=self.to_result)
         return cast(
             list[dict],
             await self.get_path("public/get_book_summary_by_instrument", **kw),
         )
 
-    async def get_book_summary_by_currency(self, **kw: Any) -> list[dict]:
-        kw.update(callback=self.to_result)
+    async def get_book_summary_by_currency(
+        self, currency: str, kind: InstrumentKind | None = None, **kw: Any
+    ) -> list[dict]:
+        """Get the book summary for a given currency."""
+        kw.update(
+            params=compact_dict(currency=currency, kind=kind), callback=self.to_result
+        )
         return cast(
             list[dict], await self.get_path("public/get_book_summary_by_currency", **kw)
         )
 
-    async def get_instruments(self, **kw: Any) -> list[dict]:
-        kw.update(callback=self.to_result)
+    async def get_instruments(
+        self,
+        currency: str,
+        kind: InstrumentKind | None = None,
+        expired: bool | None = None,
+        **kw: Any,
+    ) -> list[dict]:
+        """Get the list of instruments for a given currency."""
+        kw.update(
+            params=compact_dict(currency=currency, kind=kind, expired=expired),
+            callback=self.to_result,
+        )
         return cast(list[dict], await self.get_path("public/get_instruments", **kw))
 
-    async def get_volatility(self, **kw: Any) -> pd.DataFrame:
-        kw.update(callback=self.to_df)
+    async def get_volatility(self, currency: str, **kw: Any) -> pd.DataFrame:
+        """Provides information about historical volatility for given cryptocurrency"""
+        kw.update(params=dict(currency=currency), callback=self.to_df)
         return await self.get_path("public/get_historical_volatility", **kw)
 
     async def volatility_surface_loader(self, currency: str) -> VolSurfaceLoader:
         """Create a :class:`.VolSurfaceLoader` for a given crypto-currency"""
         loader = VolSurfaceLoader()
         futures = await self.get_book_summary_by_currency(
-            params=dict(currency=currency, kind="future")
+            currency=currency, kind=InstrumentKind.future
         )
         options = await self.get_book_summary_by_currency(
-            params=dict(currency=currency, kind="option")
+            currency=currency, kind=InstrumentKind.option
         )
-        instruments = await self.get_instruments(params=dict(currency=currency))
+        instruments = await self.get_instruments(currency=currency)
         instrument_map = {i["instrument_name"]: i for i in instruments}
         min_tick_size = Decimal("inf")
         for future in futures:
