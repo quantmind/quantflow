@@ -6,12 +6,7 @@ import numpy as np
 import pandas as pd
 from fluid.utils.http_client import AioHttpClient
 
-URL = (
-    "https://www.federalreserve.gov/datadownload/Output.aspx?"
-    "rel=H15&series=bf17364827e38702b42a58cf8eaa3f78&lastobs=&"
-)
-
-maturities = [
+MATURITIES = (
     "month_1",
     "month_3",
     "month_6",
@@ -23,7 +18,7 @@ maturities = [
     "year_10",
     "year_20",
     "year_30",
-]
+)
 
 
 @dataclass
@@ -52,7 +47,7 @@ class FederalReserve(AioHttpClient):
         params.update(series="bf17364827e38702b42a58cf8eaa3f78", rel="H15")
         data = await self._get_text(params)
         df = pd.read_csv(data, header=5, index_col=None, parse_dates=True)
-        df.columns = ["date"] + maturities  # type: ignore
+        df.columns = list(("date",) + MATURITIES)  # type: ignore
         df = df.set_index("date").replace("ND", np.nan)
         return df.dropna(axis=0, how="all").reset_index()
 

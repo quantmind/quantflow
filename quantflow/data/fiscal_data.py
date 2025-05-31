@@ -6,25 +6,6 @@ from fluid.utils.http_client import AioHttpClient
 
 from quantflow.utils.dates import as_date
 
-URL = (
-    "https://www.federalreserve.gov/datadownload/Output.aspx?"
-    "rel=H15&series=bf17364827e38702b42a58cf8eaa3f78&lastobs=&"
-)
-
-maturities = [
-    "month_1",
-    "month_3",
-    "month_6",
-    "year_1",
-    "year_2",
-    "year_3",
-    "year_5",
-    "year_7",
-    "year_10",
-    "year_20",
-    "year_30",
-]
-
 
 @dataclass
 class FiscalData(AioHttpClient):
