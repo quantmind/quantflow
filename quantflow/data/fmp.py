@@ -74,7 +74,7 @@ class FMP(AioHttpClient):
         if not to_date:
             to_date = date.today() + timedelta(days=7)
         params = {"from": isoformat(from_date), "to": isoformat(to_date)}
-        return await self.get_path("stock_dividend_calendar", params=params, **kw)
+        return await self.get_path("dividends-calendar", params=params, **kw)
 
     # Executives
 

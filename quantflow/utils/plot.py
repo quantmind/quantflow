@@ -40,7 +40,7 @@ def plot_marginal_pdf(
     label: str = "characteristic PDF",
     log_y: bool = False,
     fig: Any | None = None,
-    **kwargs: Any
+    **kwargs: Any,
 ) -> Any:
     """Plot the marginal pdf on an input support"""
     check_plotly()
@@ -104,7 +104,7 @@ def plot_vol_surface(
     color_series: str = "side",
     fig: Any | None = None,
     fig_params: dict | None = None,
-    **kwargs: Any
+    **kwargs: Any,
 ) -> Any:
     check_plotly()
     # Define a color map for the categorical values
@@ -144,7 +144,7 @@ def plot_vol_surface_3d(
     *,
     marker_size: int = 10,
     series: str = "implied_vol",
-    **kwargs: Any
+    **kwargs: Any,
 ) -> Any:
     check_plotly()
     return px.scatter_3d(df, x="moneyness_ttm", y="ttm", z=series, color="side")
@@ -158,7 +158,7 @@ def plot_vol_cross(
     marker_size: int = 10,
     fig: Any | None = None,
     name: str = "model",
-    **kwargs: Any
+    **kwargs: Any,
 ) -> Any:
     check_plotly()
     fig = fig or go.Figure()
@@ -188,7 +188,7 @@ def plot3d(
     z: FloatArray,
     contours: Any | None,
     colorscale: str = "viridis",
-    **kwargs: Any
+    **kwargs: Any,
 ) -> Any:
     check_plotly()
     fig = go.Figure(
