@@ -21,7 +21,7 @@ Documentation = "https://quantmind.github.io/quantflow/"
 
 [project.optional-dependencies]
 data = [
-    "aio-fluid>=1.2.1",
+    "aio-fluid[http]>=1.2.1",
 ]
 cli = [
     "asciichartpy>=1.5.25",
