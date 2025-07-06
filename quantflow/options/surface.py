@@ -860,13 +860,21 @@ class VolSurfaceLoader(GenericVolSurfaceLoader[VolSecurityType]):
             it can be spot, forward or option
         """
         if isinstance(input, SpotInput):
-            self.add_spot(VolSecurityType.spot, bid=input.bid, ask=input.ask)
+            self.add_spot(
+                VolSecurityType.spot,
+                bid=input.bid,
+                ask=input.ask,
+                open_interest=input.open_interest,
+                volume=input.volume,
+            )
         elif isinstance(input, ForwardInput):
             self.add_forward(
                 VolSecurityType.forward,
                 maturity=input.maturity,
                 bid=input.bid,
                 ask=input.ask,
+                open_interest=input.open_interest,
+                volume=input.volume,
             )
         elif isinstance(input, OptionInput):
             self.add_option(
@@ -876,6 +884,8 @@ class VolSurfaceLoader(GenericVolSurfaceLoader[VolSecurityType]):
                 maturity=input.maturity,
                 bid=input.bid,
                 ask=input.ask,
+                open_interest=input.open_interest,
+                volume=input.volume,
             )
         else:
             raise ValueError(f"Unknown input type {type(input)}")

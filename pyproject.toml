@@ -1,6 +1,6 @@
 [project]
 name = "quantflow"
-version = "0.4.0"
+version = "0.4.1"
 description = "quantitative analysis"
 authors = [{ name = "Luca Sbardella", email = "luca@quantmind.com" }]
 license = "BSD-3-Clause"
