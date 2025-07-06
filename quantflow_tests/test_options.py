@@ -9,6 +9,7 @@ from quantflow.options.calibration import HestonCalibration
 from quantflow.options.pricer import OptionPricer
 from quantflow.options.surface import (
     OptionPrice,
+    OptionType,
     VolSurface,
     VolSurfaceInputs,
     surface_from_inputs,
@@ -96,7 +97,7 @@ def test_call_put_parity():
     option = OptionPrice.create(100).calculate_price()
     assert option.moneyness == 0
     assert option.price == option.call_price
-    option2 = OptionPrice.create(100, call=False).calculate_price()
+    option2 = OptionPrice.create(100, option_type=OptionType.put).calculate_price()
     assert option2.price == option2.put_price
     assert option2.price == option.put_price
     assert option2.call_price == option.price
@@ -106,7 +107,9 @@ def test_call_put_parity_otm():
     option = OptionPrice.create(105, forward=100).calculate_price()
     assert option.moneyness > 0
     assert option.price == option.call_price
-    option2 = OptionPrice.create(105, forward=100, call=False).calculate_price()
+    option2 = OptionPrice.create(
+        105, forward=100, option_type=OptionType.put
+    ).calculate_price()
     assert option2.price == option2.put_price
     assert option2.price == pytest.approx(option.put_price)
     assert option2.call_price == pytest.approx(option.price)

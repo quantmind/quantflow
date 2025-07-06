@@ -10,17 +10,19 @@ from typing import Any, Generic, Iterator, NamedTuple, Protocol, Self, TypeVar
 import numpy as np
 import pandas as pd
 from ccy.core.daycounter import ActAct, DayCounter
+from pydantic import BaseModel
 
 from quantflow.utils import plot
 from quantflow.utils.dates import utcnow
 from quantflow.utils.interest_rates import rate_from_spot_and_forward
-from quantflow.utils.numbers import Number, sigfig, to_decimal
+from quantflow.utils.numbers import ZERO, Number, sigfig, to_decimal
 
 from .bs import black_price, implied_black_volatility
 from .inputs import (
     ForwardInput,
     OptionInput,
-    OptionSidesInput,
+    OptionType,
+    Side,
     SpotInput,
     VolSecurityType,
     VolSurfaceInput,
@@ -28,7 +30,6 @@ from .inputs import (
 )
 
 INITIAL_VOL = 0.5
-ZERO = Decimal("0")
 default_day_counter = ActAct()
 
 
@@ -70,44 +71,59 @@ class Price(Generic[S]):
 
 @dataclass
 class SpotPrice(Price[S]):
-    open_interest: int = 0
-    volume: int = 0
+    open_interest: Decimal = ZERO
+    volume: Decimal = ZERO
 
     def inputs(self) -> SpotInput:
-        return SpotInput(bid=self.bid, ask=self.ask)
+        return SpotInput(
+            bid=self.bid,
+            ask=self.ask,
+            open_interest=self.open_interest,
+            volume=self.volume,
+        )
 
 
 @dataclass
 class FwdPrice(Price[S]):
     maturity: datetime
-    open_interest: int = 0
-    volume: int = 0
+    open_interest: Decimal = ZERO
+    volume: Decimal = ZERO
 
     def inputs(self) -> ForwardInput:
         return ForwardInput(
             bid=self.bid,
             ask=self.ask,
             maturity=self.maturity,
+            open_interest=self.open_interest,
+            volume=self.volume,
         )
 
 
-@dataclass
-class OptionPrice:
-    price: Decimal
-    """Price of the option divided by the forward price"""
+class OptionMetadata(BaseModel):
     strike: Decimal
     """Strike price"""
-    call: bool
-    """True if call, False if put"""
+    option_type: OptionType
+    """Type of the option"""
     maturity: datetime
     """Maturity date"""
     forward: Decimal = ZERO
     """Forward price of the underlying"""
-    implied_vol: float = 0
-    """Implied Black volatility"""
     ttm: float = 0
     """Time to maturity in years"""
-    side: str = "bid"
+    open_interest: Decimal = ZERO
+    """Open interest of the option"""
+    volume: Decimal = ZERO
+    """Volume of the option in USD"""
+
+
+class OptionPrice(BaseModel):
+    price: Decimal
+    """Price of the option divided by the forward price"""
+    meta: OptionMetadata
+    """Metadata of the option price"""
+    implied_vol: float = 0
+    """Implied Black volatility"""
+    side: Side = Side.bid
     """Side of the market"""
     converged: bool = True
     """Flag indicating if implied vol calculation converged"""
@@ -123,7 +139,9 @@ class OptionPrice:
         ref_date: datetime | None = None,
         maturity: datetime | None = None,
         day_counter: DayCounter | None = None,
-        call: bool = True,
+        option_type: OptionType = OptionType.call,
+        open_interest: Number = ZERO,
+        volume: Number = ZERO,
     ) -> OptionPrice:
         """Create an option price
 
@@ -134,13 +152,45 @@ class OptionPrice:
         day_counter = day_counter or default_day_counter
         return cls(
             price=to_decimal(price),
-            strike=to_decimal(strike),
-            forward=to_decimal(forward or strike),
             implied_vol=implied_vol,
-            call=call,
-            maturity=maturity,
-            ttm=day_counter.dcf(ref_date, maturity),
+            meta=OptionMetadata(
+                strike=to_decimal(strike),
+                forward=to_decimal(forward or strike),
+                option_type=option_type,
+                maturity=maturity,
+                ttm=day_counter.dcf(ref_date, maturity),
+                open_interest=to_decimal(open_interest),
+                volume=to_decimal(volume),
+            ),
         )
+
+    @property
+    def strike(self) -> Decimal:
+        return self.meta.strike
+
+    @property
+    def forward(self) -> Decimal:
+        return self.meta.forward
+
+    @property
+    def maturity(self) -> datetime:
+        return self.meta.maturity
+
+    @property
+    def ttm(self) -> float:
+        return self.meta.ttm
+
+    @property
+    def option_type(self) -> OptionType:
+        return self.meta.option_type
+
+    @property
+    def open_interest(self) -> Decimal:
+        return self.meta.open_interest
+
+    @property
+    def volume(self) -> Decimal:
+        return self.meta.volume
 
     @property
     def moneyness(self) -> float:
@@ -156,7 +206,7 @@ class OptionPrice:
 
     @property
     def price_intrinsic(self) -> Decimal:
-        if self.call:
+        if self.option_type.is_call():
             return max(self.forward - self.strike, ZERO) / self.forward
         else:
             return max(self.strike - self.forward, ZERO) / self.forward
@@ -171,7 +221,7 @@ class OptionPrice:
 
         use put-call parity to calculate the call price if a put
         """
-        if self.call:
+        if self.option_type.is_call():
             return self.price
         else:
             return self.price + 1 - self.strike / self.forward
@@ -182,14 +232,10 @@ class OptionPrice:
 
         use put-call parity to calculate the put price if a call
         """
-        if self.call:
+        if self.option_type.is_call():
             return self.price - 1 + self.strike / self.forward
         else:
             return self.price
-
-    @property
-    def option_type(self) -> str:
-        return "call" if self.call else "put"
 
     def can_price(self, converged: bool, select: OptionSelection) -> bool:
         if self.price_time > ZERO and not np.isnan(self.implied_vol):
@@ -200,14 +246,6 @@ class OptionPrice:
             return True
         return False
 
-    def inputs(self) -> OptionInput:
-        return OptionInput(
-            strike=self.strike,
-            price=self.price,
-            maturity=self.maturity,
-            call=self.call,
-        )
-
     def calculate_price(self) -> OptionPrice:
         self.price = Decimal(
             sigfig(
@@ -215,7 +253,7 @@ class OptionPrice:
                     np.asarray(self.moneyness),
                     self.implied_vol,
                     self.ttm,
-                    1 if self.call else -1,
+                    1 if self.option_type.is_call() else -1,
                 ).sum(),
                 8,
             )
@@ -233,8 +271,10 @@ class OptionPrice:
             price=float(self.price),
             price_bp=float(self.price_bp),
             forward_price=float(self.forward_price),
-            type=self.option_type,
-            side=self.side,
+            type=str(self.option_type),
+            side=str(self.side),
+            open_interest=float(self.open_interest),
+            volume=float(self.volume),
         )
 
 
@@ -250,10 +290,9 @@ class OptionArrays(NamedTuple):
 @dataclass
 class OptionPrices(Generic[S]):
     security: S
+    meta: OptionMetadata
     bid: OptionPrice
     ask: OptionPrice
-    open_interest: int = 0
-    volume: int = 0
 
     def prices(
         self,
@@ -264,18 +303,32 @@ class OptionPrices(Generic[S]):
         initial_vol: float = INITIAL_VOL,
         converged: bool = True,
     ) -> Iterator[OptionPrice]:
+        """Iterator over bid/ask option prices
+
+        :param forward: Forward price of the underlying asset
+        :param ttm: Time to maturity in years
+        :param select: the :class:`.OptionSelection` method
+        :param initial_vol: Initial volatility for the root finding algorithm
+        """
+        self.meta.forward = forward
+        self.meta.ttm = ttm
         for o in (self.bid, self.ask):
-            o.forward = forward
-            o.ttm = ttm
+            o.meta.forward = forward
+            o.meta.ttm = ttm
             if not o.implied_vol:
                 o.implied_vol = initial_vol
             if o.can_price(converged, select):
                 yield o
 
-    def inputs(self) -> OptionSidesInput:
-        return OptionSidesInput(
-            bid=self.bid.inputs(),
-            ask=self.ask.inputs(),
+    def inputs(self) -> OptionInput:
+        return OptionInput(
+            bid=self.bid.price,
+            ask=self.ask.price,
+            open_interest=self.meta.open_interest,
+            volume=self.meta.volume,
+            strike=self.meta.strike,
+            maturity=self.meta.maturity,
+            option_type=self.meta.option_type,
         )
 
 
@@ -402,6 +455,8 @@ class VolSurface(Generic[S]):
 
     ref_date: datetime
     """Reference date for the volatility surface"""
+    asset: str
+    """Name of the underlying asset"""
     spot: SpotPrice[S]
     """Spot price of the underlying asset"""
     maturities: tuple[VolCrossSection[S], ...]
@@ -421,7 +476,9 @@ class VolSurface(Generic[S]):
 
     def inputs(self) -> VolSurfaceInputs:
         return VolSurfaceInputs(
-            ref_date=self.ref_date, inputs=list(s.inputs() for s in self.securities())
+            asset=self.asset,
+            ref_date=self.ref_date,
+            inputs=list(s.inputs() for s in self.securities()),
         )
 
     def term_structure(self, frequency: float = 0) -> pd.DataFrame:
@@ -442,7 +499,12 @@ class VolSurface(Generic[S]):
         initial_vol: float = INITIAL_VOL,
         converged: bool = True,
     ) -> Iterator[OptionPrice]:
-        "Iterator over selected option prices in the surface"
+        """Iterator over selected option prices in the surface
+
+        :param select: the :class:`.OptionSelection` method
+        :param index: Index of the cross section to use, if None use all
+        :param initial_vol: Initial volatility for the root finding algorithm
+        """
         if index is not None:
             yield from self.maturities[index].option_prices(
                 self.ref_date,
@@ -543,7 +605,12 @@ class VolSurface(Generic[S]):
         initial_vol: float = INITIAL_VOL,
         converged: bool = True,
     ) -> OptionArrays:
-        """Organize option prices in a numpy arrays for black volatility calculation"""
+        """Organize option prices in a numpy arrays for black volatility calculation
+
+        :param select: the :class:`.OptionSelection` method
+        :param index: Index of the cross section to use, if None use all
+        :param initial_vol: Initial volatility for the root finding algorithm
+        """
         options = list(
             self.option_prices(
                 select=select,
@@ -562,7 +629,7 @@ class VolSurface(Generic[S]):
             price.append(float(option.price))
             ttm.append(float(option.ttm))
             vol.append(float(option.implied_vol))
-            call_put.append(1 if option.call else -1)
+            call_put.append(1 if option.option_type.is_call() else -1)
         return OptionArrays(
             options=options,
             moneyness=np.array(moneyness),
@@ -616,35 +683,29 @@ class VolCrossSectionLoader(Generic[S]):
     def add_option(
         self,
         strike: Decimal,
-        call: bool,
+        option_type: OptionType,
         security: S,
         bid: Decimal = ZERO,
         ask: Decimal = ZERO,
-        open_interest: int = 0,
-        volume: int = 0,
+        open_interest: Decimal = ZERO,
+        volume: Decimal = ZERO,
     ) -> None:
         if strike not in self.strikes:
             self.strikes[strike] = Strike(strike=strike)
-        option = OptionPrices(
-            security,
-            bid=OptionPrice(
-                price=bid,
-                strike=strike,
-                call=call,
-                maturity=self.maturity,
-                side="bid",
-            ),
-            ask=OptionPrice(
-                price=ask,
-                strike=strike,
-                call=call,
-                maturity=self.maturity,
-                side="ask",
-            ),
+        meta = OptionMetadata(
+            strike=strike,
+            option_type=option_type,
+            maturity=self.maturity,
             open_interest=open_interest,
             volume=volume,
         )
-        if call:
+        option = OptionPrices(
+            security=security,
+            meta=meta,
+            bid=OptionPrice(price=bid, meta=meta, side=Side.bid),
+            ask=OptionPrice(price=ask, meta=meta, side=Side.ask),
+        )
+        if option_type.is_call():
             self.strikes[strike].call = option
         else:
             self.strikes[strike].put = option
@@ -674,6 +735,8 @@ class VolCrossSectionLoader(Generic[S]):
 class GenericVolSurfaceLoader(Generic[S]):
     """Helper class to build a volatility surface from a list of securities"""
 
+    asset: str = ""
+    """Name of the underlying asset"""
     spot: SpotPrice[S] | None = None
     """Spot price of the underlying asset"""
     maturities: dict[datetime, VolCrossSectionLoader[S]] = field(default_factory=dict)
@@ -684,6 +747,10 @@ class GenericVolSurfaceLoader(Generic[S]):
     """Tick size for rounding forward and spot prices - optional"""
     tick_size_options: Decimal | None = None
     """Tick size for rounding option prices - optional"""
+    exclude_open_interest: Decimal | None = None
+    """Exclude options with open interest at or below this value"""
+    exclude_volume: Decimal | None = None
+    """Exclude options with volume at or below this value"""
 
     def get_or_create_maturity(self, maturity: datetime) -> VolCrossSectionLoader[S]:
         if maturity not in self.maturities:
@@ -698,8 +765,8 @@ class GenericVolSurfaceLoader(Generic[S]):
         security: S,
         bid: Decimal = ZERO,
         ask: Decimal = ZERO,
-        open_interest: int = 0,
-        volume: int = 0,
+        open_interest: Decimal = ZERO,
+        volume: Decimal = ZERO,
     ) -> None:
         """Add a spot to the volatility surface loader"""
         if security.vol_surface_type() != VolSecurityType.spot:
@@ -718,8 +785,8 @@ class GenericVolSurfaceLoader(Generic[S]):
         maturity: datetime,
         bid: Decimal = ZERO,
         ask: Decimal = ZERO,
-        open_interest: int = 0,
-        volume: int = 0,
+        open_interest: Decimal = ZERO,
+        volume: Decimal = ZERO,
     ) -> None:
         """Add a forward to the volatility surface loader"""
         if security.vol_surface_type() != VolSecurityType.forward:
@@ -738,19 +805,26 @@ class GenericVolSurfaceLoader(Generic[S]):
         security: S,
         strike: Decimal,
         maturity: datetime,
-        call: bool,
+        option_type: OptionType,
         bid: Decimal = ZERO,
         ask: Decimal = ZERO,
-        open_interest: int = 0,
-        volume: int = 0,
+        open_interest: Decimal = ZERO,
+        volume: Decimal = ZERO,
     ) -> None:
         """Add an option to the volatility surface loader"""
         if security.vol_surface_type() != VolSecurityType.option:
             raise ValueError("Security is not an option")
+        if self.exclude_volume is not None and volume <= self.exclude_volume:
+            return
+        if (
+            self.exclude_open_interest is not None
+            and open_interest <= self.exclude_open_interest
+        ):
+            return
         self.get_or_create_maturity(maturity=maturity).add_option(
-            strike,
-            call,
-            security,
+            strike=strike,
+            option_type=option_type,
+            security=security,
             bid=bid,
             ask=ask,
             open_interest=open_interest,
@@ -766,6 +840,7 @@ class GenericVolSurfaceLoader(Generic[S]):
             if section := self.maturities[maturity].cross_section():
                 maturities.append(section)
         return VolSurface(
+            asset=self.asset,
             ref_date=ref_date or utcnow(),
             spot=self.spot,
             maturities=tuple(maturities),
@@ -776,7 +851,9 @@ class GenericVolSurfaceLoader(Generic[S]):
 
 
 class VolSurfaceLoader(GenericVolSurfaceLoader[VolSecurityType]):
-    def add(self, input: VolSurfaceInput[Any]) -> None:
+    """A volatility surface loader"""
+
+    def add(self, input: VolSurfaceInput) -> None:
         """Add a volatility security input to the loader
 
         :params input: The input data for the security,
@@ -791,14 +868,14 @@ class VolSurfaceLoader(GenericVolSurfaceLoader[VolSecurityType]):
                 bid=input.bid,
                 ask=input.ask,
             )
-        elif isinstance(input, OptionSidesInput):
+        elif isinstance(input, OptionInput):
             self.add_option(
                 VolSecurityType.option,
-                strike=assert_same(input.bid.strike, input.ask.strike),
-                call=assert_same(input.bid.call, input.ask.call),
-                maturity=assert_same(input.bid.maturity, input.ask.maturity),
-                bid=input.bid.price,
-                ask=input.ask.price,
+                strike=input.strike,
+                option_type=input.option_type,
+                maturity=input.maturity,
+                bid=input.bid,
+                ask=input.ask,
             )
         else:
             raise ValueError(f"Unknown input type {type(input)}")

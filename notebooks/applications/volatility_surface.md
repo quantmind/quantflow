@@ -4,11 +4,11 @@ jupytext:
     extension: .md
     format_name: myst
     format_version: 0.13
-    jupytext_version: 1.16.6
+    jupytext_version: 1.17.2
 kernelspec:
-  display_name: .venv
-  language: python
   name: python3
+  display_name: Python 3 (ipykernel)
+  language: python
 ---
 
 # Volatility Surface
@@ -21,7 +21,7 @@ First thing, fetch the data
 from quantflow.data.deribit import Deribit
 
 async with Deribit() as cli:
-    loader = await cli.volatility_surface_loader("eth")
+    loader = await cli.volatility_surface_loader("eth", exclude_open_interest=0)
 ```
 
 Once we have loaded the data, we create the surface and display the term-structure of forwards
@@ -125,16 +125,20 @@ Serialization
 It is possible to save the vol surface into a json file so it can be recreated for testing or for serialization/deserialization.
 
 ```{code-cell} ipython3
-with open("../tests/volsurface.json", "w") as fp:
-    fp.write(vs.inputs().model_dump_json())
+with open("../../quantflow_tests/volsurface.json", "w") as fp:
+    fp.write(vs.inputs().model_dump_json(indent=2))
 ```
 
 ```{code-cell} ipython3
 from quantflow.options.surface import VolSurfaceInputs, surface_from_inputs
 import json
 
-with  open("../tests/volsurface.json", "r") as fp:
+with  open("../../quantflow_tests/volsurface.json", "r") as fp:
     inputs = VolSurfaceInputs(**json.load(fp))
 
 vs2 = surface_from_inputs(inputs)
+```
+
+```{code-cell} ipython3
+
 ```

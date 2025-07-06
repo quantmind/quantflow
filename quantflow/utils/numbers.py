@@ -18,6 +18,11 @@ def to_decimal(value: Number) -> Decimal:
     return Decimal(str(value)) if not isinstance(value, Decimal) else value
 
 
+def to_decimal_or_none(value: Number | None) -> Decimal | None:
+    """Convert a value to Decimal, or return None if the value is None."""
+    return to_decimal(value) if value is not None else None
+
+
 def sigfig(value: Number, sig: int = 5) -> str:
     """round a number to the given significant digit"""
     return f"%.{sig}g" % to_decimal(value)

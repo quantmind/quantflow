@@ -9,8 +9,14 @@ from dateutil.parser import parse
 from fluid.utils.data import compact_dict
 from fluid.utils.http_client import AioHttpClient, HttpResponse, HttpResponseError
 
+from quantflow.options.inputs import OptionType
 from quantflow.options.surface import VolSecurityType, VolSurfaceLoader
-from quantflow.utils.numbers import round_to_step, to_decimal
+from quantflow.utils.numbers import (
+    Number,
+    round_to_step,
+    to_decimal,
+    to_decimal_or_none,
+)
 
 
 def parse_maturity(v: str) -> datetime:
@@ -80,9 +86,19 @@ class Deribit(AioHttpClient):
         kw.update(params=dict(currency=currency), callback=self.to_df)
         return await self.get_path("public/get_historical_volatility", **kw)
 
-    async def volatility_surface_loader(self, currency: str) -> VolSurfaceLoader:
+    async def volatility_surface_loader(
+        self,
+        currency: str,
+        *,
+        exclude_open_interest: Number | None = None,
+        exclude_volume: Number | None = None,
+    ) -> VolSurfaceLoader:
         """Create a :class:`.VolSurfaceLoader` for a given crypto-currency"""
-        loader = VolSurfaceLoader()
+        loader = VolSurfaceLoader(
+            asset=currency,
+            exclude_open_interest=to_decimal_or_none(exclude_open_interest),
+            exclude_volume=to_decimal_or_none(exclude_volume),
+        )
         futures = await self.get_book_summary_by_currency(
             currency=currency, kind=InstrumentKind.future
         )
@@ -92,9 +108,9 @@ class Deribit(AioHttpClient):
         instruments = await self.get_instruments(currency=currency)
         instrument_map = {i["instrument_name"]: i for i in instruments}
         min_tick_size = Decimal("inf")
-        for future in futures:
-            if (bid_ := future["bid_price"]) and (ask_ := future["ask_price"]):
-                name = future["instrument_name"]
+        for entry in futures:
+            if (bid_ := entry["bid_price"]) and (ask_ := entry["ask_price"]):
+                name = entry["instrument_name"]
                 meta = instrument_map[name]
                 tick_size = to_decimal(meta["tick_size"])
                 min_tick_size = min(min_tick_size, tick_size)
@@ -105,8 +121,8 @@ class Deribit(AioHttpClient):
                         VolSecurityType.spot,
                         bid=bid,
                         ask=ask,
-                        open_interest=int(future["open_interest"]),
-                        volume=int(future["volume_usd"]),
+                        open_interest=to_decimal(entry["open_interest"]),
+                        volume=to_decimal(entry["volume_usd"]),
                     )
                 else:
                     maturity = pd.to_datetime(
@@ -119,15 +135,15 @@ class Deribit(AioHttpClient):
                         maturity=maturity,
                         bid=bid,
                         ask=ask,
-                        open_interest=int(future["open_interest"]),
-                        volume=int(future["volume_usd"]),
+                        open_interest=to_decimal(entry["open_interest"]),
+                        volume=to_decimal(entry["volume_usd"]),
                     )
         loader.tick_size_forwards = min_tick_size
 
         min_tick_size = Decimal("inf")
-        for option in options:
-            if (bid_ := option["bid_price"]) and (ask_ := option["ask_price"]):
-                name = option["instrument_name"]
+        for entry in options:
+            if (bid_ := entry["bid_price"]) and (ask_ := entry["ask_price"]):
+                name = entry["instrument_name"]
                 meta = instrument_map[name]
                 tick_size = to_decimal(meta["tick_size"])
                 min_tick_size = min(min_tick_size, tick_size)
@@ -139,9 +155,15 @@ class Deribit(AioHttpClient):
                         unit="ms",
                         utc=True,
                     ).to_pydatetime(),
-                    call=meta["option_type"] == "call",
+                    option_type=(
+                        OptionType.call
+                        if meta["option_type"] == "call"
+                        else OptionType.put
+                    ),
                     bid=round_to_step(bid_, tick_size),
                     ask=round_to_step(ask_, tick_size),
+                    open_interest=to_decimal(entry["open_interest"]),
+                    volume=to_decimal(entry["volume_usd"]),
                 )
         loader.tick_size_options = min_tick_size
         return loader
