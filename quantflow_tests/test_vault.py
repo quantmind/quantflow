@@ -1,5 +1,5 @@
-from pathlib import Path
 import tempfile
+from pathlib import Path
 
 import pytest
 
@@ -27,7 +27,7 @@ def test_vault(vault: Vault) -> None:
     assert vault.keys() == ["hello"]
 
     vault.add("foo", "bar")
-    assert vault.keys() == [ "foo", "hello"]
+    assert vault.keys() == ["foo", "hello"]
     assert vault.delete("foo")
     assert vault.keys() == ["hello"]
     assert not vault.delete("foo")
