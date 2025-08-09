@@ -1,0 +1,1584 @@
+
+<!DOCTYPE html>
+
+
+<html lang="en" data-content_root="./" >
+
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Index &#8212; Quantflow library</title>
+  
+  
+  
+  <script data-cfasync="false">
+    document.documentElement.dataset.mode = localStorage.getItem("mode") || "";
+    document.documentElement.dataset.theme = localStorage.getItem("theme") || "";
+  </script>
+  
+  <!-- Loaded before other Sphinx assets -->
+  <link href="_static/styles/theme.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+<link href="_static/styles/bootstrap.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+<link href="_static/styles/pydata-sphinx-theme.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+
+  
+  <link href="_static/vendor/fontawesome/6.5.2/css/all.min.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+  <link rel="preload" as="font" type="font/woff2" crossorigin href="_static/vendor/fontawesome/6.5.2/webfonts/fa-solid-900.woff2" />
+<link rel="preload" as="font" type="font/woff2" crossorigin href="_static/vendor/fontawesome/6.5.2/webfonts/fa-brands-400.woff2" />
+<link rel="preload" as="font" type="font/woff2" crossorigin href="_static/vendor/fontawesome/6.5.2/webfonts/fa-regular-400.woff2" />
+
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=03e43079" />
+    <link rel="stylesheet" type="text/css" href="_static/styles/sphinx-book-theme.css?v=eba8b062" />
+    <link rel="stylesheet" type="text/css" href="_static/togglebutton.css?v=13237357" />
+    <link rel="stylesheet" type="text/css" href="_static/copybutton.css?v=76b2166b" />
+    <link rel="stylesheet" type="text/css" href="_static/mystnb.8ecb98da25f57f5357bf6f572d296f466b2cfe2517ffebfabe82451661e28f02.css" />
+    <link rel="stylesheet" type="text/css" href="_static/sphinx-thebe.css?v=4fa983c6" />
+    <link rel="stylesheet" type="text/css" href="_static/sphinx-design.min.css?v=95c83b7e" />
+  
+  <!-- Pre-loaded scripts that we'll load fully later -->
+  <link rel="preload" as="script" href="_static/scripts/bootstrap.js?digest=dfe6caa3a7d634c4db9b" />
+<link rel="preload" as="script" href="_static/scripts/pydata-sphinx-theme.js?digest=dfe6caa3a7d634c4db9b" />
+  <script src="_static/vendor/fontawesome/6.5.2/js/all.min.js?digest=dfe6caa3a7d634c4db9b"></script>
+
+    <script src="_static/documentation_options.js?v=9eb32ce0"></script>
+    <script src="_static/doctools.js?v=9a2dae69"></script>
+    <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="_static/clipboard.min.js?v=a7894cd8"></script>
+    <script src="_static/copybutton.js?v=f281be69"></script>
+    <script src="_static/scripts/sphinx-book-theme.js?v=887ef09a"></script>
+    <script>let toggleHintShow = 'Click to show';</script>
+    <script>let toggleHintHide = 'Click to hide';</script>
+    <script>let toggleOpenOnPrint = 'true';</script>
+    <script src="_static/togglebutton.js?v=4a39c7ea"></script>
+    <script>var togglebuttonSelector = '.toggle, .admonition.dropdown';</script>
+    <script src="_static/design-tabs.js?v=f930bc37"></script>
+    <script async="async" src="https://www.googletagmanager.com/gtag/js?id=G-CM0DR45HDR"></script>
+    <script>
+                window.dataLayer = window.dataLayer || [];
+                function gtag(){ dataLayer.push(arguments); }
+                gtag('js', new Date());
+                gtag('config', 'G-CM0DR45HDR');
+            </script>
+    <script>const THEBE_JS_URL = "https://unpkg.com/thebe@0.8.2/lib/index.js"; const thebe_selector = ".thebe,.cell"; const thebe_selector_input = "pre"; const thebe_selector_output = ".output, .cell_output"</script>
+    <script async="async" src="_static/sphinx-thebe.js?v=c100c467"></script>
+    <script>var togglebuttonSelector = '.toggle, .admonition.dropdown';</script>
+    <script>
+                window.dataLayer = window.dataLayer || [];
+                function gtag(){ dataLayer.push(arguments); }
+                gtag('js', new Date());
+                gtag('config', 'G-CM0DR45HDR');
+            </script>
+    <script>const THEBE_JS_URL = "https://unpkg.com/thebe@0.8.2/lib/index.js"; const thebe_selector = ".thebe,.cell"; const thebe_selector_input = "pre"; const thebe_selector_output = ".output, .cell_output"</script>
+    <script>DOCUMENTATION_OPTIONS.pagename = 'genindex';</script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+    <link rel="icon" href="_static/quantflow-logo.png"/>
+    <link rel="index" title="Index" href="#" />
+    <link rel="search" title="Search" href="search.html" />
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <meta name="docsearch:language" content="en"/>
+  </head>
+  
+  
+  <body data-bs-spy="scroll" data-bs-target=".bd-toc-nav" data-offset="180" data-bs-root-margin="0px 0px -60%" data-default-mode="">
+
+  
+  
+  <div id="pst-skip-link" class="skip-link d-print-none"><a href="#main-content">Skip to main content</a></div>
+  
+  <div id="pst-scroll-pixel-helper"></div>
+  
+  <button type="button" class="btn rounded-pill" id="pst-back-to-top">
+    <i class="fa-solid fa-arrow-up"></i>Back to top</button>
+
+  
+  <input type="checkbox"
+          class="sidebar-toggle"
+          id="pst-primary-sidebar-checkbox"/>
+  <label class="overlay overlay-primary" for="pst-primary-sidebar-checkbox"></label>
+  
+  <input type="checkbox"
+          class="sidebar-toggle"
+          id="pst-secondary-sidebar-checkbox"/>
+  <label class="overlay overlay-secondary" for="pst-secondary-sidebar-checkbox"></label>
+  
+  <div class="search-button__wrapper">
+    <div class="search-button__overlay"></div>
+    <div class="search-button__search-container">
+<form class="bd-search d-flex align-items-center"
+      action="search.html"
+      method="get">
+  <i class="fa-solid fa-magnifying-glass"></i>
+  <input type="search"
+         class="form-control"
+         name="q"
+         id="search-input"
+         placeholder="Search this book..."
+         aria-label="Search this book..."
+         autocomplete="off"
+         autocorrect="off"
+         autocapitalize="off"
+         spellcheck="false"/>
+  <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd>K</kbd></span>
+</form></div>
+  </div>
+
+  <div class="pst-async-banner-revealer d-none">
+  <aside id="bd-header-version-warning" class="d-none d-print-none" aria-label="Version warning"></aside>
+</div>
+
+  
+    <header class="bd-header navbar navbar-expand-lg bd-navbar d-print-none">
+    </header>
+  
+
+  <div class="bd-container">
+    <div class="bd-container__inner bd-page-width">
+      
+      
+      
+        
+      
+      <div class="bd-sidebar-primary bd-sidebar">
+        
+
+  
+  <div class="sidebar-header-items sidebar-primary__section">
+    
+    
+    
+    
+  </div>
+  
+    <div class="sidebar-primary-items__start sidebar-primary__section">
+        <div class="sidebar-primary-item">
+
+  
+    
+  
+
+<a class="navbar-brand logo" href="index.html">
+  
+  
+  
+  
+  
+    
+    
+      
+    
+    
+    <img src="_static/quantflow-light.svg" class="logo__image only-light" alt="Quantflow library - Home"/>
+    <script>document.write(`<img src="_static/quantflow-light.svg" class="logo__image only-dark" alt="Quantflow library - Home"/>`);</script>
+  
+  
+</a></div>
+        <div class="sidebar-primary-item">
+
+ <script>
+ document.write(`
+   <button class="btn search-button-field search-button__button" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="fa-solid fa-magnifying-glass"></i>
+    <span class="search-button__default-text">Search</span>
+    <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+   </button>
+ `);
+ </script></div>
+        <div class="sidebar-primary-item"><nav class="bd-links bd-docs-nav" aria-label="Main">
+    <div class="bd-toc-item navbar-nav active">
+        <p aria-level="2" class="caption" role="heading"><span class="caption-text">Topic Guides</span></p>
+<ul class="nav bd-sidenav">
+<li class="toctree-l1 has-children"><a class="reference internal" href="theory/overview.html">Theory</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="theory/levy.html">Lévy process</a></li>
+<li class="toctree-l2"><a class="reference internal" href="theory/characteristic.html">Characteristic Function</a></li>
+<li class="toctree-l2"><a class="reference internal" href="theory/inversion.html">From Characteristic Function to PDF</a></li>
+<li class="toctree-l2"><a class="reference internal" href="theory/option_pricing.html">Option Pricing</a></li>
+</ul>
+</details></li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="models/overview.html">Stochastic Processes</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="models/weiner.html">Weiner Process</a></li>
+<li class="toctree-l2"><a class="reference internal" href="models/poisson.html">Poisson Processes</a></li>
+<li class="toctree-l2"><a class="reference internal" href="models/jump_diffusion.html">Jump Diffusion Models</a></li>
+<li class="toctree-l2"><a class="reference internal" href="models/cir.html">CIR process</a></li>
+<li class="toctree-l2"><a class="reference internal" href="models/ou.html">OU Process</a></li>
+<li class="toctree-l2"><a class="reference internal" href="models/heston.html">Heston Model and Option Pricing</a></li>
+<li class="toctree-l2"><a class="reference internal" href="models/heston_jumps.html">Heston Model with Jumps</a></li>
+<li class="toctree-l2"><a class="reference internal" href="models/bns.html">BNS Model</a></li>
+</ul>
+</details></li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="applications/overview.html">Applications</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="applications/volatility_surface.html">Volatility Surface</a></li>
+<li class="toctree-l2"><a class="reference internal" href="applications/hurst.html">Hurst Exponent</a></li>
+<li class="toctree-l2"><a class="reference internal" href="applications/calibration.html">Calibration</a></li>
+</ul>
+</details></li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="examples/overview.html">Examples</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="examples/gaussian_sampling.html">Gaussian Sampling</a></li>
+<li class="toctree-l2"><a class="reference internal" href="examples/exponential_sampling.html">Exponential Sampling</a></li>
+<li class="toctree-l2"><a class="reference internal" href="examples/poisson_sampling.html">Poisson Sampling</a></li>
+<li class="toctree-l2"><a class="reference internal" href="examples/heston_vol_surface.html">HestonJ Volatility Surface</a></li>
+</ul>
+</details></li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="api/index.html">API Reference</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2 has-children"><a class="reference internal" href="api/sp/index.html">Stochastic Process</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l3"><a class="reference internal" href="api/sp/weiner.html">Weiner process</a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/sp/poisson.html">Poisson process</a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/sp/compound_poisson.html">Compound Poisson</a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/sp/ou.html">OU Processes</a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/sp/cir.html">CIR</a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/sp/jump_diffusion.html">Jump diffusions</a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/sp/heston.html">Heston process</a></li>
+</ul>
+</details></li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="api/options/index.html">Option Pricing</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l3"><a class="reference internal" href="api/options/vol_surface.html">Vol Surface</a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/options/black.html">Black Pricing</a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/options/pricer.html">Option Pricer</a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/options/calibration.html">Vol Model Calibration</a></li>
+</ul>
+</details></li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="api/ta/index.html">Timeseries Analysis</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l3"><a class="reference internal" href="api/ta/ohlc.html">OHLC</a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/ta/paths.html">Paths</a></li>
+</ul>
+</details></li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="api/data/index.html">Data fetching</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l3"><a class="reference internal" href="api/data/fmp.html">FMP</a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/data/fed.html">Federal Reserve</a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/data/fred.html">Fred</a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/data/deribit.html">Deribit</a></li>
+</ul>
+</details></li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="api/utils/index.html">Utils</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l3"><a class="reference internal" href="api/utils/marginal1d.html">Marginal1D</a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/utils/distributions.html">Distributions</a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/utils/bins.html">Bins</a></li>
+</ul>
+</details></li>
+</ul>
+</details></li>
+</ul>
+<p aria-level="2" class="caption" role="heading"><span class="caption-text">Reference</span></p>
+<ul class="nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="reference/contributing.html">Contributing</a></li>
+<li class="toctree-l1"><a class="reference internal" href="reference/glossary.html">Glossary</a></li>
+<li class="toctree-l1"><a class="reference internal" href="reference/biblio.html">Bibliography</a></li>
+</ul>
+
+    </div>
+</nav></div>
+    </div>
+  
+  
+  <div class="sidebar-primary-items__end sidebar-primary__section">
+  </div>
+  
+  <div id="rtd-footer-container"></div>
+
+
+      </div>
+      
+      <main id="main-content" class="bd-main" role="main">
+        
+        
+
+<div class="sbt-scroll-pixel-helper"></div>
+
+          <div class="bd-content">
+            <div class="bd-article-container">
+              
+              <div class="bd-header-article d-print-none">
+<div class="header-article-items header-article__inner">
+  
+    <div class="header-article-items__start">
+      
+        <div class="header-article-item"><button class="sidebar-toggle primary-toggle btn btn-sm" title="Toggle primary sidebar" data-bs-placement="bottom" data-bs-toggle="tooltip">
+  <span class="fa-solid fa-bars"></span>
+</button></div>
+      
+    </div>
+  
+  
+    <div class="header-article-items__end">
+      
+        <div class="header-article-item">
+
+<div class="article-header-buttons">
+
+
+
+
+
+<div class="dropdown dropdown-source-buttons">
+  <button class="btn dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false" aria-label="Source repositories">
+    <i class="fab fa-github"></i>
+  </button>
+  <ul class="dropdown-menu">
+      
+      
+      
+      <li><a href="https://github.com/quantmind/quantflow" target="_blank"
+   class="btn btn-sm btn-source-repository-button dropdown-item"
+   title="Source repository"
+   data-bs-placement="left" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fab fa-github"></i>
+  </span>
+<span class="btn__text-container">Repository</span>
+</a>
+</li>
+      
+      
+      
+      
+      <li><a href="https://github.com/quantmind/quantflow/issues/new?title=Issue%20on%20page%20%2Fgenindex.html&body=Your%20issue%20content%20here." target="_blank"
+   class="btn btn-sm btn-source-issues-button dropdown-item"
+   title="Open an issue"
+   data-bs-placement="left" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fas fa-lightbulb"></i>
+  </span>
+<span class="btn__text-container">Open issue</span>
+</a>
+</li>
+      
+  </ul>
+</div>
+
+
+
+
+<button onclick="toggleFullScreen()"
+  class="btn btn-sm btn-fullscreen-button"
+  title="Fullscreen mode"
+  data-bs-placement="bottom" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fas fa-expand"></i>
+  </span>
+
+</button>
+
+
+
+<script>
+document.write(`
+  <button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button" title="light/dark" aria-label="light/dark" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="theme-switch fa-solid fa-sun fa-lg" data-mode="light"></i>
+    <i class="theme-switch fa-solid fa-moon fa-lg" data-mode="dark"></i>
+    <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg" data-mode="auto"></i>
+  </button>
+`);
+</script>
+
+
+<script>
+document.write(`
+  <button class="btn btn-sm pst-navbar-icon search-button search-button__button" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="fa-solid fa-magnifying-glass fa-lg"></i>
+  </button>
+`);
+</script>
+
+</div></div>
+      
+    </div>
+  
+</div>
+</div>
+              
+              
+
+<div id="jb-print-docs-body" class="onlyprint">
+    <h1></h1>
+    <!-- Table of contents -->
+    <div id="print-main-content">
+        <div id="jb-print-toc">
+            
+        </div>
+    </div>
+</div>
+
+              
+                
+<div id="searchbox"></div>
+                <article class="bd-article">
+                  
+
+<h1 id="index">Index</h1>
+
+<div class="genindex-jumpbox">
+ <a href="#A"><strong>A</strong></a>
+ | <a href="#B"><strong>B</strong></a>
+ | <a href="#C"><strong>C</strong></a>
+ | <a href="#D"><strong>D</strong></a>
+ | <a href="#E"><strong>E</strong></a>
+ | <a href="#F"><strong>F</strong></a>
+ | <a href="#G"><strong>G</strong></a>
+ | <a href="#H"><strong>H</strong></a>
+ | <a href="#I"><strong>I</strong></a>
+ | <a href="#J"><strong>J</strong></a>
+ | <a href="#K"><strong>K</strong></a>
+ | <a href="#L"><strong>L</strong></a>
+ | <a href="#M"><strong>M</strong></a>
+ | <a href="#N"><strong>N</strong></a>
+ | <a href="#O"><strong>O</strong></a>
+ | <a href="#P"><strong>P</strong></a>
+ | <a href="#Q"><strong>Q</strong></a>
+ | <a href="#R"><strong>R</strong></a>
+ | <a href="#S"><strong>S</strong></a>
+ | <a href="#T"><strong>T</strong></a>
+ | <a href="#V"><strong>V</strong></a>
+ | <a href="#W"><strong>W</strong></a>
+ | <a href="#X"><strong>X</strong></a>
+ | <a href="#Y"><strong>Y</strong></a>
+ 
+</div>
+<h2 id="A">A</h2>
+<table style="width: 100%" class="indextable genindextable"><tr>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="api/options/vol_surface.html#quantflow.options.surface.VolSurfaceLoader.add">add() (quantflow.options.surface.VolSurfaceLoader method)</a>
+</li>
+      <li><a href="api/options/vol_surface.html#quantflow.options.surface.GenericVolSurfaceLoader.add_forward">add_forward() (quantflow.options.surface.GenericVolSurfaceLoader method)</a>
+</li>
+      <li><a href="api/options/vol_surface.html#quantflow.options.surface.GenericVolSurfaceLoader.add_option">add_option() (quantflow.options.surface.GenericVolSurfaceLoader method)</a>
+</li>
+      <li><a href="api/options/vol_surface.html#quantflow.options.surface.GenericVolSurfaceLoader.add_spot">add_spot() (quantflow.options.surface.GenericVolSurfaceLoader method)</a>
+</li>
+      <li><a href="api/sp/ou.html#quantflow.sp.ou.Vasicek.analytical_cdf">analytical_cdf() (quantflow.sp.ou.Vasicek method)</a>
+
+      <ul>
+        <li><a href="api/sp/poisson.html#quantflow.sp.poisson.PoissonProcess.analytical_cdf">(quantflow.sp.poisson.PoissonProcess method)</a>
+</li>
+        <li><a href="api/sp/weiner.html#quantflow.sp.weiner.WeinerProcess.analytical_cdf">(quantflow.sp.weiner.WeinerProcess method)</a>
+</li>
+      </ul></li>
+      <li><a href="api/sp/cir.html#quantflow.sp.cir.CIR.analytical_mean">analytical_mean() (quantflow.sp.cir.CIR method)</a>
+
+      <ul>
+        <li><a href="api/sp/jump_diffusion.html#quantflow.sp.jump_diffusion.JumpDiffusion.analytical_mean">(quantflow.sp.jump_diffusion.JumpDiffusion method)</a>
+</li>
+        <li><a href="api/sp/ou.html#quantflow.sp.ou.GammaOU.analytical_mean">(quantflow.sp.ou.GammaOU method)</a>
+</li>
+        <li><a href="api/sp/ou.html#quantflow.sp.ou.Vasicek.analytical_mean">(quantflow.sp.ou.Vasicek method)</a>
+</li>
+        <li><a href="api/sp/compound_poisson.html#quantflow.sp.poisson.CompoundPoissonProcess.analytical_mean">(quantflow.sp.poisson.CompoundPoissonProcess method)</a>
+</li>
+        <li><a href="api/sp/poisson.html#quantflow.sp.poisson.PoissonProcess.analytical_mean">(quantflow.sp.poisson.PoissonProcess method)</a>
+</li>
+        <li><a href="api/sp/weiner.html#quantflow.sp.weiner.WeinerProcess.analytical_mean">(quantflow.sp.weiner.WeinerProcess method)</a>
+</li>
+      </ul></li>
+      <li><a href="api/sp/cir.html#quantflow.sp.cir.CIR.analytical_pdf">analytical_pdf() (quantflow.sp.cir.CIR method)</a>
+
+      <ul>
+        <li><a href="api/sp/ou.html#quantflow.sp.ou.GammaOU.analytical_pdf">(quantflow.sp.ou.GammaOU method)</a>
+</li>
+        <li><a href="api/sp/ou.html#quantflow.sp.ou.Vasicek.analytical_pdf">(quantflow.sp.ou.Vasicek method)</a>
+</li>
+        <li><a href="api/sp/poisson.html#quantflow.sp.poisson.PoissonProcess.analytical_pdf">(quantflow.sp.poisson.PoissonProcess method)</a>
+</li>
+        <li><a href="api/sp/weiner.html#quantflow.sp.weiner.WeinerProcess.analytical_pdf">(quantflow.sp.weiner.WeinerProcess method)</a>
+</li>
+      </ul></li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="api/sp/cir.html#quantflow.sp.cir.CIR.analytical_variance">analytical_variance() (quantflow.sp.cir.CIR method)</a>
+
+      <ul>
+        <li><a href="api/sp/jump_diffusion.html#quantflow.sp.jump_diffusion.JumpDiffusion.analytical_variance">(quantflow.sp.jump_diffusion.JumpDiffusion method)</a>
+</li>
+        <li><a href="api/sp/ou.html#quantflow.sp.ou.GammaOU.analytical_variance">(quantflow.sp.ou.GammaOU method)</a>
+</li>
+        <li><a href="api/sp/ou.html#quantflow.sp.ou.Vasicek.analytical_variance">(quantflow.sp.ou.Vasicek method)</a>
+</li>
+        <li><a href="api/sp/compound_poisson.html#quantflow.sp.poisson.CompoundPoissonProcess.analytical_variance">(quantflow.sp.poisson.CompoundPoissonProcess method)</a>
+</li>
+        <li><a href="api/sp/poisson.html#quantflow.sp.poisson.PoissonProcess.analytical_variance">(quantflow.sp.poisson.PoissonProcess method)</a>
+</li>
+        <li><a href="api/sp/weiner.html#quantflow.sp.weiner.WeinerProcess.analytical_variance">(quantflow.sp.weiner.WeinerProcess method)</a>
+</li>
+      </ul></li>
+      <li><a href="api/sp/compound_poisson.html#quantflow.sp.poisson.CompoundPoissonProcess.arrivals">arrivals() (quantflow.sp.poisson.CompoundPoissonProcess method)</a>
+
+      <ul>
+        <li><a href="api/sp/poisson.html#quantflow.sp.poisson.PoissonProcess.arrivals">(quantflow.sp.poisson.PoissonProcess method)</a>
+</li>
+      </ul></li>
+      <li><a href="api/options/vol_surface.html#quantflow.options.surface.VolSurface.as_array">as_array() (quantflow.options.surface.VolSurface method)</a>
+</li>
+      <li><a href="api/ta/paths.html#quantflow.ta.paths.Paths.as_datetime_df">as_datetime_df() (quantflow.ta.paths.Paths method)</a>
+</li>
+      <li><a href="api/options/vol_surface.html#quantflow.options.surface.GenericVolSurfaceLoader.asset">asset (quantflow.options.surface.GenericVolSurfaceLoader attribute)</a>
+
+      <ul>
+        <li><a href="api/options/vol_surface.html#quantflow.options.surface.VolSurface.asset">(quantflow.options.surface.VolSurface attribute)</a>
+</li>
+      </ul></li>
+      <li><a href="api/utils/distributions.html#quantflow.utils.distributions.Distribution1D.asymmetry">asymmetry() (quantflow.utils.distributions.Distribution1D method)</a>
+
+      <ul>
+        <li><a href="api/utils/distributions.html#quantflow.utils.distributions.DoubleExponential.asymmetry">(quantflow.utils.distributions.DoubleExponential method)</a>
+</li>
+      </ul></li>
+  </ul></td>
+</tr></table>
+
+<h2 id="B">B</h2>
+<table style="width: 100%" class="indextable genindextable"><tr>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="api/sp/ou.html#quantflow.sp.ou.Vasicek.bdlp">bdlp (quantflow.sp.ou.Vasicek attribute)</a>
+</li>
+      <li><a href="api/options/vol_surface.html#quantflow.options.surface.OptionSelection.best">best (quantflow.options.surface.OptionSelection attribute)</a>
+</li>
+      <li><a href="api/options/pricer.html#quantflow.options.pricer.MaturityPricer.black">black() (quantflow.options.pricer.MaturityPricer method)</a>
+</li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="api/options/black.html#quantflow.options.bs.black_delta">black_delta() (in module quantflow.options.bs)</a>
+</li>
+      <li><a href="api/options/black.html#quantflow.options.bs.black_price">black_price() (in module quantflow.options.bs)</a>
+</li>
+      <li><a href="api/options/black.html#quantflow.options.bs.black_vega">black_vega() (in module quantflow.options.bs)</a>
+</li>
+      <li><a href="api/options/vol_surface.html#quantflow.options.surface.VolSurface.bs">bs() (quantflow.options.surface.VolSurface method)</a>
+</li>
+  </ul></td>
+</tr></table>
+
+<h2 id="C">C</h2>
+<table style="width: 100%" class="indextable genindextable"><tr>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="api/options/vol_surface.html#quantflow.options.surface.VolSurface.calc_bs_prices">calc_bs_prices() (quantflow.options.surface.VolSurface method)</a>
+</li>
+      <li><a href="api/options/pricer.html#quantflow.options.pricer.MaturityPricer.call">call (quantflow.options.pricer.MaturityPricer attribute)</a>
+
+      <ul>
+        <li><a href="api/options/vol_surface.html#quantflow.options.surface.OptionSelection.call">(quantflow.options.surface.OptionSelection attribute)</a>
+</li>
+      </ul></li>
+      <li><a href="api/utils/marginal1d.html#quantflow.utils.marginal.Marginal1D.call_option_transform">call_option_transform() (quantflow.utils.marginal.Marginal1D method)</a>
+</li>
+      <li><a href="api/options/pricer.html#quantflow.options.pricer.MaturityPricer.call_price">call_price() (quantflow.options.pricer.MaturityPricer method)</a>
+
+      <ul>
+        <li><a href="api/options/pricer.html#quantflow.options.pricer.OptionPricer.call_price">(quantflow.options.pricer.OptionPricer method)</a>
+</li>
+      </ul></li>
+      <li><a href="api/data/fred.html#quantflow.data.fred.Fred.categiories">categiories() (quantflow.data.fred.Fred method)</a>
+</li>
+      <li><a href="api/utils/distributions.html#quantflow.utils.distributions.Exponential.cdf">cdf() (quantflow.utils.distributions.Exponential method)</a>
+
+      <ul>
+        <li><a href="api/utils/marginal1d.html#quantflow.utils.marginal.Marginal1D.cdf">(quantflow.utils.marginal.Marginal1D method)</a>
+</li>
+      </ul></li>
+      <li><a href="api/sp/poisson.html#quantflow.sp.poisson.PoissonProcess.cdf_jacobian">cdf_jacobian() (quantflow.sp.poisson.PoissonProcess method)</a>
+
+      <ul>
+        <li><a href="api/utils/marginal1d.html#quantflow.utils.marginal.Marginal1D.cdf_jacobian">(quantflow.utils.marginal.Marginal1D method)</a>
+</li>
+      </ul></li>
+      <li><a href="api/utils/distributions.html#quantflow.utils.distributions.DoubleExponential.characteristic">characteristic() (quantflow.utils.distributions.DoubleExponential method)</a>
+
+      <ul>
+        <li><a href="api/utils/distributions.html#quantflow.utils.distributions.Exponential.characteristic">(quantflow.utils.distributions.Exponential method)</a>
+</li>
+        <li><a href="api/utils/distributions.html#quantflow.utils.distributions.Normal.characteristic">(quantflow.utils.distributions.Normal method)</a>
+</li>
+        <li><a href="api/utils/marginal1d.html#quantflow.utils.marginal.Marginal1D.characteristic">(quantflow.utils.marginal.Marginal1D method)</a>
+</li>
+      </ul></li>
+      <li><a href="api/utils/marginal1d.html#quantflow.utils.marginal.Marginal1D.characteristic_df">characteristic_df() (quantflow.utils.marginal.Marginal1D method)</a>
+</li>
+      <li><a href="api/sp/cir.html#quantflow.sp.cir.CIR.characteristic_exponent">characteristic_exponent() (quantflow.sp.cir.CIR method)</a>
+
+      <ul>
+        <li><a href="api/sp/heston.html#quantflow.sp.heston.Heston.characteristic_exponent">(quantflow.sp.heston.Heston method)</a>
+</li>
+        <li><a href="api/sp/heston.html#quantflow.sp.heston.HestonJ.characteristic_exponent">(quantflow.sp.heston.HestonJ method)</a>
+</li>
+        <li><a href="api/sp/jump_diffusion.html#quantflow.sp.jump_diffusion.JumpDiffusion.characteristic_exponent">(quantflow.sp.jump_diffusion.JumpDiffusion method)</a>
+</li>
+        <li><a href="api/sp/ou.html#quantflow.sp.ou.GammaOU.characteristic_exponent">(quantflow.sp.ou.GammaOU method)</a>
+</li>
+        <li><a href="api/sp/ou.html#quantflow.sp.ou.Vasicek.characteristic_exponent">(quantflow.sp.ou.Vasicek method)</a>
+</li>
+        <li><a href="api/sp/compound_poisson.html#quantflow.sp.poisson.CompoundPoissonProcess.characteristic_exponent">(quantflow.sp.poisson.CompoundPoissonProcess method)</a>
+</li>
+        <li><a href="api/sp/poisson.html#quantflow.sp.poisson.PoissonProcess.characteristic_exponent">(quantflow.sp.poisson.PoissonProcess method)</a>
+</li>
+        <li><a href="api/sp/weiner.html#quantflow.sp.weiner.WeinerProcess.characteristic_exponent">(quantflow.sp.weiner.WeinerProcess method)</a>
+</li>
+      </ul></li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="api/sp/cir.html#quantflow.sp.cir.CIR">CIR (class in quantflow.sp.cir)</a>
+</li>
+      <li><a href="api/sp/compound_poisson.html#quantflow.sp.poisson.CompoundPoissonProcess">CompoundPoissonProcess (class in quantflow.sp.poisson)</a>
+</li>
+      <li><a href="api/options/calibration.html#quantflow.options.calibration.VolModelCalibration.cost_function">cost_function() (quantflow.options.calibration.VolModelCalibration method)</a>
+</li>
+      <li><a href="api/options/calibration.html#quantflow.options.calibration.VolModelCalibration.cost_weight">cost_weight() (quantflow.options.calibration.VolModelCalibration method)</a>
+</li>
+      <li><a href="api/sp/heston.html#quantflow.sp.heston.Heston.create">create() (quantflow.sp.heston.Heston class method)</a>
+
+      <ul>
+        <li><a href="api/sp/heston.html#quantflow.sp.heston.HestonJ.create">(quantflow.sp.heston.HestonJ class method)</a>
+</li>
+        <li><a href="api/sp/jump_diffusion.html#quantflow.sp.jump_diffusion.JumpDiffusion.create">(quantflow.sp.jump_diffusion.JumpDiffusion class method)</a>
+</li>
+        <li><a href="api/sp/compound_poisson.html#quantflow.sp.poisson.CompoundPoissonProcess.create">(quantflow.sp.poisson.CompoundPoissonProcess class method)</a>
+</li>
+      </ul></li>
+      <li><a href="api/ta/paths.html#quantflow.ta.paths.Paths.cross_section">cross_section() (quantflow.ta.paths.Paths method)</a>
+</li>
+      <li><a href="api/sp/ou.html#quantflow.sp.ou.GammaOU.cumulative_characteristic2">cumulative_characteristic2() (quantflow.sp.ou.GammaOU method)</a>
+</li>
+  </ul></td>
+</tr></table>
+
+<h2 id="D">D</h2>
+<table style="width: 100%" class="indextable genindextable"><tr>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="api/ta/paths.html#quantflow.ta.paths.Paths.data">data (quantflow.ta.paths.Paths attribute)</a>
+</li>
+      <li><a href="api/ta/paths.html#quantflow.ta.paths.Paths.dates">dates() (quantflow.ta.paths.Paths method)</a>
+</li>
+      <li><a href="api/options/vol_surface.html#quantflow.options.surface.GenericVolSurfaceLoader.day_counter">day_counter (quantflow.options.surface.GenericVolSurfaceLoader attribute)</a>
+
+      <ul>
+        <li><a href="api/options/vol_surface.html#quantflow.options.surface.VolCrossSection.day_counter">(quantflow.options.surface.VolCrossSection attribute)</a>
+</li>
+        <li><a href="api/options/vol_surface.html#quantflow.options.surface.VolSurface.day_counter">(quantflow.options.surface.VolSurface attribute)</a>
+</li>
+      </ul></li>
+      <li><a href="api/utils/distributions.html#quantflow.utils.distributions.DoubleExponential.decay">decay (quantflow.utils.distributions.DoubleExponential attribute)</a>
+
+      <ul>
+        <li><a href="api/utils/distributions.html#quantflow.utils.distributions.Exponential.decay">(quantflow.utils.distributions.Exponential attribute)</a>
+</li>
+      </ul></li>
+      <li><a href="api/data/deribit.html#quantflow.data.deribit.Deribit">Deribit (class in quantflow.data.deribit)</a>
+</li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="api/options/pricer.html#quantflow.options.pricer.MaturityPricer.df">df (quantflow.options.pricer.MaturityPricer property)</a>
+
+      <ul>
+        <li><a href="api/ta/paths.html#quantflow.ta.paths.Paths.df">(quantflow.ta.paths.Paths property)</a>
+</li>
+      </ul></li>
+      <li><a href="api/sp/jump_diffusion.html#quantflow.sp.jump_diffusion.JumpDiffusion.diffusion">diffusion (quantflow.sp.jump_diffusion.JumpDiffusion attribute)</a>
+</li>
+      <li><a href="api/utils/distributions.html#quantflow.utils.distributions.Distribution1D">Distribution1D (class in quantflow.utils.distributions)</a>
+</li>
+      <li><a href="api/data/fmp.html#quantflow.data.fmp.FMP.dividends">dividends() (quantflow.data.fmp.FMP method)</a>
+</li>
+      <li><a href="api/utils/marginal1d.html#quantflow.utils.marginal.Marginal1D.domain_range">domain_range() (quantflow.utils.marginal.Marginal1D method)</a>
+</li>
+      <li><a href="api/utils/distributions.html#quantflow.utils.distributions.DoubleExponential">DoubleExponential (class in quantflow.utils.distributions)</a>
+</li>
+      <li><a href="api/ta/paths.html#quantflow.ta.paths.Paths.dt">dt (quantflow.ta.paths.Paths property)</a>
+</li>
+  </ul></td>
+</tr></table>
+
+<h2 id="E">E</h2>
+<table style="width: 100%" class="indextable genindextable"><tr>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="api/utils/bins.html#quantflow.utils.bins.event_density">event_density() (in module quantflow.utils.bins)</a>
+</li>
+      <li><a href="api/options/vol_surface.html#quantflow.options.surface.GenericVolSurfaceLoader.exclude_open_interest">exclude_open_interest (quantflow.options.surface.GenericVolSurfaceLoader attribute)</a>
+</li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="api/options/vol_surface.html#quantflow.options.surface.GenericVolSurfaceLoader.exclude_volume">exclude_volume (quantflow.options.surface.GenericVolSurfaceLoader attribute)</a>
+</li>
+      <li><a href="api/data/fmp.html#quantflow.data.fmp.FMP.executives">executives() (quantflow.data.fmp.FMP method)</a>
+</li>
+      <li><a href="api/utils/distributions.html#quantflow.utils.distributions.Exponential">Exponential (class in quantflow.utils.distributions)</a>
+</li>
+  </ul></td>
+</tr></table>
+
+<h2 id="F">F</h2>
+<table style="width: 100%" class="indextable genindextable"><tr>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="api/data/fed.html#quantflow.data.fed.FederalReserve">FederalReserve (class in quantflow.data.fed)</a>
+</li>
+      <li><a href="api/options/calibration.html#quantflow.options.calibration.VolModelCalibration.fit">fit() (quantflow.options.calibration.VolModelCalibration method)</a>
+</li>
+      <li><a href="api/data/fmp.html#quantflow.data.fmp.FMP">FMP (class in quantflow.data.fmp)</a>
+</li>
+      <li><a href="api/data/fmp.html#quantflow.data.fmp.FMP.freq">FMP.freq (class in quantflow.data.fmp)</a>
+</li>
+      <li><a href="api/options/vol_surface.html#quantflow.options.surface.VolCrossSection.forward">forward (quantflow.options.surface.VolCrossSection attribute)</a>
+</li>
+      <li><a href="api/data/fred.html#quantflow.data.fred.Fred">Fred (class in quantflow.data.fred)</a>
+</li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="api/data/fred.html#quantflow.data.fred.Fred.freq">Fred.freq (class in quantflow.data.fred)</a>
+</li>
+      <li><a href="api/sp/poisson.html#quantflow.sp.poisson.PoissonProcess.frequency_range">frequency_range() (quantflow.sp.poisson.PoissonProcess method)</a>
+
+      <ul>
+        <li><a href="api/utils/marginal1d.html#quantflow.utils.marginal.Marginal1D.frequency_range">(quantflow.utils.marginal.Marginal1D method)</a>
+</li>
+      </ul></li>
+      <li><a href="api/utils/distributions.html#quantflow.utils.distributions.DoubleExponential.from_moments">from_moments() (quantflow.utils.distributions.DoubleExponential class method)</a>
+</li>
+      <li><a href="api/utils/distributions.html#quantflow.utils.distributions.Distribution1D.from_variance_and_asymmetry">from_variance_and_asymmetry() (quantflow.utils.distributions.Distribution1D class method)</a>
+
+      <ul>
+        <li><a href="api/utils/distributions.html#quantflow.utils.distributions.DoubleExponential.from_variance_and_asymmetry">(quantflow.utils.distributions.DoubleExponential class method)</a>
+</li>
+        <li><a href="api/utils/distributions.html#quantflow.utils.distributions.Normal.from_variance_and_asymmetry">(quantflow.utils.distributions.Normal class method)</a>
+</li>
+      </ul></li>
+  </ul></td>
+</tr></table>
+
+<h2 id="G">G</h2>
+<table style="width: 100%" class="indextable genindextable"><tr>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="api/sp/ou.html#quantflow.sp.ou.GammaOU">GammaOU (class in quantflow.sp.ou)</a>
+</li>
+      <li><a href="api/ta/ohlc.html#quantflow.ta.ohlc.OHLC.garman_klass">garman_klass() (quantflow.ta.ohlc.OHLC method)</a>
+</li>
+      <li><a href="api/ta/ohlc.html#quantflow.ta.ohlc.OHLC.garman_klass_variance">garman_klass_variance (quantflow.ta.ohlc.OHLC attribute)</a>
+</li>
+      <li><a href="api/options/vol_surface.html#quantflow.options.surface.GenericVolSurfaceLoader">GenericVolSurfaceLoader (class in quantflow.options.surface)</a>
+</li>
+      <li><a href="api/data/deribit.html#quantflow.data.deribit.Deribit.get_book_summary_by_currency">get_book_summary_by_currency() (quantflow.data.deribit.Deribit method)</a>
+</li>
+      <li><a href="api/data/deribit.html#quantflow.data.deribit.Deribit.get_book_summary_by_instrument">get_book_summary_by_instrument() (quantflow.data.deribit.Deribit method)</a>
+</li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="api/options/calibration.html#quantflow.options.calibration.HestonCalibration.get_bounds">get_bounds() (quantflow.options.calibration.HestonCalibration method)</a>
+
+      <ul>
+        <li><a href="api/options/calibration.html#quantflow.options.calibration.VolModelCalibration.get_bounds">(quantflow.options.calibration.VolModelCalibration method)</a>
+</li>
+      </ul></li>
+      <li><a href="api/options/calibration.html#quantflow.options.calibration.VolModelCalibration.get_constraints">get_constraints() (quantflow.options.calibration.VolModelCalibration method)</a>
+</li>
+      <li><a href="api/data/deribit.html#quantflow.data.deribit.Deribit.get_instruments">get_instruments() (quantflow.data.deribit.Deribit method)</a>
+</li>
+      <li><a href="api/options/calibration.html#quantflow.options.calibration.HestonCalibration.get_params">get_params() (quantflow.options.calibration.HestonCalibration method)</a>
+
+      <ul>
+        <li><a href="api/options/calibration.html#quantflow.options.calibration.VolModelCalibration.get_params">(quantflow.options.calibration.VolModelCalibration method)</a>
+</li>
+      </ul></li>
+      <li><a href="api/data/deribit.html#quantflow.data.deribit.Deribit.get_volatility">get_volatility() (quantflow.data.deribit.Deribit method)</a>
+</li>
+  </ul></td>
+</tr></table>
+
+<h2 id="H">H</h2>
+<table style="width: 100%" class="indextable genindextable"><tr>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="api/sp/heston.html#quantflow.sp.heston.Heston">Heston (class in quantflow.sp.heston)</a>
+</li>
+      <li><a href="api/options/calibration.html#quantflow.options.calibration.HestonCalibration">HestonCalibration (class in quantflow.options.calibration)</a>
+</li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="api/sp/heston.html#quantflow.sp.heston.HestonJ">HestonJ (class in quantflow.sp.heston)</a>
+</li>
+      <li><a href="api/ta/paths.html#quantflow.ta.paths.Paths.hurst_exponent">hurst_exponent() (quantflow.ta.paths.Paths method)</a>
+</li>
+  </ul></td>
+</tr></table>
+
+<h2 id="I">I</h2>
+<table style="width: 100%" class="indextable genindextable"><tr>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="api/options/black.html#quantflow.options.bs.implied_black_volatility">implied_black_volatility() (in module quantflow.options.bs)</a>
+</li>
+      <li><a href="api/options/calibration.html#quantflow.options.calibration.VolModelCalibration.implied_vol_range">implied_vol_range() (quantflow.options.calibration.VolModelCalibration method)</a>
+</li>
+      <li><a href="api/options/pricer.html#quantflow.options.pricer.MaturityPricer.implied_vols">implied_vols (quantflow.options.pricer.MaturityPricer property)</a>
+</li>
+      <li><a href="api/ta/ohlc.html#quantflow.ta.ohlc.OHLC.index_column">index_column (quantflow.ta.ohlc.OHLC attribute)</a>
+</li>
+      <li><a href="api/data/fmp.html#quantflow.data.fmp.FMP.indices">indices() (quantflow.data.fmp.FMP method)</a>
+</li>
+      <li><a href="api/options/vol_surface.html#quantflow.options.surface.VolCrossSection.info_dict">info_dict() (quantflow.options.surface.VolCrossSection method)</a>
+</li>
+      <li><a href="api/data/fmp.html#quantflow.data.fmp.FMP.insider_trading">insider_trading() (quantflow.data.fmp.FMP method)</a>
+</li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="api/ta/paths.html#quantflow.ta.paths.Paths.integrate">integrate() (quantflow.ta.paths.Paths method)</a>
+</li>
+      <li><a href="api/sp/cir.html#quantflow.sp.cir.CIR.integrated_log_laplace">integrated_log_laplace() (quantflow.sp.cir.CIR method)</a>
+
+      <ul>
+        <li><a href="api/sp/ou.html#quantflow.sp.ou.GammaOU.integrated_log_laplace">(quantflow.sp.ou.GammaOU method)</a>
+</li>
+        <li><a href="api/sp/ou.html#quantflow.sp.ou.Vasicek.integrated_log_laplace">(quantflow.sp.ou.Vasicek method)</a>
+</li>
+      </ul></li>
+      <li><a href="api/sp/compound_poisson.html#quantflow.sp.poisson.CompoundPoissonProcess.intensity">intensity (quantflow.sp.poisson.CompoundPoissonProcess attribute)</a>
+
+      <ul>
+        <li><a href="api/sp/poisson.html#quantflow.sp.poisson.PoissonProcess.intensity">(quantflow.sp.poisson.PoissonProcess attribute)</a>
+</li>
+      </ul></li>
+      <li><a href="api/options/pricer.html#quantflow.options.pricer.MaturityPricer.interp">interp() (quantflow.options.pricer.MaturityPricer method)</a>
+</li>
+      <li><a href="api/options/pricer.html#quantflow.options.pricer.MaturityPricer.intrinsic_value">intrinsic_value (quantflow.options.pricer.MaturityPricer property)</a>
+</li>
+  </ul></td>
+</tr></table>
+
+<h2 id="J">J</h2>
+<table style="width: 100%" class="indextable genindextable"><tr>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="api/sp/jump_diffusion.html#quantflow.sp.jump_diffusion.JumpDiffusion">JumpDiffusion (class in quantflow.sp.jump_diffusion)</a>
+</li>
+      <li><a href="api/sp/heston.html#quantflow.sp.heston.HestonJ.jumps">jumps (quantflow.sp.heston.HestonJ attribute)</a>
+
+      <ul>
+        <li><a href="api/sp/jump_diffusion.html#quantflow.sp.jump_diffusion.JumpDiffusion.jumps">(quantflow.sp.jump_diffusion.JumpDiffusion attribute)</a>
+</li>
+        <li><a href="api/sp/compound_poisson.html#quantflow.sp.poisson.CompoundPoissonProcess.jumps">(quantflow.sp.poisson.CompoundPoissonProcess attribute)</a>
+</li>
+      </ul></li>
+  </ul></td>
+</tr></table>
+
+<h2 id="K">K</h2>
+<table style="width: 100%" class="indextable genindextable"><tr>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="api/sp/cir.html#quantflow.sp.cir.CIR.kappa">kappa (quantflow.sp.cir.CIR attribute)</a>
+
+      <ul>
+        <li><a href="api/sp/ou.html#quantflow.sp.ou.GammaOU.kappa">(quantflow.sp.ou.GammaOU attribute)</a>
+</li>
+        <li><a href="api/sp/ou.html#quantflow.sp.ou.Vasicek.kappa">(quantflow.sp.ou.Vasicek attribute)</a>
+</li>
+        <li><a href="api/utils/distributions.html#quantflow.utils.distributions.DoubleExponential.kappa">(quantflow.utils.distributions.DoubleExponential attribute)</a>
+</li>
+      </ul></li>
+  </ul></td>
+</tr></table>
+
+<h2 id="L">L</h2>
+<table style="width: 100%" class="indextable genindextable"><tr>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="api/utils/distributions.html#quantflow.utils.distributions.DoubleExponential.loc">loc (quantflow.utils.distributions.DoubleExponential attribute)</a>
+</li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="api/utils/distributions.html#quantflow.utils.distributions.DoubleExponential.log_kappa">log_kappa (quantflow.utils.distributions.DoubleExponential property)</a>
+</li>
+  </ul></td>
+</tr></table>
+
+<h2 id="M">M</h2>
+<table style="width: 100%" class="indextable genindextable"><tr>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="api/utils/marginal1d.html#quantflow.utils.marginal.Marginal1D">Marginal1D (class in quantflow.utils.marginal)</a>
+</li>
+      <li><a href="api/data/fmp.html#quantflow.data.fmp.FMP.market_risk_premium">market_risk_premium() (quantflow.data.fmp.FMP method)</a>
+</li>
+      <li><a href="api/options/vol_surface.html#quantflow.options.surface.GenericVolSurfaceLoader.maturities">maturities (quantflow.options.surface.GenericVolSurfaceLoader attribute)</a>
+
+      <ul>
+        <li><a href="api/options/vol_surface.html#quantflow.options.surface.VolSurface.maturities">(quantflow.options.surface.VolSurface attribute)</a>
+</li>
+      </ul></li>
+      <li><a href="api/options/vol_surface.html#quantflow.options.surface.VolCrossSection.maturity">maturity (quantflow.options.surface.VolCrossSection attribute)</a>
+</li>
+      <li><a href="api/options/pricer.html#quantflow.options.pricer.OptionPricer.maturity">maturity() (quantflow.options.pricer.OptionPricer method)</a>
+</li>
+      <li><a href="api/options/pricer.html#quantflow.options.pricer.MaturityPricer">MaturityPricer (class in quantflow.options.pricer)</a>
+</li>
+      <li><a href="api/options/pricer.html#quantflow.options.pricer.OptionPricer.max_moneyness_ttm">max_moneyness_ttm (quantflow.options.pricer.OptionPricer attribute)</a>
+</li>
+      <li><a href="api/options/pricer.html#quantflow.options.pricer.MaturityPricer.max_moneyness_ttm">max_moneyness_ttm() (quantflow.options.pricer.MaturityPricer method)</a>
+</li>
+      <li><a href="api/ta/paths.html#quantflow.ta.paths.Paths.mean">mean() (quantflow.ta.paths.Paths method)</a>
+
+      <ul>
+        <li><a href="api/utils/distributions.html#quantflow.utils.distributions.DoubleExponential.mean">(quantflow.utils.distributions.DoubleExponential method)</a>
+</li>
+        <li><a href="api/utils/distributions.html#quantflow.utils.distributions.Exponential.mean">(quantflow.utils.distributions.Exponential method)</a>
+</li>
+        <li><a href="api/utils/distributions.html#quantflow.utils.distributions.Normal.mean">(quantflow.utils.distributions.Normal method)</a>
+</li>
+        <li><a href="api/utils/marginal1d.html#quantflow.utils.marginal.Marginal1D.mean">(quantflow.utils.marginal.Marginal1D method)</a>
+</li>
+      </ul></li>
+      <li><a href="api/utils/marginal1d.html#quantflow.utils.marginal.Marginal1D.mean_from_characteristic">mean_from_characteristic() (quantflow.utils.marginal.Marginal1D method)</a>
+</li>
+      <li><a href="api/options/calibration.html#quantflow.options.calibration.HestonCalibration.minimize_method">minimize_method (quantflow.options.calibration.HestonCalibration attribute)</a>
+
+      <ul>
+        <li><a href="api/options/calibration.html#quantflow.options.calibration.VolModelCalibration.minimize_method">(quantflow.options.calibration.VolModelCalibration attribute)</a>
+</li>
+      </ul></li>
+      <li><a href="api/options/calibration.html#quantflow.options.calibration.VolModelCalibration.model">model (quantflow.options.calibration.VolModelCalibration property)</a>
+
+      <ul>
+        <li><a href="api/options/pricer.html#quantflow.options.pricer.OptionPricer.model">(quantflow.options.pricer.OptionPricer attribute)</a>
+</li>
+      </ul></li>
+      <li><a href="api/options/calibration.html#quantflow.options.calibration.HestonCalibration.model_config">model_config (quantflow.options.calibration.HestonCalibration attribute)</a>
+
+      <ul>
+        <li><a href="api/options/calibration.html#quantflow.options.calibration.VolModelCalibration.model_config">(quantflow.options.calibration.VolModelCalibration attribute)</a>
+</li>
+        <li><a href="api/options/pricer.html#quantflow.options.pricer.OptionPricer.model_config">(quantflow.options.pricer.OptionPricer attribute)</a>
+</li>
+        <li><a href="api/sp/cir.html#quantflow.sp.cir.CIR.model_config">(quantflow.sp.cir.CIR attribute)</a>
+</li>
+        <li><a href="api/sp/heston.html#quantflow.sp.heston.Heston.model_config">(quantflow.sp.heston.Heston attribute)</a>
+</li>
+        <li><a href="api/sp/heston.html#quantflow.sp.heston.HestonJ.model_config">(quantflow.sp.heston.HestonJ attribute)</a>
+</li>
+        <li><a href="api/sp/jump_diffusion.html#quantflow.sp.jump_diffusion.JumpDiffusion.model_config">(quantflow.sp.jump_diffusion.JumpDiffusion attribute)</a>
+</li>
+        <li><a href="api/sp/ou.html#quantflow.sp.ou.GammaOU.model_config">(quantflow.sp.ou.GammaOU attribute)</a>
+</li>
+        <li><a href="api/sp/ou.html#quantflow.sp.ou.Vasicek.model_config">(quantflow.sp.ou.Vasicek attribute)</a>
+</li>
+        <li><a href="api/sp/compound_poisson.html#quantflow.sp.poisson.CompoundPoissonProcess.model_config">(quantflow.sp.poisson.CompoundPoissonProcess attribute)</a>
+</li>
+        <li><a href="api/sp/poisson.html#quantflow.sp.poisson.PoissonProcess.model_config">(quantflow.sp.poisson.PoissonProcess attribute)</a>
+</li>
+        <li><a href="api/sp/weiner.html#quantflow.sp.weiner.WeinerProcess.model_config">(quantflow.sp.weiner.WeinerProcess attribute)</a>
+</li>
+        <li><a href="api/ta/ohlc.html#quantflow.ta.ohlc.OHLC.model_config">(quantflow.ta.ohlc.OHLC attribute)</a>
+</li>
+        <li><a href="api/ta/paths.html#quantflow.ta.paths.Paths.model_config">(quantflow.ta.paths.Paths attribute)</a>
+</li>
+        <li><a href="api/utils/distributions.html#quantflow.utils.distributions.Distribution1D.model_config">(quantflow.utils.distributions.Distribution1D attribute)</a>
+</li>
+        <li><a href="api/utils/distributions.html#quantflow.utils.distributions.DoubleExponential.model_config">(quantflow.utils.distributions.DoubleExponential attribute)</a>
+</li>
+        <li><a href="api/utils/distributions.html#quantflow.utils.distributions.Exponential.model_config">(quantflow.utils.distributions.Exponential attribute)</a>
+</li>
+        <li><a href="api/utils/distributions.html#quantflow.utils.distributions.Normal.model_config">(quantflow.utils.distributions.Normal attribute)</a>
+</li>
+        <li><a href="api/utils/marginal1d.html#quantflow.utils.marginal.Marginal1D.model_config">(quantflow.utils.marginal.Marginal1D attribute)</a>
+</li>
+      </ul></li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="api/options/calibration.html#quantflow.options.calibration.VolModelCalibration.model_post_init">model_post_init() (quantflow.options.calibration.VolModelCalibration method)</a>
+</li>
+      <li>
+    module
+
+      <ul>
+        <li><a href="api/options/black.html#module-quantflow.options.bs">quantflow.options.bs</a>
+</li>
+        <li><a href="api/options/calibration.html#module-quantflow.options.calibration">quantflow.options.calibration</a>
+</li>
+        <li><a href="api/options/pricer.html#module-quantflow.options.pricer">quantflow.options.pricer</a>
+</li>
+        <li><a href="api/options/vol_surface.html#module-quantflow.options.surface">quantflow.options.surface</a>
+</li>
+        <li><a href="api/sp/weiner.html#module-quantflow.sp.weiner">quantflow.sp.weiner</a>
+</li>
+        <li><a href="api/ta/paths.html#module-quantflow.ta.paths">quantflow.ta.paths</a>
+</li>
+        <li><a href="api/utils/bins.html#module-quantflow.utils.bins">quantflow.utils.bins</a>
+</li>
+        <li><a href="api/utils/distributions.html#module-quantflow.utils.distributions">quantflow.utils.distributions</a>
+</li>
+        <li><a href="api/utils/marginal1d.html#module-quantflow.utils.marginal">quantflow.utils.marginal</a>
+</li>
+      </ul></li>
+      <li><a href="api/options/pricer.html#quantflow.options.pricer.MaturityPricer.moneyness">moneyness (quantflow.options.pricer.MaturityPricer attribute)</a>
+</li>
+      <li><a href="api/options/pricer.html#quantflow.options.pricer.MaturityPricer.moneyness_ttm">moneyness_ttm (quantflow.options.pricer.MaturityPricer property)</a>
+</li>
+      <li><a href="api/options/calibration.html#quantflow.options.calibration.HestonCalibration.moneyness_weight">moneyness_weight (quantflow.options.calibration.HestonCalibration attribute)</a>
+
+      <ul>
+        <li><a href="api/options/calibration.html#quantflow.options.calibration.VolModelCalibration.moneyness_weight">(quantflow.options.calibration.VolModelCalibration attribute)</a>
+</li>
+      </ul></li>
+      <li><a href="api/utils/distributions.html#quantflow.utils.distributions.Normal.mu">mu (quantflow.utils.distributions.Normal attribute)</a>
+</li>
+  </ul></td>
+</tr></table>
+
+<h2 id="N">N</h2>
+<table style="width: 100%" class="indextable genindextable"><tr>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="api/options/pricer.html#quantflow.options.pricer.OptionPricer.n">n (quantflow.options.pricer.OptionPricer attribute)</a>
+</li>
+      <li><a href="api/options/pricer.html#quantflow.options.pricer.MaturityPricer.name">name (quantflow.options.pricer.MaturityPricer attribute)</a>
+</li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="api/data/fmp.html#quantflow.data.fmp.FMP.news">news() (quantflow.data.fmp.FMP method)</a>
+</li>
+      <li><a href="api/utils/distributions.html#quantflow.utils.distributions.Normal">Normal (class in quantflow.utils.distributions)</a>
+</li>
+      <li><a href="api/ta/paths.html#quantflow.ta.paths.Paths.normal_draws">normal_draws() (quantflow.ta.paths.Paths class method)</a>
+</li>
+  </ul></td>
+</tr></table>
+
+<h2 id="O">O</h2>
+<table style="width: 100%" class="indextable genindextable"><tr>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="api/ta/ohlc.html#quantflow.ta.ohlc.OHLC">OHLC (class in quantflow.ta.ohlc)</a>
+</li>
+      <li><a href="api/utils/marginal1d.html#quantflow.utils.marginal.Marginal1D.option_alpha">option_alpha() (quantflow.utils.marginal.Marginal1D method)</a>
+</li>
+      <li><a href="api/options/vol_surface.html#quantflow.options.surface.VolSurface.option_list">option_list() (quantflow.options.surface.VolSurface method)</a>
+</li>
+      <li><a href="api/options/vol_surface.html#quantflow.options.surface.VolCrossSection.option_prices">option_prices() (quantflow.options.surface.VolCrossSection method)</a>
+
+      <ul>
+        <li><a href="api/options/vol_surface.html#quantflow.options.surface.VolSurface.option_prices">(quantflow.options.surface.VolSurface method)</a>
+</li>
+      </ul></li>
+      <li><a href="api/utils/marginal1d.html#quantflow.utils.marginal.Marginal1D.option_support">option_support() (quantflow.utils.marginal.Marginal1D method)</a>
+</li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="api/utils/marginal1d.html#quantflow.utils.marginal.Marginal1D.option_time_value">option_time_value() (quantflow.utils.marginal.Marginal1D method)</a>
+</li>
+      <li><a href="api/utils/marginal1d.html#quantflow.utils.marginal.Marginal1D.option_time_value_transform">option_time_value_transform() (quantflow.utils.marginal.Marginal1D method)</a>
+</li>
+      <li><a href="api/options/pricer.html#quantflow.options.pricer.OptionPricer">OptionPricer (class in quantflow.options.pricer)</a>
+</li>
+      <li><a href="api/options/calibration.html#quantflow.options.calibration.HestonCalibration.options">options (quantflow.options.calibration.HestonCalibration attribute)</a>
+
+      <ul>
+        <li><a href="api/options/calibration.html#quantflow.options.calibration.VolModelCalibration.options">(quantflow.options.calibration.VolModelCalibration attribute)</a>
+</li>
+      </ul></li>
+      <li><a href="api/options/vol_surface.html#quantflow.options.surface.VolSurface.options_df">options_df() (quantflow.options.surface.VolSurface method)</a>
+</li>
+      <li><a href="api/options/vol_surface.html#quantflow.options.surface.OptionSelection">OptionSelection (class in quantflow.options.surface)</a>
+</li>
+  </ul></td>
+</tr></table>
+
+<h2 id="P">P</h2>
+<table style="width: 100%" class="indextable genindextable"><tr>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="api/ta/ohlc.html#quantflow.ta.ohlc.OHLC.parkinson">parkinson() (quantflow.ta.ohlc.OHLC method)</a>
+</li>
+      <li><a href="api/ta/ohlc.html#quantflow.ta.ohlc.OHLC.parkinson_variance">parkinson_variance (quantflow.ta.ohlc.OHLC attribute)</a>
+</li>
+      <li><a href="api/ta/paths.html#quantflow.ta.paths.Paths.path">path() (quantflow.ta.paths.Paths method)</a>
+</li>
+      <li><a href="api/ta/paths.html#quantflow.ta.paths.Paths">Paths (class in quantflow.ta.paths)</a>
+</li>
+      <li><a href="api/ta/paths.html#quantflow.ta.paths.Paths.paths_mean">paths_mean() (quantflow.ta.paths.Paths method)</a>
+</li>
+      <li><a href="api/ta/paths.html#quantflow.ta.paths.Paths.paths_std">paths_std() (quantflow.ta.paths.Paths method)</a>
+</li>
+      <li><a href="api/ta/paths.html#quantflow.ta.paths.Paths.paths_var">paths_var() (quantflow.ta.paths.Paths method)</a>
+</li>
+      <li><a href="api/utils/bins.html#quantflow.utils.bins.pdf">pdf() (in module quantflow.utils.bins)</a>
+
+      <ul>
+        <li><a href="api/ta/paths.html#quantflow.ta.paths.Paths.pdf">(quantflow.ta.paths.Paths method)</a>
+</li>
+        <li><a href="api/utils/distributions.html#quantflow.utils.distributions.DoubleExponential.pdf">(quantflow.utils.distributions.DoubleExponential method)</a>
+</li>
+        <li><a href="api/utils/distributions.html#quantflow.utils.distributions.Exponential.pdf">(quantflow.utils.distributions.Exponential method)</a>
+</li>
+        <li><a href="api/utils/marginal1d.html#quantflow.utils.marginal.Marginal1D.pdf">(quantflow.utils.marginal.Marginal1D method)</a>
+</li>
+      </ul></li>
+      <li><a href="api/utils/marginal1d.html#quantflow.utils.marginal.Marginal1D.pdf_from_characteristic">pdf_from_characteristic() (quantflow.utils.marginal.Marginal1D method)</a>
+</li>
+      <li><a href="api/utils/marginal1d.html#quantflow.utils.marginal.Marginal1D.pdf_jacobian">pdf_jacobian() (quantflow.utils.marginal.Marginal1D method)</a>
+</li>
+      <li><a href="api/data/fmp.html#quantflow.data.fmp.FMP.peers">peers() (quantflow.data.fmp.FMP method)</a>
+</li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="api/options/calibration.html#quantflow.options.calibration.HestonCalibration.penalize">penalize() (quantflow.options.calibration.HestonCalibration method)</a>
+
+      <ul>
+        <li><a href="api/options/calibration.html#quantflow.options.calibration.VolModelCalibration.penalize">(quantflow.options.calibration.VolModelCalibration method)</a>
+</li>
+      </ul></li>
+      <li><a href="api/ta/ohlc.html#quantflow.ta.ohlc.OHLC.percent_variance">percent_variance (quantflow.ta.ohlc.OHLC attribute)</a>
+</li>
+      <li><a href="api/ta/ohlc.html#quantflow.ta.ohlc.OHLC.period">period (quantflow.ta.ohlc.OHLC attribute)</a>
+</li>
+      <li><a href="api/options/calibration.html#quantflow.options.calibration.VolModelCalibration.plot">plot() (quantflow.options.calibration.VolModelCalibration method)</a>
+
+      <ul>
+        <li><a href="api/options/pricer.html#quantflow.options.pricer.MaturityPricer.plot">(quantflow.options.pricer.MaturityPricer method)</a>
+</li>
+        <li><a href="api/options/vol_surface.html#quantflow.options.surface.VolSurface.plot">(quantflow.options.surface.VolSurface method)</a>
+</li>
+        <li><a href="api/ta/paths.html#quantflow.ta.paths.Paths.plot">(quantflow.ta.paths.Paths method)</a>
+</li>
+      </ul></li>
+      <li><a href="api/options/pricer.html#quantflow.options.pricer.OptionPricer.plot3d">plot3d() (quantflow.options.pricer.OptionPricer method)</a>
+
+      <ul>
+        <li><a href="api/options/vol_surface.html#quantflow.options.surface.VolSurface.plot3d">(quantflow.options.surface.VolSurface method)</a>
+</li>
+      </ul></li>
+      <li><a href="api/sp/poisson.html#quantflow.sp.poisson.PoissonProcess">PoissonProcess (class in quantflow.sp.poisson)</a>
+</li>
+      <li><a href="api/options/calibration.html#quantflow.options.calibration.HestonCalibration.pricer">pricer (quantflow.options.calibration.HestonCalibration attribute)</a>
+
+      <ul>
+        <li><a href="api/options/calibration.html#quantflow.options.calibration.VolModelCalibration.pricer">(quantflow.options.calibration.VolModelCalibration attribute)</a>
+</li>
+      </ul></li>
+      <li><a href="api/data/fmp.html#quantflow.data.fmp.FMP.prices">prices() (quantflow.data.fmp.FMP method)</a>
+</li>
+      <li><a href="api/data/fmp.html#quantflow.data.fmp.FMP.profile">profile() (quantflow.data.fmp.FMP method)</a>
+</li>
+      <li><a href="api/options/vol_surface.html#quantflow.options.surface.OptionSelection.put">put (quantflow.options.surface.OptionSelection attribute)</a>
+</li>
+  </ul></td>
+</tr></table>
+
+<h2 id="Q">Q</h2>
+<table style="width: 100%" class="indextable genindextable"><tr>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li>
+    quantflow.options.bs
+
+      <ul>
+        <li><a href="api/options/black.html#module-quantflow.options.bs">module</a>
+</li>
+      </ul></li>
+      <li>
+    quantflow.options.calibration
+
+      <ul>
+        <li><a href="api/options/calibration.html#module-quantflow.options.calibration">module</a>
+</li>
+      </ul></li>
+      <li>
+    quantflow.options.pricer
+
+      <ul>
+        <li><a href="api/options/pricer.html#module-quantflow.options.pricer">module</a>
+</li>
+      </ul></li>
+      <li>
+    quantflow.options.surface
+
+      <ul>
+        <li><a href="api/options/vol_surface.html#module-quantflow.options.surface">module</a>
+</li>
+      </ul></li>
+      <li>
+    quantflow.sp.weiner
+
+      <ul>
+        <li><a href="api/sp/weiner.html#module-quantflow.sp.weiner">module</a>
+</li>
+      </ul></li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li>
+    quantflow.ta.paths
+
+      <ul>
+        <li><a href="api/ta/paths.html#module-quantflow.ta.paths">module</a>
+</li>
+      </ul></li>
+      <li>
+    quantflow.utils.bins
+
+      <ul>
+        <li><a href="api/utils/bins.html#module-quantflow.utils.bins">module</a>
+</li>
+      </ul></li>
+      <li>
+    quantflow.utils.distributions
+
+      <ul>
+        <li><a href="api/utils/distributions.html#module-quantflow.utils.distributions">module</a>
+</li>
+      </ul></li>
+      <li>
+    quantflow.utils.marginal
+
+      <ul>
+        <li><a href="api/utils/marginal1d.html#module-quantflow.utils.marginal">module</a>
+</li>
+      </ul></li>
+      <li><a href="api/data/fmp.html#quantflow.data.fmp.FMP.quote">quote() (quantflow.data.fmp.FMP method)</a>
+</li>
+  </ul></td>
+</tr></table>
+
+<h2 id="R">R</h2>
+<table style="width: 100%" class="indextable genindextable"><tr>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="api/sp/cir.html#quantflow.sp.cir.CIR.rate">rate (quantflow.sp.cir.CIR attribute)</a>
+
+      <ul>
+        <li><a href="api/sp/ou.html#quantflow.sp.ou.GammaOU.rate">(quantflow.sp.ou.GammaOU attribute)</a>
+</li>
+        <li><a href="api/sp/ou.html#quantflow.sp.ou.Vasicek.rate">(quantflow.sp.ou.Vasicek attribute)</a>
+</li>
+      </ul></li>
+      <li><a href="api/data/fmp.html#quantflow.data.fmp.FMP.rating">rating() (quantflow.data.fmp.FMP method)</a>
+</li>
+      <li><a href="api/data/fmp.html#quantflow.data.fmp.FMP.ratios">ratios() (quantflow.data.fmp.FMP method)</a>
+</li>
+      <li><a href="api/options/calibration.html#quantflow.options.calibration.VolModelCalibration.ref_date">ref_date (quantflow.options.calibration.VolModelCalibration property)</a>
+
+      <ul>
+        <li><a href="api/options/vol_surface.html#quantflow.options.surface.VolSurface.ref_date">(quantflow.options.surface.VolSurface attribute)</a>
+</li>
+      </ul></li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="api/data/fed.html#quantflow.data.fed.FederalReserve.ref_rates">ref_rates() (quantflow.data.fed.FederalReserve method)</a>
+</li>
+      <li><a href="api/options/pricer.html#quantflow.options.pricer.OptionPricer.reset">reset() (quantflow.options.pricer.OptionPricer method)</a>
+</li>
+      <li><a href="api/sp/heston.html#quantflow.sp.heston.Heston.rho">rho (quantflow.sp.heston.Heston attribute)</a>
+
+      <ul>
+        <li><a href="api/sp/heston.html#quantflow.sp.heston.HestonJ.rho">(quantflow.sp.heston.HestonJ attribute)</a>
+</li>
+      </ul></li>
+      <li><a href="api/ta/ohlc.html#quantflow.ta.ohlc.OHLC.rogers_satchell">rogers_satchell() (quantflow.ta.ohlc.OHLC method)</a>
+</li>
+      <li><a href="api/ta/ohlc.html#quantflow.ta.ohlc.OHLC.rogers_satchell_variance">rogers_satchell_variance (quantflow.ta.ohlc.OHLC attribute)</a>
+</li>
+  </ul></td>
+</tr></table>
+
+<h2 id="S">S</h2>
+<table style="width: 100%" class="indextable genindextable"><tr>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="api/sp/cir.html#quantflow.sp.cir.CIR.sample">sample() (quantflow.sp.cir.CIR method)</a>
+
+      <ul>
+        <li><a href="api/sp/heston.html#quantflow.sp.heston.Heston.sample">(quantflow.sp.heston.Heston method)</a>
+</li>
+        <li><a href="api/sp/jump_diffusion.html#quantflow.sp.jump_diffusion.JumpDiffusion.sample">(quantflow.sp.jump_diffusion.JumpDiffusion method)</a>
+</li>
+        <li><a href="api/sp/ou.html#quantflow.sp.ou.GammaOU.sample">(quantflow.sp.ou.GammaOU method)</a>
+</li>
+        <li><a href="api/sp/ou.html#quantflow.sp.ou.Vasicek.sample">(quantflow.sp.ou.Vasicek method)</a>
+</li>
+        <li><a href="api/sp/weiner.html#quantflow.sp.weiner.WeinerProcess.sample">(quantflow.sp.weiner.WeinerProcess method)</a>
+</li>
+        <li><a href="api/utils/distributions.html#quantflow.utils.distributions.Distribution1D.sample">(quantflow.utils.distributions.Distribution1D method)</a>
+</li>
+        <li><a href="api/utils/distributions.html#quantflow.utils.distributions.DoubleExponential.sample">(quantflow.utils.distributions.DoubleExponential method)</a>
+</li>
+        <li><a href="api/utils/distributions.html#quantflow.utils.distributions.Exponential.sample">(quantflow.utils.distributions.Exponential method)</a>
+</li>
+        <li><a href="api/utils/distributions.html#quantflow.utils.distributions.Normal.sample">(quantflow.utils.distributions.Normal method)</a>
+</li>
+      </ul></li>
+      <li><a href="api/sp/cir.html#quantflow.sp.cir.CIR.sample_from_draws">sample_from_draws() (quantflow.sp.cir.CIR method)</a>
+
+      <ul>
+        <li><a href="api/sp/heston.html#quantflow.sp.heston.Heston.sample_from_draws">(quantflow.sp.heston.Heston method)</a>
+</li>
+        <li><a href="api/sp/jump_diffusion.html#quantflow.sp.jump_diffusion.JumpDiffusion.sample_from_draws">(quantflow.sp.jump_diffusion.JumpDiffusion method)</a>
+</li>
+        <li><a href="api/sp/ou.html#quantflow.sp.ou.Vasicek.sample_from_draws">(quantflow.sp.ou.Vasicek method)</a>
+</li>
+        <li><a href="api/sp/weiner.html#quantflow.sp.weiner.WeinerProcess.sample_from_draws">(quantflow.sp.weiner.WeinerProcess method)</a>
+</li>
+      </ul></li>
+      <li><a href="api/sp/cir.html#quantflow.sp.cir.CIR.sample_implicit">sample_implicit() (quantflow.sp.cir.CIR method)</a>
+</li>
+      <li><a href="api/sp/compound_poisson.html#quantflow.sp.poisson.CompoundPoissonProcess.sample_jumps">sample_jumps() (quantflow.sp.poisson.CompoundPoissonProcess method)</a>
+
+      <ul>
+        <li><a href="api/sp/poisson.html#quantflow.sp.poisson.PoissonProcess.sample_jumps">(quantflow.sp.poisson.PoissonProcess method)</a>
+</li>
+      </ul></li>
+      <li><a href="api/ta/paths.html#quantflow.ta.paths.Paths.samples">samples (quantflow.ta.paths.Paths property)</a>
+</li>
+      <li><a href="api/utils/distributions.html#quantflow.utils.distributions.Exponential.scale">scale (quantflow.utils.distributions.Exponential property)</a>
+</li>
+      <li><a href="api/options/vol_surface.html#quantflow.options.surface.VolCrossSection.securities">securities() (quantflow.options.surface.VolCrossSection method)</a>
+
+      <ul>
+        <li><a href="api/options/vol_surface.html#quantflow.options.surface.VolSurface.securities">(quantflow.options.surface.VolSurface method)</a>
+</li>
+      </ul></li>
+      <li><a href="api/ta/ohlc.html#quantflow.ta.ohlc.OHLC.serie">serie (quantflow.ta.ohlc.OHLC attribute)</a>
+</li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="api/data/fred.html#quantflow.data.fred.Fred.serie_data">serie_data() (quantflow.data.fred.Fred method)</a>
+</li>
+      <li><a href="api/data/fred.html#quantflow.data.fred.Fred.series">series() (quantflow.data.fred.Fred method)</a>
+</li>
+      <li><a href="api/utils/distributions.html#quantflow.utils.distributions.Distribution1D.set_asymmetry">set_asymmetry() (quantflow.utils.distributions.Distribution1D method)</a>
+
+      <ul>
+        <li><a href="api/utils/distributions.html#quantflow.utils.distributions.DoubleExponential.set_asymmetry">(quantflow.utils.distributions.DoubleExponential method)</a>
+</li>
+      </ul></li>
+      <li><a href="api/options/calibration.html#quantflow.options.calibration.HestonCalibration.set_params">set_params() (quantflow.options.calibration.HestonCalibration method)</a>
+
+      <ul>
+        <li><a href="api/options/calibration.html#quantflow.options.calibration.VolModelCalibration.set_params">(quantflow.options.calibration.VolModelCalibration method)</a>
+</li>
+      </ul></li>
+      <li><a href="api/utils/distributions.html#quantflow.utils.distributions.Distribution1D.set_variance">set_variance() (quantflow.utils.distributions.Distribution1D method)</a>
+
+      <ul>
+        <li><a href="api/utils/distributions.html#quantflow.utils.distributions.DoubleExponential.set_variance">(quantflow.utils.distributions.DoubleExponential method)</a>
+</li>
+        <li><a href="api/utils/distributions.html#quantflow.utils.distributions.Normal.set_variance">(quantflow.utils.distributions.Normal method)</a>
+</li>
+      </ul></li>
+      <li><a href="api/utils/distributions.html#quantflow.utils.distributions.Normal.sigma">sigma (quantflow.utils.distributions.Normal attribute)</a>
+</li>
+      <li><a href="api/options/vol_surface.html#quantflow.options.surface.GenericVolSurfaceLoader.spot">spot (quantflow.options.surface.GenericVolSurfaceLoader attribute)</a>
+
+      <ul>
+        <li><a href="api/options/vol_surface.html#quantflow.options.surface.VolSurface.spot">(quantflow.options.surface.VolSurface attribute)</a>
+</li>
+      </ul></li>
+      <li><a href="api/options/pricer.html#quantflow.options.pricer.MaturityPricer.std">std (quantflow.options.pricer.MaturityPricer attribute)</a>
+</li>
+      <li><a href="api/ta/paths.html#quantflow.ta.paths.Paths.std">std() (quantflow.ta.paths.Paths method)</a>
+
+      <ul>
+        <li><a href="api/utils/marginal1d.html#quantflow.utils.marginal.Marginal1D.std">(quantflow.utils.marginal.Marginal1D method)</a>
+</li>
+      </ul></li>
+      <li><a href="api/utils/marginal1d.html#quantflow.utils.marginal.Marginal1D.std_from_characteristic">std_from_characteristic() (quantflow.utils.marginal.Marginal1D method)</a>
+</li>
+      <li><a href="api/options/vol_surface.html#quantflow.options.surface.VolCrossSection.strikes">strikes (quantflow.options.surface.VolCrossSection attribute)</a>
+</li>
+      <li><a href="api/data/fred.html#quantflow.data.fred.Fred.subcategories">subcategories() (quantflow.data.fred.Fred method)</a>
+</li>
+      <li><a href="api/sp/poisson.html#quantflow.sp.poisson.PoissonProcess.support">support() (quantflow.sp.poisson.PoissonProcess method)</a>
+
+      <ul>
+        <li><a href="api/utils/distributions.html#quantflow.utils.distributions.DoubleExponential.support">(quantflow.utils.distributions.DoubleExponential method)</a>
+</li>
+        <li><a href="api/utils/distributions.html#quantflow.utils.distributions.Exponential.support">(quantflow.utils.distributions.Exponential method)</a>
+</li>
+        <li><a href="api/utils/distributions.html#quantflow.utils.distributions.Normal.support">(quantflow.utils.distributions.Normal method)</a>
+</li>
+        <li><a href="api/utils/marginal1d.html#quantflow.utils.marginal.Marginal1D.support">(quantflow.utils.marginal.Marginal1D method)</a>
+</li>
+      </ul></li>
+      <li><a href="api/options/vol_surface.html#quantflow.options.surface.GenericVolSurfaceLoader.surface">surface() (quantflow.options.surface.GenericVolSurfaceLoader method)</a>
+</li>
+  </ul></td>
+</tr></table>
+
+<h2 id="T">T</h2>
+<table style="width: 100%" class="indextable genindextable"><tr>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="api/ta/paths.html#quantflow.ta.paths.Paths.t">t (quantflow.ta.paths.Paths attribute)</a>
+</li>
+      <li><a href="api/options/vol_surface.html#quantflow.options.surface.VolSurface.term_structure">term_structure() (quantflow.options.surface.VolSurface method)</a>
+</li>
+      <li><a href="api/sp/ou.html#quantflow.sp.ou.Vasicek.theta">theta (quantflow.sp.ou.Vasicek attribute)</a>
+</li>
+      <li><a href="api/options/vol_surface.html#quantflow.options.surface.GenericVolSurfaceLoader.tick_size_forwards">tick_size_forwards (quantflow.options.surface.GenericVolSurfaceLoader attribute)</a>
+
+      <ul>
+        <li><a href="api/options/vol_surface.html#quantflow.options.surface.VolSurface.tick_size_forwards">(quantflow.options.surface.VolSurface attribute)</a>
+</li>
+      </ul></li>
+      <li><a href="api/options/vol_surface.html#quantflow.options.surface.GenericVolSurfaceLoader.tick_size_options">tick_size_options (quantflow.options.surface.GenericVolSurfaceLoader attribute)</a>
+
+      <ul>
+        <li><a href="api/options/vol_surface.html#quantflow.options.surface.VolSurface.tick_size_options">(quantflow.options.surface.VolSurface attribute)</a>
+</li>
+      </ul></li>
+      <li><a href="api/ta/paths.html#quantflow.ta.paths.Paths.time">time (quantflow.ta.paths.Paths property)</a>
+</li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="api/ta/paths.html#quantflow.ta.paths.Paths.time_steps">time_steps (quantflow.ta.paths.Paths property)</a>
+</li>
+      <li><a href="api/options/pricer.html#quantflow.options.pricer.MaturityPricer.time_value">time_value (quantflow.options.pricer.MaturityPricer property)</a>
+</li>
+      <li><a href="api/options/vol_surface.html#quantflow.options.surface.VolSurface.trim">trim() (quantflow.options.surface.VolSurface method)</a>
+</li>
+      <li><a href="api/options/pricer.html#quantflow.options.pricer.MaturityPricer.ttm">ttm (quantflow.options.pricer.MaturityPricer attribute)</a>
+
+      <ul>
+        <li><a href="api/options/pricer.html#quantflow.options.pricer.OptionPricer.ttm">(quantflow.options.pricer.OptionPricer attribute)</a>
+</li>
+      </ul></li>
+      <li><a href="api/options/vol_surface.html#quantflow.options.surface.VolCrossSection.ttm">ttm() (quantflow.options.surface.VolCrossSection method)</a>
+</li>
+      <li><a href="api/options/calibration.html#quantflow.options.calibration.HestonCalibration.ttm_weight">ttm_weight (quantflow.options.calibration.HestonCalibration attribute)</a>
+
+      <ul>
+        <li><a href="api/options/calibration.html#quantflow.options.calibration.VolModelCalibration.ttm_weight">(quantflow.options.calibration.VolModelCalibration attribute)</a>
+</li>
+      </ul></li>
+  </ul></td>
+</tr></table>
+
+<h2 id="V">V</h2>
+<table style="width: 100%" class="indextable genindextable"><tr>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="api/ta/paths.html#quantflow.ta.paths.Paths.var">var() (quantflow.ta.paths.Paths method)</a>
+</li>
+      <li><a href="api/ta/ohlc.html#quantflow.ta.ohlc.OHLC.var_column">var_column() (quantflow.ta.ohlc.OHLC method)</a>
+</li>
+      <li><a href="api/utils/distributions.html#quantflow.utils.distributions.DoubleExponential.variance">variance() (quantflow.utils.distributions.DoubleExponential method)</a>
+
+      <ul>
+        <li><a href="api/utils/distributions.html#quantflow.utils.distributions.Exponential.variance">(quantflow.utils.distributions.Exponential method)</a>
+</li>
+        <li><a href="api/utils/distributions.html#quantflow.utils.distributions.Normal.variance">(quantflow.utils.distributions.Normal method)</a>
+</li>
+        <li><a href="api/utils/marginal1d.html#quantflow.utils.marginal.Marginal1D.variance">(quantflow.utils.marginal.Marginal1D method)</a>
+</li>
+      </ul></li>
+      <li><a href="api/utils/marginal1d.html#quantflow.utils.marginal.Marginal1D.variance_from_characteristic">variance_from_characteristic() (quantflow.utils.marginal.Marginal1D method)</a>
+</li>
+      <li><a href="api/sp/heston.html#quantflow.sp.heston.Heston.variance_process">variance_process (quantflow.sp.heston.Heston attribute)</a>
+
+      <ul>
+        <li><a href="api/sp/heston.html#quantflow.sp.heston.HestonJ.variance_process">(quantflow.sp.heston.HestonJ attribute)</a>
+</li>
+      </ul></li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="api/sp/ou.html#quantflow.sp.ou.Vasicek">Vasicek (class in quantflow.sp.ou)</a>
+</li>
+      <li><a href="api/options/calibration.html#quantflow.options.calibration.HestonCalibration.vol_surface">vol_surface (quantflow.options.calibration.HestonCalibration attribute)</a>
+
+      <ul>
+        <li><a href="api/options/calibration.html#quantflow.options.calibration.VolModelCalibration.vol_surface">(quantflow.options.calibration.VolModelCalibration attribute)</a>
+</li>
+      </ul></li>
+      <li><a href="api/data/deribit.html#quantflow.data.deribit.Deribit.volatility_surface_loader">volatility_surface_loader() (quantflow.data.deribit.Deribit method)</a>
+</li>
+      <li><a href="api/options/vol_surface.html#quantflow.options.surface.VolCrossSection">VolCrossSection (class in quantflow.options.surface)</a>
+</li>
+      <li><a href="api/options/calibration.html#quantflow.options.calibration.VolModelCalibration">VolModelCalibration (class in quantflow.options.calibration)</a>
+</li>
+      <li><a href="api/options/vol_surface.html#quantflow.options.surface.VolSurface">VolSurface (class in quantflow.options.surface)</a>
+</li>
+      <li><a href="api/options/vol_surface.html#quantflow.options.surface.VolSurfaceLoader">VolSurfaceLoader (class in quantflow.options.surface)</a>
+</li>
+  </ul></td>
+</tr></table>
+
+<h2 id="W">W</h2>
+<table style="width: 100%" class="indextable genindextable"><tr>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="api/sp/weiner.html#quantflow.sp.weiner.WeinerProcess">WeinerProcess (class in quantflow.sp.weiner)</a>
+</li>
+  </ul></td>
+</tr></table>
+
+<h2 id="X">X</h2>
+<table style="width: 100%" class="indextable genindextable"><tr>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="api/ta/paths.html#quantflow.ta.paths.Paths.xs">xs (quantflow.ta.paths.Paths property)</a>
+</li>
+  </ul></td>
+</tr></table>
+
+<h2 id="Y">Y</h2>
+<table style="width: 100%" class="indextable genindextable"><tr>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="api/data/fed.html#quantflow.data.fed.FederalReserve.yield_curves">yield_curves() (quantflow.data.fed.FederalReserve method)</a>
+</li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="api/ta/paths.html#quantflow.ta.paths.Paths.ys">ys (quantflow.ta.paths.Paths property)</a>
+</li>
+  </ul></td>
+</tr></table>
+
+
+
+                </article>
+              
+
+              
+              
+              
+              
+                <footer class="prev-next-footer d-print-none">
+                  
+<div class="prev-next-area">
+</div>
+                </footer>
+              
+            </div>
+            
+            
+              
+            
+          </div>
+          <footer class="bd-footer-content">
+            
+<div class="bd-footer-content__inner container">
+  
+  <div class="footer-item">
+    
+<p class="component-author">
+By <a href="https://quantmind.com">quantmind</a>
+</p>
+
+  </div>
+  
+  <div class="footer-item">
+    
+
+  <p class="copyright">
+    
+      © Copyright 2014-2025.
+      <br/>
+    
+  </p>
+
+  </div>
+  
+  <div class="footer-item">
+    
+  </div>
+  
+  <div class="footer-item">
+    
+  </div>
+  
+</div>
+          </footer>
+        
+
+      </main>
+    </div>
+  </div>
+  
+  <!-- Scripts loaded after <body> so the DOM is not blocked -->
+  <script src="_static/scripts/bootstrap.js?digest=dfe6caa3a7d634c4db9b"></script>
+<script src="_static/scripts/pydata-sphinx-theme.js?digest=dfe6caa3a7d634c4db9b"></script>
+
+  <footer class="bd-footer">
+  </footer>
+  </body>
+</html>
