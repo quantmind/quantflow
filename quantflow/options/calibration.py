@@ -196,7 +196,7 @@ class VolModelCalibration(BaseModel, ABC, Generic[M], arbitrary_types_allowed=Tr
                 max_moneyness_ttm=max_moneyness_ttm, support=support
             )
         return plot.plot_vol_surface(
-            pd.DataFrame([d._asdict() for d in options]),
+            pd.DataFrame([d.info_dict() for d in options]),
             model=model.df,
             **kwargs,
         )

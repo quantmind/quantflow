@@ -260,10 +260,11 @@ class OptionPrice(BaseModel):
         )
         return self
 
-    def _asdict(self) -> dict[str, Any]:
+    def info_dict(self) -> dict[str, Any]:
         return dict(
             strike=float(self.strike),
             forward=float(self.forward),
+            maturity=self.maturity,
             moneyness=self.moneyness,
             moneyness_ttm=self.moneyness / np.sqrt(self.ttm),
             ttm=self.ttm,
@@ -595,7 +596,7 @@ class VolSurface(Generic[S]):
             initial_vol=initial_vol,
             converged=converged,
         )
-        return pd.DataFrame([d._asdict() for d in data])
+        return pd.DataFrame([d.info_dict() for d in data])
 
     def as_array(
         self,

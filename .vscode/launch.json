@@ -14,7 +14,7 @@
             "args": [
                 "-x",
                 "-vvv",
-                "quantflow_tests/test_jump_diffusion.py",
+                "quantflow_tests/test_vault.py",
             ]
         },
     ]
