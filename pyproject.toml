@@ -1,6 +1,6 @@
 [project]
 name = "quantflow"
-version = "0.4.1"
+version = "0.4.2"
 description = "quantitative analysis"
 authors = [{ name = "Luca Sbardella", email = "luca@quantmind.com" }]
 license = "BSD-3-Clause"
@@ -49,7 +49,7 @@ optional = true
 [tool.poetry.group.book.dependencies]
 jupyter-book = "^1.0.0"
 jupytext = "^1.13.8"
-plotly = "^5.20.0"
+plotly = "^6.2.0"
 jupyterlab = "^4.0.2"
 sympy = "^1.12"
 ipywidgets = "^8.0.7"
