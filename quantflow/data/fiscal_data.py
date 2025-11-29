@@ -11,7 +11,7 @@ from quantflow.utils.dates import as_date
 class FiscalData(AioHttpClient):
     """Fiscal Data API client.
 
-    THis class is used to fetch data from the
+    This class is used to fetch data from the
     [fiscal data api](https://fiscaldata.treasury.gov/api-documentation/)
     """
 

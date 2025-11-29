@@ -16,7 +16,7 @@ jobs:
       FMP_API_KEY: ${{ secrets.FMP_API_KEY }}
     strategy:
       matrix:
-        python-version: ["3.11", "3.12", "3.13"]
+        python-version: ["3.11", "3.12", "3.13", "3.14"]
 
     steps:
       - uses: actions/checkout@v4
@@ -37,17 +37,17 @@ jobs:
       - name: run tests
         run: make tests
       - name: upload coverage reports to codecov
-        if: matrix.python-version == '3.12'
+        if: matrix.python-version == '3.13'
         uses: codecov/codecov-action@v3
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
           files: ./build/coverage.xml
       - name: build book
-        if: ${{ matrix.python-version == '3.12' }}
+        if: ${{ matrix.python-version == '3.13' }}
         run: make book
       - name: publish book
-        if: ${{ matrix.python-version == '3.12' }}
+        if: ${{ matrix.python-version == '3.13' }}
         run: make publish-book
       - name: publish
-        if: ${{ matrix.python-version == '3.12' && github.event.head_commit.message == 'release' }}
+        if: ${{ matrix.python-version == '3.13' && github.event.head_commit.message == 'release' }}
         run: make publish

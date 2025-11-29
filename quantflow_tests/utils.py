@@ -1,6 +1,8 @@
 from typing import cast
 
 import numpy as np
+import pytest
+from aiohttp.client_exceptions import ClientError
 
 from quantflow.sp.base import StochasticProcess1D
 from quantflow.utils.marginal import Marginal1D
@@ -30,3 +32,15 @@ def analytical_tests(pr: StochasticProcess1D, tol: float = 1e-3):
     np.testing.assert_allclose(m.mean(), m.mean_from_characteristic(), tol)
     np.testing.assert_allclose(m.std(), m.std_from_characteristic(), tol)
     np.testing.assert_allclose(m.variance(), m.variance_from_characteristic(), tol)
+
+
+def skip_network_issue(func):
+    """Decorator to skip tests in case of network issues."""
+
+    async def wrapper(*args, **kwargs):
+        try:
+            await func(*args, **kwargs)
+        except (ConnectionError, ClientError) as e:
+            pytest.skip(f"Skipping {func.__name__} due to network issue: {e}")
+
+    return wrapper
