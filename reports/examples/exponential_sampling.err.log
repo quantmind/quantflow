@@ -1,0 +1,85 @@
+Traceback (most recent call last):
+  File "/home/runner/.cache/pypoetry/virtualenvs/quantflow-lUXkzsy2-py3.13/lib/python3.13/site-packages/jupyter_cache/executors/utils.py", line 58, in single_nb_execution
+    executenb(
+    ~~~~~~~~~^
+        nb,
+        ^^^
+    ...<4 lines>...
+        **kwargs,
+        ^^^^^^^^^
+    )
+    ^
+  File "/home/runner/.cache/pypoetry/virtualenvs/quantflow-lUXkzsy2-py3.13/lib/python3.13/site-packages/nbclient/client.py", line 1319, in execute
+    return NotebookClient(nb=nb, resources=resources, km=km, **kwargs).execute()
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^
+  File "/home/runner/.cache/pypoetry/virtualenvs/quantflow-lUXkzsy2-py3.13/lib/python3.13/site-packages/jupyter_core/utils/__init__.py", line 165, in wrapped
+    return loop.run_until_complete(inner)
+           ~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^
+  File "/opt/hostedtoolcache/Python/3.13.9/x64/lib/python3.13/asyncio/base_events.py", line 725, in run_until_complete
+    return future.result()
+           ~~~~~~~~~~~~~^^
+  File "/home/runner/.cache/pypoetry/virtualenvs/quantflow-lUXkzsy2-py3.13/lib/python3.13/site-packages/nbclient/client.py", line 709, in async_execute
+    await self.async_execute_cell(
+        cell, index, execution_count=self.code_cells_executed + 1
+    )
+  File "/home/runner/.cache/pypoetry/virtualenvs/quantflow-lUXkzsy2-py3.13/lib/python3.13/site-packages/nbclient/client.py", line 1062, in async_execute_cell
+    await self._check_raise_for_error(cell, cell_index, exec_reply)
+  File "/home/runner/.cache/pypoetry/virtualenvs/quantflow-lUXkzsy2-py3.13/lib/python3.13/site-packages/nbclient/client.py", line 918, in _check_raise_for_error
+    raise CellExecutionError.from_cell_and_msg(cell, exec_reply_content)
+nbclient.exceptions.CellExecutionError: An error occurred while executing the following cell:
+------------------
+from quantflow.utils.distributions import DoubleExponential
+from quantflow.utils import bins
+import numpy as np
+import ipywidgets as widgets
+import plotly.graph_objects as go
+
+def simulate():
+    pr = DoubleExponential.from_moments(kappa=np.exp(asym.value))
+    data = pr.sample(samples.value)
+    pdf = bins.pdf(data, num_bins=50, symmetric=0)
+    pdf["simulation"] = pdf["pdf"]
+    pdf["analytical"] = pr.pdf(pdf.index)
+    cha = pr.pdf_from_characteristic()
+    return pdf, cha
+
+def on_change(change):
+    df, cha = simulate()
+    fig.data[0].x = df.index
+    fig.data[0].y = df["simulation"]
+    fig.data[1].x = df.index
+    fig.data[1].y = df["analytical"]
+    fig.data[2].x = cha.x
+    fig.data[2].y = cha.y
+
+asym = widgets.FloatSlider(description="asymmetry (log of k)", min=-2, max=2)
+samples = widgets.IntSlider(description="paths", min=100, max=10000, step=100)
+asym.value = 0
+samples.value = 1000
+asym.observe(on_change)
+samples.observe(on_change)
+
+df, cha = simulate()
+simulation = go.Bar(x=df.index, y=df["simulation"], name="simulation")
+analytical = go.Scatter(x=df.index, y=df["analytical"], name="analytical")
+cha = go.Scatter(x=cha.x, y=cha.y, name="from characteristic", mode="markers")
+fig = go.FigureWidget(data=[simulation, cha, analytical])
+
+widgets.VBox([asym, samples, fig])
+------------------
+
+
+[31m---------------------------------------------------------------------------[39m
+[31mImportError[39m                               Traceback (most recent call last)
+[36mCell[39m[36m [39m[32mIn[1][39m[32m, line 36[39m
+[32m     34[39m analytical = go.Scatter(x=df.index, y=df[[33m"[39m[33manalytical[39m[33m"[39m], name=[33m"[39m[33manalytical[39m[33m"[39m)
+[32m     35[39m cha = go.Scatter(x=cha.x, y=cha.y, name=[33m"[39m[33mfrom characteristic[39m[33m"[39m, mode=[33m"[39m[33mmarkers[39m[33m"[39m)
+[32m---> [39m[32m36[39m fig = [43mgo[49m[43m.[49m[43mFigureWidget[49m[43m([49m[43mdata[49m[43m=[49m[43m[[49m[43msimulation[49m[43m,[49m[43m [49m[43mcha[49m[43m,[49m[43m [49m[43manalytical[49m[43m][49m[43m)[49m
+[32m     38[39m widgets.VBox([asym, samples, fig])
+
+[36mFile [39m[32m~/.cache/pypoetry/virtualenvs/quantflow-lUXkzsy2-py3.13/lib/python3.13/site-packages/plotly/missing_anywidget.py:13[39m, in [36mFigureWidget.__init__[39m[34m(self, *args, **kwargs)[39m
+[32m     12[39m [38;5;28;01mdef[39;00m[38;5;250m [39m[34m__init__[39m([38;5;28mself[39m, *args, **kwargs):
+[32m---> [39m[32m13[39m     [38;5;28;01mraise[39;00m [38;5;167;01mImportError[39;00m([33m"[39m[33mPlease install anywidget to use the FigureWidget class[39m[33m"[39m)
+
+[31mImportError[39m: Please install anywidget to use the FigureWidget class
+

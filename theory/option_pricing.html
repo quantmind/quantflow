@@ -1,0 +1,779 @@
+
+<!DOCTYPE html>
+
+
+<html lang="en" data-content_root="../" >
+
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>Option Pricing &#8212; Quantflow library</title>
+  
+  
+  
+  <script data-cfasync="false">
+    document.documentElement.dataset.mode = localStorage.getItem("mode") || "";
+    document.documentElement.dataset.theme = localStorage.getItem("theme") || "";
+  </script>
+  
+  <!-- Loaded before other Sphinx assets -->
+  <link href="../_static/styles/theme.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+<link href="../_static/styles/bootstrap.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+<link href="../_static/styles/pydata-sphinx-theme.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+
+  
+  <link href="../_static/vendor/fontawesome/6.5.2/css/all.min.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+  <link rel="preload" as="font" type="font/woff2" crossorigin href="../_static/vendor/fontawesome/6.5.2/webfonts/fa-solid-900.woff2" />
+<link rel="preload" as="font" type="font/woff2" crossorigin href="../_static/vendor/fontawesome/6.5.2/webfonts/fa-brands-400.woff2" />
+<link rel="preload" as="font" type="font/woff2" crossorigin href="../_static/vendor/fontawesome/6.5.2/webfonts/fa-regular-400.woff2" />
+
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=03e43079" />
+    <link rel="stylesheet" type="text/css" href="../_static/styles/sphinx-book-theme.css?v=eba8b062" />
+    <link rel="stylesheet" type="text/css" href="../_static/togglebutton.css?v=13237357" />
+    <link rel="stylesheet" type="text/css" href="../_static/copybutton.css?v=76b2166b" />
+    <link rel="stylesheet" type="text/css" href="../_static/mystnb.8ecb98da25f57f5357bf6f572d296f466b2cfe2517ffebfabe82451661e28f02.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/sphinx-thebe.css?v=4fa983c6" />
+    <link rel="stylesheet" type="text/css" href="../_static/sphinx-design.min.css?v=95c83b7e" />
+  
+  <!-- Pre-loaded scripts that we'll load fully later -->
+  <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=dfe6caa3a7d634c4db9b" />
+<link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=dfe6caa3a7d634c4db9b" />
+  <script src="../_static/vendor/fontawesome/6.5.2/js/all.min.js?digest=dfe6caa3a7d634c4db9b"></script>
+
+    <script src="../_static/documentation_options.js?v=9eb32ce0"></script>
+    <script src="../_static/doctools.js?v=9a2dae69"></script>
+    <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
+    <script src="../_static/copybutton.js?v=f281be69"></script>
+    <script src="../_static/scripts/sphinx-book-theme.js?v=887ef09a"></script>
+    <script>let toggleHintShow = 'Click to show';</script>
+    <script>let toggleHintHide = 'Click to hide';</script>
+    <script>let toggleOpenOnPrint = 'true';</script>
+    <script src="../_static/togglebutton.js?v=4a39c7ea"></script>
+    <script>var togglebuttonSelector = '.toggle, .admonition.dropdown';</script>
+    <script src="../_static/design-tabs.js?v=f930bc37"></script>
+    <script async="async" src="https://www.googletagmanager.com/gtag/js?id=G-CM0DR45HDR"></script>
+    <script>
+                window.dataLayer = window.dataLayer || [];
+                function gtag(){ dataLayer.push(arguments); }
+                gtag('js', new Date());
+                gtag('config', 'G-CM0DR45HDR');
+            </script>
+    <script>const THEBE_JS_URL = "https://unpkg.com/thebe@0.8.2/lib/index.js"; const thebe_selector = ".thebe,.cell"; const thebe_selector_input = "pre"; const thebe_selector_output = ".output, .cell_output"</script>
+    <script async="async" src="../_static/sphinx-thebe.js?v=c100c467"></script>
+    <script>var togglebuttonSelector = '.toggle, .admonition.dropdown';</script>
+    <script>
+                window.dataLayer = window.dataLayer || [];
+                function gtag(){ dataLayer.push(arguments); }
+                gtag('js', new Date());
+                gtag('config', 'G-CM0DR45HDR');
+            </script>
+    <script>const THEBE_JS_URL = "https://unpkg.com/thebe@0.8.2/lib/index.js"; const thebe_selector = ".thebe,.cell"; const thebe_selector_input = "pre"; const thebe_selector_output = ".output, .cell_output"</script>
+    <script>window.MathJax = {"options": {"processHtmlClass": "tex2jax_process|mathjax_process|math|output_area"}}</script>
+    <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <script>DOCUMENTATION_OPTIONS.pagename = 'theory/option_pricing';</script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+    <link rel="icon" href="../_static/quantflow-logo.png"/>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Stochastic Processes" href="../models/overview.html" />
+    <link rel="prev" title="From Characteristic Function to PDF" href="inversion.html" />
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <meta name="docsearch:language" content="en"/>
+  </head>
+  
+  
+  <body data-bs-spy="scroll" data-bs-target=".bd-toc-nav" data-offset="180" data-bs-root-margin="0px 0px -60%" data-default-mode="">
+
+  
+  
+  <div id="pst-skip-link" class="skip-link d-print-none"><a href="#main-content">Skip to main content</a></div>
+  
+  <div id="pst-scroll-pixel-helper"></div>
+  
+  <button type="button" class="btn rounded-pill" id="pst-back-to-top">
+    <i class="fa-solid fa-arrow-up"></i>Back to top</button>
+
+  
+  <input type="checkbox"
+          class="sidebar-toggle"
+          id="pst-primary-sidebar-checkbox"/>
+  <label class="overlay overlay-primary" for="pst-primary-sidebar-checkbox"></label>
+  
+  <input type="checkbox"
+          class="sidebar-toggle"
+          id="pst-secondary-sidebar-checkbox"/>
+  <label class="overlay overlay-secondary" for="pst-secondary-sidebar-checkbox"></label>
+  
+  <div class="search-button__wrapper">
+    <div class="search-button__overlay"></div>
+    <div class="search-button__search-container">
+<form class="bd-search d-flex align-items-center"
+      action="../search.html"
+      method="get">
+  <i class="fa-solid fa-magnifying-glass"></i>
+  <input type="search"
+         class="form-control"
+         name="q"
+         id="search-input"
+         placeholder="Search this book..."
+         aria-label="Search this book..."
+         autocomplete="off"
+         autocorrect="off"
+         autocapitalize="off"
+         spellcheck="false"/>
+  <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd>K</kbd></span>
+</form></div>
+  </div>
+
+  <div class="pst-async-banner-revealer d-none">
+  <aside id="bd-header-version-warning" class="d-none d-print-none" aria-label="Version warning"></aside>
+</div>
+
+  
+    <header class="bd-header navbar navbar-expand-lg bd-navbar d-print-none">
+    </header>
+  
+
+  <div class="bd-container">
+    <div class="bd-container__inner bd-page-width">
+      
+      
+      
+      <div class="bd-sidebar-primary bd-sidebar">
+        
+
+  
+  <div class="sidebar-header-items sidebar-primary__section">
+    
+    
+    
+    
+  </div>
+  
+    <div class="sidebar-primary-items__start sidebar-primary__section">
+        <div class="sidebar-primary-item">
+
+  
+    
+  
+
+<a class="navbar-brand logo" href="../index.html">
+  
+  
+  
+  
+  
+    
+    
+      
+    
+    
+    <img src="../_static/quantflow-light.svg" class="logo__image only-light" alt="Quantflow library - Home"/>
+    <script>document.write(`<img src="../_static/quantflow-light.svg" class="logo__image only-dark" alt="Quantflow library - Home"/>`);</script>
+  
+  
+</a></div>
+        <div class="sidebar-primary-item">
+
+ <script>
+ document.write(`
+   <button class="btn search-button-field search-button__button" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="fa-solid fa-magnifying-glass"></i>
+    <span class="search-button__default-text">Search</span>
+    <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+   </button>
+ `);
+ </script></div>
+        <div class="sidebar-primary-item"><nav class="bd-links bd-docs-nav" aria-label="Main">
+    <div class="bd-toc-item navbar-nav active">
+        <p aria-level="2" class="caption" role="heading"><span class="caption-text">Topic Guides</span></p>
+<ul class="current nav bd-sidenav">
+<li class="toctree-l1 current active has-children"><a class="reference internal" href="overview.html">Theory</a><details open="open"><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="levy.html">Lévy process</a></li>
+<li class="toctree-l2"><a class="reference internal" href="characteristic.html">Characteristic Function</a></li>
+<li class="toctree-l2"><a class="reference internal" href="inversion.html">From Characteristic Function to PDF</a></li>
+<li class="toctree-l2 current active"><a class="current reference internal" href="#">Option Pricing</a></li>
+</ul>
+</details></li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="../models/overview.html">Stochastic Processes</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="../models/weiner.html">Weiner Process</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../models/poisson.html">Poisson Processes</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../models/jump_diffusion.html">Jump Diffusion Models</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../models/cir.html">CIR process</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../models/ou.html">OU Process</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../models/heston.html">Heston Model and Option Pricing</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../models/heston_jumps.html">Heston Model with Jumps</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../models/bns.html">BNS Model</a></li>
+</ul>
+</details></li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="../applications/overview.html">Applications</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="../applications/volatility_surface.html">Volatility Surface</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../applications/hurst.html">Hurst Exponent</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../applications/calibration.html">Calibration</a></li>
+</ul>
+</details></li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="../examples/overview.html">Examples</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="../examples/gaussian_sampling.html">Gaussian Sampling</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../examples/exponential_sampling.html">Exponential Sampling</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../examples/poisson_sampling.html">Poisson Sampling</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../examples/heston_vol_surface.html">HestonJ Volatility Surface</a></li>
+</ul>
+</details></li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="../api/index.html">API Reference</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2 has-children"><a class="reference internal" href="../api/sp/index.html">Stochastic Process</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l3"><a class="reference internal" href="../api/sp/weiner.html">Weiner process</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../api/sp/poisson.html">Poisson process</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../api/sp/compound_poisson.html">Compound Poisson</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../api/sp/ou.html">OU Processes</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../api/sp/cir.html">CIR</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../api/sp/jump_diffusion.html">Jump diffusions</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../api/sp/heston.html">Heston process</a></li>
+</ul>
+</details></li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="../api/options/index.html">Option Pricing</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l3"><a class="reference internal" href="../api/options/vol_surface.html">Vol Surface</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../api/options/black.html">Black Pricing</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../api/options/pricer.html">Option Pricer</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../api/options/calibration.html">Vol Model Calibration</a></li>
+</ul>
+</details></li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="../api/ta/index.html">Timeseries Analysis</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l3"><a class="reference internal" href="../api/ta/ohlc.html">OHLC</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../api/ta/paths.html">Paths</a></li>
+</ul>
+</details></li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="../api/data/index.html">Data fetching</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l3"><a class="reference internal" href="../api/data/fmp.html">FMP</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../api/data/fed.html">Federal Reserve</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../api/data/fred.html">Fred</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../api/data/deribit.html">Deribit</a></li>
+</ul>
+</details></li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="../api/utils/index.html">Utils</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l3"><a class="reference internal" href="../api/utils/marginal1d.html">Marginal1D</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../api/utils/distributions.html">Distributions</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../api/utils/bins.html">Bins</a></li>
+</ul>
+</details></li>
+</ul>
+</details></li>
+</ul>
+<p aria-level="2" class="caption" role="heading"><span class="caption-text">Reference</span></p>
+<ul class="nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="../reference/contributing.html">Contributing</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../reference/glossary.html">Glossary</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../reference/biblio.html">Bibliography</a></li>
+</ul>
+
+    </div>
+</nav></div>
+    </div>
+  
+  
+  <div class="sidebar-primary-items__end sidebar-primary__section">
+  </div>
+  
+  <div id="rtd-footer-container"></div>
+
+
+      </div>
+      
+      <main id="main-content" class="bd-main" role="main">
+        
+        
+
+<div class="sbt-scroll-pixel-helper"></div>
+
+          <div class="bd-content">
+            <div class="bd-article-container">
+              
+              <div class="bd-header-article d-print-none">
+<div class="header-article-items header-article__inner">
+  
+    <div class="header-article-items__start">
+      
+        <div class="header-article-item"><button class="sidebar-toggle primary-toggle btn btn-sm" title="Toggle primary sidebar" data-bs-placement="bottom" data-bs-toggle="tooltip">
+  <span class="fa-solid fa-bars"></span>
+</button></div>
+      
+    </div>
+  
+  
+    <div class="header-article-items__end">
+      
+        <div class="header-article-item">
+
+<div class="article-header-buttons">
+
+
+
+
+
+<div class="dropdown dropdown-source-buttons">
+  <button class="btn dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false" aria-label="Source repositories">
+    <i class="fab fa-github"></i>
+  </button>
+  <ul class="dropdown-menu">
+      
+      
+      
+      <li><a href="https://github.com/quantmind/quantflow" target="_blank"
+   class="btn btn-sm btn-source-repository-button dropdown-item"
+   title="Source repository"
+   data-bs-placement="left" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fab fa-github"></i>
+  </span>
+<span class="btn__text-container">Repository</span>
+</a>
+</li>
+      
+      
+      
+      
+      <li><a href="https://github.com/quantmind/quantflow/edit/main/notebooks/theory/option_pricing.md" target="_blank"
+   class="btn btn-sm btn-source-edit-button dropdown-item"
+   title="Suggest edit"
+   data-bs-placement="left" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fas fa-pencil-alt"></i>
+  </span>
+<span class="btn__text-container">Suggest edit</span>
+</a>
+</li>
+      
+      
+      
+      
+      <li><a href="https://github.com/quantmind/quantflow/issues/new?title=Issue%20on%20page%20%2Ftheory/option_pricing.html&body=Your%20issue%20content%20here." target="_blank"
+   class="btn btn-sm btn-source-issues-button dropdown-item"
+   title="Open an issue"
+   data-bs-placement="left" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fas fa-lightbulb"></i>
+  </span>
+<span class="btn__text-container">Open issue</span>
+</a>
+</li>
+      
+  </ul>
+</div>
+
+
+
+
+
+
+<div class="dropdown dropdown-download-buttons">
+  <button class="btn dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false" aria-label="Download this page">
+    <i class="fas fa-download"></i>
+  </button>
+  <ul class="dropdown-menu">
+      
+      
+      
+      <li><a href="../_sources/theory/option_pricing.md" target="_blank"
+   class="btn btn-sm btn-download-source-button dropdown-item"
+   title="Download source file"
+   data-bs-placement="left" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fas fa-file"></i>
+  </span>
+<span class="btn__text-container">.md</span>
+</a>
+</li>
+      
+      
+      
+      
+      <li>
+<button onclick="window.print()"
+  class="btn btn-sm btn-download-pdf-button dropdown-item"
+  title="Print to PDF"
+  data-bs-placement="left" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fas fa-file-pdf"></i>
+  </span>
+<span class="btn__text-container">.pdf</span>
+</button>
+</li>
+      
+  </ul>
+</div>
+
+
+
+
+<button onclick="toggleFullScreen()"
+  class="btn btn-sm btn-fullscreen-button"
+  title="Fullscreen mode"
+  data-bs-placement="bottom" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fas fa-expand"></i>
+  </span>
+
+</button>
+
+
+
+<script>
+document.write(`
+  <button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button" title="light/dark" aria-label="light/dark" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="theme-switch fa-solid fa-sun fa-lg" data-mode="light"></i>
+    <i class="theme-switch fa-solid fa-moon fa-lg" data-mode="dark"></i>
+    <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg" data-mode="auto"></i>
+  </button>
+`);
+</script>
+
+
+<script>
+document.write(`
+  <button class="btn btn-sm pst-navbar-icon search-button search-button__button" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="fa-solid fa-magnifying-glass fa-lg"></i>
+  </button>
+`);
+</script>
+<button class="sidebar-toggle secondary-toggle btn btn-sm" title="Toggle secondary sidebar" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <span class="fa-solid fa-list"></span>
+</button>
+</div></div>
+      
+    </div>
+  
+</div>
+</div>
+              
+              
+
+<div id="jb-print-docs-body" class="onlyprint">
+    <h1>Option Pricing</h1>
+    <!-- Table of contents -->
+    <div id="print-main-content">
+        <div id="jb-print-toc">
+            
+            <div>
+                <h2> Contents </h2>
+            </div>
+            <nav aria-label="Page">
+                <ul class="visible nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#convexity-correction">Convexity Correction</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#weiner-process">Weiner process</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#call-option">Call option</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#choice-of-alpha">Choice of <span class="math notranslate nohighlight">\(\alpha\)</span></a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#black-formula">Black Formula</a></li>
+</ul>
+            </nav>
+        </div>
+    </div>
+</div>
+
+              
+                
+<div id="searchbox"></div>
+                <article class="bd-article">
+                  
+  <section class="tex2jax_ignore mathjax_ignore" id="option-pricing">
+<h1>Option Pricing<a class="headerlink" href="#option-pricing" title="Link to this heading">#</a></h1>
+<p>We can use the tooling from characteristic function inversion to price european call options on an underlying <span class="math notranslate nohighlight">\(S_t = S_0 e^{s_t}\)</span>, where <span class="math notranslate nohighlight">\(S_0\)</span> is the spot price at time 0.</p>
+<section id="convexity-correction">
+<h2>Convexity Correction<a class="headerlink" href="#convexity-correction" title="Link to this heading">#</a></h2>
+<p>We assume an interest rate 0, so that the forward price is equal the spot price. This assumtion leads to the following no arbitrage condition</p>
+<div class="amsmath math notranslate nohighlight" id="equation-efc6af57-5f4c-4e1d-8adb-5afd8a8fe9a2">
+<span class="eqno">(25)<a class="headerlink" href="#equation-efc6af57-5f4c-4e1d-8adb-5afd8a8fe9a2" title="Permalink to this equation">#</a></span>\[\begin{align}
+s_t &amp;= x_t - c_t \\
+{\mathbb E}_0\left[e^{s_t} \right] &amp;= {\mathbb E}_0\left[e^{x_t - c_t} \right] = e^{-c_t} {\mathbb E}_0\left[e^{x_t} \right] = e^{-c_t} e^{-\phi_{x_t, -i}} = 1
+\end{align}\]</div>
+<p>Therefore, <span class="math notranslate nohighlight">\(c_t\)</span> represents the so-called convexity correction term, and it is equal to</p>
+<div class="amsmath math notranslate nohighlight" id="equation-1a81c5fb-2d62-470a-a7a3-3f600d6e015d">
+<span class="eqno">(26)<a class="headerlink" href="#equation-1a81c5fb-2d62-470a-a7a3-3f600d6e015d" title="Permalink to this equation">#</a></span>\[\begin{equation}
+  c_t = -\phi_{x_t, -i}
+\end{equation}\]</div>
+<p>The characteristic function of <span class="math notranslate nohighlight">\(s_t\)</span> is given by</p>
+<div class="amsmath math notranslate nohighlight" id="equation-bf521f63-767d-4d65-83ff-e8b012ac7850">
+<span class="eqno">(27)<a class="headerlink" href="#equation-bf521f63-767d-4d65-83ff-e8b012ac7850" title="Permalink to this equation">#</a></span>\[\begin{equation}
+ \Phi_{s_t}\left(u\right) = \Phi_x\left(u\right) e^{-i u c_t}
+\end{equation}\]</div>
+<p>As you can see the convexity correction increases with time horizon, lets take few examples:</p>
+<section id="weiner-process">
+<h3>Weiner process<a class="headerlink" href="#weiner-process" title="Link to this heading">#</a></h3>
+<p>This is the very famous convexity correction which appears in all diffusion driven SDE:</p>
+<div class="amsmath math notranslate nohighlight" id="equation-8e67e52a-5aa0-4fe9-9ca6-9390146f7e13">
+<span class="eqno">(28)<a class="headerlink" href="#equation-8e67e52a-5aa0-4fe9-9ca6-9390146f7e13" title="Permalink to this equation">#</a></span>\[\begin{equation}
+    c_t = \frac{\sigma^2 t}{2}
+\end{equation}\]</div>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">quantflow.sp.weiner</span><span class="w"> </span><span class="kn">import</span> <span class="n">WeinerProcess</span>
+<span class="n">pr</span> <span class="o">=</span> <span class="n">WeinerProcess</span><span class="p">(</span><span class="n">sigma</span><span class="o">=</span><span class="mf">0.5</span><span class="p">)</span>
+<span class="o">-</span><span class="n">pr</span><span class="o">.</span><span class="n">characteristic_exponent</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="nb">complex</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="o">-</span><span class="mi">1</span><span class="p">))</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output text_plain highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>(0.125+0j)
+</pre></div>
+</div>
+</div>
+</div>
+<p>which is the same as</p>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">pr</span><span class="o">.</span><span class="n">convexity_correction</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output text_plain highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>0.125
+</pre></div>
+</div>
+</div>
+</div>
+</section>
+</section>
+<section id="call-option">
+<h2>Call option<a class="headerlink" href="#call-option" title="Link to this heading">#</a></h2>
+<p>The price C of a call option with strike <span class="math notranslate nohighlight">\(K\)</span> is defined as</p>
+<div class="amsmath math notranslate nohighlight" id="equation-da8cc3e3-0ef7-46f2-882f-b73654603665">
+<span class="eqno">(29)<a class="headerlink" href="#equation-da8cc3e3-0ef7-46f2-882f-b73654603665" title="Permalink to this equation">#</a></span>\[\begin{align}
+C &amp;= S_0 c_k \\
+k &amp;= \ln\frac{K}{S_0}\\
+c_k &amp;= {\mathbb E}\left[\left(e^{s_t} - e^k\right)1_{s_t\ge k}\right]
+\end{align}\]</div>
+<p>We follow <span id="id1">[<a class="reference internal" href="../reference/biblio.html#id3" title="P. Carr and D. Madan. Option valuation using the fast fourier transform. Journal of Computational Finance, 3:463-520, 1999. URL: http://faculty.baruch.cuny.edu/lwu/890/CarrMadan99.pdf.">CM99</a>]</span> and write the Fourier transform of the the call option as</p>
+<div class="amsmath math notranslate nohighlight" id="equation-6ee071cc-ca21-48fa-8980-7c5e51f26a48">
+<span class="eqno">(30)<a class="headerlink" href="#equation-6ee071cc-ca21-48fa-8980-7c5e51f26a48" title="Permalink to this equation">#</a></span>\[\begin{equation}
+\Psi_u = \int_{-\infty}^\infty e^{i u k} c_k dk
+\end{equation}\]</div>
+<p>Note that <span class="math notranslate nohighlight">\(c_k\)</span> tends to <span class="math notranslate nohighlight">\(e^x_t\)</span> as <span class="math notranslate nohighlight">\(k \to -\infty\)</span>, therefore the call price function is not square-integrable. In order to obtain integrability, we choose complex values of <span class="math notranslate nohighlight">\(u\)</span> of the form</p>
+<div class="amsmath math notranslate nohighlight" id="equation-9388494f-2458-4319-bc76-b9c75fa9457b">
+<span class="eqno">(31)<a class="headerlink" href="#equation-9388494f-2458-4319-bc76-b9c75fa9457b" title="Permalink to this equation">#</a></span>\[\begin{equation}
+u = v - i \alpha
+\end{equation}\]</div>
+<p>The value of <span class="math notranslate nohighlight">\(\alpha\)</span> is a numerical choice we can check later.</p>
+<p>It is possible to obtain the analytical expression of <span class="math notranslate nohighlight">\(\Psi_u\)</span> in terms of the characteristic function <span class="math notranslate nohighlight">\(\Phi_s\)</span>. Once we have that expression, we can use the Fourier transform tooling presented previously to calculate option prices in this way</p>
+<div class="amsmath math notranslate nohighlight" id="equation-c7cf86a0-d18e-451b-b032-b528f4b0ec42">
+<span class="eqno">(32)<a class="headerlink" href="#equation-c7cf86a0-d18e-451b-b032-b528f4b0ec42" title="Permalink to this equation">#</a></span>\[\begin{align}
+c_k &amp;= \int_0^{\infty} e^{-iuk} \Psi\left(u\right) du \\
+    &amp;= \frac{e^{-\alpha k}}{\pi} \int_0^{\infty} e^{-ivk} \Psi\left(v-i\alpha\right) dv \\
+\end{align}\]</div>
+<p>The analytical expression of <span class="math notranslate nohighlight">\(\Psi_u\)</span> is given by</p>
+<div class="amsmath math notranslate nohighlight" id="equation-a547fb9a-502b-438e-9846-7d4f96f7b796">
+<span class="eqno">(33)<a class="headerlink" href="#equation-a547fb9a-502b-438e-9846-7d4f96f7b796" title="Permalink to this equation">#</a></span>\[\begin{equation}
+\Psi_u = \frac{\Phi_{s_t}\left(u-i\right)}{iu \left(iu + 1\right)}
+\end{equation}\]</div>
+<p>To integrate, we use the same approach as the PDF integration.</p>
+<section id="choice-of-alpha">
+<h3>Choice of <span class="math notranslate nohighlight">\(\alpha\)</span><a class="headerlink" href="#choice-of-alpha" title="Link to this heading">#</a></h3>
+<p>Positive values of α assist the integrability of the modified call value over the
+negative moneyness axis, but aggravate the same condition for the positive moneyness axis. For the modified call value to be integrable in the positive moneyness
+direction, and hence for it to be square-integrable as well, a sufficient condition
+is provided by <span class="math notranslate nohighlight">\(\Psi_{-i\alpha}\)</span> being finite, which means the characteristic function <span class="math notranslate nohighlight">\(\Phi_{t,{-(\alpha+1)i}}\)</span> is finite.</p>
+</section>
+</section>
+<section id="black-formula">
+<h2>Black Formula<a class="headerlink" href="#black-formula" title="Link to this heading">#</a></h2>
+<p>Here we illustrate how to use the characteristic function integration with the classical <a class="reference external" href="https://en.wikipedia.org/wiki/Wiener_process">Weiner process</a>.</p>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">quantflow.sp.weiner</span><span class="w"> </span><span class="kn">import</span> <span class="n">WeinerProcess</span>
+<span class="n">ttm</span><span class="o">=</span><span class="mi">1</span>
+<span class="n">p</span> <span class="o">=</span> <span class="n">WeinerProcess</span><span class="p">(</span><span class="n">sigma</span><span class="o">=</span><span class="mf">0.5</span><span class="p">)</span>
+
+<span class="c1"># create the marginal density at ttm</span>
+<span class="n">m</span> <span class="o">=</span> <span class="n">p</span><span class="o">.</span><span class="n">marginal</span><span class="p">(</span><span class="n">ttm</span><span class="p">)</span>
+<span class="n">m</span><span class="o">.</span><span class="n">std</span><span class="p">()</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output text_plain highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>np.float64(0.5)
+</pre></div>
+</div>
+</div>
+</div>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">plotly.express</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">px</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">plotly.graph_objects</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">go</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">quantflow.options.bs</span><span class="w"> </span><span class="kn">import</span> <span class="n">black_call</span>
+<span class="n">N</span><span class="p">,</span> <span class="n">M</span> <span class="o">=</span> <span class="mi">128</span><span class="p">,</span> <span class="mi">10</span>
+<span class="n">dx</span> <span class="o">=</span> <span class="mi">10</span><span class="o">/</span><span class="n">N</span>
+<span class="n">r</span> <span class="o">=</span> <span class="n">m</span><span class="o">.</span><span class="n">call_option</span><span class="p">(</span><span class="mi">64</span><span class="p">,</span> <span class="n">M</span><span class="p">,</span> <span class="n">dx</span><span class="p">,</span> <span class="n">alpha</span><span class="o">=</span><span class="mf">0.3</span><span class="p">)</span>
+<span class="n">b</span> <span class="o">=</span> <span class="n">black_call</span><span class="p">(</span><span class="n">r</span><span class="o">.</span><span class="n">x</span><span class="p">,</span> <span class="n">p</span><span class="o">.</span><span class="n">sigma</span><span class="p">,</span> <span class="n">ttm</span><span class="p">)</span>
+<span class="n">fig</span> <span class="o">=</span> <span class="n">px</span><span class="o">.</span><span class="n">line</span><span class="p">(</span><span class="n">x</span><span class="o">=</span><span class="n">r</span><span class="o">.</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="o">=</span><span class="n">r</span><span class="o">.</span><span class="n">y</span><span class="p">,</span> <span class="n">markers</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">labels</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span><span class="n">x</span><span class="o">=</span><span class="s2">&quot;moneyness&quot;</span><span class="p">,</span> <span class="n">y</span><span class="o">=</span><span class="s2">&quot;call price&quot;</span><span class="p">))</span>
+<span class="n">fig</span><span class="o">.</span><span class="n">add_trace</span><span class="p">(</span><span class="n">go</span><span class="o">.</span><span class="n">Scatter</span><span class="p">(</span><span class="n">x</span><span class="o">=</span><span class="n">r</span><span class="o">.</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="o">=</span><span class="n">b</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s2">&quot;analytical&quot;</span><span class="p">,</span> <span class="n">line</span><span class="o">=</span><span class="nb">dict</span><span class="p">()))</span>
+<span class="n">fig</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output traceback highlight-ipythontb notranslate"><div class="highlight"><pre><span></span><span class="gt">---------------------------------------------------------------------------</span>
+<span class="ne">TypeError</span><span class="g g-Whitespace">                                 </span>Traceback (most recent call last)
+<span class="n">Cell</span> <span class="n">In</span><span class="p">[</span><span class="mi">4</span><span class="p">],</span> <span class="n">line</span> <span class="mi">6</span>
+<span class="g g-Whitespace">      </span><span class="mi">4</span> <span class="n">N</span><span class="p">,</span> <span class="n">M</span> <span class="o">=</span> <span class="mi">128</span><span class="p">,</span> <span class="mi">10</span>
+<span class="g g-Whitespace">      </span><span class="mi">5</span> <span class="n">dx</span> <span class="o">=</span> <span class="mi">10</span><span class="o">/</span><span class="n">N</span>
+<span class="ne">----&gt; </span><span class="mi">6</span> <span class="n">r</span> <span class="o">=</span> <span class="n">m</span><span class="o">.</span><span class="n">call_option</span><span class="p">(</span><span class="mi">64</span><span class="p">,</span> <span class="n">M</span><span class="p">,</span> <span class="n">dx</span><span class="p">,</span> <span class="n">alpha</span><span class="o">=</span><span class="mf">0.3</span><span class="p">)</span>
+<span class="g g-Whitespace">      </span><span class="mi">7</span> <span class="n">b</span> <span class="o">=</span> <span class="n">black_call</span><span class="p">(</span><span class="n">r</span><span class="o">.</span><span class="n">x</span><span class="p">,</span> <span class="n">p</span><span class="o">.</span><span class="n">sigma</span><span class="p">,</span> <span class="n">ttm</span><span class="p">)</span>
+<span class="g g-Whitespace">      </span><span class="mi">8</span> <span class="n">fig</span> <span class="o">=</span> <span class="n">px</span><span class="o">.</span><span class="n">line</span><span class="p">(</span><span class="n">x</span><span class="o">=</span><span class="n">r</span><span class="o">.</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="o">=</span><span class="n">r</span><span class="o">.</span><span class="n">y</span><span class="p">,</span> <span class="n">markers</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">labels</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span><span class="n">x</span><span class="o">=</span><span class="s2">&quot;moneyness&quot;</span><span class="p">,</span> <span class="n">y</span><span class="o">=</span><span class="s2">&quot;call price&quot;</span><span class="p">))</span>
+
+<span class="ne">TypeError</span>: Marginal1D.call_option() takes from 1 to 2 positional arguments but 4 positional arguments (and 1 keyword-only argument) were given
+</pre></div>
+</div>
+</div>
+</div>
+</section>
+</section>
+
+    <script type="text/x-thebe-config">
+    {
+        requestKernel: true,
+        binderOptions: {
+            repo: "binder-examples/jupyter-stacks-datascience",
+            ref: "master",
+        },
+        codeMirrorConfig: {
+            theme: "abcdef",
+            mode: "python"
+        },
+        kernelOptions: {
+            name: "python3",
+            path: "./theory"
+        },
+        predefinedOutput: true
+    }
+    </script>
+    <script>kernelName = 'python3'</script>
+
+                </article>
+              
+
+              
+              
+              
+              
+                <footer class="prev-next-footer d-print-none">
+                  
+<div class="prev-next-area">
+    <a class="left-prev"
+       href="inversion.html"
+       title="previous page">
+      <i class="fa-solid fa-angle-left"></i>
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">previous</p>
+        <p class="prev-next-title">From Characteristic Function to PDF</p>
+      </div>
+    </a>
+    <a class="right-next"
+       href="../models/overview.html"
+       title="next page">
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">next</p>
+        <p class="prev-next-title">Stochastic Processes</p>
+      </div>
+      <i class="fa-solid fa-angle-right"></i>
+    </a>
+</div>
+                </footer>
+              
+            </div>
+            
+            
+              
+                <div class="bd-sidebar-secondary bd-toc"><div class="sidebar-secondary-items sidebar-secondary__inner">
+
+
+  <div class="sidebar-secondary-item">
+  <div class="page-toc tocsection onthispage">
+    <i class="fa-solid fa-list"></i> Contents
+  </div>
+  <nav class="bd-toc-nav page-toc">
+    <ul class="visible nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#convexity-correction">Convexity Correction</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#weiner-process">Weiner process</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#call-option">Call option</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#choice-of-alpha">Choice of <span class="math notranslate nohighlight">\(\alpha\)</span></a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#black-formula">Black Formula</a></li>
+</ul>
+  </nav></div>
+
+</div></div>
+              
+            
+          </div>
+          <footer class="bd-footer-content">
+            
+<div class="bd-footer-content__inner container">
+  
+  <div class="footer-item">
+    
+<p class="component-author">
+By <a href="https://quantmind.com">quantmind</a>
+</p>
+
+  </div>
+  
+  <div class="footer-item">
+    
+
+  <p class="copyright">
+    
+      © Copyright 2014-2025.
+      <br/>
+    
+  </p>
+
+  </div>
+  
+  <div class="footer-item">
+    
+  </div>
+  
+  <div class="footer-item">
+    
+  </div>
+  
+</div>
+          </footer>
+        
+
+      </main>
+    </div>
+  </div>
+  
+  <!-- Scripts loaded after <body> so the DOM is not blocked -->
+  <script src="../_static/scripts/bootstrap.js?digest=dfe6caa3a7d634c4db9b"></script>
+<script src="../_static/scripts/pydata-sphinx-theme.js?digest=dfe6caa3a7d634c4db9b"></script>
+
+  <footer class="bd-footer">
+  </footer>
+  </body>
+</html>

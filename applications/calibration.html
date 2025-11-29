@@ -1,0 +1,852 @@
+
+<!DOCTYPE html>
+
+
+<html lang="en" data-content_root="../" >
+
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>Calibration &#8212; Quantflow library</title>
+  
+  
+  
+  <script data-cfasync="false">
+    document.documentElement.dataset.mode = localStorage.getItem("mode") || "";
+    document.documentElement.dataset.theme = localStorage.getItem("theme") || "";
+  </script>
+  
+  <!-- Loaded before other Sphinx assets -->
+  <link href="../_static/styles/theme.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+<link href="../_static/styles/bootstrap.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+<link href="../_static/styles/pydata-sphinx-theme.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+
+  
+  <link href="../_static/vendor/fontawesome/6.5.2/css/all.min.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+  <link rel="preload" as="font" type="font/woff2" crossorigin href="../_static/vendor/fontawesome/6.5.2/webfonts/fa-solid-900.woff2" />
+<link rel="preload" as="font" type="font/woff2" crossorigin href="../_static/vendor/fontawesome/6.5.2/webfonts/fa-brands-400.woff2" />
+<link rel="preload" as="font" type="font/woff2" crossorigin href="../_static/vendor/fontawesome/6.5.2/webfonts/fa-regular-400.woff2" />
+
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=03e43079" />
+    <link rel="stylesheet" type="text/css" href="../_static/styles/sphinx-book-theme.css?v=eba8b062" />
+    <link rel="stylesheet" type="text/css" href="../_static/togglebutton.css?v=13237357" />
+    <link rel="stylesheet" type="text/css" href="../_static/copybutton.css?v=76b2166b" />
+    <link rel="stylesheet" type="text/css" href="../_static/mystnb.8ecb98da25f57f5357bf6f572d296f466b2cfe2517ffebfabe82451661e28f02.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/sphinx-thebe.css?v=4fa983c6" />
+    <link rel="stylesheet" type="text/css" href="../_static/sphinx-design.min.css?v=95c83b7e" />
+  
+  <!-- Pre-loaded scripts that we'll load fully later -->
+  <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=dfe6caa3a7d634c4db9b" />
+<link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=dfe6caa3a7d634c4db9b" />
+  <script src="../_static/vendor/fontawesome/6.5.2/js/all.min.js?digest=dfe6caa3a7d634c4db9b"></script>
+
+    <script src="../_static/documentation_options.js?v=9eb32ce0"></script>
+    <script src="../_static/doctools.js?v=9a2dae69"></script>
+    <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
+    <script src="../_static/copybutton.js?v=f281be69"></script>
+    <script src="../_static/scripts/sphinx-book-theme.js?v=887ef09a"></script>
+    <script>let toggleHintShow = 'Click to show';</script>
+    <script>let toggleHintHide = 'Click to hide';</script>
+    <script>let toggleOpenOnPrint = 'true';</script>
+    <script src="../_static/togglebutton.js?v=4a39c7ea"></script>
+    <script>var togglebuttonSelector = '.toggle, .admonition.dropdown';</script>
+    <script src="../_static/design-tabs.js?v=f930bc37"></script>
+    <script async="async" src="https://www.googletagmanager.com/gtag/js?id=G-CM0DR45HDR"></script>
+    <script>
+                window.dataLayer = window.dataLayer || [];
+                function gtag(){ dataLayer.push(arguments); }
+                gtag('js', new Date());
+                gtag('config', 'G-CM0DR45HDR');
+            </script>
+    <script>const THEBE_JS_URL = "https://unpkg.com/thebe@0.8.2/lib/index.js"; const thebe_selector = ".thebe,.cell"; const thebe_selector_input = "pre"; const thebe_selector_output = ".output, .cell_output"</script>
+    <script async="async" src="../_static/sphinx-thebe.js?v=c100c467"></script>
+    <script>var togglebuttonSelector = '.toggle, .admonition.dropdown';</script>
+    <script>
+                window.dataLayer = window.dataLayer || [];
+                function gtag(){ dataLayer.push(arguments); }
+                gtag('js', new Date());
+                gtag('config', 'G-CM0DR45HDR');
+            </script>
+    <script>const THEBE_JS_URL = "https://unpkg.com/thebe@0.8.2/lib/index.js"; const thebe_selector = ".thebe,.cell"; const thebe_selector_input = "pre"; const thebe_selector_output = ".output, .cell_output"</script>
+    <script>window.MathJax = {"options": {"processHtmlClass": "tex2jax_process|mathjax_process|math|output_area"}}</script>
+    <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <script>DOCUMENTATION_OPTIONS.pagename = 'applications/calibration';</script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+    <link rel="icon" href="../_static/quantflow-logo.png"/>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Examples" href="../examples/overview.html" />
+    <link rel="prev" title="Hurst Exponent" href="hurst.html" />
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <meta name="docsearch:language" content="en"/>
+  </head>
+  
+  
+  <body data-bs-spy="scroll" data-bs-target=".bd-toc-nav" data-offset="180" data-bs-root-margin="0px 0px -60%" data-default-mode="">
+
+  
+  
+  <div id="pst-skip-link" class="skip-link d-print-none"><a href="#main-content">Skip to main content</a></div>
+  
+  <div id="pst-scroll-pixel-helper"></div>
+  
+  <button type="button" class="btn rounded-pill" id="pst-back-to-top">
+    <i class="fa-solid fa-arrow-up"></i>Back to top</button>
+
+  
+  <input type="checkbox"
+          class="sidebar-toggle"
+          id="pst-primary-sidebar-checkbox"/>
+  <label class="overlay overlay-primary" for="pst-primary-sidebar-checkbox"></label>
+  
+  <input type="checkbox"
+          class="sidebar-toggle"
+          id="pst-secondary-sidebar-checkbox"/>
+  <label class="overlay overlay-secondary" for="pst-secondary-sidebar-checkbox"></label>
+  
+  <div class="search-button__wrapper">
+    <div class="search-button__overlay"></div>
+    <div class="search-button__search-container">
+<form class="bd-search d-flex align-items-center"
+      action="../search.html"
+      method="get">
+  <i class="fa-solid fa-magnifying-glass"></i>
+  <input type="search"
+         class="form-control"
+         name="q"
+         id="search-input"
+         placeholder="Search this book..."
+         aria-label="Search this book..."
+         autocomplete="off"
+         autocorrect="off"
+         autocapitalize="off"
+         spellcheck="false"/>
+  <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd>K</kbd></span>
+</form></div>
+  </div>
+
+  <div class="pst-async-banner-revealer d-none">
+  <aside id="bd-header-version-warning" class="d-none d-print-none" aria-label="Version warning"></aside>
+</div>
+
+  
+    <header class="bd-header navbar navbar-expand-lg bd-navbar d-print-none">
+    </header>
+  
+
+  <div class="bd-container">
+    <div class="bd-container__inner bd-page-width">
+      
+      
+      
+      <div class="bd-sidebar-primary bd-sidebar">
+        
+
+  
+  <div class="sidebar-header-items sidebar-primary__section">
+    
+    
+    
+    
+  </div>
+  
+    <div class="sidebar-primary-items__start sidebar-primary__section">
+        <div class="sidebar-primary-item">
+
+  
+    
+  
+
+<a class="navbar-brand logo" href="../index.html">
+  
+  
+  
+  
+  
+    
+    
+      
+    
+    
+    <img src="../_static/quantflow-light.svg" class="logo__image only-light" alt="Quantflow library - Home"/>
+    <script>document.write(`<img src="../_static/quantflow-light.svg" class="logo__image only-dark" alt="Quantflow library - Home"/>`);</script>
+  
+  
+</a></div>
+        <div class="sidebar-primary-item">
+
+ <script>
+ document.write(`
+   <button class="btn search-button-field search-button__button" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="fa-solid fa-magnifying-glass"></i>
+    <span class="search-button__default-text">Search</span>
+    <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+   </button>
+ `);
+ </script></div>
+        <div class="sidebar-primary-item"><nav class="bd-links bd-docs-nav" aria-label="Main">
+    <div class="bd-toc-item navbar-nav active">
+        <p aria-level="2" class="caption" role="heading"><span class="caption-text">Topic Guides</span></p>
+<ul class="current nav bd-sidenav">
+<li class="toctree-l1 has-children"><a class="reference internal" href="../theory/overview.html">Theory</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="../theory/levy.html">Lévy process</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../theory/characteristic.html">Characteristic Function</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../theory/inversion.html">From Characteristic Function to PDF</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../theory/option_pricing.html">Option Pricing</a></li>
+</ul>
+</details></li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="../models/overview.html">Stochastic Processes</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="../models/weiner.html">Weiner Process</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../models/poisson.html">Poisson Processes</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../models/jump_diffusion.html">Jump Diffusion Models</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../models/cir.html">CIR process</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../models/ou.html">OU Process</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../models/heston.html">Heston Model and Option Pricing</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../models/heston_jumps.html">Heston Model with Jumps</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../models/bns.html">BNS Model</a></li>
+</ul>
+</details></li>
+<li class="toctree-l1 current active has-children"><a class="reference internal" href="overview.html">Applications</a><details open="open"><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="volatility_surface.html">Volatility Surface</a></li>
+<li class="toctree-l2"><a class="reference internal" href="hurst.html">Hurst Exponent</a></li>
+<li class="toctree-l2 current active"><a class="current reference internal" href="#">Calibration</a></li>
+</ul>
+</details></li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="../examples/overview.html">Examples</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="../examples/gaussian_sampling.html">Gaussian Sampling</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../examples/exponential_sampling.html">Exponential Sampling</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../examples/poisson_sampling.html">Poisson Sampling</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../examples/heston_vol_surface.html">HestonJ Volatility Surface</a></li>
+</ul>
+</details></li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="../api/index.html">API Reference</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2 has-children"><a class="reference internal" href="../api/sp/index.html">Stochastic Process</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l3"><a class="reference internal" href="../api/sp/weiner.html">Weiner process</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../api/sp/poisson.html">Poisson process</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../api/sp/compound_poisson.html">Compound Poisson</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../api/sp/ou.html">OU Processes</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../api/sp/cir.html">CIR</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../api/sp/jump_diffusion.html">Jump diffusions</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../api/sp/heston.html">Heston process</a></li>
+</ul>
+</details></li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="../api/options/index.html">Option Pricing</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l3"><a class="reference internal" href="../api/options/vol_surface.html">Vol Surface</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../api/options/black.html">Black Pricing</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../api/options/pricer.html">Option Pricer</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../api/options/calibration.html">Vol Model Calibration</a></li>
+</ul>
+</details></li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="../api/ta/index.html">Timeseries Analysis</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l3"><a class="reference internal" href="../api/ta/ohlc.html">OHLC</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../api/ta/paths.html">Paths</a></li>
+</ul>
+</details></li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="../api/data/index.html">Data fetching</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l3"><a class="reference internal" href="../api/data/fmp.html">FMP</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../api/data/fed.html">Federal Reserve</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../api/data/fred.html">Fred</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../api/data/deribit.html">Deribit</a></li>
+</ul>
+</details></li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="../api/utils/index.html">Utils</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l3"><a class="reference internal" href="../api/utils/marginal1d.html">Marginal1D</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../api/utils/distributions.html">Distributions</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../api/utils/bins.html">Bins</a></li>
+</ul>
+</details></li>
+</ul>
+</details></li>
+</ul>
+<p aria-level="2" class="caption" role="heading"><span class="caption-text">Reference</span></p>
+<ul class="nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="../reference/contributing.html">Contributing</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../reference/glossary.html">Glossary</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../reference/biblio.html">Bibliography</a></li>
+</ul>
+
+    </div>
+</nav></div>
+    </div>
+  
+  
+  <div class="sidebar-primary-items__end sidebar-primary__section">
+  </div>
+  
+  <div id="rtd-footer-container"></div>
+
+
+      </div>
+      
+      <main id="main-content" class="bd-main" role="main">
+        
+        
+
+<div class="sbt-scroll-pixel-helper"></div>
+
+          <div class="bd-content">
+            <div class="bd-article-container">
+              
+              <div class="bd-header-article d-print-none">
+<div class="header-article-items header-article__inner">
+  
+    <div class="header-article-items__start">
+      
+        <div class="header-article-item"><button class="sidebar-toggle primary-toggle btn btn-sm" title="Toggle primary sidebar" data-bs-placement="bottom" data-bs-toggle="tooltip">
+  <span class="fa-solid fa-bars"></span>
+</button></div>
+      
+    </div>
+  
+  
+    <div class="header-article-items__end">
+      
+        <div class="header-article-item">
+
+<div class="article-header-buttons">
+
+
+
+
+
+<div class="dropdown dropdown-source-buttons">
+  <button class="btn dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false" aria-label="Source repositories">
+    <i class="fab fa-github"></i>
+  </button>
+  <ul class="dropdown-menu">
+      
+      
+      
+      <li><a href="https://github.com/quantmind/quantflow" target="_blank"
+   class="btn btn-sm btn-source-repository-button dropdown-item"
+   title="Source repository"
+   data-bs-placement="left" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fab fa-github"></i>
+  </span>
+<span class="btn__text-container">Repository</span>
+</a>
+</li>
+      
+      
+      
+      
+      <li><a href="https://github.com/quantmind/quantflow/edit/main/notebooks/applications/calibration.md" target="_blank"
+   class="btn btn-sm btn-source-edit-button dropdown-item"
+   title="Suggest edit"
+   data-bs-placement="left" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fas fa-pencil-alt"></i>
+  </span>
+<span class="btn__text-container">Suggest edit</span>
+</a>
+</li>
+      
+      
+      
+      
+      <li><a href="https://github.com/quantmind/quantflow/issues/new?title=Issue%20on%20page%20%2Fapplications/calibration.html&body=Your%20issue%20content%20here." target="_blank"
+   class="btn btn-sm btn-source-issues-button dropdown-item"
+   title="Open an issue"
+   data-bs-placement="left" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fas fa-lightbulb"></i>
+  </span>
+<span class="btn__text-container">Open issue</span>
+</a>
+</li>
+      
+  </ul>
+</div>
+
+
+
+
+
+
+<div class="dropdown dropdown-download-buttons">
+  <button class="btn dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false" aria-label="Download this page">
+    <i class="fas fa-download"></i>
+  </button>
+  <ul class="dropdown-menu">
+      
+      
+      
+      <li><a href="../_sources/applications/calibration.md" target="_blank"
+   class="btn btn-sm btn-download-source-button dropdown-item"
+   title="Download source file"
+   data-bs-placement="left" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fas fa-file"></i>
+  </span>
+<span class="btn__text-container">.md</span>
+</a>
+</li>
+      
+      
+      
+      
+      <li>
+<button onclick="window.print()"
+  class="btn btn-sm btn-download-pdf-button dropdown-item"
+  title="Print to PDF"
+  data-bs-placement="left" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fas fa-file-pdf"></i>
+  </span>
+<span class="btn__text-container">.pdf</span>
+</button>
+</li>
+      
+  </ul>
+</div>
+
+
+
+
+<button onclick="toggleFullScreen()"
+  class="btn btn-sm btn-fullscreen-button"
+  title="Fullscreen mode"
+  data-bs-placement="bottom" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fas fa-expand"></i>
+  </span>
+
+</button>
+
+
+
+<script>
+document.write(`
+  <button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button" title="light/dark" aria-label="light/dark" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="theme-switch fa-solid fa-sun fa-lg" data-mode="light"></i>
+    <i class="theme-switch fa-solid fa-moon fa-lg" data-mode="dark"></i>
+    <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg" data-mode="auto"></i>
+  </button>
+`);
+</script>
+
+
+<script>
+document.write(`
+  <button class="btn btn-sm pst-navbar-icon search-button search-button__button" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="fa-solid fa-magnifying-glass fa-lg"></i>
+  </button>
+`);
+</script>
+<button class="sidebar-toggle secondary-toggle btn btn-sm" title="Toggle secondary sidebar" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <span class="fa-solid fa-list"></span>
+</button>
+</div></div>
+      
+    </div>
+  
+</div>
+</div>
+              
+              
+
+<div id="jb-print-docs-body" class="onlyprint">
+    <h1>Calibration</h1>
+    <!-- Table of contents -->
+    <div id="print-main-content">
+        <div id="jb-print-toc">
+            
+            <div>
+                <h2> Contents </h2>
+            </div>
+            <nav aria-label="Page">
+                <ul class="visible nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#calibrating-abc">Calibrating ABC</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#calibration-against-historical-timeseries">Calibration against historical timeseries</a></li>
+</ul>
+            </nav>
+        </div>
+    </div>
+</div>
+
+              
+                
+<div id="searchbox"></div>
+                <article class="bd-article">
+                  
+  <section class="tex2jax_ignore mathjax_ignore" id="calibration">
+<h1>Calibration<a class="headerlink" href="#calibration" title="Link to this heading">#</a></h1>
+<p>Early pointers</p>
+<ul class="simple">
+<li><p>https://github.com/rlabbe/filterpy</p></li>
+<li><p><a class="reference external" href="https://github.com/rlabbe/Kalman-and-Bayesian-Filters-in-Python">filterpy book</a></p></li>
+</ul>
+<section id="calibrating-abc">
+<h2>Calibrating ABC<a class="headerlink" href="#calibrating-abc" title="Link to this heading">#</a></h2>
+<p>For calibration we use <span id="id1">[<a class="reference internal" href="../reference/biblio.html#id11" title="Merwe. The unscented kalman filter for nonlinear estimation. internet, 2014. URL: https://groups.seas.harvard.edu/courses/cs281/papers/unscented.pdf.">Mer14</a>]</span>.
+Lets consider the Heston model as a test case</p>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">quantflow.sp.heston</span><span class="w"> </span><span class="kn">import</span> <span class="n">Heston</span>
+
+<span class="n">pr</span> <span class="o">=</span> <span class="n">Heston</span><span class="o">.</span><span class="n">create</span><span class="p">(</span><span class="n">vol</span><span class="o">=</span><span class="mf">0.6</span><span class="p">,</span> <span class="n">kappa</span><span class="o">=</span><span class="mf">1.3</span><span class="p">,</span> <span class="n">sigma</span><span class="o">=</span><span class="mf">0.8</span><span class="p">,</span> <span class="n">rho</span><span class="o">=-</span><span class="mf">0.6</span><span class="p">)</span>
+<span class="n">pr</span><span class="o">.</span><span class="n">variance_process</span><span class="o">.</span><span class="n">is_positive</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output text_plain highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>True
+</pre></div>
+</div>
+</div>
+</div>
+<p>The Heston model is a classical example where the calibration of parameters requires to deal with the estimation of an unobserved random variable, the stochastic variance. The model can be discretized as follow:</p>
+<div class="amsmath math notranslate nohighlight" id="equation-835fb233-bb21-49f3-a995-1e9ca447db7e">
+<span class="eqno">(72)<a class="headerlink" href="#equation-835fb233-bb21-49f3-a995-1e9ca447db7e" title="Permalink to this equation">#</a></span>\[\begin{align}
+ d \nu_t &amp;= \kappa\left(\theta -\nu_t\right) dt + \sigma \sqrt{\nu_t} d z_t \\
+ d s_t &amp;= -\frac{\nu_t}{2}dt + \sqrt{\nu_t} d w_t \\
+ {\mathbb E}\left[d w_t d z_t\right] &amp;= \rho dt
+\end{align}\]</div>
+<p>noting that</p>
+<div class="amsmath math notranslate nohighlight" id="equation-c05b861c-18d4-4ca1-87fc-e9815f24a066">
+<span class="eqno">(73)<a class="headerlink" href="#equation-c05b861c-18d4-4ca1-87fc-e9815f24a066" title="Permalink to this equation">#</a></span>\[\begin{equation}
+d z_t = \rho d w_t + \sqrt{1-\rho^2} d b_t
+\end{equation}\]</div>
+<p>which leads to</p>
+<div class="amsmath math notranslate nohighlight" id="equation-9e67eb6a-f233-4ccc-ae9c-8f39dadc897c">
+<span class="eqno">(74)<a class="headerlink" href="#equation-9e67eb6a-f233-4ccc-ae9c-8f39dadc897c" title="Permalink to this equation">#</a></span>\[\begin{align}
+d \nu_t &amp;= \kappa\left(\theta -\nu_t\right) dt + \sigma \sqrt{\nu_t} \rho d w_t + \sigma \sqrt{\nu_t} \sqrt{1-\rho^2} d b_t \\
+d s_t &amp;= -\frac{\nu_t}{2}dt + \sqrt{\nu_t} d w_t \\
+\end{align}\]</div>
+<p>and finally</p>
+<div class="amsmath math notranslate nohighlight" id="equation-627c61ce-36c9-4053-8477-752535053f7a">
+<span class="eqno">(75)<a class="headerlink" href="#equation-627c61ce-36c9-4053-8477-752535053f7a" title="Permalink to this equation">#</a></span>\[\begin{align}
+d \nu_t &amp;= \kappa\left(\theta -\nu_t\right) dt + \sigma \rho \frac{\nu_t}{2} dt + \sigma \sqrt{\nu_t} \sqrt{1-\rho^2} d b_t + \sigma \rho d s_t\\
+d s_t &amp;= -\frac{\nu_t}{2}dt + \sqrt{\nu_t} d w_t \\
+\end{align}\]</div>
+<p>Our problem is to find the <em>best</em> estimate of <span class="math notranslate nohighlight">\(\nu_t\)</span> given by ths equation based on the observations <span class="math notranslate nohighlight">\(s_t\)</span>.</p>
+<p>The Heston model is a dynamic model which can be represented by a state-space form: <span class="math notranslate nohighlight">\(X_t\)</span> is the state while <span class="math notranslate nohighlight">\(Z_t\)</span> is the observable</p>
+<div class="amsmath math notranslate nohighlight" id="equation-4012e982-48e9-49b4-bffe-211ca63bb30c">
+<span class="eqno">(76)<a class="headerlink" href="#equation-4012e982-48e9-49b4-bffe-211ca63bb30c" title="Permalink to this equation">#</a></span>\[\begin{align}
+X_{t+1} &amp;= f\left(X_t, \Theta\right) + B^x_t\\
+Z_t &amp;= h\left(X_t, \Theta\right) + B^z_t \\
+B^x_t &amp;= {\cal N}\left(0, Q_t\right) \\
+B^z_t &amp;= {\cal N}\left(0, R_t\right) \\
+\end{align}\]</div>
+<p><span class="math notranslate nohighlight">\(f\)</span> is the <em>state transition equation</em> while <span class="math notranslate nohighlight">\(h\)</span> is the <em>measurement equation</em>.</p>
+<p>the state equation is given by</p>
+<div class="amsmath math notranslate nohighlight" id="equation-45ae73d7-e708-4c00-90d8-e5a1b4b4afbd">
+<span class="eqno">(77)<a class="headerlink" href="#equation-45ae73d7-e708-4c00-90d8-e5a1b4b4afbd" title="Permalink to this equation">#</a></span>\[\begin{align}
+X_{t+1} &amp;= \left[\begin{matrix}\kappa\left(\theta\right) dt \\ 0\end{matrix}\right] + 
+\end{align}\]</div>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="p">[</span><span class="n">p</span> <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">pr</span><span class="o">.</span><span class="n">variance_process</span><span class="o">.</span><span class="n">parameters</span><span class="p">]</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output traceback highlight-ipythontb notranslate"><div class="highlight"><pre><span></span><span class="gt">---------------------------------------------------------------------------</span>
+<span class="ne">AttributeError</span><span class="g g-Whitespace">                            </span>Traceback (most recent call last)
+<span class="n">Cell</span> <span class="n">In</span><span class="p">[</span><span class="mi">2</span><span class="p">],</span> <span class="n">line</span> <span class="mi">1</span>
+<span class="ne">----&gt; </span><span class="mi">1</span> <span class="p">[</span><span class="n">p</span> <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">pr</span><span class="o">.</span><span class="n">variance_process</span><span class="o">.</span><span class="n">parameters</span><span class="p">]</span>
+
+<span class="nn">File ~/.cache/pypoetry/virtualenvs/quantflow-lUXkzsy2-py3.13/lib/python3.13/site-packages/pydantic/main.py:1026,</span> in <span class="ni">BaseModel.__getattr__</span><span class="nt">(self, item)</span>
+<span class="g g-Whitespace">   </span><span class="mi">1023</span>     <span class="k">return</span> <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__getattribute__</span><span class="p">(</span><span class="n">item</span><span class="p">)</span>  <span class="c1"># Raises AttributeError if appropriate</span>
+<span class="g g-Whitespace">   </span><span class="mi">1024</span> <span class="k">else</span><span class="p">:</span>
+<span class="g g-Whitespace">   </span><span class="mi">1025</span>     <span class="c1"># this is the current error</span>
+<span class="ne">-&gt; </span><span class="mi">1026</span>     <span class="k">raise</span> <span class="ne">AttributeError</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="nb">type</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="vm">__name__</span><span class="si">!r}</span><span class="s1"> object has no attribute </span><span class="si">{</span><span class="n">item</span><span class="si">!r}</span><span class="s1">&#39;</span><span class="p">)</span>
+
+<span class="ne">AttributeError</span>: &#39;CIR&#39; object has no attribute &#39;parameters&#39;
+</pre></div>
+</div>
+</div>
+</div>
+</section>
+<section id="calibration-against-historical-timeseries">
+<h2>Calibration against historical timeseries<a class="headerlink" href="#calibration-against-historical-timeseries" title="Link to this heading">#</a></h2>
+<p>We calibrate the Heston model agais historical time series, in this case the measurement is the log change for a given frequency.</p>
+<div class="amsmath math notranslate nohighlight" id="equation-c0fa89fa-418a-42c6-8301-c100f01e203c">
+<span class="eqno">(78)<a class="headerlink" href="#equation-c0fa89fa-418a-42c6-8301-c100f01e203c" title="Permalink to this equation">#</a></span>\[\begin{align}
+F_t &amp;= \left[\begin{matrix}1 - \kappa\theta dt \\ 0\end{matrix}\right] \\
+Q_t &amp;= \left[\begin{matrix}1 - \kappa\theta dt \\ 0\end{matrix}\right]  \\
+z_t &amp;= d s_t
+\end{align}\]</div>
+<p>The observation vector is given by</p>
+<div class="amsmath math notranslate nohighlight" id="equation-219d6a9f-0fe2-4249-be05-fb10985eae68">
+<span class="eqno">(79)<a class="headerlink" href="#equation-219d6a9f-0fe2-4249-be05-fb10985eae68" title="Permalink to this equation">#</a></span>\[\begin{align}
+x_t &amp;= \left[\begin{matrix}\nu_t &amp;&amp; w_t &amp;&amp; z_t\end{matrix}\right]^T \\
+\bar{x}_t = {\mathbb E}\left[x_t\right] &amp;= \left[\begin{matrix}\nu_t &amp;&amp; 0 &amp;&amp; 0\end{matrix}\right]^T
+\end{align}\]</div>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">quantflow.data.fmp</span><span class="w"> </span><span class="kn">import</span> <span class="n">FMP</span>
+<span class="n">frequency</span> <span class="o">=</span> <span class="s2">&quot;1min&quot;</span>
+<span class="k">async</span> <span class="k">with</span> <span class="n">FMP</span><span class="p">()</span> <span class="k">as</span> <span class="n">cli</span><span class="p">:</span>
+    <span class="n">df</span> <span class="o">=</span> <span class="k">await</span> <span class="n">cli</span><span class="o">.</span><span class="n">prices</span><span class="p">(</span><span class="s2">&quot;ETHUSD&quot;</span><span class="p">,</span> <span class="n">frequency</span><span class="p">)</span>
+<span class="n">df</span> <span class="o">=</span> <span class="n">df</span><span class="o">.</span><span class="n">sort_values</span><span class="p">(</span><span class="s2">&quot;date&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">reset_index</span><span class="p">(</span><span class="n">drop</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="n">df</span>
+</pre></div>
+</div>
+</div>
+</div>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">plotly.express</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">px</span>
+<span class="n">fig</span> <span class="o">=</span> <span class="n">px</span><span class="o">.</span><span class="n">line</span><span class="p">(</span><span class="n">df</span><span class="p">,</span> <span class="n">x</span><span class="o">=</span><span class="s2">&quot;date&quot;</span><span class="p">,</span> <span class="n">y</span><span class="o">=</span><span class="s2">&quot;close&quot;</span><span class="p">,</span> <span class="n">markers</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="n">fig</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+</pre></div>
+</div>
+</div>
+</div>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">quantflow.utils.volatility</span><span class="w"> </span><span class="kn">import</span> <span class="n">parkinson_estimator</span><span class="p">,</span> <span class="n">GarchEstimator</span>
+<span class="n">df</span><span class="p">[</span><span class="s2">&quot;returns&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="n">df</span><span class="p">[</span><span class="s2">&quot;close&quot;</span><span class="p">])</span> <span class="o">-</span> <span class="n">np</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="n">df</span><span class="p">[</span><span class="s2">&quot;open&quot;</span><span class="p">])</span>
+<span class="n">df</span><span class="p">[</span><span class="s2">&quot;pk&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">parkinson_estimator</span><span class="p">(</span><span class="n">df</span><span class="p">[</span><span class="s2">&quot;high&quot;</span><span class="p">],</span> <span class="n">df</span><span class="p">[</span><span class="s2">&quot;low&quot;</span><span class="p">])</span>
+<span class="n">ds</span> <span class="o">=</span> <span class="n">df</span><span class="o">.</span><span class="n">dropna</span><span class="p">()</span>
+<span class="n">dt</span> <span class="o">=</span> <span class="n">cli</span><span class="o">.</span><span class="n">historical_frequencies_annulaized</span><span class="p">()[</span><span class="n">frequency</span><span class="p">]</span>
+<span class="n">fig</span> <span class="o">=</span> <span class="n">px</span><span class="o">.</span><span class="n">line</span><span class="p">(</span><span class="n">ds</span><span class="p">[</span><span class="s2">&quot;returns&quot;</span><span class="p">],</span> <span class="n">markers</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="n">fig</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+</pre></div>
+</div>
+</div>
+</div>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">plotly.express</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">px</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">quantflow.utils.bins</span><span class="w"> </span><span class="kn">import</span> <span class="n">pdf</span>
+<span class="n">df</span> <span class="o">=</span> <span class="n">pdf</span><span class="p">(</span><span class="n">ds</span><span class="p">[</span><span class="s2">&quot;returns&quot;</span><span class="p">],</span> <span class="n">num</span><span class="o">=</span><span class="mi">20</span><span class="p">)</span>
+<span class="n">fig</span> <span class="o">=</span> <span class="n">px</span><span class="o">.</span><span class="n">bar</span><span class="p">(</span><span class="n">df</span><span class="p">,</span> <span class="n">x</span><span class="o">=</span><span class="s2">&quot;x&quot;</span><span class="p">,</span> <span class="n">y</span><span class="o">=</span><span class="s2">&quot;f&quot;</span><span class="p">)</span>
+<span class="n">fig</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+</pre></div>
+</div>
+</div>
+</div>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">g1</span> <span class="o">=</span> <span class="n">GarchEstimator</span><span class="o">.</span><span class="n">returns</span><span class="p">(</span><span class="n">ds</span><span class="p">[</span><span class="s2">&quot;returns&quot;</span><span class="p">],</span> <span class="n">dt</span><span class="p">)</span>
+<span class="n">g2</span> <span class="o">=</span> <span class="n">GarchEstimator</span><span class="o">.</span><span class="n">pk</span><span class="p">(</span><span class="n">ds</span><span class="p">[</span><span class="s2">&quot;returns&quot;</span><span class="p">],</span> <span class="n">ds</span><span class="p">[</span><span class="s2">&quot;pk&quot;</span><span class="p">],</span> <span class="n">dt</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+</div>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">pandas</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">pd</span>
+<span class="n">yf</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="nb">dict</span><span class="p">(</span><span class="n">returns</span><span class="o">=</span><span class="n">g2</span><span class="o">.</span><span class="n">y2</span><span class="p">,</span> <span class="n">pk</span><span class="o">=</span><span class="n">g2</span><span class="o">.</span><span class="n">p</span><span class="p">))</span>
+<span class="n">fig</span> <span class="o">=</span> <span class="n">px</span><span class="o">.</span><span class="n">line</span><span class="p">(</span><span class="n">yf</span><span class="p">,</span> <span class="n">markers</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="n">fig</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+</pre></div>
+</div>
+</div>
+</div>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">r1</span> <span class="o">=</span> <span class="n">g1</span><span class="o">.</span><span class="n">fit</span><span class="p">()</span>
+<span class="n">r1</span>
+</pre></div>
+</div>
+</div>
+</div>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">r2</span> <span class="o">=</span> <span class="n">g2</span><span class="o">.</span><span class="n">fit</span><span class="p">()</span>
+<span class="n">r2</span>
+</pre></div>
+</div>
+</div>
+</div>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">sig2</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="nb">dict</span><span class="p">(</span><span class="n">returns</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">g2</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span><span class="n">r1</span><span class="p">[</span><span class="s2">&quot;params&quot;</span><span class="p">])),</span> <span class="n">pk</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">g2</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span><span class="n">r2</span><span class="p">[</span><span class="s2">&quot;params&quot;</span><span class="p">]))))</span>
+<span class="n">fig</span> <span class="o">=</span> <span class="n">px</span><span class="o">.</span><span class="n">line</span><span class="p">(</span><span class="n">sig2</span><span class="p">,</span> <span class="n">markers</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">title</span><span class="o">=</span><span class="s2">&quot;Stochastic volatility&quot;</span><span class="p">)</span>
+<span class="n">fig</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+</pre></div>
+</div>
+</div>
+</div>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="k">class</span><span class="w"> </span><span class="nc">HestonCalibration</span><span class="p">:</span>
+    
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dt</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span> <span class="n">initial_std</span> <span class="o">=</span> <span class="mf">0.5</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">dt</span> <span class="o">=</span> <span class="n">dt</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">kappa</span> <span class="o">=</span> <span class="mi">1</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">theta</span> <span class="o">=</span> <span class="n">initial_std</span><span class="o">*</span><span class="n">initial_std</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">sigma</span> <span class="o">=</span> <span class="mf">0.2</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">x0</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">((</span><span class="bp">self</span><span class="o">.</span><span class="n">theta</span><span class="p">,</span> <span class="mi">0</span><span class="p">))</span>
+    
+    <span class="k">def</span><span class="w"> </span><span class="nf">prediction</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">((</span><span class="n">x</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">kappa</span><span class="o">*</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">theta</span> <span class="o">-</span> <span class="n">x</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">dt</span><span class="p">,</span> <span class="o">-</span><span class="mf">0.5</span><span class="o">*</span><span class="n">x</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">dt</span><span class="p">))</span>
+    
+    <span class="k">def</span><span class="w"> </span><span class="nf">state_jacobian</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;THe Jacobian of the state equation&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(((</span><span class="mi">1</span><span class="o">-</span><span class="bp">self</span><span class="o">.</span><span class="n">kappa</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">dt</span><span class="p">,</span> <span class="mi">0</span><span class="p">),(</span><span class="o">-</span><span class="mf">0.5</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">dt</span><span class="p">,</span> <span class="mi">0</span><span class="p">)))</span>
+</pre></div>
+</div>
+</div>
+</div>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">c</span> <span class="o">=</span> <span class="n">HestonCalibration</span><span class="p">(</span><span class="n">dt</span><span class="p">)</span>
+<span class="n">c</span><span class="o">.</span><span class="n">x0</span>
+</pre></div>
+</div>
+</div>
+</div>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">c</span><span class="o">.</span><span class="n">prediction</span><span class="p">(</span><span class="n">c</span><span class="o">.</span><span class="n">x0</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+</div>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">c</span><span class="o">.</span><span class="n">state_jacobian</span><span class="p">()</span>
+</pre></div>
+</div>
+</div>
+</div>
+</section>
+</section>
+
+    <script type="text/x-thebe-config">
+    {
+        requestKernel: true,
+        binderOptions: {
+            repo: "binder-examples/jupyter-stacks-datascience",
+            ref: "master",
+        },
+        codeMirrorConfig: {
+            theme: "abcdef",
+            mode: "python"
+        },
+        kernelOptions: {
+            name: "python3",
+            path: "./applications"
+        },
+        predefinedOutput: true
+    }
+    </script>
+    <script>kernelName = 'python3'</script>
+
+                </article>
+              
+
+              
+              
+              
+              
+                <footer class="prev-next-footer d-print-none">
+                  
+<div class="prev-next-area">
+    <a class="left-prev"
+       href="hurst.html"
+       title="previous page">
+      <i class="fa-solid fa-angle-left"></i>
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">previous</p>
+        <p class="prev-next-title">Hurst Exponent</p>
+      </div>
+    </a>
+    <a class="right-next"
+       href="../examples/overview.html"
+       title="next page">
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">next</p>
+        <p class="prev-next-title">Examples</p>
+      </div>
+      <i class="fa-solid fa-angle-right"></i>
+    </a>
+</div>
+                </footer>
+              
+            </div>
+            
+            
+              
+                <div class="bd-sidebar-secondary bd-toc"><div class="sidebar-secondary-items sidebar-secondary__inner">
+
+
+  <div class="sidebar-secondary-item">
+  <div class="page-toc tocsection onthispage">
+    <i class="fa-solid fa-list"></i> Contents
+  </div>
+  <nav class="bd-toc-nav page-toc">
+    <ul class="visible nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#calibrating-abc">Calibrating ABC</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#calibration-against-historical-timeseries">Calibration against historical timeseries</a></li>
+</ul>
+  </nav></div>
+
+</div></div>
+              
+            
+          </div>
+          <footer class="bd-footer-content">
+            
+<div class="bd-footer-content__inner container">
+  
+  <div class="footer-item">
+    
+<p class="component-author">
+By <a href="https://quantmind.com">quantmind</a>
+</p>
+
+  </div>
+  
+  <div class="footer-item">
+    
+
+  <p class="copyright">
+    
+      © Copyright 2014-2025.
+      <br/>
+    
+  </p>
+
+  </div>
+  
+  <div class="footer-item">
+    
+  </div>
+  
+  <div class="footer-item">
+    
+  </div>
+  
+</div>
+          </footer>
+        
+
+      </main>
+    </div>
+  </div>
+  
+  <!-- Scripts loaded after <body> so the DOM is not blocked -->
+  <script src="../_static/scripts/bootstrap.js?digest=dfe6caa3a7d634c4db9b"></script>
+<script src="../_static/scripts/pydata-sphinx-theme.js?digest=dfe6caa3a7d634c4db9b"></script>
+
+  <footer class="bd-footer">
+  </footer>
+  </body>
+</html>

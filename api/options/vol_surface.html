@@ -1,0 +1,1246 @@
+
+<!DOCTYPE html>
+
+
+<html lang="en" data-content_root="../../" >
+
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>Vol Surface &#8212; Quantflow library</title>
+  
+  
+  
+  <script data-cfasync="false">
+    document.documentElement.dataset.mode = localStorage.getItem("mode") || "";
+    document.documentElement.dataset.theme = localStorage.getItem("theme") || "";
+  </script>
+  
+  <!-- Loaded before other Sphinx assets -->
+  <link href="../../_static/styles/theme.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+<link href="../../_static/styles/bootstrap.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+<link href="../../_static/styles/pydata-sphinx-theme.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+
+  
+  <link href="../../_static/vendor/fontawesome/6.5.2/css/all.min.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+  <link rel="preload" as="font" type="font/woff2" crossorigin href="../../_static/vendor/fontawesome/6.5.2/webfonts/fa-solid-900.woff2" />
+<link rel="preload" as="font" type="font/woff2" crossorigin href="../../_static/vendor/fontawesome/6.5.2/webfonts/fa-brands-400.woff2" />
+<link rel="preload" as="font" type="font/woff2" crossorigin href="../../_static/vendor/fontawesome/6.5.2/webfonts/fa-regular-400.woff2" />
+
+    <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=03e43079" />
+    <link rel="stylesheet" type="text/css" href="../../_static/styles/sphinx-book-theme.css?v=eba8b062" />
+    <link rel="stylesheet" type="text/css" href="../../_static/togglebutton.css?v=13237357" />
+    <link rel="stylesheet" type="text/css" href="../../_static/copybutton.css?v=76b2166b" />
+    <link rel="stylesheet" type="text/css" href="../../_static/mystnb.8ecb98da25f57f5357bf6f572d296f466b2cfe2517ffebfabe82451661e28f02.css" />
+    <link rel="stylesheet" type="text/css" href="../../_static/sphinx-thebe.css?v=4fa983c6" />
+    <link rel="stylesheet" type="text/css" href="../../_static/sphinx-design.min.css?v=95c83b7e" />
+  
+  <!-- Pre-loaded scripts that we'll load fully later -->
+  <link rel="preload" as="script" href="../../_static/scripts/bootstrap.js?digest=dfe6caa3a7d634c4db9b" />
+<link rel="preload" as="script" href="../../_static/scripts/pydata-sphinx-theme.js?digest=dfe6caa3a7d634c4db9b" />
+  <script src="../../_static/vendor/fontawesome/6.5.2/js/all.min.js?digest=dfe6caa3a7d634c4db9b"></script>
+
+    <script src="../../_static/documentation_options.js?v=9eb32ce0"></script>
+    <script src="../../_static/doctools.js?v=9a2dae69"></script>
+    <script src="../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../../_static/clipboard.min.js?v=a7894cd8"></script>
+    <script src="../../_static/copybutton.js?v=f281be69"></script>
+    <script src="../../_static/scripts/sphinx-book-theme.js?v=887ef09a"></script>
+    <script>let toggleHintShow = 'Click to show';</script>
+    <script>let toggleHintHide = 'Click to hide';</script>
+    <script>let toggleOpenOnPrint = 'true';</script>
+    <script src="../../_static/togglebutton.js?v=4a39c7ea"></script>
+    <script>var togglebuttonSelector = '.toggle, .admonition.dropdown';</script>
+    <script src="../../_static/design-tabs.js?v=f930bc37"></script>
+    <script async="async" src="https://www.googletagmanager.com/gtag/js?id=G-CM0DR45HDR"></script>
+    <script>
+                window.dataLayer = window.dataLayer || [];
+                function gtag(){ dataLayer.push(arguments); }
+                gtag('js', new Date());
+                gtag('config', 'G-CM0DR45HDR');
+            </script>
+    <script>const THEBE_JS_URL = "https://unpkg.com/thebe@0.8.2/lib/index.js"; const thebe_selector = ".thebe,.cell"; const thebe_selector_input = "pre"; const thebe_selector_output = ".output, .cell_output"</script>
+    <script async="async" src="../../_static/sphinx-thebe.js?v=c100c467"></script>
+    <script>var togglebuttonSelector = '.toggle, .admonition.dropdown';</script>
+    <script>
+                window.dataLayer = window.dataLayer || [];
+                function gtag(){ dataLayer.push(arguments); }
+                gtag('js', new Date());
+                gtag('config', 'G-CM0DR45HDR');
+            </script>
+    <script>const THEBE_JS_URL = "https://unpkg.com/thebe@0.8.2/lib/index.js"; const thebe_selector = ".thebe,.cell"; const thebe_selector_input = "pre"; const thebe_selector_output = ".output, .cell_output"</script>
+    <script>DOCUMENTATION_OPTIONS.pagename = 'api/options/vol_surface';</script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+    <link rel="icon" href="../../_static/quantflow-logo.png"/>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+    <link rel="next" title="Black Pricing" href="black.html" />
+    <link rel="prev" title="Option Pricing" href="index.html" />
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <meta name="docsearch:language" content="en"/>
+  </head>
+  
+  
+  <body data-bs-spy="scroll" data-bs-target=".bd-toc-nav" data-offset="180" data-bs-root-margin="0px 0px -60%" data-default-mode="">
+
+  
+  
+  <div id="pst-skip-link" class="skip-link d-print-none"><a href="#main-content">Skip to main content</a></div>
+  
+  <div id="pst-scroll-pixel-helper"></div>
+  
+  <button type="button" class="btn rounded-pill" id="pst-back-to-top">
+    <i class="fa-solid fa-arrow-up"></i>Back to top</button>
+
+  
+  <input type="checkbox"
+          class="sidebar-toggle"
+          id="pst-primary-sidebar-checkbox"/>
+  <label class="overlay overlay-primary" for="pst-primary-sidebar-checkbox"></label>
+  
+  <input type="checkbox"
+          class="sidebar-toggle"
+          id="pst-secondary-sidebar-checkbox"/>
+  <label class="overlay overlay-secondary" for="pst-secondary-sidebar-checkbox"></label>
+  
+  <div class="search-button__wrapper">
+    <div class="search-button__overlay"></div>
+    <div class="search-button__search-container">
+<form class="bd-search d-flex align-items-center"
+      action="../../search.html"
+      method="get">
+  <i class="fa-solid fa-magnifying-glass"></i>
+  <input type="search"
+         class="form-control"
+         name="q"
+         id="search-input"
+         placeholder="Search this book..."
+         aria-label="Search this book..."
+         autocomplete="off"
+         autocorrect="off"
+         autocapitalize="off"
+         spellcheck="false"/>
+  <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd>K</kbd></span>
+</form></div>
+  </div>
+
+  <div class="pst-async-banner-revealer d-none">
+  <aside id="bd-header-version-warning" class="d-none d-print-none" aria-label="Version warning"></aside>
+</div>
+
+  
+    <header class="bd-header navbar navbar-expand-lg bd-navbar d-print-none">
+    </header>
+  
+
+  <div class="bd-container">
+    <div class="bd-container__inner bd-page-width">
+      
+      
+      
+      <div class="bd-sidebar-primary bd-sidebar">
+        
+
+  
+  <div class="sidebar-header-items sidebar-primary__section">
+    
+    
+    
+    
+  </div>
+  
+    <div class="sidebar-primary-items__start sidebar-primary__section">
+        <div class="sidebar-primary-item">
+
+  
+    
+  
+
+<a class="navbar-brand logo" href="../../index.html">
+  
+  
+  
+  
+  
+    
+    
+      
+    
+    
+    <img src="../../_static/quantflow-light.svg" class="logo__image only-light" alt="Quantflow library - Home"/>
+    <script>document.write(`<img src="../../_static/quantflow-light.svg" class="logo__image only-dark" alt="Quantflow library - Home"/>`);</script>
+  
+  
+</a></div>
+        <div class="sidebar-primary-item">
+
+ <script>
+ document.write(`
+   <button class="btn search-button-field search-button__button" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="fa-solid fa-magnifying-glass"></i>
+    <span class="search-button__default-text">Search</span>
+    <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+   </button>
+ `);
+ </script></div>
+        <div class="sidebar-primary-item"><nav class="bd-links bd-docs-nav" aria-label="Main">
+    <div class="bd-toc-item navbar-nav active">
+        <p aria-level="2" class="caption" role="heading"><span class="caption-text">Topic Guides</span></p>
+<ul class="current nav bd-sidenav">
+<li class="toctree-l1 has-children"><a class="reference internal" href="../../theory/overview.html">Theory</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../theory/levy.html">Lévy process</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../theory/characteristic.html">Characteristic Function</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../theory/inversion.html">From Characteristic Function to PDF</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../theory/option_pricing.html">Option Pricing</a></li>
+</ul>
+</details></li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="../../models/overview.html">Stochastic Processes</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../models/weiner.html">Weiner Process</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../models/poisson.html">Poisson Processes</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../models/jump_diffusion.html">Jump Diffusion Models</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../models/cir.html">CIR process</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../models/ou.html">OU Process</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../models/heston.html">Heston Model and Option Pricing</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../models/heston_jumps.html">Heston Model with Jumps</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../models/bns.html">BNS Model</a></li>
+</ul>
+</details></li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="../../applications/overview.html">Applications</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../applications/volatility_surface.html">Volatility Surface</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../applications/hurst.html">Hurst Exponent</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../applications/calibration.html">Calibration</a></li>
+</ul>
+</details></li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="../../examples/overview.html">Examples</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../examples/gaussian_sampling.html">Gaussian Sampling</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../examples/exponential_sampling.html">Exponential Sampling</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../examples/poisson_sampling.html">Poisson Sampling</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../examples/heston_vol_surface.html">HestonJ Volatility Surface</a></li>
+</ul>
+</details></li>
+<li class="toctree-l1 current active has-children"><a class="reference internal" href="../index.html">API Reference</a><details open="open"><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul class="current">
+<li class="toctree-l2 has-children"><a class="reference internal" href="../sp/index.html">Stochastic Process</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l3"><a class="reference internal" href="../sp/weiner.html">Weiner process</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../sp/poisson.html">Poisson process</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../sp/compound_poisson.html">Compound Poisson</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../sp/ou.html">OU Processes</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../sp/cir.html">CIR</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../sp/jump_diffusion.html">Jump diffusions</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../sp/heston.html">Heston process</a></li>
+</ul>
+</details></li>
+<li class="toctree-l2 current active has-children"><a class="reference internal" href="index.html">Option Pricing</a><details open="open"><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul class="current">
+<li class="toctree-l3 current active"><a class="current reference internal" href="#">Vol Surface</a></li>
+<li class="toctree-l3"><a class="reference internal" href="black.html">Black Pricing</a></li>
+<li class="toctree-l3"><a class="reference internal" href="pricer.html">Option Pricer</a></li>
+<li class="toctree-l3"><a class="reference internal" href="calibration.html">Vol Model Calibration</a></li>
+</ul>
+</details></li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="../ta/index.html">Timeseries Analysis</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l3"><a class="reference internal" href="../ta/ohlc.html">OHLC</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../ta/paths.html">Paths</a></li>
+</ul>
+</details></li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="../data/index.html">Data fetching</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l3"><a class="reference internal" href="../data/fmp.html">FMP</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../data/fed.html">Federal Reserve</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../data/fred.html">Fred</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../data/deribit.html">Deribit</a></li>
+</ul>
+</details></li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="../utils/index.html">Utils</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l3"><a class="reference internal" href="../utils/marginal1d.html">Marginal1D</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../utils/distributions.html">Distributions</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../utils/bins.html">Bins</a></li>
+</ul>
+</details></li>
+</ul>
+</details></li>
+</ul>
+<p aria-level="2" class="caption" role="heading"><span class="caption-text">Reference</span></p>
+<ul class="nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="../../reference/contributing.html">Contributing</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../reference/glossary.html">Glossary</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../reference/biblio.html">Bibliography</a></li>
+</ul>
+
+    </div>
+</nav></div>
+    </div>
+  
+  
+  <div class="sidebar-primary-items__end sidebar-primary__section">
+  </div>
+  
+  <div id="rtd-footer-container"></div>
+
+
+      </div>
+      
+      <main id="main-content" class="bd-main" role="main">
+        
+        
+
+<div class="sbt-scroll-pixel-helper"></div>
+
+          <div class="bd-content">
+            <div class="bd-article-container">
+              
+              <div class="bd-header-article d-print-none">
+<div class="header-article-items header-article__inner">
+  
+    <div class="header-article-items__start">
+      
+        <div class="header-article-item"><button class="sidebar-toggle primary-toggle btn btn-sm" title="Toggle primary sidebar" data-bs-placement="bottom" data-bs-toggle="tooltip">
+  <span class="fa-solid fa-bars"></span>
+</button></div>
+      
+    </div>
+  
+  
+    <div class="header-article-items__end">
+      
+        <div class="header-article-item">
+
+<div class="article-header-buttons">
+
+
+
+
+
+<div class="dropdown dropdown-source-buttons">
+  <button class="btn dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false" aria-label="Source repositories">
+    <i class="fab fa-github"></i>
+  </button>
+  <ul class="dropdown-menu">
+      
+      
+      
+      <li><a href="https://github.com/quantmind/quantflow" target="_blank"
+   class="btn btn-sm btn-source-repository-button dropdown-item"
+   title="Source repository"
+   data-bs-placement="left" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fab fa-github"></i>
+  </span>
+<span class="btn__text-container">Repository</span>
+</a>
+</li>
+      
+      
+      
+      
+      <li><a href="https://github.com/quantmind/quantflow/edit/main/notebooks/api/options/vol_surface.rst" target="_blank"
+   class="btn btn-sm btn-source-edit-button dropdown-item"
+   title="Suggest edit"
+   data-bs-placement="left" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fas fa-pencil-alt"></i>
+  </span>
+<span class="btn__text-container">Suggest edit</span>
+</a>
+</li>
+      
+      
+      
+      
+      <li><a href="https://github.com/quantmind/quantflow/issues/new?title=Issue%20on%20page%20%2Fapi/options/vol_surface.html&body=Your%20issue%20content%20here." target="_blank"
+   class="btn btn-sm btn-source-issues-button dropdown-item"
+   title="Open an issue"
+   data-bs-placement="left" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fas fa-lightbulb"></i>
+  </span>
+<span class="btn__text-container">Open issue</span>
+</a>
+</li>
+      
+  </ul>
+</div>
+
+
+
+
+
+
+<div class="dropdown dropdown-download-buttons">
+  <button class="btn dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false" aria-label="Download this page">
+    <i class="fas fa-download"></i>
+  </button>
+  <ul class="dropdown-menu">
+      
+      
+      
+      <li><a href="../../_sources/api/options/vol_surface.rst" target="_blank"
+   class="btn btn-sm btn-download-source-button dropdown-item"
+   title="Download source file"
+   data-bs-placement="left" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fas fa-file"></i>
+  </span>
+<span class="btn__text-container">.rst</span>
+</a>
+</li>
+      
+      
+      
+      
+      <li>
+<button onclick="window.print()"
+  class="btn btn-sm btn-download-pdf-button dropdown-item"
+  title="Print to PDF"
+  data-bs-placement="left" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fas fa-file-pdf"></i>
+  </span>
+<span class="btn__text-container">.pdf</span>
+</button>
+</li>
+      
+  </ul>
+</div>
+
+
+
+
+<button onclick="toggleFullScreen()"
+  class="btn btn-sm btn-fullscreen-button"
+  title="Fullscreen mode"
+  data-bs-placement="bottom" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fas fa-expand"></i>
+  </span>
+
+</button>
+
+
+
+<script>
+document.write(`
+  <button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button" title="light/dark" aria-label="light/dark" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="theme-switch fa-solid fa-sun fa-lg" data-mode="light"></i>
+    <i class="theme-switch fa-solid fa-moon fa-lg" data-mode="dark"></i>
+    <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg" data-mode="auto"></i>
+  </button>
+`);
+</script>
+
+
+<script>
+document.write(`
+  <button class="btn btn-sm pst-navbar-icon search-button search-button__button" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="fa-solid fa-magnifying-glass fa-lg"></i>
+  </button>
+`);
+</script>
+<button class="sidebar-toggle secondary-toggle btn btn-sm" title="Toggle secondary sidebar" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <span class="fa-solid fa-list"></span>
+</button>
+</div></div>
+      
+    </div>
+  
+</div>
+</div>
+              
+              
+
+<div id="jb-print-docs-body" class="onlyprint">
+    <h1>Vol Surface</h1>
+    <!-- Table of contents -->
+    <div id="print-main-content">
+        <div id="jb-print-toc">
+            
+            <div>
+                <h2> Contents </h2>
+            </div>
+            <nav aria-label="Page">
+                <ul class="visible nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#quantflow.options.surface.VolSurface"><code class="docutils literal notranslate"><span class="pre">VolSurface</span></code></a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#quantflow.options.surface.VolSurface.as_array"><code class="docutils literal notranslate"><span class="pre">VolSurface.as_array()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#quantflow.options.surface.VolSurface.bs"><code class="docutils literal notranslate"><span class="pre">VolSurface.bs()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#quantflow.options.surface.VolSurface.calc_bs_prices"><code class="docutils literal notranslate"><span class="pre">VolSurface.calc_bs_prices()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#quantflow.options.surface.VolSurface.option_list"><code class="docutils literal notranslate"><span class="pre">VolSurface.option_list()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#quantflow.options.surface.VolSurface.option_prices"><code class="docutils literal notranslate"><span class="pre">VolSurface.option_prices()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#quantflow.options.surface.VolSurface.options_df"><code class="docutils literal notranslate"><span class="pre">VolSurface.options_df()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#quantflow.options.surface.VolSurface.plot"><code class="docutils literal notranslate"><span class="pre">VolSurface.plot()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#quantflow.options.surface.VolSurface.plot3d"><code class="docutils literal notranslate"><span class="pre">VolSurface.plot3d()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#quantflow.options.surface.VolSurface.securities"><code class="docutils literal notranslate"><span class="pre">VolSurface.securities()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#quantflow.options.surface.VolSurface.term_structure"><code class="docutils literal notranslate"><span class="pre">VolSurface.term_structure()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#quantflow.options.surface.VolSurface.trim"><code class="docutils literal notranslate"><span class="pre">VolSurface.trim()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#quantflow.options.surface.VolSurface.asset"><code class="docutils literal notranslate"><span class="pre">VolSurface.asset</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#quantflow.options.surface.VolSurface.day_counter"><code class="docutils literal notranslate"><span class="pre">VolSurface.day_counter</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#quantflow.options.surface.VolSurface.maturities"><code class="docutils literal notranslate"><span class="pre">VolSurface.maturities</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#quantflow.options.surface.VolSurface.ref_date"><code class="docutils literal notranslate"><span class="pre">VolSurface.ref_date</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#quantflow.options.surface.VolSurface.spot"><code class="docutils literal notranslate"><span class="pre">VolSurface.spot</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#quantflow.options.surface.VolSurface.tick_size_forwards"><code class="docutils literal notranslate"><span class="pre">VolSurface.tick_size_forwards</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#quantflow.options.surface.VolSurface.tick_size_options"><code class="docutils literal notranslate"><span class="pre">VolSurface.tick_size_options</span></code></a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#quantflow.options.surface.VolCrossSection"><code class="docutils literal notranslate"><span class="pre">VolCrossSection</span></code></a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#quantflow.options.surface.VolCrossSection.info_dict"><code class="docutils literal notranslate"><span class="pre">VolCrossSection.info_dict()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#quantflow.options.surface.VolCrossSection.option_prices"><code class="docutils literal notranslate"><span class="pre">VolCrossSection.option_prices()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#quantflow.options.surface.VolCrossSection.securities"><code class="docutils literal notranslate"><span class="pre">VolCrossSection.securities()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#quantflow.options.surface.VolCrossSection.ttm"><code class="docutils literal notranslate"><span class="pre">VolCrossSection.ttm()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#quantflow.options.surface.VolCrossSection.day_counter"><code class="docutils literal notranslate"><span class="pre">VolCrossSection.day_counter</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#quantflow.options.surface.VolCrossSection.forward"><code class="docutils literal notranslate"><span class="pre">VolCrossSection.forward</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#quantflow.options.surface.VolCrossSection.maturity"><code class="docutils literal notranslate"><span class="pre">VolCrossSection.maturity</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#quantflow.options.surface.VolCrossSection.strikes"><code class="docutils literal notranslate"><span class="pre">VolCrossSection.strikes</span></code></a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#quantflow.options.surface.GenericVolSurfaceLoader"><code class="docutils literal notranslate"><span class="pre">GenericVolSurfaceLoader</span></code></a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#quantflow.options.surface.GenericVolSurfaceLoader.add_forward"><code class="docutils literal notranslate"><span class="pre">GenericVolSurfaceLoader.add_forward()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#quantflow.options.surface.GenericVolSurfaceLoader.add_option"><code class="docutils literal notranslate"><span class="pre">GenericVolSurfaceLoader.add_option()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#quantflow.options.surface.GenericVolSurfaceLoader.add_spot"><code class="docutils literal notranslate"><span class="pre">GenericVolSurfaceLoader.add_spot()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#quantflow.options.surface.GenericVolSurfaceLoader.surface"><code class="docutils literal notranslate"><span class="pre">GenericVolSurfaceLoader.surface()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#quantflow.options.surface.GenericVolSurfaceLoader.asset"><code class="docutils literal notranslate"><span class="pre">GenericVolSurfaceLoader.asset</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#quantflow.options.surface.GenericVolSurfaceLoader.day_counter"><code class="docutils literal notranslate"><span class="pre">GenericVolSurfaceLoader.day_counter</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#quantflow.options.surface.GenericVolSurfaceLoader.exclude_open_interest"><code class="docutils literal notranslate"><span class="pre">GenericVolSurfaceLoader.exclude_open_interest</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#quantflow.options.surface.GenericVolSurfaceLoader.exclude_volume"><code class="docutils literal notranslate"><span class="pre">GenericVolSurfaceLoader.exclude_volume</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#quantflow.options.surface.GenericVolSurfaceLoader.maturities"><code class="docutils literal notranslate"><span class="pre">GenericVolSurfaceLoader.maturities</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#quantflow.options.surface.GenericVolSurfaceLoader.spot"><code class="docutils literal notranslate"><span class="pre">GenericVolSurfaceLoader.spot</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#quantflow.options.surface.GenericVolSurfaceLoader.tick_size_forwards"><code class="docutils literal notranslate"><span class="pre">GenericVolSurfaceLoader.tick_size_forwards</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#quantflow.options.surface.GenericVolSurfaceLoader.tick_size_options"><code class="docutils literal notranslate"><span class="pre">GenericVolSurfaceLoader.tick_size_options</span></code></a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#quantflow.options.surface.VolSurfaceLoader"><code class="docutils literal notranslate"><span class="pre">VolSurfaceLoader</span></code></a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#quantflow.options.surface.VolSurfaceLoader.add"><code class="docutils literal notranslate"><span class="pre">VolSurfaceLoader.add()</span></code></a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#quantflow.options.surface.OptionSelection"><code class="docutils literal notranslate"><span class="pre">OptionSelection</span></code></a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#quantflow.options.surface.OptionSelection.best"><code class="docutils literal notranslate"><span class="pre">OptionSelection.best</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#quantflow.options.surface.OptionSelection.call"><code class="docutils literal notranslate"><span class="pre">OptionSelection.call</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#quantflow.options.surface.OptionSelection.put"><code class="docutils literal notranslate"><span class="pre">OptionSelection.put</span></code></a></li>
+</ul>
+</li>
+</ul>
+            </nav>
+        </div>
+    </div>
+</div>
+
+              
+                
+<div id="searchbox"></div>
+                <article class="bd-article">
+                  
+  <section id="module-quantflow.options.surface">
+<span id="vol-surface"></span><h1>Vol Surface<a class="headerlink" href="#module-quantflow.options.surface" title="Link to this heading">#</a></h1>
+<dl class="py class">
+<dt class="sig sig-object py" id="quantflow.options.surface.VolSurface">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">quantflow.options.surface.</span></span><span class="sig-name descname"><span class="pre">VolSurface</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="pre">ref_date:</span> <span class="pre">~datetime.datetime,</span> <span class="pre">asset:</span> <span class="pre">str,</span> <span class="pre">spot:</span> <span class="pre">~quantflow.options.surface.SpotPrice[~quantflow.options.surface.S],</span> <span class="pre">maturities:</span> <span class="pre">tuple[~quantflow.options.surface.VolCrossSection[~quantflow.options.surface.S],</span> <span class="pre">...],</span> <span class="pre">day_counter:</span> <span class="pre">~ccy.core.daycounter.DayCounter</span> <span class="pre">=</span> <span class="pre">&lt;ccy.core.daycounter.ActAct</span> <span class="pre">object&gt;,</span> <span class="pre">tick_size_forwards:</span> <span class="pre">~decimal.Decimal</span> <span class="pre">|</span> <span class="pre">None</span> <span class="pre">=</span> <span class="pre">None,</span> <span class="pre">tick_size_options:</span> <span class="pre">~decimal.Decimal</span> <span class="pre">|</span> <span class="pre">None</span> <span class="pre">=</span> <span class="pre">None</span></em><span class="sig-paren">)</span><a class="headerlink" href="#quantflow.options.surface.VolSurface" title="Link to this definition">#</a></dt>
+<dd><p>Represents a volatility surface, which captures the implied volatility of an
+option for different strikes and maturities.</p>
+<p>Key Concepts:</p>
+<ul class="simple">
+<li><dl class="simple">
+<dt><strong>Implied Volatility:</strong> The market’s expectation of future volatility, derived</dt><dd><p>from the price of an option using a pricing model (e.g., Black-Scholes).</p>
+</dd>
+</dl>
+</li>
+<li><dl class="simple">
+<dt><strong>Strike Price:</strong> The price at which the underlying asset can be bought</dt><dd><p>(call option) or sold (put option) at the option’s expiry.</p>
+</dd>
+</dl>
+</li>
+<li><p><strong>Time to Maturity:</strong> The time remaining until the option’s expiration date.</p></li>
+<li><dl class="simple">
+<dt><strong>Volatility Smile/Skew:</strong> The often-observed phenomenon where implied</dt><dd><p>volatility varies across different strike prices for the same maturity.
+Typically, it forms a “smile” or “skew” shape.</p>
+</dd>
+</dl>
+</li>
+</ul>
+<p>This class provides a structure for storing and manipulating volatility
+surface data. It can be used for various tasks, such as:</p>
+<ul class="simple">
+<li><dl class="simple">
+<dt><strong>Option pricing and risk management:</strong> Using the surface to determine the</dt><dd><p>appropriate volatility input for pricing models.</p>
+</dd>
+</dl>
+</li>
+<li><dl class="simple">
+<dt><strong>Volatility arbitrage:</strong> Identifying mispricings in options by comparing</dt><dd><p>market prices to model prices derived from the surface.</p>
+</dd>
+</dl>
+</li>
+<li><dl class="simple">
+<dt><strong>Market analysis:</strong> Understanding market sentiment and expectations of</dt><dd><p>future volatility.</p>
+</dd>
+</dl>
+</li>
+</ul>
+<p><strong>Methods:</strong></p>
+<div class="pst-scrollable-table-container"><table class="autosummary longtable table autosummary">
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#quantflow.options.surface.VolSurface.as_array" title="quantflow.options.surface.VolSurface.as_array"><code class="xref py py-obj docutils literal notranslate"><span class="pre">as_array</span></code></a></p></td>
+<td><p>Organize option prices in a numpy arrays for black volatility calculation</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#quantflow.options.surface.VolSurface.bs" title="quantflow.options.surface.VolSurface.bs"><code class="xref py py-obj docutils literal notranslate"><span class="pre">bs</span></code></a></p></td>
+<td><p>calculate Black-Scholes implied volatility for all options in the surface</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#quantflow.options.surface.VolSurface.calc_bs_prices" title="quantflow.options.surface.VolSurface.calc_bs_prices"><code class="xref py py-obj docutils literal notranslate"><span class="pre">calc_bs_prices</span></code></a></p></td>
+<td><p>calculate Black-Scholes prices for all options in the surface</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#quantflow.options.surface.VolSurface.option_list" title="quantflow.options.surface.VolSurface.option_list"><code class="xref py py-obj docutils literal notranslate"><span class="pre">option_list</span></code></a></p></td>
+<td><p>List of selected option prices in the surface</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#quantflow.options.surface.VolSurface.option_prices" title="quantflow.options.surface.VolSurface.option_prices"><code class="xref py py-obj docutils literal notranslate"><span class="pre">option_prices</span></code></a></p></td>
+<td><p>Iterator over selected option prices in the surface</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#quantflow.options.surface.VolSurface.options_df" title="quantflow.options.surface.VolSurface.options_df"><code class="xref py py-obj docutils literal notranslate"><span class="pre">options_df</span></code></a></p></td>
+<td><p>Time frame of Black-Scholes call input data</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#quantflow.options.surface.VolSurface.plot" title="quantflow.options.surface.VolSurface.plot"><code class="xref py py-obj docutils literal notranslate"><span class="pre">plot</span></code></a></p></td>
+<td><p>Plot the volatility surface</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#quantflow.options.surface.VolSurface.plot3d" title="quantflow.options.surface.VolSurface.plot3d"><code class="xref py py-obj docutils literal notranslate"><span class="pre">plot3d</span></code></a></p></td>
+<td><p>Plot the volatility surface</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#quantflow.options.surface.VolSurface.securities" title="quantflow.options.surface.VolSurface.securities"><code class="xref py py-obj docutils literal notranslate"><span class="pre">securities</span></code></a></p></td>
+<td><p>Iterator over all securities in the volatility surface</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#quantflow.options.surface.VolSurface.term_structure" title="quantflow.options.surface.VolSurface.term_structure"><code class="xref py py-obj docutils literal notranslate"><span class="pre">term_structure</span></code></a></p></td>
+<td><p>Return the term structure of the volatility surface</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#quantflow.options.surface.VolSurface.trim" title="quantflow.options.surface.VolSurface.trim"><code class="xref py py-obj docutils literal notranslate"><span class="pre">trim</span></code></a></p></td>
+<td><p>Create a new volatility surface with the last <cite>num_maturities</cite> maturities</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<p><strong>Attributes:</strong></p>
+<div class="pst-scrollable-table-container"><table class="autosummary longtable table autosummary">
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#quantflow.options.surface.VolSurface.asset" title="quantflow.options.surface.VolSurface.asset"><code class="xref py py-obj docutils literal notranslate"><span class="pre">asset</span></code></a></p></td>
+<td><p>Name of the underlying asset</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#quantflow.options.surface.VolSurface.day_counter" title="quantflow.options.surface.VolSurface.day_counter"><code class="xref py py-obj docutils literal notranslate"><span class="pre">day_counter</span></code></a></p></td>
+<td><p>Day counter for time to maturity calculations - by default it uses Act/Act</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#quantflow.options.surface.VolSurface.maturities" title="quantflow.options.surface.VolSurface.maturities"><code class="xref py py-obj docutils literal notranslate"><span class="pre">maturities</span></code></a></p></td>
+<td><p>Sorted tuple of <a class="reference internal" href="#quantflow.options.surface.VolCrossSection" title="quantflow.options.surface.VolCrossSection"><code class="xref py py-class docutils literal notranslate"><span class="pre">VolCrossSection</span></code></a> for different maturities</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#quantflow.options.surface.VolSurface.ref_date" title="quantflow.options.surface.VolSurface.ref_date"><code class="xref py py-obj docutils literal notranslate"><span class="pre">ref_date</span></code></a></p></td>
+<td><p>Reference date for the volatility surface</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#quantflow.options.surface.VolSurface.spot" title="quantflow.options.surface.VolSurface.spot"><code class="xref py py-obj docutils literal notranslate"><span class="pre">spot</span></code></a></p></td>
+<td><p>Spot price of the underlying asset</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#quantflow.options.surface.VolSurface.tick_size_forwards" title="quantflow.options.surface.VolSurface.tick_size_forwards"><code class="xref py py-obj docutils literal notranslate"><span class="pre">tick_size_forwards</span></code></a></p></td>
+<td><p>Tick size for rounding forward and spot prices - optional</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#quantflow.options.surface.VolSurface.tick_size_options" title="quantflow.options.surface.VolSurface.tick_size_options"><code class="xref py py-obj docutils literal notranslate"><span class="pre">tick_size_options</span></code></a></p></td>
+<td><p>Tick size for rounding option prices - optional</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<dl class="py method">
+<dt class="sig sig-object py" id="quantflow.options.surface.VolSurface.as_array">
+<span class="sig-name descname"><span class="pre">as_array</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">select</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#quantflow.options.surface.OptionSelection" title="quantflow.options.surface.OptionSelection"><span class="pre">OptionSelection</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">OptionSelection.best</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">index</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">initial_vol</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0.5</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">converged</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">OptionArrays</span></span></span><a class="headerlink" href="#quantflow.options.surface.VolSurface.as_array" title="Link to this definition">#</a></dt>
+<dd><p>Organize option prices in a numpy arrays for black volatility calculation</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>select</strong> – the <a class="reference internal" href="#quantflow.options.surface.OptionSelection" title="quantflow.options.surface.OptionSelection"><code class="xref py py-class docutils literal notranslate"><span class="pre">OptionSelection</span></code></a> method</p></li>
+<li><p><strong>index</strong> – Index of the cross section to use, if None use all</p></li>
+<li><p><strong>initial_vol</strong> – Initial volatility for the root finding algorithm</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="quantflow.options.surface.VolSurface.bs">
+<span class="sig-name descname"><span class="pre">bs</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">select</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#quantflow.options.surface.OptionSelection" title="quantflow.options.surface.OptionSelection"><span class="pre">OptionSelection</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">OptionSelection.best</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">index</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">initial_vol</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0.5</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">OptionPrice</span><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#quantflow.options.surface.VolSurface.bs" title="Link to this definition">#</a></dt>
+<dd><p>calculate Black-Scholes implied volatility for all options
+in the surface</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>select</strong> – the <a class="reference internal" href="#quantflow.options.surface.OptionSelection" title="quantflow.options.surface.OptionSelection"><code class="xref py py-class docutils literal notranslate"><span class="pre">OptionSelection</span></code></a> method</p></li>
+<li><p><strong>index</strong> – Index of the cross section to use, if None use all</p></li>
+<li><p><strong>initial_vol</strong> – Initial volatility for the root finding algorithm</p></li>
+</ul>
+</dd>
+</dl>
+<p>Some options may not converge, in this case the implied volatility is not
+calculated correctly and the option is marked as not converged.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="quantflow.options.surface.VolSurface.calc_bs_prices">
+<span class="sig-name descname"><span class="pre">calc_bs_prices</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">select</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#quantflow.options.surface.OptionSelection" title="quantflow.options.surface.OptionSelection"><span class="pre">OptionSelection</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">OptionSelection.best</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">index</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">ndarray</span></span></span><a class="headerlink" href="#quantflow.options.surface.VolSurface.calc_bs_prices" title="Link to this definition">#</a></dt>
+<dd><p>calculate Black-Scholes prices for all options in the surface</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="quantflow.options.surface.VolSurface.option_list">
+<span class="sig-name descname"><span class="pre">option_list</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">select</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#quantflow.options.surface.OptionSelection" title="quantflow.options.surface.OptionSelection"><span class="pre">OptionSelection</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">OptionSelection.best</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">index</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">converged</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">OptionPrice</span><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#quantflow.options.surface.VolSurface.option_list" title="Link to this definition">#</a></dt>
+<dd><p>List of selected option prices in the surface</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="quantflow.options.surface.VolSurface.option_prices">
+<span class="sig-name descname"><span class="pre">option_prices</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">select</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#quantflow.options.surface.OptionSelection" title="quantflow.options.surface.OptionSelection"><span class="pre">OptionSelection</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">OptionSelection.best</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">index</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">initial_vol</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0.5</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">converged</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Iterator</span><span class="p"><span class="pre">[</span></span><span class="pre">OptionPrice</span><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#quantflow.options.surface.VolSurface.option_prices" title="Link to this definition">#</a></dt>
+<dd><p>Iterator over selected option prices in the surface</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>select</strong> – the <a class="reference internal" href="#quantflow.options.surface.OptionSelection" title="quantflow.options.surface.OptionSelection"><code class="xref py py-class docutils literal notranslate"><span class="pre">OptionSelection</span></code></a> method</p></li>
+<li><p><strong>index</strong> – Index of the cross section to use, if None use all</p></li>
+<li><p><strong>initial_vol</strong> – Initial volatility for the root finding algorithm</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="quantflow.options.surface.VolSurface.options_df">
+<span class="sig-name descname"><span class="pre">options_df</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">select</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#quantflow.options.surface.OptionSelection" title="quantflow.options.surface.OptionSelection"><span class="pre">OptionSelection</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">OptionSelection.best</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">index</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">initial_vol</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0.5</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">converged</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">DataFrame</span></span></span><a class="headerlink" href="#quantflow.options.surface.VolSurface.options_df" title="Link to this definition">#</a></dt>
+<dd><p>Time frame of Black-Scholes call input data</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="quantflow.options.surface.VolSurface.plot">
+<span class="sig-name descname"><span class="pre">plot</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">index</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">select</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#quantflow.options.surface.OptionSelection" title="quantflow.options.surface.OptionSelection"><span class="pre">OptionSelection</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">OptionSelection.best</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Any</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Any</span></span></span><a class="headerlink" href="#quantflow.options.surface.VolSurface.plot" title="Link to this definition">#</a></dt>
+<dd><p>Plot the volatility surface</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="quantflow.options.surface.VolSurface.plot3d">
+<span class="sig-name descname"><span class="pre">plot3d</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">select</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#quantflow.options.surface.OptionSelection" title="quantflow.options.surface.OptionSelection"><span class="pre">OptionSelection</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">OptionSelection.best</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Any</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Any</span></span></span><a class="headerlink" href="#quantflow.options.surface.VolSurface.plot3d" title="Link to this definition">#</a></dt>
+<dd><p>Plot the volatility surface</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="quantflow.options.surface.VolSurface.securities">
+<span class="sig-name descname"><span class="pre">securities</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Iterator</span><span class="p"><span class="pre">[</span></span><span class="pre">SpotPrice</span><span class="p"><span class="pre">[</span></span><span class="pre">S</span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">FwdPrice</span><span class="p"><span class="pre">[</span></span><span class="pre">S</span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">OptionPrices</span><span class="p"><span class="pre">[</span></span><span class="pre">S</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#quantflow.options.surface.VolSurface.securities" title="Link to this definition">#</a></dt>
+<dd><p>Iterator over all securities in the volatility surface</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="quantflow.options.surface.VolSurface.term_structure">
+<span class="sig-name descname"><span class="pre">term_structure</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">frequency</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">DataFrame</span></span></span><a class="headerlink" href="#quantflow.options.surface.VolSurface.term_structure" title="Link to this definition">#</a></dt>
+<dd><p>Return the term structure of the volatility surface</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="quantflow.options.surface.VolSurface.trim">
+<span class="sig-name descname"><span class="pre">trim</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">num_maturities</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Self</span></span></span><a class="headerlink" href="#quantflow.options.surface.VolSurface.trim" title="Link to this definition">#</a></dt>
+<dd><p>Create a new volatility surface with the last <cite>num_maturities</cite> maturities</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="quantflow.options.surface.VolSurface.asset">
+<span class="sig-name descname"><span class="pre">asset</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></em><a class="headerlink" href="#quantflow.options.surface.VolSurface.asset" title="Link to this definition">#</a></dt>
+<dd><p>Name of the underlying asset</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="quantflow.options.surface.VolSurface.day_counter">
+<span class="sig-name descname"><span class="pre">day_counter</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">DayCounter</span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">&lt;ccy.core.daycounter.ActAct</span> <span class="pre">object&gt;</span></em><a class="headerlink" href="#quantflow.options.surface.VolSurface.day_counter" title="Link to this definition">#</a></dt>
+<dd><p>Day counter for time to maturity calculations - by default it uses Act/Act</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="quantflow.options.surface.VolSurface.maturities">
+<span class="sig-name descname"><span class="pre">maturities</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">tuple</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="#quantflow.options.surface.VolCrossSection" title="quantflow.options.surface.VolCrossSection"><span class="pre">VolCrossSection</span></a><span class="p"><span class="pre">[</span></span><span class="pre">S</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="p"><span class="pre">...</span></span><span class="p"><span class="pre">]</span></span></em><a class="headerlink" href="#quantflow.options.surface.VolSurface.maturities" title="Link to this definition">#</a></dt>
+<dd><p>Sorted tuple of <a class="reference internal" href="#quantflow.options.surface.VolCrossSection" title="quantflow.options.surface.VolCrossSection"><code class="xref py py-class docutils literal notranslate"><span class="pre">VolCrossSection</span></code></a> for different maturities</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="quantflow.options.surface.VolSurface.ref_date">
+<span class="sig-name descname"><span class="pre">ref_date</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">datetime</span></em><a class="headerlink" href="#quantflow.options.surface.VolSurface.ref_date" title="Link to this definition">#</a></dt>
+<dd><p>Reference date for the volatility surface</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="quantflow.options.surface.VolSurface.spot">
+<span class="sig-name descname"><span class="pre">spot</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">SpotPrice</span><span class="p"><span class="pre">[</span></span><span class="pre">S</span><span class="p"><span class="pre">]</span></span></em><a class="headerlink" href="#quantflow.options.surface.VolSurface.spot" title="Link to this definition">#</a></dt>
+<dd><p>Spot price of the underlying asset</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="quantflow.options.surface.VolSurface.tick_size_forwards">
+<span class="sig-name descname"><span class="pre">tick_size_forwards</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">Decimal</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></em><a class="headerlink" href="#quantflow.options.surface.VolSurface.tick_size_forwards" title="Link to this definition">#</a></dt>
+<dd><p>Tick size for rounding forward and spot prices - optional</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="quantflow.options.surface.VolSurface.tick_size_options">
+<span class="sig-name descname"><span class="pre">tick_size_options</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">Decimal</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></em><a class="headerlink" href="#quantflow.options.surface.VolSurface.tick_size_options" title="Link to this definition">#</a></dt>
+<dd><p>Tick size for rounding option prices - optional</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="quantflow.options.surface.VolCrossSection">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">quantflow.options.surface.</span></span><span class="sig-name descname"><span class="pre">VolCrossSection</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="pre">maturity:</span> <span class="pre">~datetime.datetime,</span> <span class="pre">forward:</span> <span class="pre">~quantflow.options.surface.FwdPrice[~quantflow.options.surface.S],</span> <span class="pre">strikes:</span> <span class="pre">tuple[~quantflow.options.surface.Strike[~quantflow.options.surface.S],</span> <span class="pre">...],</span> <span class="pre">day_counter:</span> <span class="pre">~ccy.core.daycounter.DayCounter</span> <span class="pre">=</span> <span class="pre">&lt;ccy.core.daycounter.ActAct</span> <span class="pre">object&gt;</span></em><span class="sig-paren">)</span><a class="headerlink" href="#quantflow.options.surface.VolCrossSection" title="Link to this definition">#</a></dt>
+<dd><p>Represents a cross section of a volatility surface at a specific maturity.</p>
+<p><strong>Methods:</strong></p>
+<div class="pst-scrollable-table-container"><table class="autosummary longtable table autosummary">
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#quantflow.options.surface.VolCrossSection.info_dict" title="quantflow.options.surface.VolCrossSection.info_dict"><code class="xref py py-obj docutils literal notranslate"><span class="pre">info_dict</span></code></a></p></td>
+<td><p>Return a dictionary with information about the cross section</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#quantflow.options.surface.VolCrossSection.option_prices" title="quantflow.options.surface.VolCrossSection.option_prices"><code class="xref py py-obj docutils literal notranslate"><span class="pre">option_prices</span></code></a></p></td>
+<td><p>Iterator over option prices in the cross section</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#quantflow.options.surface.VolCrossSection.securities" title="quantflow.options.surface.VolCrossSection.securities"><code class="xref py py-obj docutils literal notranslate"><span class="pre">securities</span></code></a></p></td>
+<td><p>Return a list of all securities in the cross section</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#quantflow.options.surface.VolCrossSection.ttm" title="quantflow.options.surface.VolCrossSection.ttm"><code class="xref py py-obj docutils literal notranslate"><span class="pre">ttm</span></code></a></p></td>
+<td><p>Time to maturity in years</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<p><strong>Attributes:</strong></p>
+<div class="pst-scrollable-table-container"><table class="autosummary longtable table autosummary">
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#quantflow.options.surface.VolCrossSection.day_counter" title="quantflow.options.surface.VolCrossSection.day_counter"><code class="xref py py-obj docutils literal notranslate"><span class="pre">day_counter</span></code></a></p></td>
+<td><p>Day counter for time to maturity calculations - by default it uses Act/Act</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#quantflow.options.surface.VolCrossSection.forward" title="quantflow.options.surface.VolCrossSection.forward"><code class="xref py py-obj docutils literal notranslate"><span class="pre">forward</span></code></a></p></td>
+<td><p>Forward price of the underlying asset at the time of the cross section</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#quantflow.options.surface.VolCrossSection.maturity" title="quantflow.options.surface.VolCrossSection.maturity"><code class="xref py py-obj docutils literal notranslate"><span class="pre">maturity</span></code></a></p></td>
+<td><p>Maturity date of the cross section</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#quantflow.options.surface.VolCrossSection.strikes" title="quantflow.options.surface.VolCrossSection.strikes"><code class="xref py py-obj docutils literal notranslate"><span class="pre">strikes</span></code></a></p></td>
+<td><p>Tuple of sorted strikes and their corresponding option prices</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<dl class="py method">
+<dt class="sig sig-object py" id="quantflow.options.surface.VolCrossSection.info_dict">
+<span class="sig-name descname"><span class="pre">info_dict</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ref_date</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">datetime</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">spot</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">SpotPrice</span><span class="p"><span class="pre">[</span></span><span class="pre">S</span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">dict</span></span></span><a class="headerlink" href="#quantflow.options.surface.VolCrossSection.info_dict" title="Link to this definition">#</a></dt>
+<dd><p>Return a dictionary with information about the cross section</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="quantflow.options.surface.VolCrossSection.option_prices">
+<span class="sig-name descname"><span class="pre">option_prices</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ref_date</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">datetime</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">select</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#quantflow.options.surface.OptionSelection" title="quantflow.options.surface.OptionSelection"><span class="pre">OptionSelection</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">OptionSelection.best</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">initial_vol</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0.5</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">converged</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Iterator</span><span class="p"><span class="pre">[</span></span><span class="pre">OptionPrice</span><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#quantflow.options.surface.VolCrossSection.option_prices" title="Link to this definition">#</a></dt>
+<dd><p>Iterator over option prices in the cross section</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="quantflow.options.surface.VolCrossSection.securities">
+<span class="sig-name descname"><span class="pre">securities</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Iterator</span><span class="p"><span class="pre">[</span></span><span class="pre">FwdPrice</span><span class="p"><span class="pre">[</span></span><span class="pre">S</span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">OptionPrices</span><span class="p"><span class="pre">[</span></span><span class="pre">S</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#quantflow.options.surface.VolCrossSection.securities" title="Link to this definition">#</a></dt>
+<dd><p>Return a list of all securities in the cross section</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="quantflow.options.surface.VolCrossSection.ttm">
+<span class="sig-name descname"><span class="pre">ttm</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ref_date</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">datetime</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">float</span></span></span><a class="headerlink" href="#quantflow.options.surface.VolCrossSection.ttm" title="Link to this definition">#</a></dt>
+<dd><p>Time to maturity in years</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="quantflow.options.surface.VolCrossSection.day_counter">
+<span class="sig-name descname"><span class="pre">day_counter</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">DayCounter</span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">&lt;ccy.core.daycounter.ActAct</span> <span class="pre">object&gt;</span></em><a class="headerlink" href="#quantflow.options.surface.VolCrossSection.day_counter" title="Link to this definition">#</a></dt>
+<dd><p>Day counter for time to maturity calculations - by default it uses Act/Act</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="quantflow.options.surface.VolCrossSection.forward">
+<span class="sig-name descname"><span class="pre">forward</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">FwdPrice</span><span class="p"><span class="pre">[</span></span><span class="pre">S</span><span class="p"><span class="pre">]</span></span></em><a class="headerlink" href="#quantflow.options.surface.VolCrossSection.forward" title="Link to this definition">#</a></dt>
+<dd><p>Forward price of the underlying asset at the time of the cross section</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="quantflow.options.surface.VolCrossSection.maturity">
+<span class="sig-name descname"><span class="pre">maturity</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">datetime</span></em><a class="headerlink" href="#quantflow.options.surface.VolCrossSection.maturity" title="Link to this definition">#</a></dt>
+<dd><p>Maturity date of the cross section</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="quantflow.options.surface.VolCrossSection.strikes">
+<span class="sig-name descname"><span class="pre">strikes</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">Strike</span><span class="p"><span class="pre">[</span></span><span class="pre">S</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="p"><span class="pre">...</span></span><span class="p"><span class="pre">]</span></span></em><a class="headerlink" href="#quantflow.options.surface.VolCrossSection.strikes" title="Link to this definition">#</a></dt>
+<dd><p>Tuple of sorted strikes and their corresponding option prices</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="quantflow.options.surface.GenericVolSurfaceLoader">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">quantflow.options.surface.</span></span><span class="sig-name descname"><span class="pre">GenericVolSurfaceLoader</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">asset:</span> <span class="pre">str</span> <span class="pre">=</span> <span class="pre">''</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">spot:</span> <span class="pre">~quantflow.options.surface.SpotPrice[~quantflow.options.surface.S]</span> <span class="pre">|</span> <span class="pre">None</span> <span class="pre">=</span> <span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">maturities:</span> <span class="pre">dict[~datetime.datetime</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">~quantflow.options.surface.VolCrossSectionLoader[~quantflow.options.surface.S]]</span> <span class="pre">=</span> <span class="pre">&lt;factory&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">day_counter:</span> <span class="pre">~ccy.core.daycounter.DayCounter</span> <span class="pre">=</span> <span class="pre">&lt;ccy.core.daycounter.ActAct</span> <span class="pre">object&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tick_size_forwards:</span> <span class="pre">~decimal.Decimal</span> <span class="pre">|</span> <span class="pre">None</span> <span class="pre">=</span> <span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tick_size_options:</span> <span class="pre">~decimal.Decimal</span> <span class="pre">|</span> <span class="pre">None</span> <span class="pre">=</span> <span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">exclude_open_interest:</span> <span class="pre">~decimal.Decimal</span> <span class="pre">|</span> <span class="pre">None</span> <span class="pre">=</span> <span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">exclude_volume:</span> <span class="pre">~decimal.Decimal</span> <span class="pre">|</span> <span class="pre">None</span> <span class="pre">=</span> <span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#quantflow.options.surface.GenericVolSurfaceLoader" title="Link to this definition">#</a></dt>
+<dd><p>Helper class to build a volatility surface from a list of securities</p>
+<p><strong>Methods:</strong></p>
+<div class="pst-scrollable-table-container"><table class="autosummary longtable table autosummary">
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#quantflow.options.surface.GenericVolSurfaceLoader.add_forward" title="quantflow.options.surface.GenericVolSurfaceLoader.add_forward"><code class="xref py py-obj docutils literal notranslate"><span class="pre">add_forward</span></code></a></p></td>
+<td><p>Add a forward to the volatility surface loader</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#quantflow.options.surface.GenericVolSurfaceLoader.add_option" title="quantflow.options.surface.GenericVolSurfaceLoader.add_option"><code class="xref py py-obj docutils literal notranslate"><span class="pre">add_option</span></code></a></p></td>
+<td><p>Add an option to the volatility surface loader</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#quantflow.options.surface.GenericVolSurfaceLoader.add_spot" title="quantflow.options.surface.GenericVolSurfaceLoader.add_spot"><code class="xref py py-obj docutils literal notranslate"><span class="pre">add_spot</span></code></a></p></td>
+<td><p>Add a spot to the volatility surface loader</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#quantflow.options.surface.GenericVolSurfaceLoader.surface" title="quantflow.options.surface.GenericVolSurfaceLoader.surface"><code class="xref py py-obj docutils literal notranslate"><span class="pre">surface</span></code></a></p></td>
+<td><p>Build a volatility surface from the provided data</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<p><strong>Attributes:</strong></p>
+<div class="pst-scrollable-table-container"><table class="autosummary longtable table autosummary">
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#quantflow.options.surface.GenericVolSurfaceLoader.asset" title="quantflow.options.surface.GenericVolSurfaceLoader.asset"><code class="xref py py-obj docutils literal notranslate"><span class="pre">asset</span></code></a></p></td>
+<td><p>Name of the underlying asset</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#quantflow.options.surface.GenericVolSurfaceLoader.day_counter" title="quantflow.options.surface.GenericVolSurfaceLoader.day_counter"><code class="xref py py-obj docutils literal notranslate"><span class="pre">day_counter</span></code></a></p></td>
+<td><p>Day counter for time to maturity calculations - by default it uses Act/Act</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#quantflow.options.surface.GenericVolSurfaceLoader.exclude_open_interest" title="quantflow.options.surface.GenericVolSurfaceLoader.exclude_open_interest"><code class="xref py py-obj docutils literal notranslate"><span class="pre">exclude_open_interest</span></code></a></p></td>
+<td><p>Exclude options with open interest at or below this value</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#quantflow.options.surface.GenericVolSurfaceLoader.exclude_volume" title="quantflow.options.surface.GenericVolSurfaceLoader.exclude_volume"><code class="xref py py-obj docutils literal notranslate"><span class="pre">exclude_volume</span></code></a></p></td>
+<td><p>Exclude options with volume at or below this value</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#quantflow.options.surface.GenericVolSurfaceLoader.maturities" title="quantflow.options.surface.GenericVolSurfaceLoader.maturities"><code class="xref py py-obj docutils literal notranslate"><span class="pre">maturities</span></code></a></p></td>
+<td><p>Dictionary of maturities and their corresponding cross section loaders</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#quantflow.options.surface.GenericVolSurfaceLoader.spot" title="quantflow.options.surface.GenericVolSurfaceLoader.spot"><code class="xref py py-obj docutils literal notranslate"><span class="pre">spot</span></code></a></p></td>
+<td><p>Spot price of the underlying asset</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#quantflow.options.surface.GenericVolSurfaceLoader.tick_size_forwards" title="quantflow.options.surface.GenericVolSurfaceLoader.tick_size_forwards"><code class="xref py py-obj docutils literal notranslate"><span class="pre">tick_size_forwards</span></code></a></p></td>
+<td><p>Tick size for rounding forward and spot prices - optional</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#quantflow.options.surface.GenericVolSurfaceLoader.tick_size_options" title="quantflow.options.surface.GenericVolSurfaceLoader.tick_size_options"><code class="xref py py-obj docutils literal notranslate"><span class="pre">tick_size_options</span></code></a></p></td>
+<td><p>Tick size for rounding option prices - optional</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<dl class="py method">
+<dt class="sig sig-object py" id="quantflow.options.surface.GenericVolSurfaceLoader.add_forward">
+<span class="sig-name descname"><span class="pre">add_forward</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">security</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">S</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">maturity</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">datetime</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">bid</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Decimal</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">Decimal('0')</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ask</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Decimal</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">Decimal('0')</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">open_interest</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Decimal</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">Decimal('0')</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">volume</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Decimal</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">Decimal('0')</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#quantflow.options.surface.GenericVolSurfaceLoader.add_forward" title="Link to this definition">#</a></dt>
+<dd><p>Add a forward to the volatility surface loader</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="quantflow.options.surface.GenericVolSurfaceLoader.add_option">
+<span class="sig-name descname"><span class="pre">add_option</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">security</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">S</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">strike</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Decimal</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">maturity</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">datetime</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">option_type</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">OptionType</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">bid</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Decimal</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">Decimal('0')</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ask</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Decimal</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">Decimal('0')</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">open_interest</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Decimal</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">Decimal('0')</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">volume</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Decimal</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">Decimal('0')</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#quantflow.options.surface.GenericVolSurfaceLoader.add_option" title="Link to this definition">#</a></dt>
+<dd><p>Add an option to the volatility surface loader</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="quantflow.options.surface.GenericVolSurfaceLoader.add_spot">
+<span class="sig-name descname"><span class="pre">add_spot</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">security</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">S</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">bid</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Decimal</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">Decimal('0')</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ask</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Decimal</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">Decimal('0')</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">open_interest</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Decimal</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">Decimal('0')</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">volume</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Decimal</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">Decimal('0')</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#quantflow.options.surface.GenericVolSurfaceLoader.add_spot" title="Link to this definition">#</a></dt>
+<dd><p>Add a spot to the volatility surface loader</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="quantflow.options.surface.GenericVolSurfaceLoader.surface">
+<span class="sig-name descname"><span class="pre">surface</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ref_date</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">datetime</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="#quantflow.options.surface.VolSurface" title="quantflow.options.surface.VolSurface"><span class="pre">VolSurface</span></a><span class="p"><span class="pre">[</span></span><span class="pre">S</span><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#quantflow.options.surface.GenericVolSurfaceLoader.surface" title="Link to this definition">#</a></dt>
+<dd><p>Build a volatility surface from the provided data</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="quantflow.options.surface.GenericVolSurfaceLoader.asset">
+<span class="sig-name descname"><span class="pre">asset</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">''</span></em><a class="headerlink" href="#quantflow.options.surface.GenericVolSurfaceLoader.asset" title="Link to this definition">#</a></dt>
+<dd><p>Name of the underlying asset</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="quantflow.options.surface.GenericVolSurfaceLoader.day_counter">
+<span class="sig-name descname"><span class="pre">day_counter</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">DayCounter</span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">&lt;ccy.core.daycounter.ActAct</span> <span class="pre">object&gt;</span></em><a class="headerlink" href="#quantflow.options.surface.GenericVolSurfaceLoader.day_counter" title="Link to this definition">#</a></dt>
+<dd><p>Day counter for time to maturity calculations - by default it uses Act/Act</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="quantflow.options.surface.GenericVolSurfaceLoader.exclude_open_interest">
+<span class="sig-name descname"><span class="pre">exclude_open_interest</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">Decimal</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></em><a class="headerlink" href="#quantflow.options.surface.GenericVolSurfaceLoader.exclude_open_interest" title="Link to this definition">#</a></dt>
+<dd><p>Exclude options with open interest at or below this value</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="quantflow.options.surface.GenericVolSurfaceLoader.exclude_volume">
+<span class="sig-name descname"><span class="pre">exclude_volume</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">Decimal</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></em><a class="headerlink" href="#quantflow.options.surface.GenericVolSurfaceLoader.exclude_volume" title="Link to this definition">#</a></dt>
+<dd><p>Exclude options with volume at or below this value</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="quantflow.options.surface.GenericVolSurfaceLoader.maturities">
+<span class="sig-name descname"><span class="pre">maturities</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">dict</span><span class="p"><span class="pre">[</span></span><span class="pre">datetime</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">VolCrossSectionLoader</span><span class="p"><span class="pre">[</span></span><span class="pre">S</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></em><a class="headerlink" href="#quantflow.options.surface.GenericVolSurfaceLoader.maturities" title="Link to this definition">#</a></dt>
+<dd><p>Dictionary of maturities and their corresponding cross section loaders</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="quantflow.options.surface.GenericVolSurfaceLoader.spot">
+<span class="sig-name descname"><span class="pre">spot</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">SpotPrice</span><span class="p"><span class="pre">[</span></span><span class="pre">S</span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></em><a class="headerlink" href="#quantflow.options.surface.GenericVolSurfaceLoader.spot" title="Link to this definition">#</a></dt>
+<dd><p>Spot price of the underlying asset</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="quantflow.options.surface.GenericVolSurfaceLoader.tick_size_forwards">
+<span class="sig-name descname"><span class="pre">tick_size_forwards</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">Decimal</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></em><a class="headerlink" href="#quantflow.options.surface.GenericVolSurfaceLoader.tick_size_forwards" title="Link to this definition">#</a></dt>
+<dd><p>Tick size for rounding forward and spot prices - optional</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="quantflow.options.surface.GenericVolSurfaceLoader.tick_size_options">
+<span class="sig-name descname"><span class="pre">tick_size_options</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">Decimal</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></em><a class="headerlink" href="#quantflow.options.surface.GenericVolSurfaceLoader.tick_size_options" title="Link to this definition">#</a></dt>
+<dd><p>Tick size for rounding option prices - optional</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="quantflow.options.surface.VolSurfaceLoader">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">quantflow.options.surface.</span></span><span class="sig-name descname"><span class="pre">VolSurfaceLoader</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">asset:</span> <span class="pre">str</span> <span class="pre">=</span> <span class="pre">''</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">spot:</span> <span class="pre">~quantflow.options.surface.SpotPrice[~quantflow.options.surface.S]</span> <span class="pre">|</span> <span class="pre">None</span> <span class="pre">=</span> <span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">maturities:</span> <span class="pre">dict[~datetime.datetime</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">~quantflow.options.surface.VolCrossSectionLoader[~quantflow.options.surface.S]]</span> <span class="pre">=</span> <span class="pre">&lt;factory&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">day_counter:</span> <span class="pre">~ccy.core.daycounter.DayCounter</span> <span class="pre">=</span> <span class="pre">&lt;ccy.core.daycounter.ActAct</span> <span class="pre">object&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tick_size_forwards:</span> <span class="pre">~decimal.Decimal</span> <span class="pre">|</span> <span class="pre">None</span> <span class="pre">=</span> <span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tick_size_options:</span> <span class="pre">~decimal.Decimal</span> <span class="pre">|</span> <span class="pre">None</span> <span class="pre">=</span> <span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">exclude_open_interest:</span> <span class="pre">~decimal.Decimal</span> <span class="pre">|</span> <span class="pre">None</span> <span class="pre">=</span> <span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">exclude_volume:</span> <span class="pre">~decimal.Decimal</span> <span class="pre">|</span> <span class="pre">None</span> <span class="pre">=</span> <span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#quantflow.options.surface.VolSurfaceLoader" title="Link to this definition">#</a></dt>
+<dd><p>A volatility surface loader</p>
+<p><strong>Methods:</strong></p>
+<div class="pst-scrollable-table-container"><table class="autosummary longtable table autosummary">
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#quantflow.options.surface.VolSurfaceLoader.add" title="quantflow.options.surface.VolSurfaceLoader.add"><code class="xref py py-obj docutils literal notranslate"><span class="pre">add</span></code></a></p></td>
+<td><p>Add a volatility security input to the loader</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<dl class="py method">
+<dt class="sig sig-object py" id="quantflow.options.surface.VolSurfaceLoader.add">
+<span class="sig-name descname"><span class="pre">add</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">input</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">VolSurfaceInput</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#quantflow.options.surface.VolSurfaceLoader.add" title="Link to this definition">#</a></dt>
+<dd><p>Add a volatility security input to the loader</p>
+<dl class="field-list simple">
+<dt class="field-odd">Params input<span class="colon">:</span></dt>
+<dd class="field-odd"><p>The input data for the security,
+it can be spot, forward or option</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="quantflow.options.surface.OptionSelection">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">quantflow.options.surface.</span></span><span class="sig-name descname"><span class="pre">OptionSelection</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">value</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">names=&lt;not</span> <span class="pre">given&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">*values</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">module=None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">qualname=None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">type=None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">start=1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">boundary=None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#quantflow.options.surface.OptionSelection" title="Link to this definition">#</a></dt>
+<dd><p>Option selection method</p>
+<p>This enum is used to select which one between calls and puts are used
+for calculating implied volatility and other operations</p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="quantflow.options.surface.OptionSelection.best">
+<span class="sig-name descname"><span class="pre">best</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">1</span></em><a class="headerlink" href="#quantflow.options.surface.OptionSelection.best" title="Link to this definition">#</a></dt>
+<dd><p>Select the best bid/ask options.</p>
+<p>These are the options which are Out of the Money, where their
+intrinsic value is zero</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="quantflow.options.surface.OptionSelection.call">
+<span class="sig-name descname"><span class="pre">call</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">2</span></em><a class="headerlink" href="#quantflow.options.surface.OptionSelection.call" title="Link to this definition">#</a></dt>
+<dd><p>Select the call options only</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="quantflow.options.surface.OptionSelection.put">
+<span class="sig-name descname"><span class="pre">put</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">3</span></em><a class="headerlink" href="#quantflow.options.surface.OptionSelection.put" title="Link to this definition">#</a></dt>
+<dd><p>Select the put options only</p>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+
+    <script type="text/x-thebe-config">
+    {
+        requestKernel: true,
+        binderOptions: {
+            repo: "binder-examples/jupyter-stacks-datascience",
+            ref: "master",
+        },
+        codeMirrorConfig: {
+            theme: "abcdef",
+            mode: "python"
+        },
+        kernelOptions: {
+            name: "python3",
+            path: "./api/options"
+        },
+        predefinedOutput: true
+    }
+    </script>
+    <script>kernelName = 'python3'</script>
+
+                </article>
+              
+
+              
+              
+              
+              
+                <footer class="prev-next-footer d-print-none">
+                  
+<div class="prev-next-area">
+    <a class="left-prev"
+       href="index.html"
+       title="previous page">
+      <i class="fa-solid fa-angle-left"></i>
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">previous</p>
+        <p class="prev-next-title">Option Pricing</p>
+      </div>
+    </a>
+    <a class="right-next"
+       href="black.html"
+       title="next page">
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">next</p>
+        <p class="prev-next-title">Black Pricing</p>
+      </div>
+      <i class="fa-solid fa-angle-right"></i>
+    </a>
+</div>
+                </footer>
+              
+            </div>
+            
+            
+              
+                <div class="bd-sidebar-secondary bd-toc"><div class="sidebar-secondary-items sidebar-secondary__inner">
+
+
+  <div class="sidebar-secondary-item">
+  <div class="page-toc tocsection onthispage">
+    <i class="fa-solid fa-list"></i> Contents
+  </div>
+  <nav class="bd-toc-nav page-toc">
+    <ul class="visible nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#quantflow.options.surface.VolSurface"><code class="docutils literal notranslate"><span class="pre">VolSurface</span></code></a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#quantflow.options.surface.VolSurface.as_array"><code class="docutils literal notranslate"><span class="pre">VolSurface.as_array()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#quantflow.options.surface.VolSurface.bs"><code class="docutils literal notranslate"><span class="pre">VolSurface.bs()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#quantflow.options.surface.VolSurface.calc_bs_prices"><code class="docutils literal notranslate"><span class="pre">VolSurface.calc_bs_prices()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#quantflow.options.surface.VolSurface.option_list"><code class="docutils literal notranslate"><span class="pre">VolSurface.option_list()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#quantflow.options.surface.VolSurface.option_prices"><code class="docutils literal notranslate"><span class="pre">VolSurface.option_prices()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#quantflow.options.surface.VolSurface.options_df"><code class="docutils literal notranslate"><span class="pre">VolSurface.options_df()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#quantflow.options.surface.VolSurface.plot"><code class="docutils literal notranslate"><span class="pre">VolSurface.plot()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#quantflow.options.surface.VolSurface.plot3d"><code class="docutils literal notranslate"><span class="pre">VolSurface.plot3d()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#quantflow.options.surface.VolSurface.securities"><code class="docutils literal notranslate"><span class="pre">VolSurface.securities()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#quantflow.options.surface.VolSurface.term_structure"><code class="docutils literal notranslate"><span class="pre">VolSurface.term_structure()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#quantflow.options.surface.VolSurface.trim"><code class="docutils literal notranslate"><span class="pre">VolSurface.trim()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#quantflow.options.surface.VolSurface.asset"><code class="docutils literal notranslate"><span class="pre">VolSurface.asset</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#quantflow.options.surface.VolSurface.day_counter"><code class="docutils literal notranslate"><span class="pre">VolSurface.day_counter</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#quantflow.options.surface.VolSurface.maturities"><code class="docutils literal notranslate"><span class="pre">VolSurface.maturities</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#quantflow.options.surface.VolSurface.ref_date"><code class="docutils literal notranslate"><span class="pre">VolSurface.ref_date</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#quantflow.options.surface.VolSurface.spot"><code class="docutils literal notranslate"><span class="pre">VolSurface.spot</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#quantflow.options.surface.VolSurface.tick_size_forwards"><code class="docutils literal notranslate"><span class="pre">VolSurface.tick_size_forwards</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#quantflow.options.surface.VolSurface.tick_size_options"><code class="docutils literal notranslate"><span class="pre">VolSurface.tick_size_options</span></code></a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#quantflow.options.surface.VolCrossSection"><code class="docutils literal notranslate"><span class="pre">VolCrossSection</span></code></a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#quantflow.options.surface.VolCrossSection.info_dict"><code class="docutils literal notranslate"><span class="pre">VolCrossSection.info_dict()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#quantflow.options.surface.VolCrossSection.option_prices"><code class="docutils literal notranslate"><span class="pre">VolCrossSection.option_prices()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#quantflow.options.surface.VolCrossSection.securities"><code class="docutils literal notranslate"><span class="pre">VolCrossSection.securities()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#quantflow.options.surface.VolCrossSection.ttm"><code class="docutils literal notranslate"><span class="pre">VolCrossSection.ttm()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#quantflow.options.surface.VolCrossSection.day_counter"><code class="docutils literal notranslate"><span class="pre">VolCrossSection.day_counter</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#quantflow.options.surface.VolCrossSection.forward"><code class="docutils literal notranslate"><span class="pre">VolCrossSection.forward</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#quantflow.options.surface.VolCrossSection.maturity"><code class="docutils literal notranslate"><span class="pre">VolCrossSection.maturity</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#quantflow.options.surface.VolCrossSection.strikes"><code class="docutils literal notranslate"><span class="pre">VolCrossSection.strikes</span></code></a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#quantflow.options.surface.GenericVolSurfaceLoader"><code class="docutils literal notranslate"><span class="pre">GenericVolSurfaceLoader</span></code></a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#quantflow.options.surface.GenericVolSurfaceLoader.add_forward"><code class="docutils literal notranslate"><span class="pre">GenericVolSurfaceLoader.add_forward()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#quantflow.options.surface.GenericVolSurfaceLoader.add_option"><code class="docutils literal notranslate"><span class="pre">GenericVolSurfaceLoader.add_option()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#quantflow.options.surface.GenericVolSurfaceLoader.add_spot"><code class="docutils literal notranslate"><span class="pre">GenericVolSurfaceLoader.add_spot()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#quantflow.options.surface.GenericVolSurfaceLoader.surface"><code class="docutils literal notranslate"><span class="pre">GenericVolSurfaceLoader.surface()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#quantflow.options.surface.GenericVolSurfaceLoader.asset"><code class="docutils literal notranslate"><span class="pre">GenericVolSurfaceLoader.asset</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#quantflow.options.surface.GenericVolSurfaceLoader.day_counter"><code class="docutils literal notranslate"><span class="pre">GenericVolSurfaceLoader.day_counter</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#quantflow.options.surface.GenericVolSurfaceLoader.exclude_open_interest"><code class="docutils literal notranslate"><span class="pre">GenericVolSurfaceLoader.exclude_open_interest</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#quantflow.options.surface.GenericVolSurfaceLoader.exclude_volume"><code class="docutils literal notranslate"><span class="pre">GenericVolSurfaceLoader.exclude_volume</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#quantflow.options.surface.GenericVolSurfaceLoader.maturities"><code class="docutils literal notranslate"><span class="pre">GenericVolSurfaceLoader.maturities</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#quantflow.options.surface.GenericVolSurfaceLoader.spot"><code class="docutils literal notranslate"><span class="pre">GenericVolSurfaceLoader.spot</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#quantflow.options.surface.GenericVolSurfaceLoader.tick_size_forwards"><code class="docutils literal notranslate"><span class="pre">GenericVolSurfaceLoader.tick_size_forwards</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#quantflow.options.surface.GenericVolSurfaceLoader.tick_size_options"><code class="docutils literal notranslate"><span class="pre">GenericVolSurfaceLoader.tick_size_options</span></code></a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#quantflow.options.surface.VolSurfaceLoader"><code class="docutils literal notranslate"><span class="pre">VolSurfaceLoader</span></code></a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#quantflow.options.surface.VolSurfaceLoader.add"><code class="docutils literal notranslate"><span class="pre">VolSurfaceLoader.add()</span></code></a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#quantflow.options.surface.OptionSelection"><code class="docutils literal notranslate"><span class="pre">OptionSelection</span></code></a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#quantflow.options.surface.OptionSelection.best"><code class="docutils literal notranslate"><span class="pre">OptionSelection.best</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#quantflow.options.surface.OptionSelection.call"><code class="docutils literal notranslate"><span class="pre">OptionSelection.call</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#quantflow.options.surface.OptionSelection.put"><code class="docutils literal notranslate"><span class="pre">OptionSelection.put</span></code></a></li>
+</ul>
+</li>
+</ul>
+  </nav></div>
+
+</div></div>
+              
+            
+          </div>
+          <footer class="bd-footer-content">
+            
+<div class="bd-footer-content__inner container">
+  
+  <div class="footer-item">
+    
+<p class="component-author">
+By <a href="https://quantmind.com">quantmind</a>
+</p>
+
+  </div>
+  
+  <div class="footer-item">
+    
+
+  <p class="copyright">
+    
+      © Copyright 2014-2025.
+      <br/>
+    
+  </p>
+
+  </div>
+  
+  <div class="footer-item">
+    
+  </div>
+  
+  <div class="footer-item">
+    
+  </div>
+  
+</div>
+          </footer>
+        
+
+      </main>
+    </div>
+  </div>
+  
+  <!-- Scripts loaded after <body> so the DOM is not blocked -->
+  <script src="../../_static/scripts/bootstrap.js?digest=dfe6caa3a7d634c4db9b"></script>
+<script src="../../_static/scripts/pydata-sphinx-theme.js?digest=dfe6caa3a7d634c4db9b"></script>
+
+  <footer class="bd-footer">
+  </footer>
+  </body>
+</html>

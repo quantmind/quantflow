@@ -1,0 +1,710 @@
+
+<!DOCTYPE html>
+
+
+<html lang="en" data-content_root="../" >
+
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>Lévy process &#8212; Quantflow library</title>
+  
+  
+  
+  <script data-cfasync="false">
+    document.documentElement.dataset.mode = localStorage.getItem("mode") || "";
+    document.documentElement.dataset.theme = localStorage.getItem("theme") || "";
+  </script>
+  
+  <!-- Loaded before other Sphinx assets -->
+  <link href="../_static/styles/theme.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+<link href="../_static/styles/bootstrap.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+<link href="../_static/styles/pydata-sphinx-theme.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+
+  
+  <link href="../_static/vendor/fontawesome/6.5.2/css/all.min.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+  <link rel="preload" as="font" type="font/woff2" crossorigin href="../_static/vendor/fontawesome/6.5.2/webfonts/fa-solid-900.woff2" />
+<link rel="preload" as="font" type="font/woff2" crossorigin href="../_static/vendor/fontawesome/6.5.2/webfonts/fa-brands-400.woff2" />
+<link rel="preload" as="font" type="font/woff2" crossorigin href="../_static/vendor/fontawesome/6.5.2/webfonts/fa-regular-400.woff2" />
+
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=03e43079" />
+    <link rel="stylesheet" type="text/css" href="../_static/styles/sphinx-book-theme.css?v=eba8b062" />
+    <link rel="stylesheet" type="text/css" href="../_static/togglebutton.css?v=13237357" />
+    <link rel="stylesheet" type="text/css" href="../_static/copybutton.css?v=76b2166b" />
+    <link rel="stylesheet" type="text/css" href="../_static/mystnb.8ecb98da25f57f5357bf6f572d296f466b2cfe2517ffebfabe82451661e28f02.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/sphinx-thebe.css?v=4fa983c6" />
+    <link rel="stylesheet" type="text/css" href="../_static/sphinx-design.min.css?v=95c83b7e" />
+  
+  <!-- Pre-loaded scripts that we'll load fully later -->
+  <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=dfe6caa3a7d634c4db9b" />
+<link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=dfe6caa3a7d634c4db9b" />
+  <script src="../_static/vendor/fontawesome/6.5.2/js/all.min.js?digest=dfe6caa3a7d634c4db9b"></script>
+
+    <script src="../_static/documentation_options.js?v=9eb32ce0"></script>
+    <script src="../_static/doctools.js?v=9a2dae69"></script>
+    <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
+    <script src="../_static/copybutton.js?v=f281be69"></script>
+    <script src="../_static/scripts/sphinx-book-theme.js?v=887ef09a"></script>
+    <script>let toggleHintShow = 'Click to show';</script>
+    <script>let toggleHintHide = 'Click to hide';</script>
+    <script>let toggleOpenOnPrint = 'true';</script>
+    <script src="../_static/togglebutton.js?v=4a39c7ea"></script>
+    <script>var togglebuttonSelector = '.toggle, .admonition.dropdown';</script>
+    <script src="../_static/design-tabs.js?v=f930bc37"></script>
+    <script async="async" src="https://www.googletagmanager.com/gtag/js?id=G-CM0DR45HDR"></script>
+    <script>
+                window.dataLayer = window.dataLayer || [];
+                function gtag(){ dataLayer.push(arguments); }
+                gtag('js', new Date());
+                gtag('config', 'G-CM0DR45HDR');
+            </script>
+    <script>const THEBE_JS_URL = "https://unpkg.com/thebe@0.8.2/lib/index.js"; const thebe_selector = ".thebe,.cell"; const thebe_selector_input = "pre"; const thebe_selector_output = ".output, .cell_output"</script>
+    <script async="async" src="../_static/sphinx-thebe.js?v=c100c467"></script>
+    <script>var togglebuttonSelector = '.toggle, .admonition.dropdown';</script>
+    <script>
+                window.dataLayer = window.dataLayer || [];
+                function gtag(){ dataLayer.push(arguments); }
+                gtag('js', new Date());
+                gtag('config', 'G-CM0DR45HDR');
+            </script>
+    <script>const THEBE_JS_URL = "https://unpkg.com/thebe@0.8.2/lib/index.js"; const thebe_selector = ".thebe,.cell"; const thebe_selector_input = "pre"; const thebe_selector_output = ".output, .cell_output"</script>
+    <script>window.MathJax = {"options": {"processHtmlClass": "tex2jax_process|mathjax_process|math|output_area"}}</script>
+    <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <script>DOCUMENTATION_OPTIONS.pagename = 'theory/levy';</script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+    <link rel="icon" href="../_static/quantflow-logo.png"/>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Characteristic Function" href="characteristic.html" />
+    <link rel="prev" title="Theory" href="overview.html" />
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <meta name="docsearch:language" content="en"/>
+  </head>
+  
+  
+  <body data-bs-spy="scroll" data-bs-target=".bd-toc-nav" data-offset="180" data-bs-root-margin="0px 0px -60%" data-default-mode="">
+
+  
+  
+  <div id="pst-skip-link" class="skip-link d-print-none"><a href="#main-content">Skip to main content</a></div>
+  
+  <div id="pst-scroll-pixel-helper"></div>
+  
+  <button type="button" class="btn rounded-pill" id="pst-back-to-top">
+    <i class="fa-solid fa-arrow-up"></i>Back to top</button>
+
+  
+  <input type="checkbox"
+          class="sidebar-toggle"
+          id="pst-primary-sidebar-checkbox"/>
+  <label class="overlay overlay-primary" for="pst-primary-sidebar-checkbox"></label>
+  
+  <input type="checkbox"
+          class="sidebar-toggle"
+          id="pst-secondary-sidebar-checkbox"/>
+  <label class="overlay overlay-secondary" for="pst-secondary-sidebar-checkbox"></label>
+  
+  <div class="search-button__wrapper">
+    <div class="search-button__overlay"></div>
+    <div class="search-button__search-container">
+<form class="bd-search d-flex align-items-center"
+      action="../search.html"
+      method="get">
+  <i class="fa-solid fa-magnifying-glass"></i>
+  <input type="search"
+         class="form-control"
+         name="q"
+         id="search-input"
+         placeholder="Search this book..."
+         aria-label="Search this book..."
+         autocomplete="off"
+         autocorrect="off"
+         autocapitalize="off"
+         spellcheck="false"/>
+  <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd>K</kbd></span>
+</form></div>
+  </div>
+
+  <div class="pst-async-banner-revealer d-none">
+  <aside id="bd-header-version-warning" class="d-none d-print-none" aria-label="Version warning"></aside>
+</div>
+
+  
+    <header class="bd-header navbar navbar-expand-lg bd-navbar d-print-none">
+    </header>
+  
+
+  <div class="bd-container">
+    <div class="bd-container__inner bd-page-width">
+      
+      
+      
+      <div class="bd-sidebar-primary bd-sidebar">
+        
+
+  
+  <div class="sidebar-header-items sidebar-primary__section">
+    
+    
+    
+    
+  </div>
+  
+    <div class="sidebar-primary-items__start sidebar-primary__section">
+        <div class="sidebar-primary-item">
+
+  
+    
+  
+
+<a class="navbar-brand logo" href="../index.html">
+  
+  
+  
+  
+  
+    
+    
+      
+    
+    
+    <img src="../_static/quantflow-light.svg" class="logo__image only-light" alt="Quantflow library - Home"/>
+    <script>document.write(`<img src="../_static/quantflow-light.svg" class="logo__image only-dark" alt="Quantflow library - Home"/>`);</script>
+  
+  
+</a></div>
+        <div class="sidebar-primary-item">
+
+ <script>
+ document.write(`
+   <button class="btn search-button-field search-button__button" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="fa-solid fa-magnifying-glass"></i>
+    <span class="search-button__default-text">Search</span>
+    <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+   </button>
+ `);
+ </script></div>
+        <div class="sidebar-primary-item"><nav class="bd-links bd-docs-nav" aria-label="Main">
+    <div class="bd-toc-item navbar-nav active">
+        <p aria-level="2" class="caption" role="heading"><span class="caption-text">Topic Guides</span></p>
+<ul class="current nav bd-sidenav">
+<li class="toctree-l1 current active has-children"><a class="reference internal" href="overview.html">Theory</a><details open="open"><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul class="current">
+<li class="toctree-l2 current active"><a class="current reference internal" href="#">Lévy process</a></li>
+<li class="toctree-l2"><a class="reference internal" href="characteristic.html">Characteristic Function</a></li>
+<li class="toctree-l2"><a class="reference internal" href="inversion.html">From Characteristic Function to PDF</a></li>
+<li class="toctree-l2"><a class="reference internal" href="option_pricing.html">Option Pricing</a></li>
+</ul>
+</details></li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="../models/overview.html">Stochastic Processes</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="../models/weiner.html">Weiner Process</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../models/poisson.html">Poisson Processes</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../models/jump_diffusion.html">Jump Diffusion Models</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../models/cir.html">CIR process</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../models/ou.html">OU Process</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../models/heston.html">Heston Model and Option Pricing</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../models/heston_jumps.html">Heston Model with Jumps</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../models/bns.html">BNS Model</a></li>
+</ul>
+</details></li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="../applications/overview.html">Applications</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="../applications/volatility_surface.html">Volatility Surface</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../applications/hurst.html">Hurst Exponent</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../applications/calibration.html">Calibration</a></li>
+</ul>
+</details></li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="../examples/overview.html">Examples</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="../examples/gaussian_sampling.html">Gaussian Sampling</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../examples/exponential_sampling.html">Exponential Sampling</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../examples/poisson_sampling.html">Poisson Sampling</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../examples/heston_vol_surface.html">HestonJ Volatility Surface</a></li>
+</ul>
+</details></li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="../api/index.html">API Reference</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2 has-children"><a class="reference internal" href="../api/sp/index.html">Stochastic Process</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l3"><a class="reference internal" href="../api/sp/weiner.html">Weiner process</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../api/sp/poisson.html">Poisson process</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../api/sp/compound_poisson.html">Compound Poisson</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../api/sp/ou.html">OU Processes</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../api/sp/cir.html">CIR</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../api/sp/jump_diffusion.html">Jump diffusions</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../api/sp/heston.html">Heston process</a></li>
+</ul>
+</details></li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="../api/options/index.html">Option Pricing</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l3"><a class="reference internal" href="../api/options/vol_surface.html">Vol Surface</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../api/options/black.html">Black Pricing</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../api/options/pricer.html">Option Pricer</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../api/options/calibration.html">Vol Model Calibration</a></li>
+</ul>
+</details></li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="../api/ta/index.html">Timeseries Analysis</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l3"><a class="reference internal" href="../api/ta/ohlc.html">OHLC</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../api/ta/paths.html">Paths</a></li>
+</ul>
+</details></li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="../api/data/index.html">Data fetching</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l3"><a class="reference internal" href="../api/data/fmp.html">FMP</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../api/data/fed.html">Federal Reserve</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../api/data/fred.html">Fred</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../api/data/deribit.html">Deribit</a></li>
+</ul>
+</details></li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="../api/utils/index.html">Utils</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l3"><a class="reference internal" href="../api/utils/marginal1d.html">Marginal1D</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../api/utils/distributions.html">Distributions</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../api/utils/bins.html">Bins</a></li>
+</ul>
+</details></li>
+</ul>
+</details></li>
+</ul>
+<p aria-level="2" class="caption" role="heading"><span class="caption-text">Reference</span></p>
+<ul class="nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="../reference/contributing.html">Contributing</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../reference/glossary.html">Glossary</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../reference/biblio.html">Bibliography</a></li>
+</ul>
+
+    </div>
+</nav></div>
+    </div>
+  
+  
+  <div class="sidebar-primary-items__end sidebar-primary__section">
+  </div>
+  
+  <div id="rtd-footer-container"></div>
+
+
+      </div>
+      
+      <main id="main-content" class="bd-main" role="main">
+        
+        
+
+<div class="sbt-scroll-pixel-helper"></div>
+
+          <div class="bd-content">
+            <div class="bd-article-container">
+              
+              <div class="bd-header-article d-print-none">
+<div class="header-article-items header-article__inner">
+  
+    <div class="header-article-items__start">
+      
+        <div class="header-article-item"><button class="sidebar-toggle primary-toggle btn btn-sm" title="Toggle primary sidebar" data-bs-placement="bottom" data-bs-toggle="tooltip">
+  <span class="fa-solid fa-bars"></span>
+</button></div>
+      
+    </div>
+  
+  
+    <div class="header-article-items__end">
+      
+        <div class="header-article-item">
+
+<div class="article-header-buttons">
+
+
+
+
+
+<div class="dropdown dropdown-source-buttons">
+  <button class="btn dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false" aria-label="Source repositories">
+    <i class="fab fa-github"></i>
+  </button>
+  <ul class="dropdown-menu">
+      
+      
+      
+      <li><a href="https://github.com/quantmind/quantflow" target="_blank"
+   class="btn btn-sm btn-source-repository-button dropdown-item"
+   title="Source repository"
+   data-bs-placement="left" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fab fa-github"></i>
+  </span>
+<span class="btn__text-container">Repository</span>
+</a>
+</li>
+      
+      
+      
+      
+      <li><a href="https://github.com/quantmind/quantflow/edit/main/notebooks/theory/levy.md" target="_blank"
+   class="btn btn-sm btn-source-edit-button dropdown-item"
+   title="Suggest edit"
+   data-bs-placement="left" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fas fa-pencil-alt"></i>
+  </span>
+<span class="btn__text-container">Suggest edit</span>
+</a>
+</li>
+      
+      
+      
+      
+      <li><a href="https://github.com/quantmind/quantflow/issues/new?title=Issue%20on%20page%20%2Ftheory/levy.html&body=Your%20issue%20content%20here." target="_blank"
+   class="btn btn-sm btn-source-issues-button dropdown-item"
+   title="Open an issue"
+   data-bs-placement="left" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fas fa-lightbulb"></i>
+  </span>
+<span class="btn__text-container">Open issue</span>
+</a>
+</li>
+      
+  </ul>
+</div>
+
+
+
+
+
+
+<div class="dropdown dropdown-download-buttons">
+  <button class="btn dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false" aria-label="Download this page">
+    <i class="fas fa-download"></i>
+  </button>
+  <ul class="dropdown-menu">
+      
+      
+      
+      <li><a href="../_sources/theory/levy.md" target="_blank"
+   class="btn btn-sm btn-download-source-button dropdown-item"
+   title="Download source file"
+   data-bs-placement="left" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fas fa-file"></i>
+  </span>
+<span class="btn__text-container">.md</span>
+</a>
+</li>
+      
+      
+      
+      
+      <li>
+<button onclick="window.print()"
+  class="btn btn-sm btn-download-pdf-button dropdown-item"
+  title="Print to PDF"
+  data-bs-placement="left" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fas fa-file-pdf"></i>
+  </span>
+<span class="btn__text-container">.pdf</span>
+</button>
+</li>
+      
+  </ul>
+</div>
+
+
+
+
+<button onclick="toggleFullScreen()"
+  class="btn btn-sm btn-fullscreen-button"
+  title="Fullscreen mode"
+  data-bs-placement="bottom" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fas fa-expand"></i>
+  </span>
+
+</button>
+
+
+
+<script>
+document.write(`
+  <button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button" title="light/dark" aria-label="light/dark" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="theme-switch fa-solid fa-sun fa-lg" data-mode="light"></i>
+    <i class="theme-switch fa-solid fa-moon fa-lg" data-mode="dark"></i>
+    <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg" data-mode="auto"></i>
+  </button>
+`);
+</script>
+
+
+<script>
+document.write(`
+  <button class="btn btn-sm pst-navbar-icon search-button search-button__button" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="fa-solid fa-magnifying-glass fa-lg"></i>
+  </button>
+`);
+</script>
+<button class="sidebar-toggle secondary-toggle btn btn-sm" title="Toggle secondary sidebar" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <span class="fa-solid fa-list"></span>
+</button>
+</div></div>
+      
+    </div>
+  
+</div>
+</div>
+              
+              
+
+<div id="jb-print-docs-body" class="onlyprint">
+    <h1>Lévy process</h1>
+    <!-- Table of contents -->
+    <div id="print-main-content">
+        <div id="jb-print-toc">
+            
+            <div>
+                <h2> Contents </h2>
+            </div>
+            <nav aria-label="Page">
+                <ul class="visible nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#characteristic-function">Characteristic function</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#time-changed-levy-processes">Time Changed Lévy Processes</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#leverage-effect">Leverage Effect</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#affine-definition">Affine definition</a></li>
+</ul>
+            </nav>
+        </div>
+    </div>
+</div>
+
+              
+                
+<div id="searchbox"></div>
+                <article class="bd-article">
+                  
+  <section class="tex2jax_ignore mathjax_ignore" id="levy-process">
+<h1>Lévy process<a class="headerlink" href="#levy-process" title="Link to this heading">#</a></h1>
+<p>A Lévy process <span class="math notranslate nohighlight">\(x_t\)</span> is a stochastic process which satisfies the following properties</p>
+<ul class="simple">
+<li><p><span class="math notranslate nohighlight">\(x_0 = 0\)</span></p></li>
+<li><p><strong>independent increments</strong>: <span class="math notranslate nohighlight">\(x_t - x_s\)</span> is independent of <span class="math notranslate nohighlight">\(x_u; u \le s\ \forall\ s &lt; t\)</span></p></li>
+<li><p><strong>stationary increments</strong>: <span class="math notranslate nohighlight">\(x_{s+t} - x_s\)</span> has the same distribution as <span class="math notranslate nohighlight">\(x_t - x_0\)</span> for any <span class="math notranslate nohighlight">\(s,t &gt; 0\)</span></p></li>
+</ul>
+<p>This means that the shocks to the process are independent, while the stationarity assumption specifies that the distribution of <span class="math notranslate nohighlight">\(x_{t+s} - x_s\)</span> may change with <span class="math notranslate nohighlight">\(s\)</span> but does not depend upon <span class="math notranslate nohighlight">\(t\)</span>.</p>
+<p><strong>Remark</strong>: The properties of stationary and independent increments implies that a Lévy process is a Markov process.
+Thanks to almost sure right continuity of paths, one may show in addition that Lévy processes are also
+Strong Markov processes. See (<a class="reference external" href="https://en.wikipedia.org/wiki/Markov_property">Markov property</a>).</p>
+<section id="characteristic-function">
+<h2>Characteristic function<a class="headerlink" href="#characteristic-function" title="Link to this heading">#</a></h2>
+<p>The independence and stationarity of the increments of the Lévy process imply that the <a class="reference internal" href="characteristic.html"><span class="std std-doc">characteristic function</span></a> of <span class="math notranslate nohighlight">\(x_t\)</span> has the form</p>
+<div class="amsmath math notranslate nohighlight" id="equation-91959b2b-7945-41fc-ae8c-60e5b0fdb3b3">
+<span class="eqno">(1)<a class="headerlink" href="#equation-91959b2b-7945-41fc-ae8c-60e5b0fdb3b3" title="Permalink to this equation">#</a></span>\[\begin{equation}
+ \Phi_{x_t, u} = {\mathbb E}\left[e^{i u x_t}\right] = e^{-\phi_{x_t, u}} = e^{-t \phi_{x_1,u}}
+\end{equation}\]</div>
+<p>where the <a class="reference internal" href="characteristic.html#characteristic-exponent"><span class="std std-ref">Characteristic Exponent</span></a> <span class="math notranslate nohighlight">\(\phi_{x_1,u}\)</span> is given by the <a class="reference external" href="https://en.wikipedia.org/wiki/L%C3%A9vy_process">Lévy–Khintchine formula</a>.</p>
+<p>There are several Lévy processes in the literature, including, the <a class="reference internal" href="../models/poisson.html"><span class="std std-doc">Poisson process</span></a>, the compound Poisson process
+and the <a class="reference internal" href="../models/weiner.html"><span class="std std-doc">Brownian motion</span></a>.</p>
+</section>
+<section id="time-changed-levy-processes">
+<h2>Time Changed Lévy Processes<a class="headerlink" href="#time-changed-levy-processes" title="Link to this heading">#</a></h2>
+<p>We follow the paper by Carr and Wu <span id="id1">[<a class="reference internal" href="../reference/biblio.html#id5" title="P. Carr and L. Wu. Time-changed lévy processes and option pricing. Journal of Financial Economics, 7:113-141, 2002. URL: https://engineering.nyu.edu/sites/default/files/2019-03/Carr-time-changed-levy-processes-option-pricing.pdf.">CW02</a>]</span> to defined a continuous time changed Lévy process <span class="math notranslate nohighlight">\(y_t\)</span> as</p>
+<div class="amsmath math notranslate nohighlight" id="equation-f1dbe1aa-88ca-4b31-8a68-6095ec5fab2e">
+<span class="eqno">(2)<a class="headerlink" href="#equation-f1dbe1aa-88ca-4b31-8a68-6095ec5fab2e" title="Permalink to this equation">#</a></span>\[\begin{align}
+y_t &amp;= x_{\tau_t}\\
+\tau_t &amp;= \int_0^t \lambda_s ds
+\end{align}\]</div>
+<p>where <span class="math notranslate nohighlight">\(x_s\)</span> is a Lévy process and <span class="math notranslate nohighlight">\(\lambda_s\)</span> is a positive and integrable process which we refer to <strong>stochastic intensity process</strong>.
+While <span class="math notranslate nohighlight">\(\tau_t\)</span> is always continuous, <span class="math notranslate nohighlight">\(\lambda\)</span> can exhibit jumps. Since the time-changed process is a stochastic process evaluated at a stochastic time, its characteristic function involves expectations over two sources of randomness:</p>
+<div class="amsmath math notranslate nohighlight" id="equation-50a83b6c-9db1-4ba5-a09d-214b4f46987f">
+<span class="eqno">(3)<a class="headerlink" href="#equation-50a83b6c-9db1-4ba5-a09d-214b4f46987f" title="Permalink to this equation">#</a></span>\[\begin{equation}
+ \Phi_{y_t, u} = {\mathbb E}\left[e^{i u x_{\tau_t}}\right] = {\mathbb E}\left[{\mathbb E}\left[\left.e^{i u x_s}\right|\tau_t=s\right]\right]
+\end{equation}\]</div>
+<p>where the inside expectation is taken on <span class="math notranslate nohighlight">\(x_{\tau_t}\)</span> conditional on a fixed value of <span class="math notranslate nohighlight">\(\tau_t = s\)</span> and the outside expectation is on all possible values of <span class="math notranslate nohighlight">\(\tau_t\)</span>. If the random time <span class="math notranslate nohighlight">\(\tau_t\)</span> is independent of <span class="math notranslate nohighlight">\(x_t\)</span>, the randomness due to the Lévy process can be integrated out using the characteristic function of <span class="math notranslate nohighlight">\(x_t\)</span>:</p>
+<div class="amsmath math notranslate nohighlight" id="equation-9394a936-09f1-4c98-8c69-1797bfcb44e8">
+<span class="eqno">(4)<a class="headerlink" href="#equation-9394a936-09f1-4c98-8c69-1797bfcb44e8" title="Permalink to this equation">#</a></span>\[\begin{equation}
+\Phi_{y_t, u} = {\mathbb E}\left[e^{-\tau_t \phi_{x,u}}\right] = {\mathbb L}_{\tau_t}\left(\phi_{x_1,u}\right)
+\end{equation}\]</div>
+<p><strong>Remark</strong>: Under independence, the characteristic function of a time-changed Lévy process <span class="math notranslate nohighlight">\(y_t\)</span> is the <strong>Laplace transform</strong> of the cumulative intensity <span class="math notranslate nohighlight">\(\tau_t\)</span> evaluated at the characteristic exponent of <span class="math notranslate nohighlight">\(x\)</span>.</p>
+<p>Therefore the characteristic function of <span class="math notranslate nohighlight">\(y_t\)</span> can be expressed in closed form if</p>
+<ul class="simple">
+<li><p>the characteristic exponent of the Lévy process <span class="math notranslate nohighlight">\(x_t\)</span> is available in closed from</p></li>
+<li><p>the Laplace transform of <span class="math notranslate nohighlight">\(\tau_t\)</span>, the integrated intensity process, is known in closed from</p></li>
+</ul>
+</section>
+<section id="leverage-effect">
+<h2>Leverage Effect<a class="headerlink" href="#leverage-effect" title="Link to this heading">#</a></h2>
+<p>To obtain the Laplace transform  of <span class="math notranslate nohighlight">\(\tau_t\)</span> in closed form, consider its specification in terms of the intensity process <span class="math notranslate nohighlight">\(\lambda_t\)</span>:</p>
+<div class="amsmath math notranslate nohighlight" id="equation-169d377d-57e8-4d5e-bb7d-a5ec3655de18">
+<span class="eqno">(5)<a class="headerlink" href="#equation-169d377d-57e8-4d5e-bb7d-a5ec3655de18" title="Permalink to this equation">#</a></span>\[\begin{equation}
+{\mathbb L}_{\tau_t}\left(u\right) = {\mathbb E}\left[e^{- u \int_0^t \lambda_s ds}\right]
+\end{equation}\]</div>
+<p>This equation is very common in the bond pricing literature if we regard <span class="math notranslate nohighlight">\(u\lambda_t\)</span> as the instantaneous interest rate.
+In the general case, the intensity process is correlated with the Lévy process of increments, this is well
+known in the literature as the <strong>leverage effect</strong>.</p>
+<p>Carr and Wu <span id="id2">[<a class="reference internal" href="../reference/biblio.html#id5" title="P. Carr and L. Wu. Time-changed lévy processes and option pricing. Journal of Financial Economics, 7:113-141, 2002. URL: https://engineering.nyu.edu/sites/default/files/2019-03/Carr-time-changed-levy-processes-option-pricing.pdf.">CW02</a>]</span> solve this problem by changing the measure from an economy with leverage effect to one without it.</p>
+<div class="amsmath math notranslate nohighlight" id="equation-0bebeb43-018f-4616-a731-4c70665e4cdb">
+<span class="eqno">(6)<a class="headerlink" href="#equation-0bebeb43-018f-4616-a731-4c70665e4cdb" title="Permalink to this equation">#</a></span>\[\begin{align}
+\Phi_{y_t, u} &amp;= {\mathbb E}\left[e^{i u y_t}\right] \\
+     &amp;= {\mathbb E}\left[e^{i u y_t + \tau_t \phi_{x_1, u} - \tau_t \phi_{x_1, u}}\right] \\
+     &amp;= {\mathbb E}\left[M_{t, u} e^{-\tau_t \phi_{x_1,u}}\right] \\
+     &amp;= {\mathbb E}^u\left[e^{-\tau_t \phi_{x_1,u}}\right] \\
+     &amp;= {\mathbb L}_{\tau_t}^u\left(\phi_{x_1,u}\right)
+\end{align}\]</div>
+<p>where <span class="math notranslate nohighlight">\(E[\cdot]\)</span> and <span class="math notranslate nohighlight">\(E^u[\cdot]\)</span> denote the expectation under probability measure <span class="math notranslate nohighlight">\(P\)</span> and <span class="math notranslate nohighlight">\(Q^u\)</span>, respectively. The two measures are linked via
+the complex-valued <a class="reference external" href="https://en.wikipedia.org/wiki/Radon%E2%80%93Nikodym_theorem#Radon%E2%80%93Nikodym_derivative">Radon–Nikodym derivative</a></p>
+<div class="amsmath math notranslate nohighlight" id="equation-104a82e8-edc7-4718-b366-b2537ed8b8ac">
+<span class="eqno">(7)<a class="headerlink" href="#equation-104a82e8-edc7-4718-b366-b2537ed8b8ac" title="Permalink to this equation">#</a></span>\[\begin{equation}
+M_{t, u} = \frac{d Q^u}{d P} = \exp{\left(i u y_t + \tau_t \phi_{x_1, u}\right)} = \exp{\left(i u y_t + \phi_{x_1, u}\int_0^t \lambda_s ds\right)}
+\end{equation}\]</div>
+</section>
+<section id="affine-definition">
+<h2>Affine definition<a class="headerlink" href="#affine-definition" title="Link to this heading">#</a></h2>
+<p>In order to obtain analytically tractable models we need to impose some restriction on the stochastic intensity process.
+An affine intensity process takes the general form</p>
+<div class="amsmath math notranslate nohighlight" id="equation-bd6b993d-1863-4f05-9bdf-c82d4ba3663c">
+<span class="eqno">(8)<a class="headerlink" href="#equation-bd6b993d-1863-4f05-9bdf-c82d4ba3663c" title="Permalink to this equation">#</a></span>\[\begin{equation}
+    v_t = r_0 + r z_t
+\end{equation}\]</div>
+<p>where <span class="math notranslate nohighlight">\(r_0\)</span> and <span class="math notranslate nohighlight">\(r_1\)</span> are contants and <span class="math notranslate nohighlight">\({\bf z}_t\)</span> is a Markov process called the <strong>state process</strong>.
+When the intensity process is affine, the Laplace transform takes the following form.</p>
+<div class="amsmath math notranslate nohighlight" id="equation-b598ddd8-a59c-400d-a80d-e1730d2ee423">
+<span class="eqno">(9)<a class="headerlink" href="#equation-b598ddd8-a59c-400d-a80d-e1730d2ee423" title="Permalink to this equation">#</a></span>\[\begin{equation}
+{\mathbb L}_{\tau_t}\left(z\right) = {\mathbb E}\left[e^{- z \tau_t}\right] = e^{-a_{u, t} - b_{u, t} z_0}
+\end{equation}\]</div>
+<p>where coefficients <span class="math notranslate nohighlight">\(a\)</span> and <span class="math notranslate nohighlight">\(b\)</span> satisfy Riccati ODEs, which can be solved numerically and, in some cases, analytically.</p>
+</section>
+</section>
+
+    <script type="text/x-thebe-config">
+    {
+        requestKernel: true,
+        binderOptions: {
+            repo: "binder-examples/jupyter-stacks-datascience",
+            ref: "master",
+        },
+        codeMirrorConfig: {
+            theme: "abcdef",
+            mode: "python"
+        },
+        kernelOptions: {
+            name: "python3",
+            path: "./theory"
+        },
+        predefinedOutput: true
+    }
+    </script>
+    <script>kernelName = 'python3'</script>
+
+                </article>
+              
+
+              
+              
+              
+              
+                <footer class="prev-next-footer d-print-none">
+                  
+<div class="prev-next-area">
+    <a class="left-prev"
+       href="overview.html"
+       title="previous page">
+      <i class="fa-solid fa-angle-left"></i>
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">previous</p>
+        <p class="prev-next-title">Theory</p>
+      </div>
+    </a>
+    <a class="right-next"
+       href="characteristic.html"
+       title="next page">
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">next</p>
+        <p class="prev-next-title">Characteristic Function</p>
+      </div>
+      <i class="fa-solid fa-angle-right"></i>
+    </a>
+</div>
+                </footer>
+              
+            </div>
+            
+            
+              
+                <div class="bd-sidebar-secondary bd-toc"><div class="sidebar-secondary-items sidebar-secondary__inner">
+
+
+  <div class="sidebar-secondary-item">
+  <div class="page-toc tocsection onthispage">
+    <i class="fa-solid fa-list"></i> Contents
+  </div>
+  <nav class="bd-toc-nav page-toc">
+    <ul class="visible nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#characteristic-function">Characteristic function</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#time-changed-levy-processes">Time Changed Lévy Processes</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#leverage-effect">Leverage Effect</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#affine-definition">Affine definition</a></li>
+</ul>
+  </nav></div>
+
+</div></div>
+              
+            
+          </div>
+          <footer class="bd-footer-content">
+            
+<div class="bd-footer-content__inner container">
+  
+  <div class="footer-item">
+    
+<p class="component-author">
+By <a href="https://quantmind.com">quantmind</a>
+</p>
+
+  </div>
+  
+  <div class="footer-item">
+    
+
+  <p class="copyright">
+    
+      © Copyright 2014-2025.
+      <br/>
+    
+  </p>
+
+  </div>
+  
+  <div class="footer-item">
+    
+  </div>
+  
+  <div class="footer-item">
+    
+  </div>
+  
+</div>
+          </footer>
+        
+
+      </main>
+    </div>
+  </div>
+  
+  <!-- Scripts loaded after <body> so the DOM is not blocked -->
+  <script src="../_static/scripts/bootstrap.js?digest=dfe6caa3a7d634c4db9b"></script>
+<script src="../_static/scripts/pydata-sphinx-theme.js?digest=dfe6caa3a7d634c4db9b"></script>
+
+  <footer class="bd-footer">
+  </footer>
+  </body>
+</html>

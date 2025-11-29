@@ -1,0 +1,944 @@
+
+<!DOCTYPE html>
+
+
+<html lang="en" data-content_root="../../" >
+
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>Paths &#8212; Quantflow library</title>
+  
+  
+  
+  <script data-cfasync="false">
+    document.documentElement.dataset.mode = localStorage.getItem("mode") || "";
+    document.documentElement.dataset.theme = localStorage.getItem("theme") || "";
+  </script>
+  
+  <!-- Loaded before other Sphinx assets -->
+  <link href="../../_static/styles/theme.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+<link href="../../_static/styles/bootstrap.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+<link href="../../_static/styles/pydata-sphinx-theme.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+
+  
+  <link href="../../_static/vendor/fontawesome/6.5.2/css/all.min.css?digest=dfe6caa3a7d634c4db9b" rel="stylesheet" />
+  <link rel="preload" as="font" type="font/woff2" crossorigin href="../../_static/vendor/fontawesome/6.5.2/webfonts/fa-solid-900.woff2" />
+<link rel="preload" as="font" type="font/woff2" crossorigin href="../../_static/vendor/fontawesome/6.5.2/webfonts/fa-brands-400.woff2" />
+<link rel="preload" as="font" type="font/woff2" crossorigin href="../../_static/vendor/fontawesome/6.5.2/webfonts/fa-regular-400.woff2" />
+
+    <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=03e43079" />
+    <link rel="stylesheet" type="text/css" href="../../_static/styles/sphinx-book-theme.css?v=eba8b062" />
+    <link rel="stylesheet" type="text/css" href="../../_static/togglebutton.css?v=13237357" />
+    <link rel="stylesheet" type="text/css" href="../../_static/copybutton.css?v=76b2166b" />
+    <link rel="stylesheet" type="text/css" href="../../_static/mystnb.8ecb98da25f57f5357bf6f572d296f466b2cfe2517ffebfabe82451661e28f02.css" />
+    <link rel="stylesheet" type="text/css" href="../../_static/sphinx-thebe.css?v=4fa983c6" />
+    <link rel="stylesheet" type="text/css" href="../../_static/sphinx-design.min.css?v=95c83b7e" />
+  
+  <!-- Pre-loaded scripts that we'll load fully later -->
+  <link rel="preload" as="script" href="../../_static/scripts/bootstrap.js?digest=dfe6caa3a7d634c4db9b" />
+<link rel="preload" as="script" href="../../_static/scripts/pydata-sphinx-theme.js?digest=dfe6caa3a7d634c4db9b" />
+  <script src="../../_static/vendor/fontawesome/6.5.2/js/all.min.js?digest=dfe6caa3a7d634c4db9b"></script>
+
+    <script src="../../_static/documentation_options.js?v=9eb32ce0"></script>
+    <script src="../../_static/doctools.js?v=9a2dae69"></script>
+    <script src="../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../../_static/clipboard.min.js?v=a7894cd8"></script>
+    <script src="../../_static/copybutton.js?v=f281be69"></script>
+    <script src="../../_static/scripts/sphinx-book-theme.js?v=887ef09a"></script>
+    <script>let toggleHintShow = 'Click to show';</script>
+    <script>let toggleHintHide = 'Click to hide';</script>
+    <script>let toggleOpenOnPrint = 'true';</script>
+    <script src="../../_static/togglebutton.js?v=4a39c7ea"></script>
+    <script>var togglebuttonSelector = '.toggle, .admonition.dropdown';</script>
+    <script src="../../_static/design-tabs.js?v=f930bc37"></script>
+    <script async="async" src="https://www.googletagmanager.com/gtag/js?id=G-CM0DR45HDR"></script>
+    <script>
+                window.dataLayer = window.dataLayer || [];
+                function gtag(){ dataLayer.push(arguments); }
+                gtag('js', new Date());
+                gtag('config', 'G-CM0DR45HDR');
+            </script>
+    <script>const THEBE_JS_URL = "https://unpkg.com/thebe@0.8.2/lib/index.js"; const thebe_selector = ".thebe,.cell"; const thebe_selector_input = "pre"; const thebe_selector_output = ".output, .cell_output"</script>
+    <script async="async" src="../../_static/sphinx-thebe.js?v=c100c467"></script>
+    <script>var togglebuttonSelector = '.toggle, .admonition.dropdown';</script>
+    <script>
+                window.dataLayer = window.dataLayer || [];
+                function gtag(){ dataLayer.push(arguments); }
+                gtag('js', new Date());
+                gtag('config', 'G-CM0DR45HDR');
+            </script>
+    <script>const THEBE_JS_URL = "https://unpkg.com/thebe@0.8.2/lib/index.js"; const thebe_selector = ".thebe,.cell"; const thebe_selector_input = "pre"; const thebe_selector_output = ".output, .cell_output"</script>
+    <script>DOCUMENTATION_OPTIONS.pagename = 'api/ta/paths';</script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+    <link rel="icon" href="../../_static/quantflow-logo.png"/>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+    <link rel="next" title="Data fetching" href="../data/index.html" />
+    <link rel="prev" title="OHLC" href="ohlc.html" />
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <meta name="docsearch:language" content="en"/>
+  </head>
+  
+  
+  <body data-bs-spy="scroll" data-bs-target=".bd-toc-nav" data-offset="180" data-bs-root-margin="0px 0px -60%" data-default-mode="">
+
+  
+  
+  <div id="pst-skip-link" class="skip-link d-print-none"><a href="#main-content">Skip to main content</a></div>
+  
+  <div id="pst-scroll-pixel-helper"></div>
+  
+  <button type="button" class="btn rounded-pill" id="pst-back-to-top">
+    <i class="fa-solid fa-arrow-up"></i>Back to top</button>
+
+  
+  <input type="checkbox"
+          class="sidebar-toggle"
+          id="pst-primary-sidebar-checkbox"/>
+  <label class="overlay overlay-primary" for="pst-primary-sidebar-checkbox"></label>
+  
+  <input type="checkbox"
+          class="sidebar-toggle"
+          id="pst-secondary-sidebar-checkbox"/>
+  <label class="overlay overlay-secondary" for="pst-secondary-sidebar-checkbox"></label>
+  
+  <div class="search-button__wrapper">
+    <div class="search-button__overlay"></div>
+    <div class="search-button__search-container">
+<form class="bd-search d-flex align-items-center"
+      action="../../search.html"
+      method="get">
+  <i class="fa-solid fa-magnifying-glass"></i>
+  <input type="search"
+         class="form-control"
+         name="q"
+         id="search-input"
+         placeholder="Search this book..."
+         aria-label="Search this book..."
+         autocomplete="off"
+         autocorrect="off"
+         autocapitalize="off"
+         spellcheck="false"/>
+  <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd>K</kbd></span>
+</form></div>
+  </div>
+
+  <div class="pst-async-banner-revealer d-none">
+  <aside id="bd-header-version-warning" class="d-none d-print-none" aria-label="Version warning"></aside>
+</div>
+
+  
+    <header class="bd-header navbar navbar-expand-lg bd-navbar d-print-none">
+    </header>
+  
+
+  <div class="bd-container">
+    <div class="bd-container__inner bd-page-width">
+      
+      
+      
+      <div class="bd-sidebar-primary bd-sidebar">
+        
+
+  
+  <div class="sidebar-header-items sidebar-primary__section">
+    
+    
+    
+    
+  </div>
+  
+    <div class="sidebar-primary-items__start sidebar-primary__section">
+        <div class="sidebar-primary-item">
+
+  
+    
+  
+
+<a class="navbar-brand logo" href="../../index.html">
+  
+  
+  
+  
+  
+    
+    
+      
+    
+    
+    <img src="../../_static/quantflow-light.svg" class="logo__image only-light" alt="Quantflow library - Home"/>
+    <script>document.write(`<img src="../../_static/quantflow-light.svg" class="logo__image only-dark" alt="Quantflow library - Home"/>`);</script>
+  
+  
+</a></div>
+        <div class="sidebar-primary-item">
+
+ <script>
+ document.write(`
+   <button class="btn search-button-field search-button__button" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="fa-solid fa-magnifying-glass"></i>
+    <span class="search-button__default-text">Search</span>
+    <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+   </button>
+ `);
+ </script></div>
+        <div class="sidebar-primary-item"><nav class="bd-links bd-docs-nav" aria-label="Main">
+    <div class="bd-toc-item navbar-nav active">
+        <p aria-level="2" class="caption" role="heading"><span class="caption-text">Topic Guides</span></p>
+<ul class="current nav bd-sidenav">
+<li class="toctree-l1 has-children"><a class="reference internal" href="../../theory/overview.html">Theory</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../theory/levy.html">Lévy process</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../theory/characteristic.html">Characteristic Function</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../theory/inversion.html">From Characteristic Function to PDF</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../theory/option_pricing.html">Option Pricing</a></li>
+</ul>
+</details></li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="../../models/overview.html">Stochastic Processes</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../models/weiner.html">Weiner Process</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../models/poisson.html">Poisson Processes</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../models/jump_diffusion.html">Jump Diffusion Models</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../models/cir.html">CIR process</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../models/ou.html">OU Process</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../models/heston.html">Heston Model and Option Pricing</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../models/heston_jumps.html">Heston Model with Jumps</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../models/bns.html">BNS Model</a></li>
+</ul>
+</details></li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="../../applications/overview.html">Applications</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../applications/volatility_surface.html">Volatility Surface</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../applications/hurst.html">Hurst Exponent</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../applications/calibration.html">Calibration</a></li>
+</ul>
+</details></li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="../../examples/overview.html">Examples</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../examples/gaussian_sampling.html">Gaussian Sampling</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../examples/exponential_sampling.html">Exponential Sampling</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../examples/poisson_sampling.html">Poisson Sampling</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../examples/heston_vol_surface.html">HestonJ Volatility Surface</a></li>
+</ul>
+</details></li>
+<li class="toctree-l1 current active has-children"><a class="reference internal" href="../index.html">API Reference</a><details open="open"><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul class="current">
+<li class="toctree-l2 has-children"><a class="reference internal" href="../sp/index.html">Stochastic Process</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l3"><a class="reference internal" href="../sp/weiner.html">Weiner process</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../sp/poisson.html">Poisson process</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../sp/compound_poisson.html">Compound Poisson</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../sp/ou.html">OU Processes</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../sp/cir.html">CIR</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../sp/jump_diffusion.html">Jump diffusions</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../sp/heston.html">Heston process</a></li>
+</ul>
+</details></li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="../options/index.html">Option Pricing</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l3"><a class="reference internal" href="../options/vol_surface.html">Vol Surface</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../options/black.html">Black Pricing</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../options/pricer.html">Option Pricer</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../options/calibration.html">Vol Model Calibration</a></li>
+</ul>
+</details></li>
+<li class="toctree-l2 current active has-children"><a class="reference internal" href="index.html">Timeseries Analysis</a><details open="open"><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="ohlc.html">OHLC</a></li>
+<li class="toctree-l3 current active"><a class="current reference internal" href="#">Paths</a></li>
+</ul>
+</details></li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="../data/index.html">Data fetching</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l3"><a class="reference internal" href="../data/fmp.html">FMP</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../data/fed.html">Federal Reserve</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../data/fred.html">Fred</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../data/deribit.html">Deribit</a></li>
+</ul>
+</details></li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="../utils/index.html">Utils</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l3"><a class="reference internal" href="../utils/marginal1d.html">Marginal1D</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../utils/distributions.html">Distributions</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../utils/bins.html">Bins</a></li>
+</ul>
+</details></li>
+</ul>
+</details></li>
+</ul>
+<p aria-level="2" class="caption" role="heading"><span class="caption-text">Reference</span></p>
+<ul class="nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="../../reference/contributing.html">Contributing</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../reference/glossary.html">Glossary</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../reference/biblio.html">Bibliography</a></li>
+</ul>
+
+    </div>
+</nav></div>
+    </div>
+  
+  
+  <div class="sidebar-primary-items__end sidebar-primary__section">
+  </div>
+  
+  <div id="rtd-footer-container"></div>
+
+
+      </div>
+      
+      <main id="main-content" class="bd-main" role="main">
+        
+        
+
+<div class="sbt-scroll-pixel-helper"></div>
+
+          <div class="bd-content">
+            <div class="bd-article-container">
+              
+              <div class="bd-header-article d-print-none">
+<div class="header-article-items header-article__inner">
+  
+    <div class="header-article-items__start">
+      
+        <div class="header-article-item"><button class="sidebar-toggle primary-toggle btn btn-sm" title="Toggle primary sidebar" data-bs-placement="bottom" data-bs-toggle="tooltip">
+  <span class="fa-solid fa-bars"></span>
+</button></div>
+      
+    </div>
+  
+  
+    <div class="header-article-items__end">
+      
+        <div class="header-article-item">
+
+<div class="article-header-buttons">
+
+
+
+
+
+<div class="dropdown dropdown-source-buttons">
+  <button class="btn dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false" aria-label="Source repositories">
+    <i class="fab fa-github"></i>
+  </button>
+  <ul class="dropdown-menu">
+      
+      
+      
+      <li><a href="https://github.com/quantmind/quantflow" target="_blank"
+   class="btn btn-sm btn-source-repository-button dropdown-item"
+   title="Source repository"
+   data-bs-placement="left" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fab fa-github"></i>
+  </span>
+<span class="btn__text-container">Repository</span>
+</a>
+</li>
+      
+      
+      
+      
+      <li><a href="https://github.com/quantmind/quantflow/edit/main/notebooks/api/ta/paths.rst" target="_blank"
+   class="btn btn-sm btn-source-edit-button dropdown-item"
+   title="Suggest edit"
+   data-bs-placement="left" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fas fa-pencil-alt"></i>
+  </span>
+<span class="btn__text-container">Suggest edit</span>
+</a>
+</li>
+      
+      
+      
+      
+      <li><a href="https://github.com/quantmind/quantflow/issues/new?title=Issue%20on%20page%20%2Fapi/ta/paths.html&body=Your%20issue%20content%20here." target="_blank"
+   class="btn btn-sm btn-source-issues-button dropdown-item"
+   title="Open an issue"
+   data-bs-placement="left" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fas fa-lightbulb"></i>
+  </span>
+<span class="btn__text-container">Open issue</span>
+</a>
+</li>
+      
+  </ul>
+</div>
+
+
+
+
+
+
+<div class="dropdown dropdown-download-buttons">
+  <button class="btn dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false" aria-label="Download this page">
+    <i class="fas fa-download"></i>
+  </button>
+  <ul class="dropdown-menu">
+      
+      
+      
+      <li><a href="../../_sources/api/ta/paths.rst" target="_blank"
+   class="btn btn-sm btn-download-source-button dropdown-item"
+   title="Download source file"
+   data-bs-placement="left" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fas fa-file"></i>
+  </span>
+<span class="btn__text-container">.rst</span>
+</a>
+</li>
+      
+      
+      
+      
+      <li>
+<button onclick="window.print()"
+  class="btn btn-sm btn-download-pdf-button dropdown-item"
+  title="Print to PDF"
+  data-bs-placement="left" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fas fa-file-pdf"></i>
+  </span>
+<span class="btn__text-container">.pdf</span>
+</button>
+</li>
+      
+  </ul>
+</div>
+
+
+
+
+<button onclick="toggleFullScreen()"
+  class="btn btn-sm btn-fullscreen-button"
+  title="Fullscreen mode"
+  data-bs-placement="bottom" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fas fa-expand"></i>
+  </span>
+
+</button>
+
+
+
+<script>
+document.write(`
+  <button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button" title="light/dark" aria-label="light/dark" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="theme-switch fa-solid fa-sun fa-lg" data-mode="light"></i>
+    <i class="theme-switch fa-solid fa-moon fa-lg" data-mode="dark"></i>
+    <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg" data-mode="auto"></i>
+  </button>
+`);
+</script>
+
+
+<script>
+document.write(`
+  <button class="btn btn-sm pst-navbar-icon search-button search-button__button" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="fa-solid fa-magnifying-glass fa-lg"></i>
+  </button>
+`);
+</script>
+<button class="sidebar-toggle secondary-toggle btn btn-sm" title="Toggle secondary sidebar" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <span class="fa-solid fa-list"></span>
+</button>
+</div></div>
+      
+    </div>
+  
+</div>
+</div>
+              
+              
+
+<div id="jb-print-docs-body" class="onlyprint">
+    <h1>Paths</h1>
+    <!-- Table of contents -->
+    <div id="print-main-content">
+        <div id="jb-print-toc">
+            
+            <div>
+                <h2> Contents </h2>
+            </div>
+            <nav aria-label="Page">
+                <ul class="visible nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#quantflow.ta.paths.Paths"><code class="docutils literal notranslate"><span class="pre">Paths</span></code></a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#quantflow.ta.paths.Paths.as_datetime_df"><code class="docutils literal notranslate"><span class="pre">Paths.as_datetime_df()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#quantflow.ta.paths.Paths.cross_section"><code class="docutils literal notranslate"><span class="pre">Paths.cross_section()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#quantflow.ta.paths.Paths.dates"><code class="docutils literal notranslate"><span class="pre">Paths.dates()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#quantflow.ta.paths.Paths.hurst_exponent"><code class="docutils literal notranslate"><span class="pre">Paths.hurst_exponent()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#quantflow.ta.paths.Paths.integrate"><code class="docutils literal notranslate"><span class="pre">Paths.integrate()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#quantflow.ta.paths.Paths.mean"><code class="docutils literal notranslate"><span class="pre">Paths.mean()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#quantflow.ta.paths.Paths.normal_draws"><code class="docutils literal notranslate"><span class="pre">Paths.normal_draws()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#quantflow.ta.paths.Paths.path"><code class="docutils literal notranslate"><span class="pre">Paths.path()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#quantflow.ta.paths.Paths.paths_mean"><code class="docutils literal notranslate"><span class="pre">Paths.paths_mean()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#quantflow.ta.paths.Paths.paths_std"><code class="docutils literal notranslate"><span class="pre">Paths.paths_std()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#quantflow.ta.paths.Paths.paths_var"><code class="docutils literal notranslate"><span class="pre">Paths.paths_var()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#quantflow.ta.paths.Paths.pdf"><code class="docutils literal notranslate"><span class="pre">Paths.pdf()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#quantflow.ta.paths.Paths.plot"><code class="docutils literal notranslate"><span class="pre">Paths.plot()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#quantflow.ta.paths.Paths.std"><code class="docutils literal notranslate"><span class="pre">Paths.std()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#quantflow.ta.paths.Paths.var"><code class="docutils literal notranslate"><span class="pre">Paths.var()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#quantflow.ta.paths.Paths.data"><code class="docutils literal notranslate"><span class="pre">Paths.data</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#quantflow.ta.paths.Paths.df"><code class="docutils literal notranslate"><span class="pre">Paths.df</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#quantflow.ta.paths.Paths.dt"><code class="docutils literal notranslate"><span class="pre">Paths.dt</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#quantflow.ta.paths.Paths.model_config"><code class="docutils literal notranslate"><span class="pre">Paths.model_config</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#quantflow.ta.paths.Paths.samples"><code class="docutils literal notranslate"><span class="pre">Paths.samples</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#quantflow.ta.paths.Paths.t"><code class="docutils literal notranslate"><span class="pre">Paths.t</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#quantflow.ta.paths.Paths.time"><code class="docutils literal notranslate"><span class="pre">Paths.time</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#quantflow.ta.paths.Paths.time_steps"><code class="docutils literal notranslate"><span class="pre">Paths.time_steps</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#quantflow.ta.paths.Paths.xs"><code class="docutils literal notranslate"><span class="pre">Paths.xs</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#quantflow.ta.paths.Paths.ys"><code class="docutils literal notranslate"><span class="pre">Paths.ys</span></code></a></li>
+</ul>
+</li>
+</ul>
+            </nav>
+        </div>
+    </div>
+</div>
+
+              
+                
+<div id="searchbox"></div>
+                <article class="bd-article">
+                  
+  <section id="module-quantflow.ta.paths">
+<span id="paths"></span><h1>Paths<a class="headerlink" href="#module-quantflow.ta.paths" title="Link to this heading">#</a></h1>
+<dl class="py class">
+<dt class="sig sig-object py" id="quantflow.ta.paths.Paths">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">quantflow.ta.paths.</span></span><span class="sig-name descname"><span class="pre">Paths</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">t</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">data</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ndarray</span><span class="p"><span class="pre">[</span></span><span class="pre">tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">Any</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="p"><span class="pre">...</span></span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">dtype</span><span class="p"><span class="pre">[</span></span><span class="pre">floating</span><span class="p"><span class="pre">[</span></span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#quantflow.ta.paths.Paths" title="Link to this definition">#</a></dt>
+<dd><p>Paths of a stochastic process</p>
+<p>This is the output from a simulation of a stochastic process.</p>
+<p><strong>Methods:</strong></p>
+<div class="pst-scrollable-table-container"><table class="autosummary longtable table autosummary">
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#quantflow.ta.paths.Paths.as_datetime_df" title="quantflow.ta.paths.Paths.as_datetime_df"><code class="xref py py-obj docutils literal notranslate"><span class="pre">as_datetime_df</span></code></a></p></td>
+<td><p>Paths as pandas DataFrame with datetime index</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#quantflow.ta.paths.Paths.cross_section" title="quantflow.ta.paths.Paths.cross_section"><code class="xref py py-obj docutils literal notranslate"><span class="pre">cross_section</span></code></a></p></td>
+<td><p>Cross section of paths at time t</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#quantflow.ta.paths.Paths.dates" title="quantflow.ta.paths.Paths.dates"><code class="xref py py-obj docutils literal notranslate"><span class="pre">dates</span></code></a></p></td>
+<td><p>Dates of paths as a pandas DatetimeIndex</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#quantflow.ta.paths.Paths.hurst_exponent" title="quantflow.ta.paths.Paths.hurst_exponent"><code class="xref py py-obj docutils literal notranslate"><span class="pre">hurst_exponent</span></code></a></p></td>
+<td><p>Estimate the Hurst exponent from all paths</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#quantflow.ta.paths.Paths.integrate" title="quantflow.ta.paths.Paths.integrate"><code class="xref py py-obj docutils literal notranslate"><span class="pre">integrate</span></code></a></p></td>
+<td><p>Integrate paths</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#quantflow.ta.paths.Paths.mean" title="quantflow.ta.paths.Paths.mean"><code class="xref py py-obj docutils literal notranslate"><span class="pre">mean</span></code></a></p></td>
+<td><p>Paths cross-section mean</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#quantflow.ta.paths.Paths.normal_draws" title="quantflow.ta.paths.Paths.normal_draws"><code class="xref py py-obj docutils literal notranslate"><span class="pre">normal_draws</span></code></a></p></td>
+<td><p>Generate normal draws</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#quantflow.ta.paths.Paths.path" title="quantflow.ta.paths.Paths.path"><code class="xref py py-obj docutils literal notranslate"><span class="pre">path</span></code></a></p></td>
+<td><p>Path i</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#quantflow.ta.paths.Paths.paths_mean" title="quantflow.ta.paths.Paths.paths_mean"><code class="xref py py-obj docutils literal notranslate"><span class="pre">paths_mean</span></code></a></p></td>
+<td><p>mean for each path</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#quantflow.ta.paths.Paths.paths_std" title="quantflow.ta.paths.Paths.paths_std"><code class="xref py py-obj docutils literal notranslate"><span class="pre">paths_std</span></code></a></p></td>
+<td><p>standard deviation for each path</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#quantflow.ta.paths.Paths.paths_var" title="quantflow.ta.paths.Paths.paths_var"><code class="xref py py-obj docutils literal notranslate"><span class="pre">paths_var</span></code></a></p></td>
+<td><p>variance for each path</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#quantflow.ta.paths.Paths.pdf" title="quantflow.ta.paths.Paths.pdf"><code class="xref py py-obj docutils literal notranslate"><span class="pre">pdf</span></code></a></p></td>
+<td><p>Probability density function of paths</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#quantflow.ta.paths.Paths.plot" title="quantflow.ta.paths.Paths.plot"><code class="xref py py-obj docutils literal notranslate"><span class="pre">plot</span></code></a></p></td>
+<td><p>Plot paths</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#quantflow.ta.paths.Paths.std" title="quantflow.ta.paths.Paths.std"><code class="xref py py-obj docutils literal notranslate"><span class="pre">std</span></code></a></p></td>
+<td><p>Paths cross-section standard deviation</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#quantflow.ta.paths.Paths.var" title="quantflow.ta.paths.Paths.var"><code class="xref py py-obj docutils literal notranslate"><span class="pre">var</span></code></a></p></td>
+<td><p>Paths cross-section variance</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<p><strong>Attributes:</strong></p>
+<div class="pst-scrollable-table-container"><table class="autosummary longtable table autosummary">
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#quantflow.ta.paths.Paths.data" title="quantflow.ta.paths.Paths.data"><code class="xref py py-obj docutils literal notranslate"><span class="pre">data</span></code></a></p></td>
+<td><p>Paths of the stochastic process</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#quantflow.ta.paths.Paths.df" title="quantflow.ta.paths.Paths.df"><code class="xref py py-obj docutils literal notranslate"><span class="pre">df</span></code></a></p></td>
+<td><p>Paths as pandas DataFrame</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#quantflow.ta.paths.Paths.dt" title="quantflow.ta.paths.Paths.dt"><code class="xref py py-obj docutils literal notranslate"><span class="pre">dt</span></code></a></p></td>
+<td><p>Time step</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#quantflow.ta.paths.Paths.model_config" title="quantflow.ta.paths.Paths.model_config"><code class="xref py py-obj docutils literal notranslate"><span class="pre">model_config</span></code></a></p></td>
+<td><p>Configuration for the model, should be a dictionary conforming to [<cite>ConfigDict</cite>][pydantic.config.ConfigDict].</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#quantflow.ta.paths.Paths.samples" title="quantflow.ta.paths.Paths.samples"><code class="xref py py-obj docutils literal notranslate"><span class="pre">samples</span></code></a></p></td>
+<td><p>Number of samples</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#quantflow.ta.paths.Paths.t" title="quantflow.ta.paths.Paths.t"><code class="xref py py-obj docutils literal notranslate"><span class="pre">t</span></code></a></p></td>
+<td><p>Time horizon - the unit of time is not specified</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#quantflow.ta.paths.Paths.time" title="quantflow.ta.paths.Paths.time"><code class="xref py py-obj docutils literal notranslate"><span class="pre">time</span></code></a></p></td>
+<td><p>Time as numpy array</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#quantflow.ta.paths.Paths.time_steps" title="quantflow.ta.paths.Paths.time_steps"><code class="xref py py-obj docutils literal notranslate"><span class="pre">time_steps</span></code></a></p></td>
+<td><p>Number of time steps</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#quantflow.ta.paths.Paths.xs" title="quantflow.ta.paths.Paths.xs"><code class="xref py py-obj docutils literal notranslate"><span class="pre">xs</span></code></a></p></td>
+<td><p>Time as list of list (for visualization tools)</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#quantflow.ta.paths.Paths.ys" title="quantflow.ta.paths.Paths.ys"><code class="xref py py-obj docutils literal notranslate"><span class="pre">ys</span></code></a></p></td>
+<td><p>Paths as list of list (for visualization tools)</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<dl class="py method">
+<dt class="sig sig-object py" id="quantflow.ta.paths.Paths.as_datetime_df">
+<span class="sig-name descname"><span class="pre">as_datetime_df</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">start</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">datetime</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">unit</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'d'</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">DataFrame</span></span></span><a class="headerlink" href="#quantflow.ta.paths.Paths.as_datetime_df" title="Link to this definition">#</a></dt>
+<dd><p>Paths as pandas DataFrame with datetime index</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="quantflow.ta.paths.Paths.cross_section">
+<span class="sig-name descname"><span class="pre">cross_section</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">t</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">ndarray</span><span class="p"><span class="pre">[</span></span><span class="pre">tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">Any</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="p"><span class="pre">...</span></span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">dtype</span><span class="p"><span class="pre">[</span></span><span class="pre">floating</span><span class="p"><span class="pre">[</span></span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#quantflow.ta.paths.Paths.cross_section" title="Link to this definition">#</a></dt>
+<dd><p>Cross section of paths at time t</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="quantflow.ta.paths.Paths.dates">
+<span class="sig-name descname"><span class="pre">dates</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">start</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">datetime</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">unit</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'d'</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">DatetimeIndex</span></span></span><a class="headerlink" href="#quantflow.ta.paths.Paths.dates" title="Link to this definition">#</a></dt>
+<dd><p>Dates of paths as a pandas DatetimeIndex</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="quantflow.ta.paths.Paths.hurst_exponent">
+<span class="sig-name descname"><span class="pre">hurst_exponent</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">steps</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">float</span></span></span><a class="headerlink" href="#quantflow.ta.paths.Paths.hurst_exponent" title="Link to this definition">#</a></dt>
+<dd><p>Estimate the Hurst exponent from all paths</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>steps</strong> – number of lags to consider, if not provided it uses
+half of the time steps capped at 100</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="quantflow.ta.paths.Paths.integrate">
+<span class="sig-name descname"><span class="pre">integrate</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="#quantflow.ta.paths.Paths" title="quantflow.ta.paths.Paths"><span class="pre">Paths</span></a></span></span><a class="headerlink" href="#quantflow.ta.paths.Paths.integrate" title="Link to this definition">#</a></dt>
+<dd><p>Integrate paths</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="quantflow.ta.paths.Paths.mean">
+<span class="sig-name descname"><span class="pre">mean</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">ndarray</span><span class="p"><span class="pre">[</span></span><span class="pre">tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">Any</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="p"><span class="pre">...</span></span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">dtype</span><span class="p"><span class="pre">[</span></span><span class="pre">floating</span><span class="p"><span class="pre">[</span></span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#quantflow.ta.paths.Paths.mean" title="Link to this definition">#</a></dt>
+<dd><p>Paths cross-section mean</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="quantflow.ta.paths.Paths.normal_draws">
+<em class="property"><span class="pre">classmethod</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">normal_draws</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">paths</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">time_horizon</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">time_steps</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">1000</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">antithetic_variates</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="#quantflow.ta.paths.Paths" title="quantflow.ta.paths.Paths"><span class="pre">Paths</span></a></span></span><a class="headerlink" href="#quantflow.ta.paths.Paths.normal_draws" title="Link to this definition">#</a></dt>
+<dd><p>Generate normal draws</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>paths</strong> – number of paths</p></li>
+<li><p><strong>time_horizon</strong> – time horizon</p></li>
+<li><p><strong>time_steps</strong> – number of time steps to arrive at horizon</p></li>
+<li><p><strong>antithetic_variates</strong> – whether to use <a class="reference external" href="https://en.wikipedia.org/wiki/Antithetic_variates">antithetic variates</a></p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="quantflow.ta.paths.Paths.path">
+<span class="sig-name descname"><span class="pre">path</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">i</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">ndarray</span><span class="p"><span class="pre">[</span></span><span class="pre">tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">Any</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="p"><span class="pre">...</span></span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">dtype</span><span class="p"><span class="pre">[</span></span><span class="pre">floating</span><span class="p"><span class="pre">[</span></span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#quantflow.ta.paths.Paths.path" title="Link to this definition">#</a></dt>
+<dd><p>Path i</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="quantflow.ta.paths.Paths.paths_mean">
+<span class="sig-name descname"><span class="pre">paths_mean</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">scaled</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">ndarray</span><span class="p"><span class="pre">[</span></span><span class="pre">tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">Any</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="p"><span class="pre">...</span></span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">dtype</span><span class="p"><span class="pre">[</span></span><span class="pre">floating</span><span class="p"><span class="pre">[</span></span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#quantflow.ta.paths.Paths.paths_mean" title="Link to this definition">#</a></dt>
+<dd><p>mean for each path</p>
+<p>If scaled is True, the mean is scaled by the time step</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="quantflow.ta.paths.Paths.paths_std">
+<span class="sig-name descname"><span class="pre">paths_std</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">scaled</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">ndarray</span><span class="p"><span class="pre">[</span></span><span class="pre">tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">Any</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="p"><span class="pre">...</span></span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">dtype</span><span class="p"><span class="pre">[</span></span><span class="pre">floating</span><span class="p"><span class="pre">[</span></span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#quantflow.ta.paths.Paths.paths_std" title="Link to this definition">#</a></dt>
+<dd><p>standard deviation for each path</p>
+<p>If scaled is True, the standard deviation is scaled by the square
+root of the time step</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="quantflow.ta.paths.Paths.paths_var">
+<span class="sig-name descname"><span class="pre">paths_var</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">scaled</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">ndarray</span><span class="p"><span class="pre">[</span></span><span class="pre">tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">Any</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="p"><span class="pre">...</span></span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">dtype</span><span class="p"><span class="pre">[</span></span><span class="pre">floating</span><span class="p"><span class="pre">[</span></span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#quantflow.ta.paths.Paths.paths_var" title="Link to this definition">#</a></dt>
+<dd><p>variance for each path</p>
+<p>If scaled is True, the variance is scaled by the time step</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="quantflow.ta.paths.Paths.pdf">
+<span class="sig-name descname"><span class="pre">pdf</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">t</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">num_bins</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">delta</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">symmetric</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">DataFrame</span></span></span><a class="headerlink" href="#quantflow.ta.paths.Paths.pdf" title="Link to this definition">#</a></dt>
+<dd><p>Probability density function of paths</p>
+<p>Calculate a DataFrame with the probability density function of the paths
+at a given cross section of time. By default it take the last section.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>t</strong> – time at which to calculate the pdf</p></li>
+<li><p><strong>num_bins</strong> – number of bins</p></li>
+<li><p><strong>delta</strong> – optional size of bins (cannot be set with num_bins)</p></li>
+<li><p><strong>symmetric</strong> – optional center of bins</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="quantflow.ta.paths.Paths.plot">
+<span class="sig-name descname"><span class="pre">plot</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Any</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Any</span></span></span><a class="headerlink" href="#quantflow.ta.paths.Paths.plot" title="Link to this definition">#</a></dt>
+<dd><p>Plot paths</p>
+<p>It requires plotly installed</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="quantflow.ta.paths.Paths.std">
+<span class="sig-name descname"><span class="pre">std</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">ndarray</span><span class="p"><span class="pre">[</span></span><span class="pre">tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">Any</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="p"><span class="pre">...</span></span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">dtype</span><span class="p"><span class="pre">[</span></span><span class="pre">floating</span><span class="p"><span class="pre">[</span></span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#quantflow.ta.paths.Paths.std" title="Link to this definition">#</a></dt>
+<dd><p>Paths cross-section standard deviation</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="quantflow.ta.paths.Paths.var">
+<span class="sig-name descname"><span class="pre">var</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">ndarray</span><span class="p"><span class="pre">[</span></span><span class="pre">tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">Any</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="p"><span class="pre">...</span></span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">dtype</span><span class="p"><span class="pre">[</span></span><span class="pre">floating</span><span class="p"><span class="pre">[</span></span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#quantflow.ta.paths.Paths.var" title="Link to this definition">#</a></dt>
+<dd><p>Paths cross-section variance</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="quantflow.ta.paths.Paths.data">
+<span class="sig-name descname"><span class="pre">data</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">FloatArray</span></em><a class="headerlink" href="#quantflow.ta.paths.Paths.data" title="Link to this definition">#</a></dt>
+<dd><p>Paths of the stochastic process</p>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="quantflow.ta.paths.Paths.df">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">df</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">DataFrame</span></em><a class="headerlink" href="#quantflow.ta.paths.Paths.df" title="Link to this definition">#</a></dt>
+<dd><p>Paths as pandas DataFrame</p>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="quantflow.ta.paths.Paths.dt">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">dt</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">float</span></em><a class="headerlink" href="#quantflow.ta.paths.Paths.dt" title="Link to this definition">#</a></dt>
+<dd><p>Time step</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="quantflow.ta.paths.Paths.model_config">
+<span class="sig-name descname"><span class="pre">model_config</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">ClassVar</span><span class="p"><span class="pre">[</span></span><span class="pre">ConfigDict</span><span class="p"><span class="pre">]</span></span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">{'arbitrary_types_allowed':</span> <span class="pre">True}</span></em><a class="headerlink" href="#quantflow.ta.paths.Paths.model_config" title="Link to this definition">#</a></dt>
+<dd><p>Configuration for the model, should be a dictionary conforming to [<cite>ConfigDict</cite>][pydantic.config.ConfigDict].</p>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="quantflow.ta.paths.Paths.samples">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">samples</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">int</span></em><a class="headerlink" href="#quantflow.ta.paths.Paths.samples" title="Link to this definition">#</a></dt>
+<dd><p>Number of samples</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="quantflow.ta.paths.Paths.t">
+<span class="sig-name descname"><span class="pre">t</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">float</span></em><a class="headerlink" href="#quantflow.ta.paths.Paths.t" title="Link to this definition">#</a></dt>
+<dd><p>Time horizon - the unit of time is not specified</p>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="quantflow.ta.paths.Paths.time">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">time</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">ndarray</span><span class="p"><span class="pre">[</span></span><span class="pre">tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">Any</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="p"><span class="pre">...</span></span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">dtype</span><span class="p"><span class="pre">[</span></span><span class="pre">floating</span><span class="p"><span class="pre">[</span></span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></em><a class="headerlink" href="#quantflow.ta.paths.Paths.time" title="Link to this definition">#</a></dt>
+<dd><p>Time as numpy array</p>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="quantflow.ta.paths.Paths.time_steps">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">time_steps</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">int</span></em><a class="headerlink" href="#quantflow.ta.paths.Paths.time_steps" title="Link to this definition">#</a></dt>
+<dd><p>Number of time steps</p>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="quantflow.ta.paths.Paths.xs">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">xs</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">ndarray</span><span class="p"><span class="pre">]</span></span></em><a class="headerlink" href="#quantflow.ta.paths.Paths.xs" title="Link to this definition">#</a></dt>
+<dd><p>Time as list of list (for visualization tools)</p>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="quantflow.ta.paths.Paths.ys">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">ys</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">float</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></em><a class="headerlink" href="#quantflow.ta.paths.Paths.ys" title="Link to this definition">#</a></dt>
+<dd><p>Paths as list of list (for visualization tools)</p>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+
+    <script type="text/x-thebe-config">
+    {
+        requestKernel: true,
+        binderOptions: {
+            repo: "binder-examples/jupyter-stacks-datascience",
+            ref: "master",
+        },
+        codeMirrorConfig: {
+            theme: "abcdef",
+            mode: "python"
+        },
+        kernelOptions: {
+            name: "python3",
+            path: "./api/ta"
+        },
+        predefinedOutput: true
+    }
+    </script>
+    <script>kernelName = 'python3'</script>
+
+                </article>
+              
+
+              
+              
+              
+              
+                <footer class="prev-next-footer d-print-none">
+                  
+<div class="prev-next-area">
+    <a class="left-prev"
+       href="ohlc.html"
+       title="previous page">
+      <i class="fa-solid fa-angle-left"></i>
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">previous</p>
+        <p class="prev-next-title">OHLC</p>
+      </div>
+    </a>
+    <a class="right-next"
+       href="../data/index.html"
+       title="next page">
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">next</p>
+        <p class="prev-next-title">Data fetching</p>
+      </div>
+      <i class="fa-solid fa-angle-right"></i>
+    </a>
+</div>
+                </footer>
+              
+            </div>
+            
+            
+              
+                <div class="bd-sidebar-secondary bd-toc"><div class="sidebar-secondary-items sidebar-secondary__inner">
+
+
+  <div class="sidebar-secondary-item">
+  <div class="page-toc tocsection onthispage">
+    <i class="fa-solid fa-list"></i> Contents
+  </div>
+  <nav class="bd-toc-nav page-toc">
+    <ul class="visible nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#quantflow.ta.paths.Paths"><code class="docutils literal notranslate"><span class="pre">Paths</span></code></a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#quantflow.ta.paths.Paths.as_datetime_df"><code class="docutils literal notranslate"><span class="pre">Paths.as_datetime_df()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#quantflow.ta.paths.Paths.cross_section"><code class="docutils literal notranslate"><span class="pre">Paths.cross_section()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#quantflow.ta.paths.Paths.dates"><code class="docutils literal notranslate"><span class="pre">Paths.dates()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#quantflow.ta.paths.Paths.hurst_exponent"><code class="docutils literal notranslate"><span class="pre">Paths.hurst_exponent()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#quantflow.ta.paths.Paths.integrate"><code class="docutils literal notranslate"><span class="pre">Paths.integrate()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#quantflow.ta.paths.Paths.mean"><code class="docutils literal notranslate"><span class="pre">Paths.mean()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#quantflow.ta.paths.Paths.normal_draws"><code class="docutils literal notranslate"><span class="pre">Paths.normal_draws()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#quantflow.ta.paths.Paths.path"><code class="docutils literal notranslate"><span class="pre">Paths.path()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#quantflow.ta.paths.Paths.paths_mean"><code class="docutils literal notranslate"><span class="pre">Paths.paths_mean()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#quantflow.ta.paths.Paths.paths_std"><code class="docutils literal notranslate"><span class="pre">Paths.paths_std()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#quantflow.ta.paths.Paths.paths_var"><code class="docutils literal notranslate"><span class="pre">Paths.paths_var()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#quantflow.ta.paths.Paths.pdf"><code class="docutils literal notranslate"><span class="pre">Paths.pdf()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#quantflow.ta.paths.Paths.plot"><code class="docutils literal notranslate"><span class="pre">Paths.plot()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#quantflow.ta.paths.Paths.std"><code class="docutils literal notranslate"><span class="pre">Paths.std()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#quantflow.ta.paths.Paths.var"><code class="docutils literal notranslate"><span class="pre">Paths.var()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#quantflow.ta.paths.Paths.data"><code class="docutils literal notranslate"><span class="pre">Paths.data</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#quantflow.ta.paths.Paths.df"><code class="docutils literal notranslate"><span class="pre">Paths.df</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#quantflow.ta.paths.Paths.dt"><code class="docutils literal notranslate"><span class="pre">Paths.dt</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#quantflow.ta.paths.Paths.model_config"><code class="docutils literal notranslate"><span class="pre">Paths.model_config</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#quantflow.ta.paths.Paths.samples"><code class="docutils literal notranslate"><span class="pre">Paths.samples</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#quantflow.ta.paths.Paths.t"><code class="docutils literal notranslate"><span class="pre">Paths.t</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#quantflow.ta.paths.Paths.time"><code class="docutils literal notranslate"><span class="pre">Paths.time</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#quantflow.ta.paths.Paths.time_steps"><code class="docutils literal notranslate"><span class="pre">Paths.time_steps</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#quantflow.ta.paths.Paths.xs"><code class="docutils literal notranslate"><span class="pre">Paths.xs</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#quantflow.ta.paths.Paths.ys"><code class="docutils literal notranslate"><span class="pre">Paths.ys</span></code></a></li>
+</ul>
+</li>
+</ul>
+  </nav></div>
+
+</div></div>
+              
+            
+          </div>
+          <footer class="bd-footer-content">
+            
+<div class="bd-footer-content__inner container">
+  
+  <div class="footer-item">
+    
+<p class="component-author">
+By <a href="https://quantmind.com">quantmind</a>
+</p>
+
+  </div>
+  
+  <div class="footer-item">
+    
+
+  <p class="copyright">
+    
+      © Copyright 2014-2025.
+      <br/>
+    
+  </p>
+
+  </div>
+  
+  <div class="footer-item">
+    
+  </div>
+  
+  <div class="footer-item">
+    
+  </div>
+  
+</div>
+          </footer>
+        
+
+      </main>
+    </div>
+  </div>
+  
+  <!-- Scripts loaded after <body> so the DOM is not blocked -->
+  <script src="../../_static/scripts/bootstrap.js?digest=dfe6caa3a7d634c4db9b"></script>
+<script src="../../_static/scripts/pydata-sphinx-theme.js?digest=dfe6caa3a7d634c4db9b"></script>
+
+  <footer class="bd-footer">
+  </footer>
+  </body>
+</html>

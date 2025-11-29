@@ -1,0 +1,78 @@
+Traceback (most recent call last):
+  File "/home/runner/.cache/pypoetry/virtualenvs/quantflow-lUXkzsy2-py3.13/lib/python3.13/site-packages/jupyter_cache/executors/utils.py", line 58, in single_nb_execution
+    executenb(
+    ~~~~~~~~~^
+        nb,
+        ^^^
+    ...<4 lines>...
+        **kwargs,
+        ^^^^^^^^^
+    )
+    ^
+  File "/home/runner/.cache/pypoetry/virtualenvs/quantflow-lUXkzsy2-py3.13/lib/python3.13/site-packages/nbclient/client.py", line 1319, in execute
+    return NotebookClient(nb=nb, resources=resources, km=km, **kwargs).execute()
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^
+  File "/home/runner/.cache/pypoetry/virtualenvs/quantflow-lUXkzsy2-py3.13/lib/python3.13/site-packages/jupyter_core/utils/__init__.py", line 165, in wrapped
+    return loop.run_until_complete(inner)
+           ~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^
+  File "/opt/hostedtoolcache/Python/3.13.9/x64/lib/python3.13/asyncio/base_events.py", line 725, in run_until_complete
+    return future.result()
+           ~~~~~~~~~~~~~^^
+  File "/home/runner/.cache/pypoetry/virtualenvs/quantflow-lUXkzsy2-py3.13/lib/python3.13/site-packages/nbclient/client.py", line 709, in async_execute
+    await self.async_execute_cell(
+        cell, index, execution_count=self.code_cells_executed + 1
+    )
+  File "/home/runner/.cache/pypoetry/virtualenvs/quantflow-lUXkzsy2-py3.13/lib/python3.13/site-packages/nbclient/client.py", line 1062, in async_execute_cell
+    await self._check_raise_for_error(cell, cell_index, exec_reply)
+  File "/home/runner/.cache/pypoetry/virtualenvs/quantflow-lUXkzsy2-py3.13/lib/python3.13/site-packages/nbclient/client.py", line 918, in _check_raise_for_error
+    raise CellExecutionError.from_cell_and_msg(cell, exec_reply_content)
+nbclient.exceptions.CellExecutionError: An error occurred while executing the following cell:
+------------------
+data = await fd.securities()
+data
+------------------
+
+
+[31m---------------------------------------------------------------------------[39m
+[31mHttpResponseError[39m                         Traceback (most recent call last)
+[36mCell[39m[36m [39m[32mIn[3][39m[32m, line 1[39m
+[32m----> [39m[32m1[39m data = [38;5;28;01mawait[39;00m fd.securities()
+[32m      2[39m data
+
+[36mFile [39m[32m~/work/quantflow/quantflow/quantflow/data/fiscal_data.py:25[39m, in [36mFiscalData.securities[39m[34m(self, record_date)[39m
+[32m     23[39m pm = rd.replace(day=[32m1[39m) - timedelta(days=[32m1[39m)
+[32m     24[39m params = {[33m"[39m[33mfilter[39m[33m"[39m: [33mf[39m[33m"[39m[33mrecord_date:eq:[39m[38;5;132;01m{[39;00mpm.isoformat()[38;5;132;01m}[39;00m[33m"[39m}
+[32m---> [39m[32m25[39m data = [38;5;28;01mawait[39;00m [38;5;28mself[39m.get_all([33m"[39m[33m/v1/debt/mspd/mspd_table_3_market[39m[33m"[39m, params)
+[32m     26[39m [38;5;28;01mreturn[39;00m pd.DataFrame(data)
+
+[36mFile [39m[32m~/work/quantflow/quantflow/quantflow/data/fiscal_data.py:33[39m, in [36mFiscalData.get_all[39m[34m(self, path, params)[39m
+[32m     31[39m full_data = []
+[32m     32[39m [38;5;28;01mwhile[39;00m next_url:
+[32m---> [39m[32m33[39m     payload = [38;5;28;01mawait[39;00m [38;5;28mself[39m.get(next_url, params=params)
+[32m     34[39m     full_data.extend(payload[[33m"[39m[33mdata[39m[33m"[39m])
+[32m     35[39m     [38;5;28;01mif[39;00m links := payload.get([33m"[39m[33mlinks[39m[33m"[39m):
+
+[36mFile [39m[32m~/.cache/pypoetry/virtualenvs/quantflow-lUXkzsy2-py3.13/lib/python3.13/site-packages/fluid/utils/http_client.py:173[39m, in [36mHttpClient.get[39m[34m(self, url, **kwargs)[39m
+[32m    172[39m [38;5;28;01masync[39;00m [38;5;28;01mdef[39;00m[38;5;250m [39m[34mget[39m([38;5;28mself[39m, url: [38;5;28mstr[39m, **kwargs: Any) -> ResponseType:
+[32m--> [39m[32m173[39m     [38;5;28;01mreturn[39;00m [38;5;28;01mawait[39;00m [38;5;28mself[39m.request([33m"[39m[33mGET[39m[33m"[39m, url, **kwargs)
+
+[36mFile [39m[32m~/.cache/pypoetry/virtualenvs/quantflow-lUXkzsy2-py3.13/lib/python3.13/site-packages/fluid/utils/http_client.py:225[39m, in [36mHttpClient.request[39m[34m(self, method, url, headers, callback, monitor_http, **kw)[39m
+[32m    223[39m     data = {}
+[32m    224[39m [38;5;28;01melse[39;00m:
+[32m--> [39m[32m225[39m     [38;5;28;01mawait[39;00m [38;5;28mself[39m.response_error(response)
+[32m    226[39m [38;5;28;01mreturn[39;00m data
+
+[36mFile [39m[32m~/.cache/pypoetry/virtualenvs/quantflow-lUXkzsy2-py3.13/lib/python3.13/site-packages/fluid/utils/http_client.py:243[39m, in [36mHttpClient.response_error[39m[34m(cls, response)[39m
+[32m    241[39m [38;5;28;01mexcept[39;00m [38;5;167;01mException[39;00m:
+[32m    242[39m     data = {[33m"[39m[33mmessage[39m[33m"[39m: [38;5;28;01mawait[39;00m response.text()}
+[32m--> [39m[32m243[39m [38;5;28;01mraise[39;00m [38;5;28mcls[39m.ResponseError(response, data)
+
+[31mHttpResponseError[39m: {
+  "response": {
+    "message": "<!DOCTYPE html>\n<html lang=\"en\">\n<head>\n    <base href=\"/\">\n</head>\n<body>\n\n<h1>404 Error: The requested page could not be found</h1>\n<p>We are sorry, but the page you are looking for may not exist, may have been removed, had its name changed, or is temporarily unavailable.</p>\n<p>To help you find what you are looking for, please try one or more of the following:</p>\n<ol>\n    <li>Check the URL (Web address) for proper spelling and completeness. </li>\n    <li><a href=\"mailto:fiscaldata@fiscal.treasury.gov?subject=Contact Us\" class=\"primary\" data-testid=\"mail-to link\">Contact Us for help</a> </li>\n    <li><a href=\"https://fiscaldata.treasury.gov/api-documentation/ \" target=\"_blank\">Read API Documentation</a></li>\n</ol>\n\n</body>\n</html>"
+  },
+  "request_url": "https://api.fiscaldata.treasury.gov/services/api/fiscal_service&page%5Bnumber%5D=2&page%5Bsize%5D=100?filter=record_date:eq:2025-10-31",
+  "request_method": "GET",
+  "response_status": 404
+}
+
