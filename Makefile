@@ -46,7 +46,7 @@ sphinx-config:			## Build sphinx config
 
 
 .PHONY: sphinx
-sphinx:
+sphinx:				## Build sphinx docs
 	poetry run sphinx-build notebooks path/to/book/_build/html -b html
 
 
