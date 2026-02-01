@@ -6,12 +6,30 @@ from typing_extensions import Annotated, Doc
 
 
 class SuperSmoother(BaseModel):
-    """SuperSmoother filter for time series data.
+    r"""SuperSmoother filter for time series data.
 
     This implementation uses a two-pole Butterworth filter with adaptive smoothing.
-
     The SuperSmoother filter is designed to remove high-frequency noise while
     preserving the underlying trend with minimal lag.
+    The filter is defined by the following recurrence relation:
+
+    $$
+    y_t = c_1 \frac{x_t + x_{t-1}}{2} + c_2 y_{t-1} + c_3 y_{t-2}
+    $$
+
+    where the coefficients are calculated as:
+
+    $$
+    \begin{align}
+        \lambda &= \frac{\pi \sqrt{2}}{N} \\
+        a &= \exp(-\lambda) \\
+        c_2 &= 2 a \cos(\lambda) \\
+        c_3 &= -a^2 \\
+        c_1 &= 1 - c_2 - c_3
+    \end{align}
+    $$
+
+    where $N$ is the period.
 
     ## Example
 

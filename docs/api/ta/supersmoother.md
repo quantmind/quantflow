@@ -11,4 +11,4 @@ Reference:
     Ehlers, J. (2013). "Cycle Analytics for Traders"
 
 
-::: quantflow.ta.supersmoother.SuperSmoother
+::: quantflow.ta.SuperSmoother

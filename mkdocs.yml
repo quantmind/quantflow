@@ -56,6 +56,7 @@ nav:
           - api/ta/index.md
           - OHLC: api/ta/ohlc.md
           - Paths: api/ta/paths.md
+          - Kalman Filter: api/ta/kalman.md
           - Super Smoother: api/ta/supersmoother.md
       - Utils:
           - api/utils/index.md
