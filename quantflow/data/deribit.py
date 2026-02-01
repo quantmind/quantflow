@@ -10,6 +10,7 @@ import pandas as pd
 from dateutil.parser import parse
 from fluid.utils.data import compact_dict
 from fluid.utils.http_client import AioHttpClient, HttpResponse, HttpResponseError
+from typing_extensions import Annotated, Doc
 
 from quantflow.options.inputs import OptionType
 from quantflow.options.surface import VolSecurityType, VolSurfaceLoader
@@ -39,16 +40,20 @@ class InstrumentKind(enum.StrEnum):
 class Deribit(AioHttpClient):
     """Deribit API client
 
-    Fetch market and static data from `Deribit`_ API.
+    ## Example
 
-    .. _Deribit: https://docs.deribit.com/
+    ```python
+    from quantflow.data.deribit import Deribit
+
+    deribit = Deribit()
+    ```
     """
 
     url: str = "https://www.deribit.com/api/v2"
 
     async def get_book_summary_by_instrument(
         self,
-        instrument_name: str,
+        instrument_name: Annotated[str, Doc("Instrument name")],
         **kw: Any,
     ) -> list[dict]:
         """Get the book summary for a given instrument."""
@@ -59,7 +64,10 @@ class Deribit(AioHttpClient):
         )
 
     async def get_book_summary_by_currency(
-        self, currency: str, kind: InstrumentKind | None = None, **kw: Any
+        self,
+        currency: Annotated[str, Doc("Currency")],
+        kind: Annotated[InstrumentKind | None, Doc("Optional instrument kind")] = None,
+        **kw: Any,
     ) -> list[dict]:
         """Get the book summary for a given currency."""
         kw.update(
@@ -71,9 +79,9 @@ class Deribit(AioHttpClient):
 
     async def get_instruments(
         self,
-        currency: str,
-        kind: InstrumentKind | None = None,
-        expired: bool | None = None,
+        currency: Annotated[str, Doc("Currency")],
+        kind: Annotated[InstrumentKind | None, Doc("Optional instrument kind")] = None,
+        expired: Annotated[bool | None, Doc("Include expired instruments")] = None,
         **kw: Any,
     ) -> list[dict]:
         """Get the list of instruments for a given currency."""
@@ -83,17 +91,26 @@ class Deribit(AioHttpClient):
         )
         return cast(list[dict], await self.get_path("public/get_instruments", **kw))
 
-    async def get_volatility(self, currency: str, **kw: Any) -> pd.DataFrame:
+    async def get_volatility(
+        self,
+        currency: Annotated[str, Doc("Currency")],
+        **kw: Any,
+    ) -> pd.DataFrame:
         """Provides information about historical volatility for given cryptocurrency"""
         kw.update(params=dict(currency=currency), callback=self.to_df)
         return await self.get_path("public/get_historical_volatility", **kw)
 
     async def volatility_surface_loader(
         self,
-        currency: str,
+        currency: Annotated[str, Doc("Currency")],
         *,
-        exclude_open_interest: Number | None = None,
-        exclude_volume: Number | None = None,
+        exclude_open_interest: Annotated[
+            Number | None,
+            Doc("Exclude options with open interest below this threshold"),
+        ] = None,
+        exclude_volume: Annotated[
+            Number | None, Doc("Exclude options with volume below this threshold")
+        ] = None,
     ) -> VolSurfaceLoader:
         """Create a :class:`.VolSurfaceLoader` for a given crypto-currency"""
         loader = VolSurfaceLoader(
@@ -172,16 +189,26 @@ class Deribit(AioHttpClient):
 
     # Internal methods
 
-    async def get_path(self, path: str, **kw: Any) -> dict:
+    async def get_path(
+        self,
+        path: Annotated[str, Doc("API path")],
+        **kw: Any,
+    ) -> dict:
         return await self.get(f"{self.url}/{path}", **kw)
 
-    async def to_result(self, response: HttpResponse) -> list[dict]:
+    async def to_result(
+        self,
+        response: Annotated[HttpResponse, Doc("HTTP response object")],
+    ) -> list[dict]:
         data = await response.json()
         if "error" in data:
             raise HttpResponseError(response, data["error"])
         return cast(list[dict], data["result"])
 
-    async def to_df(self, response: HttpResponse) -> pd.DataFrame:
+    async def to_df(
+        self,
+        response: Annotated[HttpResponse, Doc("HTTP response object")],
+    ) -> pd.DataFrame:
         data = await self.to_result(response)
         df = pd.DataFrame(data, columns=["timestamp", "volatility"])
         df["timestamp"] = pd.to_datetime(df["timestamp"], unit="ms")

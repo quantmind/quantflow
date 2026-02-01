@@ -94,7 +94,7 @@ async def get_indices(ctx: QuantContext) -> list[dict]:
 
 async def get_prices(ctx: QuantContext, symbol: str, frequency: str) -> pd.DataFrame:
     async with ctx.fmp() as cli:
-        return await cli.prices(symbol, frequency)
+        return await cli.prices(symbol, frequency=frequency)
 
 
 async def get_profile(ctx: QuantContext, symbol: str) -> list[dict]:

@@ -31,3 +31,9 @@ def as_date(dt: date | None = None) -> date:
         return dt.date()
     else:
         return dt
+
+
+def to_date_iso(dt: str | date | None = None) -> str | None:
+    if dt is None:
+        return None
+    return isoformat(dt)
