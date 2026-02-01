@@ -1,9 +1,5 @@
-===========
-Bins
-===========
+# Bins
 
-.. module:: quantflow.utils.bins
+::: quantflow.utils.bins.pdf
 
-.. autofunction:: pdf
-
-.. autofunction:: event_density
+::: quantflow.utils.bins.event_density
