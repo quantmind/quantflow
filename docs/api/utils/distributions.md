@@ -1,32 +1,9 @@
-==============
-Distributions
-==============
+# Distributions
 
-.. module:: quantflow.utils.distributions
+::: quantflow.utils.distributions.Distribution1D
 
-.. autoclass:: Distribution1D
-   :members:
-   :member-order: groupwise
-   :autosummary:
-   :autosummary-nosignatures:
+::: quantflow.utils.distributions.Exponential
 
+::: quantflow.utils.distributions.DoubleExponential
 
-.. autoclass:: Exponential
-   :members:
-   :member-order: groupwise
-   :autosummary:
-   :autosummary-nosignatures:
-
-
-.. autoclass:: DoubleExponential
-   :members:
-   :member-order: groupwise
-   :autosummary:
-   :autosummary-nosignatures:
-
-
-.. autoclass:: Normal
-   :members:
-   :member-order: groupwise
-   :autosummary:
-   :autosummary-nosignatures:
+::: quantflow.utils.distributions.Normal

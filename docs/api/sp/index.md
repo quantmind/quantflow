@@ -1,6 +1,4 @@
-===================
-Stochastic Process
-===================
+# Stochastic Process
 
 This page gives an overview of all Stochastic Processes available in the library.
 

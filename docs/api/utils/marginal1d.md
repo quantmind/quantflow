@@ -1,11 +1,3 @@
-===========
-Marginal1D
-===========
+# Marginal 1D
 
-.. module:: quantflow.utils.marginal
-
-.. autoclass:: Marginal1D
-   :members:
-   :member-order: groupwise
-   :autosummary:
-   :autosummary-nosignatures:
+::: quantflow.utils.marginal.Marginal1D
