@@ -1,0 +1,4 @@
+# EWMA
+
+
+::: quantflow.ta.EWMA

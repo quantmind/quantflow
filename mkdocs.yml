@@ -56,6 +56,7 @@ nav:
           - api/ta/index.md
           - OHLC: api/ta/ohlc.md
           - Paths: api/ta/paths.md
+          - EWMA: api/ta/ewma.md
           - Kalman Filter: api/ta/kalman.md
           - Super Smoother: api/ta/supersmoother.md
       - Utils:
@@ -78,7 +79,8 @@ plugins:
             separate_signature: true
             unwrap_annotated: true
             filters:
-              - "!^_"
+              - "!^_[a-zA-Z0-9_]*"
+              - "!^model_post_init$"
             merge_init_into_class: true
             docstring_section_style: spacy
             signature_crossrefs: true

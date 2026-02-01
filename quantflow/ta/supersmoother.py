@@ -29,7 +29,7 @@ class SuperSmoother(BaseModel):
     \end{align}
     $$
 
-    where $N$ is the period.
+    and $N$ is the period.
 
     ## Example
 
@@ -50,8 +50,11 @@ class SuperSmoother(BaseModel):
     ```
     """
 
-    period: int = Field(default=10, ge=2)
-    """Number of periods for the smoothing filter (must be >= 2)"""
+    period: int = Field(
+        default=10,
+        ge=2,
+        description="Number of periods for the smoothing filter (must be >= 2)",
+    )
     _prev_value: float | None = PrivateAttr(default=None)
     _prev_smooth1: float | None = PrivateAttr(default=None)
     _prev_smooth2: float | None = PrivateAttr(default=None)

@@ -1,5 +1,5 @@
-from typing_extensions import Annotated, Doc
 from pydantic import BaseModel, Field, PrivateAttr
+from typing_extensions import Annotated, Doc
 
 
 class KalmanFilter(BaseModel):
