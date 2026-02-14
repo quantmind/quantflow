@@ -15,10 +15,6 @@ def _(mo):
 @app.cell
 def _():
     import marimo as mo
-
-    app = mo.App(
-        requirements=["quantflow"] 
-    )
     return (mo,)
 
 
@@ -55,11 +51,15 @@ def _(mo):
 def _(data, period):
     from quantflow.ta.supersmoother import SuperSmoother
     from quantflow.ta.ewma import EWMA
+    # create the filters
     smoother = SuperSmoother(period=period.value)
     ewma = EWMA(period=period.value)
-    sm = data[["date", "close"]].copy()
-    sm["supersmoother"] = data["close"].apply(smoother.update)
-    sm["ewma"] = data["close"].apply(ewma.update)
+    ewma_min = EWMA(period=period.value, tau=0.5)
+    # sort dates ascending
+    sm = data[["date", "close"]].copy().sort_values("date", ascending=True).reset_index(drop=True)
+    sm["supersmoother"] = sm["close"].apply(smoother.update)
+    sm["ewma"] = sm["close"].apply(ewma.update)
+    sm["ewma_min"] = sm["close"].apply(ewma_min.update)
     return (sm,)
 
 
@@ -68,7 +68,7 @@ def _(alt, sm):
     # Melt the dataframe to a long format suitable for Altair
     sm_long = sm.melt(
         id_vars=['date'],
-        value_vars=['close', 'supersmoother', "ewma"],
+        value_vars=['close', 'supersmoother', "ewma", "ewma_min"],
         var_name='Signal',
         value_name='Price'
     )
@@ -79,8 +79,8 @@ def _(alt, sm):
         y=alt.Y('Price:Q', title='Price (USD)', scale=alt.Scale(zero=False)),
         color=alt.Color('Signal:N', title='Signal',
                         scale=alt.Scale(
-                            domain=['close', 'supersmoother', 'ewma'],
-                            range=['#4c78a8', '#f58518', '#e45756'])  # Vega-Lite default palette
+                            domain=['close', 'supersmoother', 'ewma', "ewma_min"],
+                            range=['#4c78a8', '#f58518', '#e45756', '#e45756'])  # Vega-Lite default palette
                        ),
         tooltip=[
             alt.Tooltip('date:T', title='Date'),

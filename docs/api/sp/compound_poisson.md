@@ -1,12 +1,3 @@
-===================
-Compound Poisson
-===================
+# Compound Poisson
 
-.. currentmodule:: quantflow.sp.poisson
-
-.. autoclass:: CompoundPoissonProcess
-   :members:
-   :member-order: groupwise
-   :autosummary:
-   :autosummary-nosignatures:
-
+::: quantflow.sp.poisson.CompoundPoissonProcess

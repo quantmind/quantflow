@@ -3,19 +3,27 @@
 EWMA is a simple and efficient smoothing technique that gives more weight to recent
 observations while exponentially decreasing the weight of older observations.
 """
-
+import math
 from typing import Any
 
 from pydantic import BaseModel, Field, PrivateAttr
 
 
+log2 = math.log(2)
+
 class EWMA(BaseModel):
-    """Exponentially Weighted Moving Average filter for time series data.
+    r"""Exponentially Weighted Moving Average filter for time series data.
 
     This implementation uses the standard EWMA formula:
-        S[t] = α * X[t] + (1 - α) * S[t-1]
 
-    where α (alpha) is the smoothing factor derived from the period parameter.
+    $$
+    \begin{equation}
+        s_t = \alpha x_t + (1 - \alpha) s_{t-1}
+    \end{equation}
+    $$
+
+    where $\alpha$ is the smoothing factor derived from the period (half-life)
+    parameter.
 
     ## Example
 
@@ -39,6 +47,12 @@ class EWMA(BaseModel):
         default=10,
         ge=1,
         description="Number of periods for the smoothing filter (must be >= 1)",
+    )
+    tau: float | None = Field(
+        default=None,
+        ge=0,
+        le=1,
+        description="Optional asymmetric smoothing filter",
     )
 
     _count: int = PrivateAttr(default=0)
@@ -66,8 +80,15 @@ class EWMA(BaseModel):
             # Initialize with first value
             self._smoothed = value
         else:
+            alpha = self._alpha
+            if self.tau is not None:
+                # Apply asymmetric smoothing if tau is set
+                if value > self._smoothed:
+                    alpha *= self.tau
+                else:
+                    alpha *= (1.0 - self.tau)
             # Apply EWMA formula: S[t] = α * X[t] + (1 - α) * S[t-1]
-            self._smoothed = self._alpha * value + (1.0 - self._alpha) * self._smoothed
+            self._smoothed += alpha * (value - self._smoothed)
 
         return self._smoothed
 

@@ -1,5 +1,6 @@
 site_name: QuantFlow
 site_url: https://quantmind.github.io/quantflow/
+site_dir: app/docs
 repo_name: quantmind/quantflow
 repo_url: https://github.com/quantmind/quantflow
 theme:
@@ -27,45 +28,6 @@ theme:
     - content.code.copy
   logo: assets/quantflow-logo.png
   favicon: img/favicon.png
-nav:
-  - Home: index.md
-  - API Reference:
-      - api/index.md
-      - Data:
-          - api/data/index.md
-          - Deribit: api/data/deribit.md
-          - FED: api/data/fed.md
-          - FMP: api/data/fmp.md
-          - FRED: api/data/fred.md
-      - Options:
-          - api/options/index.md
-          - Black: api/options/black.md
-          - Calibration: api/options/calibration.md
-          - Pricer: api/options/pricer.md
-          - Vol Surface: api/options/vol_surface.md
-      - Stochastic Processes:
-          - api/sp/index.rst
-          - CIR: api/sp/cir.rst
-          - Compound Poisson: api/sp/compound_poisson.rst
-          - Heston: api/sp/heston.rst
-          - Jump Diffusion: api/sp/jump_diffusion.rst
-          - Ornstein-Uhlenbeck: api/sp/ou.rst
-          - Poisson: api/sp/poisson.rst
-          - Wiener: api/sp/weiner.rst
-      - Technical Analysis:
-          - api/ta/index.md
-          - OHLC: api/ta/ohlc.md
-          - Paths: api/ta/paths.md
-          - EWMA: api/ta/ewma.md
-          - Kalman Filter: api/ta/kalman.md
-          - Super Smoother: api/ta/supersmoother.md
-      - Utils:
-          - api/utils/index.md
-          - Bins: api/utils/bins.md
-          - Distributions: api/utils/distributions.md
-          - Marginal 1D: api/utils/marginal1d.md
-  - Applications:
-      - Supersmoother: applications/supersmoother/index.html
 plugins:
   - search
   - mkdocstrings:
@@ -90,6 +52,47 @@ plugins:
               - griffe_typingdoc
               - griffe_pydantic:
                   schema: false
+nav:
+  - Home: index.md
+  - Getting Started: getting-started.md
+  - Examples:
+      - Gaussian Sampling: examples/gaussian-sampling
+      - Supersmoother: examples/supersmoother
+  - API Reference:
+      - api/index.md
+      - Data:
+          - api/data/index.md
+          - Deribit: api/data/deribit.md
+          - Federal Reserve: api/data/fed.md
+          - Financial Modeling Prep: api/data/fmp.md
+          - FRED: api/data/fred.md
+      - Options:
+          - api/options/index.md
+          - Black-Scholes: api/options/black.md
+          - Calibration: api/options/calibration.md
+          - Pricer: api/options/pricer.md
+          - Volatility Surface: api/options/vol_surface.md
+      - Stochastic Processes:
+          - api/sp/index.md
+          - CIR Process: api/sp/cir.md
+          - Compound Poisson: api/sp/compound_poisson.md
+          - Heston Model: api/sp/heston.md
+          - Jump Diffusion: api/sp/jump_diffusion.md
+          - Ornstein-Uhlenbeck: api/sp/ou.md
+          - Poisson Process: api/sp/poisson.md
+          - Weiner Process: api/sp/weiner.md
+      - Technical Analysis:
+          - api/ta/index.md
+          - EWMA: api/ta/ewma.md
+          - Kalman Filter: api/ta/kalman.md
+          - OHLC: api/ta/ohlc.md
+          - Paths: api/ta/paths.md
+          - Supersmoother: api/ta/supersmoother.md
+      - Utilities:
+          - api/utils/index.md
+          - Bins: api/utils/bins.md
+          - Distributions: api/utils/distributions.md
+          - Marginal 1D: api/utils/marginal1d.md
 markdown_extensions:
   - tables
   - pymdownx.arithmatex:

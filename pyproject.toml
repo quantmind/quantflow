@@ -53,9 +53,11 @@ mkdocs-redirects = "^1.2.1"
 mkdocstrings = { version = "1.0.0", extras = [ "python" ] }
 griffe-pydantic = "^1.1.0"
 griffe-typingdoc = "^0.2.7"
-mkdocs-jupyter = "^0.25.1"
 
 [tool.poetry.group.book]
+optional = true
+
+[tool.poetry.group.ml]
 optional = true
 
 [tool.poetry.group.book.dependencies]
@@ -69,6 +71,9 @@ openai = "^2.16.0"
 plotly = "^6.2.0"
 pydantic-ai-slim = "^1.51.0"
 sympy = "^1.12"
+fastapi = "^0.129.0"
+
+[tool.poetry.group.ml.dependencies]
 torch = { version = "^2.10.0", source = "pytorch" }
 
 [[tool.poetry.source]]
