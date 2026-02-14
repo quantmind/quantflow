@@ -35,7 +35,46 @@ def _(mo):
 
     * [Hurst Exponent for Algorithmic Trading](https://robotwealth.com/demystifying-the-hurst-exponent-part-1/)
     * [Basics of Statistical Mean Reversion Testing](https://www.quantstart.com/articles/Basics-of-Statistical-Mean-Reversion-Testing/)
+
+    ## Estimate from OHLC data
+
+    We want to construct a mechanism to estimate the Hurst exponent via OHLC data because it is widely available from data providers and easily constructed as an online signal during trading.
+
+    In order to evaluate results against known solutions, we consider the Weiner process as generator of timeseries.
+
+    We use the **WeinerProcess** from the stochastic process library and sample one path over a time horizon of 1 (day) with a time step every second.
     """)
+    return
+
+
+@app.cell
+def _():
+    from quantflow.sp.weiner import WeinerProcess
+    p = WeinerProcess(sigma=2.0)
+    paths = p.sample(n=1, time_horizon=1, time_steps=24*60*60)
+    paths.plot(title="A path of Weiner process with sigma=2.0")
+    return (paths,)
+
+
+@app.cell
+def _(mo):
+    mo.md(r"""
+    In order to down-sample the timeseries, we need to convert it into a dataframe with dates as indices.
+    """)
+    return
+
+
+@app.cell
+def _(paths):
+
+    from quantflow.utils.dates import start_of_day
+    df = paths.as_datetime_df(start=start_of_day(), unit="d").reset_index()
+
+    return
+
+
+@app.cell
+def _():
     return
 
 
