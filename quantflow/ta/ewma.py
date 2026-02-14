@@ -53,7 +53,7 @@ class EWMA(BaseModel):
     period: int = Field(
         default=10,
         ge=1,
-        description="Half-life period: number of time steps for weight to decay to 0.5 (must be >= 1)",
+        description="Half-life for the smoothing filter (must be >= 1)",
     )
     tau: float | None = Field(
         default=None,
