@@ -21,9 +21,11 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: install rops
-        run: curl -L https://raw.githubusercontent.com/quantmind/rops/main/dev/install-rops | bash
+        run: |
+          curl -L https://raw.githubusercontent.com/quantmind/rops/main/dev/install-rops | bash
+          echo "$HOME/bin" >> $GITHUB_PATH
       - name: install taplo
-        run: rops tools install taplo
+        run: rops tools update taplo
       - name: Set up Python ${{ matrix.python-version }}
         uses: actions/setup-python@v5
         with:
