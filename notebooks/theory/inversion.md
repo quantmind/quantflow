@@ -5,7 +5,7 @@ jupytext:
     extension: .md
     format_name: myst
     format_version: 0.13
-    jupytext_version: 1.16.6
+    jupytext_version: 1.19.1
 kernelspec:
   display_name: Python 3 (ipykernel)
   language: python
@@ -104,6 +104,8 @@ plot.plot_marginal_pdf(m, 128*8, use_fft=True, max_frequency=8*20)
 +++
 
 ## FRFT
+
+The Fractional FFT (FRFT) is another algorithm that can be used to invert the characteristic function.
 Compared to the FFT, this method relaxes the constraint $\zeta=2\pi/N$ so that frequency domain and space domains can be discretized independently. We use the methodology from {cite:p}`frft`
 
 \begin{align}

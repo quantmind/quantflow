@@ -1,0 +1,17 @@
+include = [ "pyproject.toml", "taplo.toml" ]
+
+[formatting]
+allowed_blank_lines = 1
+array_auto_collapse = false
+array_auto_expand = true
+compact_arrays = false
+indent_string = "    "
+trailing_newline = true
+
+[[rule]]
+formatting = { reorder_arrays = true, reorder_keys = true }
+include = [ "pyproject.toml" ]
+keys = [
+    "tool.poetry.group.dev.dependencies",
+    "tool.poetry.group.book.dependencies",
+]

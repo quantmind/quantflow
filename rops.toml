@@ -1,0 +1,9 @@
+[project]
+
+[git]
+default_branch = "main"
+
+[docker]
+image_branch_tag_prefix = "branch"
+image_repo_url = "quantmind/quantflow"
+files_path = "dev"

@@ -1,6 +1,6 @@
 import os
 from dataclasses import dataclass, field
-from datetime import date, timedelta
+from datetime import date
 from decimal import Decimal
 from enum import StrEnum
 from typing import Any, Iterator, cast
@@ -9,19 +9,15 @@ import inflection
 import pandas as pd
 from fluid.utils.data import compact_dict
 from fluid.utils.http_client import AioHttpClient
+from typing_extensions import Annotated, Doc
 
-from quantflow.utils.dates import isoformat
+from quantflow.utils.dates import to_date_iso
 from quantflow.utils.numbers import to_decimal
 
 
 @dataclass
 class FMP(AioHttpClient):
-    """Financial Modeling Prep API client
-
-    Fetch market and financial data from `Financial Modeling Prep`_.
-
-    .. _Financial Modeling Prep: https://site.financialmodelingprep.com/developer/docs/stable
-    """
+    """Financial Modeling Prep API client"""
 
     url: str = "https://financialmodelingprep.com/stable"
     key: str = field(default_factory=lambda: os.environ.get("FMP_API_KEY", ""))
@@ -52,11 +48,19 @@ class FMP(AioHttpClient):
         across global exchanges"""
         return await self.get_path("index-list", **kw)
 
-    async def profile(self, *tickers: str, **kw: Any) -> list[dict]:
+    async def profile(
+        self,
+        *tickers: Annotated[str, Doc("One or more ticker symbols")],
+        **kw: Any,
+    ) -> list[dict]:
         """Company profile - minute"""
         return await self.get_path(f"profile/{self.join(*tickers)}", **kw)
 
-    async def quote(self, *tickers: str, **kw: Any) -> list[dict]:
+    async def quote(
+        self,
+        *tickers: Annotated[str, Doc("One or more ticker symbols")],
+        **kw: Any,
+    ) -> list[dict]:
         """Company quote - real time"""
         return await self.get_path(f"quote/{self.join(*tickers)}", **kw)
 
@@ -64,25 +68,35 @@ class FMP(AioHttpClient):
 
     async def dividends(
         self,
-        from_date: str | date = "",
-        to_date: str | date = "",
+        from_date: Annotated[
+            str | date | None, Doc("Start date for dividend calendar")
+        ] = None,
+        to_date: Annotated[
+            str | date | None, Doc("End date for dividend calendar")
+        ] = None,
         **kw: Any,
     ) -> list[dict]:
         """Dividend calendar"""
-        if not from_date:
-            from_date = date.today()
-        if not to_date:
-            to_date = date.today() + timedelta(days=7)
-        params = {"from": isoformat(from_date), "to": isoformat(to_date)}
+        params = compact_dict(
+            {"from": to_date_iso(from_date), "to": to_date_iso(to_date)},
+        )
         return await self.get_path("dividends-calendar", params=params, **kw)
 
     # Executives
 
-    async def executives(self, ticker: str, **kw: Any) -> list[dict]:
+    async def executives(
+        self,
+        ticker: Annotated[str, Doc("Ticker symbol")],
+        **kw: Any,
+    ) -> list[dict]:
         """Company quote - real time"""
         return await self.get_path(f"key-executives/{ticker}", **kw)
 
-    async def insider_trading(self, ticker: str, **kw: Any) -> list[dict]:
+    async def insider_trading(
+        self,
+        ticker: Annotated[str, Doc("Ticker symbol")],
+        **kw: Any,
+    ) -> list[dict]:
         """Company Insider Trading"""
         return await self.get_path(
             "insider-trading", **self.params(dict(symbol=ticker), **kw)
@@ -90,18 +104,28 @@ class FMP(AioHttpClient):
 
     # Rating
 
-    async def rating(self, ticker: str, **kw: Any) -> list[dict]:
+    async def rating(
+        self,
+        ticker: Annotated[str, Doc("Ticker symbol")],
+        **kw: Any,
+    ) -> list[dict]:
         """Company rating - real time"""
         return await self.get_path(f"rating/{ticker}", **kw)
 
-    async def etf_holders(self, ticker: str, **kw: Any) -> list[dict]:
+    async def etf_holders(
+        self,
+        ticker: Annotated[str, Doc("Ticker symbol")],
+        **kw: Any,
+    ) -> list[dict]:
         return await self.get_path(f"etf-holder/{ticker}", **kw)
 
     async def ratios(
         self,
-        ticker: str,
-        period: str | None = None,
-        limit: int | None = None,
+        ticker: Annotated[str, Doc("Ticker symbol")],
+        period: Annotated[
+            str | None, Doc("Reporting period (e.g., 'annual', 'quarter')")
+        ] = None,
+        limit: Annotated[int | None, Doc("Maximum number of results")] = None,
         **kw: Any,
     ) -> list[dict]:
         """Company financial ratios - if period not provided it is for
@@ -112,13 +136,21 @@ class FMP(AioHttpClient):
             **self.params(compact_dict(period=period, limit=limit), **kw),
         )
 
-    async def peers(self, *tickers: str, **kw: Any) -> list[dict]:
+    async def peers(
+        self,
+        *tickers: Annotated[str, Doc("One or more ticker symbols")],
+        **kw: Any,
+    ) -> list[dict]:
         """Stock peers based on sector, exchange and market cap"""
         kwargs = self.params(**kw)
         kwargs["params"]["symbol"] = self.join(*tickers)
         return await self.get_path("stock_peers", **kwargs)
 
-    async def news(self, *tickers: str, **kw: Any) -> list[dict]:
+    async def news(
+        self,
+        *tickers: Annotated[str, Doc("One or more ticker symbols")],
+        **kw: Any,
+    ) -> list[dict]:
         """Company quote - real time"""
         kwargs = self.params(**kw)
         if tickers:
@@ -127,11 +159,11 @@ class FMP(AioHttpClient):
 
     async def search(
         self,
-        query: str,
+        query: Annotated[str, Doc("Search query string")],
         *,
-        exchange: str | None = None,
-        limit: int | None = None,
-        symbol: bool = False,
+        exchange: Annotated[str | None, Doc("Filter by exchange")] = None,
+        limit: Annotated[int | None, Doc("Maximum number of results")] = None,
+        symbol: Annotated[bool, Doc("Search by symbol instead of name")] = False,
         **kw: Any,
     ) -> list[dict]:
         path = "search-symbol" if symbol else "search-name"
@@ -144,10 +176,20 @@ class FMP(AioHttpClient):
 
     async def prices(
         self,
-        symbol: str,
-        frequency: str = "",
-        to_date: bool = False,
-        **kw: Any,
+        symbol: Annotated[str, Doc("Ticker symbol")],
+        *,
+        frequency: Annotated[
+            str | None, Doc("Price frequency (e.g., '1min', '5min', 'daily')")
+        ] = None,
+        from_date: Annotated[
+            str | date | None, Doc("From date for historical prices")
+        ] = None,
+        to_date: Annotated[
+            str | date | None, Doc("To date for historical prices")
+        ] = None,
+        convert_to_date: Annotated[
+            bool, Doc("Convert date column to datetime type")
+        ] = False,
     ) -> pd.DataFrame:
         """Historical prices, daily if frequency is not provided"""
         path = (
@@ -155,12 +197,18 @@ class FMP(AioHttpClient):
             if not frequency
             else f"historical-chart/{frequency}"
         )
-        kw.update(params=dict(symbol=symbol))
-        data = await self.get_path(path, **kw)
+        data = await self.get_path(
+            path,
+            params=compact_dict(
+                {"from": to_date_iso(from_date), "to": to_date_iso(to_date)},
+                frequency=frequency,
+                symbol=symbol,
+            ),
+        )
         if isinstance(data, dict):
             data = data.get("historical", [])
         df = pd.DataFrame(data)
-        if to_date and "date" in df.columns:
+        if convert_to_date and "date" in df.columns:
             df["date"] = pd.to_datetime(df["date"])
         return df
 
@@ -168,10 +216,16 @@ class FMP(AioHttpClient):
     async def sector_performance(
         self,
         *,
-        from_date: date | None = None,
-        to_date: date | None = None,
-        summary: bool = False,
-        params: dict | None = None,
+        from_date: Annotated[
+            date | None, Doc("Start date for historical sector performance")
+        ] = None,
+        to_date: Annotated[
+            date | None, Doc("End date for historical sector performance")
+        ] = None,
+        summary: Annotated[
+            bool, Doc("Return summary instead of daily performance")
+        ] = False,
+        params: Annotated[dict | None, Doc("Additional query parameters")] = None,
         **kw: Any,
     ) -> dict | list[dict]:
         if not from_date:
@@ -213,17 +267,28 @@ class FMP(AioHttpClient):
         return await self.get_path("symbol/available-cryptocurrencies")
 
     # Internals
-    async def get_path(self, path: str, **kw: Any) -> list[dict]:
+    async def get_path(
+        self,
+        path: Annotated[str, Doc("API endpoint path")],
+        **kw: Any,
+    ) -> list[dict]:
         result = await self.get(f"{self.url}/{path}", **self.params(**kw))
         return cast(list[dict], result)
 
-    def join(self, *tickers: str) -> str:
+    def join(
+        self,
+        *tickers: Annotated[str, Doc("One or more ticker symbols")],
+    ) -> str:
         value = ",".join(tickers)
         if not value:
             raise TypeError("at least one ticker must be provided")
         return value
 
-    def params(self, params: dict | None = None, **kw: Any) -> dict:
+    def params(
+        self,
+        params: Annotated[dict | None, Doc("Query parameters dictionary")] = None,
+        **kw: Any,
+    ) -> dict:
         params = params.copy() if params is not None else {}
         params["apikey"] = self.key
         return {"params": params, **kw}

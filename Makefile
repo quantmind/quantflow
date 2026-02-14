@@ -20,6 +20,13 @@ lint-check:			## Lint check only
 install-dev:			## Install development dependencies
 	@./dev/install
 
+.PHONY: marimo
+marimo:				## Run marimo for editing notebooks
+	@./dev/marimo edit
+
+.PHONY: marimo-export
+marimo-export:				## Run marimo for editing notebooks
+	@./dev/marimo export html-wasm -f --show-code notebooks/supersmoother.py -o docs/applications/supersmoother
 
 .PHONY: notebook
 notebook:			## Run Jupyter notebook server
@@ -44,9 +51,17 @@ nbsync:				## Sync python myst notebooks to .ipynb files - needed for vs noteboo
 sphinx-config:			## Build sphinx config
 	poetry run jupyter-book config sphinx notebooks
 
+.PHONY: docs
+docs:				## build documentation
+	@cp docs/index.md readme.md
+	@poetry run mkdocs build
+
+.PHONY: docs-serve
+docs-serve:			## serve documentation
+	@poetry run mkdocs serve --livereload --watch quantflow --watch docs
 
 .PHONY: sphinx
-sphinx:
+sphinx:				## Build sphinx docs
 	poetry run sphinx-build notebooks path/to/book/_build/html -b html
 
 

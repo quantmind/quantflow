@@ -12,6 +12,7 @@ jobs:
     runs-on: ubuntu-latest
     env:
       PYTHON_ENV: ci
+      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       PYPI_TOKEN: ${{ secrets.PYPI_TOKEN }}
       FMP_API_KEY: ${{ secrets.FMP_API_KEY }}
     strategy:
@@ -20,6 +21,12 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4
+      - name: install rops
+        run: |
+          curl -L https://raw.githubusercontent.com/quantmind/rops/main/dev/install-rops | bash
+          echo "$HOME/bin" >> $GITHUB_PATH
+      - name: install taplo
+        run: rops tools update taplo
       - name: Set up Python ${{ matrix.python-version }}
         uses: actions/setup-python@v5
         with:
@@ -37,17 +44,29 @@ jobs:
       - name: run tests
         run: make tests
       - name: upload coverage reports to codecov
-        if: matrix.python-version == '3.13'
+        if: matrix.python-version == '3.14'
         uses: codecov/codecov-action@v3
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
           files: ./build/coverage.xml
-      - name: build book
-        if: ${{ matrix.python-version == '3.13' }}
-        run: make book
-      - name: publish book
-        if: ${{ matrix.python-version == '3.13' }}
-        run: make publish-book
       - name: publish
-        if: ${{ matrix.python-version == '3.13' && github.event.head_commit.message == 'release' }}
+        if: ${{ matrix.python-version == '3.14' && github.event.head_commit.message == 'release' }}
         run: make publish
+
+  deploy:
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main'
+    needs:
+      - build
+    env:
+      PYTHON_ENV: ci
+      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      FMP_API_KEY: ${{ secrets.FMP_API_KEY }}
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+      - name: install rops
+        run: |
+          curl -L https://raw.githubusercontent.com/quantmind/rops/main/dev/install-rops | bash
+          echo "$HOME/bin" >> $GITHUB_PATH

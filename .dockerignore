@@ -1,0 +1,16 @@
+dist/
+build/
+
+__marimo__
+__pycache__
+*.pyc
+*.pyo
+*.pyd
+.data
+.env
+.venv
+.mypy_cache
+.ruff_cache
+.pytest_cache
+.codebuild
+.gihub

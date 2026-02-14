@@ -24,7 +24,7 @@ def test_client(fmp: FMP) -> None:
 
 @pytest.mark.skipif(skip_fmp, reason="No FMP API key found")
 async def test_historical(fmp: FMP) -> None:
-    df = await fmp.prices("BTCUSD", fmp.freq.one_hour)
+    df = await fmp.prices("BTCUSD", frequency=fmp.freq.one_hour)
     assert df["close"] is not None
 
 

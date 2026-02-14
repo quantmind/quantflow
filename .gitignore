@@ -21,6 +21,7 @@ htmlcov
 .eggs
 *.egg-info
 __pycache__
+__marimo__
 build
 dist
 .venv
@@ -33,3 +34,6 @@ dist
 *.ipynb
 .ipynb_checkpoints
 _build
+
+# builds
+app/docs
