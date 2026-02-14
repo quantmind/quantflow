@@ -64,6 +64,7 @@ optional = true
 altair = "^6.0.0"
 autodocsumm = "^0.2.14"
 duckdb = "^1.4.4"
+fastapi = "^0.129.0"
 google-genai = "^1.61.0"
 marimo = "^0.19.7"
 mcp = "^1.26.0"
@@ -71,7 +72,6 @@ openai = "^2.16.0"
 plotly = "^6.2.0"
 pydantic-ai-slim = "^1.51.0"
 sympy = "^1.12"
-fastapi = "^0.129.0"
 
 [tool.poetry.group.ml.dependencies]
 torch = { version = "^2.10.0", source = "pytorch" }
