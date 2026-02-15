@@ -26,7 +26,7 @@ jobs:
           curl -L https://raw.githubusercontent.com/quantmind/rops/main/dev/install-rops | bash
           echo "$HOME/bin" >> $GITHUB_PATH
       - name: build amd64
-        run: DOCKER_BUILDKIT=0 docker build . -f dev/quantflow.dockerfile -t ghcr.io/quantmind/${{ inputs.image-name }}:${{ github.sha }}-amd64
+        run: DOCKER_BUILDKIT=0 docker build . -f dev/quantflow.dockerfile -t ghcr.io/quantmind/${{ inputs.image-name }}:main-${{ github.sha }}-amd64
       - name: push amd64
         run: docker push ghcr.io/quantmind/${{ inputs.image-name }}:main-${{ github.sha }}-amd64
 

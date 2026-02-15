@@ -78,7 +78,7 @@ def _(paths):
         title="Weiner Process Path",
         labels={"value": "Value", "variable": "Path", df.columns[0]: "Date"},
     )
-    return
+    return df, plot
 
 
 @app.cell
@@ -95,7 +95,6 @@ def _(mo):
 @app.cell
 def _(paths):
     float(paths.paths_std(scaled=True)[0])
-
     return
 
 
@@ -136,6 +135,78 @@ def _(mo):
     See [molnar](/bibliography/#molnar) for a detailed overview of the properties of range-based estimators.
 
     For this we build an OHLC estimator as template and use it to create OHLC estimators for different periods.
+    """)
+    return
+
+
+@app.cell
+def _(df):
+    import pandas as pd
+    import polars as pl
+    import math
+    from quantflow.ta.ohlc import OHLC
+    template = OHLC(
+        serie="0",
+        period="10m",
+        rogers_satchell_variance=True,
+        parkinson_variance=True,
+        garman_klass_variance=True
+    )
+    seconds_in_day = 24*60*60
+
+    def rstd(pdf: pl.Series, range_seconds: float) -> float:
+        """Calculate the standard deviation from a range-based variance estimator"""
+        variance = pdf.mean()
+        # scale the variance by the number of seconds in the period
+        variance = seconds_in_day * variance / range_seconds
+        return math.sqrt(variance)
+
+    results = []
+    for period in ("10s", "20s", "30s", "1m", "2m", "3m", "5m", "10m", "30m"):
+        ohlc = template.model_copy(update=dict(period=period))
+        rf = ohlc(df)
+        ts = pd.to_timedelta(period).to_pytimedelta().total_seconds()
+        data = dict(period=period)
+        for name in ("pk", "gk", "rs"):
+            estimator = rf[f"0_{name}"]
+            data[name] = rstd(estimator, ts)
+        results.append(data)
+    vdf = pd.DataFrame(results).set_index("period")
+    return (vdf,)
+
+
+@app.cell
+def _(plot, vdf):
+    # Create a scatter plot comparing the three estimators
+    # We use the dataframe index (period) for the x-axis and the columns for the y-axis
+    fig2 = plot.plot_scatter(
+        vdf,
+        x=vdf.index,
+        y=vdf.columns,
+        title="Range-based Volatility Estimators vs Sampling Period",
+        labels={
+            "period": "Sampling Period",
+            "value": "Estimated Volatility (Annualized)",
+            "variable": "Estimator"
+        },
+    )
+
+    # Increase marker size and add opacity for better visibility
+    fig2.update_traces(marker=dict(size=10, opacity=0.8))
+
+    # Add hover lines to easily compare values at the same period
+    fig2.update_layout(hovermode="x unified")
+
+    fig2
+    return
+
+
+@app.cell
+def _(mo):
+    mo.md(r"""
+    These numbers are different from the realized variance because they are based on the range of the prices, not on the actual prices. The realized variance is a more direct measure of the volatility of the process, while the range-based estimators are more robust to market microstructure noise.
+
+    The Parkinson estimator is always higher than both the Garman-Klass and Rogers-Satchell estimators, the reason is due to the use of the high and low prices only, which are always further apart than the open and close prices. The GK and RS estimators are similar and are more accurate than the Parkinson estimator, especially for greater periods.
     """)
     return
 

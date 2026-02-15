@@ -29,6 +29,11 @@ def plot_lines(data: Any, template: str = PLOTLY_THEME, **kwargs: Any) -> Any:
     return px.line(data, template=template, **kwargs)
 
 
+def plot_scatter(data: Any, template: str = PLOTLY_THEME, **kwargs: Any) -> Any:
+    check_plotly()
+    return px.scatter(data, template=template, **kwargs)
+
+
 def plot_marginal_pdf(
     m: Marginal1D,
     n: int | None = None,

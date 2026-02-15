@@ -8,7 +8,7 @@ APP_PATH = Path(__file__).parent
 
 def crate_app() -> FastAPI:
     # Create a marimo asgi app
-    server = marimo.create_asgi_app()
+    server = marimo.create_asgi_app(include_code=True)
     for path in APP_PATH.glob("*.py"):
         if path.name.startswith("_"):
             continue
