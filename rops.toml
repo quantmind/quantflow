@@ -12,3 +12,4 @@ files_path = "dev"
 envs = { prod = "metablock-eks2" }
 vars = "metaplatform"
 config = "dev/charts.yaml"
+default_namespace = "fluid"

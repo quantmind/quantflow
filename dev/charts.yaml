@@ -1,5 +1,4 @@
-app:
-  alias: quantflow-app
+quantflow:
   chart: ./dev/helm
   namespace: fluid
   append-namespace: false

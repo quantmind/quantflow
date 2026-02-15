@@ -217,7 +217,7 @@ def _(mo):
 
 
 @app.cell
-def _(OHLC, pd, weiner_df):
+def _(OHLC, pd):
     from typing import Sequence
     import numpy as np
     from collections import defaultdict
@@ -244,7 +244,7 @@ def _(OHLC, pd, weiner_df):
             estimators = defaultdict(list)
             for period in periods:
                 ohlc = template.model_copy(update=dict(period=period))
-                rf = ohlc(weiner_df)
+                rf = ohlc(df)
                 ts = pd.to_timedelta(period).to_pytimedelta().total_seconds()
                 time_range.append(ts)
                 for name in estimator_names:
@@ -277,8 +277,8 @@ def _(pd, regenerate_vasicek, start_of_day):
     from quantflow.sp.ou import Vasicek
     regenerate_vasicek
     p = Vasicek(kappa=2)
-    paths = {f"kappa={k}": Vasicek(kappa=k).sample(n=1, time_horizon=1, time_steps=24*60*6) for k in (1.0, 10.0, 50.0, 100.0, 500.0)}
-    pdf = pd.DataFrame({k: p.path(0) for k, p in paths.items()}, index=paths["kappa=1.0"].dates(start=start_of_day()))
+    paths = {f"kappa={k}": Vasicek(kappa=float(k)).sample(n=1, time_horizon=1, time_steps=24*60*6) for k in (1, 10, 50, 100, 500)}
+    pdf = pd.DataFrame({k: p.path(0) for k, p in paths.items()}, index=paths["kappa=1"].dates(start=start_of_day()))
     pdf.plot()
     return paths, pdf
 
@@ -293,7 +293,7 @@ def _(mo):
 @app.cell
 def _(mo):
     mo.md(r"""
-    We can now estimate the Hurst exponent from the realized variance. As we can see the Hurst exponent decreases as we increase the mean reversion parameter.
+    ~We can now estimate the Hurst exponent from the realized variance. As we can see the Hurst exponent decreases as we increase the mean reversion parameter.
     """)
     return
 
@@ -315,12 +315,6 @@ def _(mo):
 @app.cell
 def _(ohlc_hurst_exponent, paths, pdf):
     ohlc_hurst_exponent(pdf.reset_index(), list(paths), periods=("10m", "20m", "30m", "1h"))
-    return
-
-
-@app.cell
-def _(pdf):
-    pdf.columns
     return
 
 

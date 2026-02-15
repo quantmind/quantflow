@@ -1,5 +1,5 @@
 html: false
-upstream: http://quantflow-{{ block }}.fluid.svc
+upstream: http://quantflow-app.fluid.svc
 tags:
   - docs
 routes:

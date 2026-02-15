@@ -50,6 +50,12 @@ jobs:
           --env ${K8S_ENV} \
           --set image.tag=${IMAGE_TAG} \
           --wait
+      - name: Update ingress configuration
+        uses: quantmind/metablock-ingress@v3
+        with:
+          token: ${{ secrets.METABLOCK_API_TOKEN }}
+          space: quantmind
+          path: dev/blocks
       - name: Update deployment status (success)
         if: success()
         uses: chrnorm/deployment-status@v2

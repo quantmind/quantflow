@@ -24,10 +24,6 @@ install-dev:			## Install development dependencies
 marimo:				## Run marimo for editing notebooks
 	@./dev/marimo edit
 
-.PHONY: marimo-export
-marimo-export:				## Run marimo for editing notebooks
-	@./dev/marimo export html-wasm -f --show-code notebooks/supersmoother.py -o docs/applications/supersmoother
-
 .PHONY: notebook
 notebook:			## Run Jupyter notebook server
 	@poetry run ./dev/start-jupyter 9095
