@@ -12,6 +12,7 @@ dependencies = [
     "ccy>=1.7.1",
     "python-dotenv>=1.0.1",
     "polars[pandas,pyarrow]>=1.11.0",
+    "statsmodels (>=0.14.6,<0.15.0)",
 ]
 
 [project.urls]

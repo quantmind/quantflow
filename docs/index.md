@@ -25,7 +25,18 @@ pip install quantflow
 * [quantflow.ta](https://github.com/quantmind/quantflow/tree/main/quantflow/ta) timeseries analysis tools
 * [quantflow.utils](https://github.com/quantmind/quantflow/tree/main/quantflow/utils) utilities and helpers
 
+## Optional dependencies
 
+Quantflow comes with two optional dependencies:
+
+* `data` for data retrieval, to install it use
+  ```
+  pip install quantflow[data]
+  ```
+* `cli` for command line interface, to install it use
+  ```
+  pip install quantflow[data,cli]
+  ```
 
 ## Command line tools
 

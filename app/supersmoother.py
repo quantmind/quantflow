@@ -4,18 +4,20 @@ __generated_with = "0.19.7"
 app = marimo.App(width="medium")
 
 
+@app.cell
+def _():
+    import marimo as mo
+    from app.utils import nav_menu
+    nav_menu()
+    return (mo,)
+
+
 @app.cell(hide_code=True)
 def _(mo):
     mo.md(r"""
     # Supermsoother & EWMA
     """)
     return
-
-
-@app.cell
-def _():
-    import marimo as mo
-    return (mo,)
 
 
 @app.cell
@@ -54,21 +56,19 @@ def _(data, period):
     # create the filters
     smoother = SuperSmoother(period=period.value)
     ewma = EWMA(period=period.value)
-    ewma_min = EWMA(period=period.value, tau=0.5)
     # sort dates ascending
     sm = data[["date", "close"]].copy().sort_values("date", ascending=True).reset_index(drop=True)
     sm["supersmoother"] = sm["close"].apply(smoother.update)
     sm["ewma"] = sm["close"].apply(ewma.update)
-    sm["ewma_min"] = sm["close"].apply(ewma_min.update)
     return (sm,)
 
 
-@app.cell(hide_code=True)
+@app.cell
 def _(alt, sm):
     # Melt the dataframe to a long format suitable for Altair
     sm_long = sm.melt(
         id_vars=['date'],
-        value_vars=['close', 'supersmoother', "ewma", "ewma_min"],
+        value_vars=['close', 'supersmoother', "ewma"],
         var_name='Signal',
         value_name='Price'
     )
@@ -79,8 +79,8 @@ def _(alt, sm):
         y=alt.Y('Price:Q', title='Price (USD)', scale=alt.Scale(zero=False)),
         color=alt.Color('Signal:N', title='Signal',
                         scale=alt.Scale(
-                            domain=['close', 'supersmoother', 'ewma', "ewma_min"],
-                            range=['#4c78a8', '#f58518', '#e45756', '#e45756'])  # Vega-Lite default palette
+                            domain=['close', 'supersmoother', 'ewma'],
+                            range=['#4c78a8', '#f58518', '#e45756'])  # Vega-Lite default palette
                        ),
         tooltip=[
             alt.Tooltip('date:T', title='Date'),

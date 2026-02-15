@@ -21,35 +21,31 @@ class CIR(IntensityProcess):
     r"""The Cox–Ingersoll–Ross (CIR) model is a mean-reverting square-root diffusion
     process.
 
-    The process :math:`x_t` that satisfies the following stochastic
-    differential equation with Wiener process :math:`w_t`:
+    $$
+    dx_t = \kappa (\theta - x_t) dt + \sigma \sqrt{x_t}dw_t
+    $$
 
-    .. math::
-        dx_t = \kappa (\theta - x_t) dt + \sigma \sqrt{x_t}dw_t
+    Where $w_t$ is a Wiener process. This process is guaranteed to be positive if
 
-    This process is guaranteed to be positive if
-
-    .. math::
-        2 \kappa \theta >= \sigma^2
-
-    :param rate: The initial value of the process :math:`x_0`
-    :param kappa: Mean reversion speed :math:`\kappa`
-    :param sigma: Volatility parameter :math:`\sigma`
-    :param theta: Long term mean rate :math:`\theta`
+    $$
+    2 \kappa \theta >= \sigma^2
+    $$
     """
 
-    sigma: float = Field(default=1.0, gt=0, description="Volatility")
-    theta: float = Field(default=1.0, gt=0, description="Mean rate")
+    sigma: float = Field(default=1.0, gt=0, description=r"Volatility $\sigma$")
+    theta: float = Field(default=1.0, gt=0, description=r"Mean rate $\theta$")
     sample_algo: SamplingAlgorithm = Field(
         default=SamplingAlgorithm.implicit, description="Sampling algorithm"
     )
 
     @property
     def is_positive(self) -> bool:
+        """Check if the process is guaranteed to be positive."""
         return self.kappa * self.theta >= 0.5 * self.sigma2
 
     @property
     def sigma2(self) -> float:
+        """The square of the volatility parameter, used in various calculations."""
         return self.sigma * self.sigma
 
     def sample(

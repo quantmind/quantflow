@@ -16,19 +16,16 @@ from .weiner import WeinerProcess
 
 
 class Vasicek(IntensityProcess):
-    r"""Gaussian OU process, also know as the `Vasiceck model`_.
+    r"""Gaussian OU process, also know as the
+    [Vasiceck model](https://en.wikipedia.org/wiki/Vasicek_model)
 
     Historically, the Vasicek model was used to model the short rate, but it can be
     used to model any process that reverts to a mean level at a rate proportional to
     the difference between the current level and the mean level.
 
-    .. math::
-        dx_t = \kappa (\theta - x_t) dt + \sigma dw_t
-
-    It derives from :class:`.IntensityProcess`, although, it is not strictly
-    an intensity process since it is not positive.
-
-    .. _`Vasiceck model`: https://en.wikipedia.org/wiki/Vasicek_model
+    $$
+    dx_t = \kappa (\theta - x_t) dt + \sigma dw_t
+    $$
     """
 
     bdlp: WeinerProcess = Field(

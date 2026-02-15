@@ -5,7 +5,7 @@ observations while exponentially decreasing the weight of older observations.
 """
 
 import math
-from typing import Any
+from typing import Any, Self
 
 from pydantic import BaseModel, Field, PrivateAttr
 
@@ -23,14 +23,17 @@ class EWMA(BaseModel):
     \end{equation}
     $$
 
-    where $\alpha$ is the smoothing factor derived from the period (half-life)
-    parameter using the formula:
+    where $\alpha$ is the smoothing factor derived from the period parameter.
+    To match SuperSmoother characteristics, the formula is:
 
     $$
     \begin{equation}
-        \alpha = 1 - e^{-\ln(2) / \text{period}}
+        \alpha = \frac{2}{\text{period} + 1}
     \end{equation}
     $$
+
+    This provides frequency response similar to a simple moving average and
+    approximates the smoothing characteristics of higher-order filters.
 
     ## Example
 
@@ -53,7 +56,7 @@ class EWMA(BaseModel):
     period: int = Field(
         default=10,
         ge=1,
-        description="Half-life for the smoothing filter (must be >= 1)",
+        description="Characteristic period for the smoothing filter (must be >= 1)",
     )
     tau: float | None = Field(
         default=None,
@@ -66,11 +69,29 @@ class EWMA(BaseModel):
     _smoothed: float = PrivateAttr(default=0.0)
     _alpha: float = PrivateAttr(default=0.0)
 
+    @classmethod
+    def from_half_life(cls, half_life: float, tau: float | None = None) -> Self:
+        r"""Create an EWMA using half-life semantics instead of period.
+
+        The half-life represents the time for weight to decay to 0.5.
+
+        $$
+        \alpha = 1 - \exp\left(-\frac{\ln(2)}{\text{half life}}\right)
+        $$
+        """
+        # Calculate equivalent period that produces the desired half-life behavior
+        # From: alpha = 1 - exp(-ln(2) / half_life)
+        # And: alpha = 2 / (period + 1)
+        # We solve: 2 / (period + 1) = 1 - exp(-ln(2) / half_life)
+        alpha = 1.0 - math.exp(-log2 / half_life)
+        period = int(2.0 / alpha - 1)
+        return cls(period=max(1, period), tau=tau)
+
     def model_post_init(self, __context: Any) -> None:
-        # Convert half-life to alpha using the formula:
-        # alpha = 1 - exp(-log(2) / half_life)
-        # This ensures that after 'period' time steps, the weight is 0.5
-        self._alpha = 1.0 - math.exp(-log2 / self.period)
+        # Convert period to alpha using the standard formula:
+        # alpha = 2 / (period + 1)
+        # This matches the smoothing characteristics of an SMA with the same period
+        self._alpha = 2.0 / (self.period + 1)
 
     def update(self, value: float) -> float:
         """Update the filter with a new value and return the smoothed result.
