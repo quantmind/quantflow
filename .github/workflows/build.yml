@@ -53,22 +53,12 @@ jobs:
         if: ${{ matrix.python-version == '3.14' && github.event.head_commit.message == 'release' }}
         run: make publish
 
-  deploy:
-    runs-on: ubuntu-latest
+  image:
     if: github.ref == 'refs/heads/main'
     needs:
       - build
-    env:
-      PYTHON_ENV: ci
+    uses: ./.github/workflows/docker-multiarch.yml
+    with:
+      image-name: quantflow
+    secrets:
       GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      FMP_API_KEY: ${{ secrets.FMP_API_KEY }}
-
-    steps:
-      - name: Checkout repo
-        uses: actions/checkout@v4
-      - name: install rops
-        run: |
-          curl -L https://raw.githubusercontent.com/quantmind/rops/main/dev/install-rops | bash
-          echo "$HOME/bin" >> $GITHUB_PATH
-      - name: build image
-        run: rops docker build quantflow
