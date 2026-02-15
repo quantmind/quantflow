@@ -71,4 +71,4 @@ jobs:
           curl -L https://raw.githubusercontent.com/quantmind/rops/main/dev/install-rops | bash
           echo "$HOME/bin" >> $GITHUB_PATH
       - name: create manifest
-        run: docker manifest create ${{ inputs.image-name }}
+        run: rops docker manifest ${{ inputs.image-name }}

@@ -122,6 +122,25 @@ def _(mo):
 
 
 @app.cell
+def _(mo):
+    mo.md(r"""
+    ### Range-based Variance Estimators
+
+    We now turn our attention to range-based variance estimators. These estimators depends on OHLC timeseries, which are widely available from data providers such as [FMP](https://site.financialmodelingprep.com/).
+    To analyze range-based variance estimators, we use he **quantflow.ta.OHLC** tool which allows to down-sample a timeserie to OHLC series and estimate variance with three different estimators
+
+    * **Parkinson** (1980)
+    * **Garman & Klass** (1980)
+    * **Rogers & Satchell** (1991)
+
+    See {cite:p}`molnar` for a detailed overview of the properties of range-based estimators.
+
+    For this we build an OHLC estimator as template and use it to create OHLC estimators for different periods.
+    """)
+    return
+
+
+@app.cell
 def _():
     return
 
