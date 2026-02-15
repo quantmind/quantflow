@@ -50,10 +50,10 @@ def _(mo):
 @app.cell
 def _():
     from quantflow.sp.weiner import WeinerProcess
-    p = WeinerProcess(sigma=2.0)
-    paths = p.sample(n=1, time_horizon=1, time_steps=24*60*60)
-    paths.plot(title="A path of Weiner process with sigma=2.0")
-    return (paths,)
+    weiner = WeinerProcess(sigma=2.0)
+    weiner_paths = weiner.sample(n=1, time_horizon=1, time_steps=24*60*60)
+    weiner_paths.plot(title="A path of Weiner process with sigma=2.0")
+    return (weiner_paths,)
 
 
 @app.cell
@@ -65,10 +65,10 @@ def _(mo):
 
 
 @app.cell
-def _(paths):
+def _(weiner_paths):
 
     from quantflow.utils.dates import start_of_day
-    df = paths.as_datetime_df(start=start_of_day(), unit="d").reset_index()
+    df = weiner_paths.as_datetime_df(start=start_of_day(), unit="d").reset_index()
     from quantflow.utils import plot
 
     plot.plot_lines(
@@ -78,7 +78,7 @@ def _(paths):
         title="Weiner Process Path",
         labels={"value": "Value", "variable": "Path", df.columns[0]: "Date"},
     )
-    return df, plot
+    return df, plot, start_of_day
 
 
 @app.cell
@@ -93,8 +93,8 @@ def _(mo):
 
 
 @app.cell
-def _(paths):
-    float(paths.paths_std(scaled=True)[0])
+def _(weiner_paths):
+    float(weiner_paths.paths_std(scaled=True)[0])
     return
 
 
@@ -107,8 +107,8 @@ def _(mo):
 
 
 @app.cell
-def _(paths):
-    paths.hurst_exponent()
+def _(weiner_paths):
+    weiner_paths.hurst_exponent()
     return
 
 
@@ -172,7 +172,7 @@ def _(df):
             data[name] = rstd(estimator, ts)
         results.append(data)
     vdf = pd.DataFrame(results).set_index("period")
-    return (vdf,)
+    return OHLC, pd, vdf
 
 
 @app.cell
@@ -207,7 +207,76 @@ def _(mo):
     These numbers are different from the realized variance because they are based on the range of the prices, not on the actual prices. The realized variance is a more direct measure of the volatility of the process, while the range-based estimators are more robust to market microstructure noise.
 
     The Parkinson estimator is always higher than both the Garman-Klass and Rogers-Satchell estimators, the reason is due to the use of the high and low prices only, which are always further apart than the open and close prices. The GK and RS estimators are similar and are more accurate than the Parkinson estimator, especially for greater periods.
+
+    To estimate the Hurst exponent with the range-based estimators, we calculate the variance of the log of the range for different time windows and fit a line to the log-log plot of the variance vs the time window.
     """)
+    return
+
+
+@app.cell
+def _(OHLC, pd):
+    from typing import Sequence
+    import numpy as np
+    from collections import defaultdict
+    from quantflow.ta.base import DataFrame
+
+    default_periods = ("10s", "20s", "30s", "1m", "2m", "3m", "5m", "10m", "30m")
+
+    def ohlc_hurst_exponent(
+        df: DataFrame,
+        series: Sequence[str],
+        periods: Sequence[str] = default_periods,
+    ) -> DataFrame:
+        results = {}
+        estimator_names = ("pk", "gk", "rs")
+        for serie in series:
+            template = OHLC(
+                serie=serie,
+                period="10m",
+                rogers_satchell_variance=True,
+                parkinson_variance=True,
+                garman_klass_variance=True
+            )
+            time_range = []
+            estimators = defaultdict(list)
+            for period in periods:
+                ohlc = template.model_copy(update=dict(period=period))
+                rf = ohlc(df)
+                ts = pd.to_timedelta(period).to_pytimedelta().total_seconds()
+                time_range.append(ts)
+                for name in estimator_names:
+                    estimators[name].append(rf[f"{serie}_{name}"].mean())
+            results[serie] = [float(np.polyfit(np.log(time_range), np.log(estimators[name]), 1)[0])/2.0 for name in estimator_names]
+        return pd.DataFrame(results, index=estimator_names)
+    return (ohlc_hurst_exponent,)
+
+
+@app.cell
+def _(df, ohlc_hurst_exponent):
+    ohlc_hurst_exponent(df, series=["0"])
+    return
+
+
+@app.cell
+def _(mo):
+    mo.md(r"""
+    The Hurst exponent should be close to 0.5, since we have calculated the exponent from the paths of a Weiner process. But it is not exactly 0.5 because the range-based estimators are not the same as the realized variance. Interestingly, the Parkinson estimator gives a Hurst exponent closer to 0.5 than the Garman-Klass and Rogers-Satchell estimators.
+
+    ## Mean Reverting Time Series
+
+    We now turn our attention to mean reverting time series, where the Hurst exponent is less than 0.5.
+    """)
+    return
+
+
+@app.cell
+def _(pd, start_of_day):
+    from quantflow.sp.ou import Vasicek
+
+    p = Vasicek(kappa=2)
+    paths = {f"kappa={k}": Vasicek(kappa=k).sample(n=1, time_horizon=1, time_steps=24*60*6) for k in (1.0, 10.0, 50.0, 100.0, 500.0)}
+    pdf = pd.DataFrame({k: p.path(0) for k, p in paths.items()}, index=paths["kappa=1.0"].dates(start=start_of_day()))
+    pdf.plot()
     return
 
 

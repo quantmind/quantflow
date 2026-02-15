@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from datetime import datetime
-from typing import Any, cast, Self
+from typing import Any, Self, cast
 
 import numpy as np
 import pandas as pd
@@ -193,8 +193,7 @@ class Paths(BaseModel, arbitrary_types_allowed=True):
             ),
         ] = True,
     ) -> Self:
-        """Create paths from normal draws
-        """
+        """Create paths from normal draws"""
         time_horizon / time_steps
         odd = 0
         if antithetic_variates:

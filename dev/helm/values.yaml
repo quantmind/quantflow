@@ -1,0 +1,47 @@
+image:
+  registry: 337900243020.dkr.ecr.eu-west-1.amazonaws.com
+  repository: quantmind-trading
+  pullPolicy: IfNotPresent
+
+targetPort: 8080
+type: ClusterIP
+sentry: https://e02a1abeb6214168824a1abde5b07ef1@o437872.ingest.sentry.io/5434964
+
+podAnnotations: {}
+
+livenessProbe:
+  httpGet:
+    path: /status
+    port: http
+  initialDelaySeconds: 30
+  periodSeconds: 10
+
+readinessProbe:
+  httpGet:
+    path: /ready
+    port: http
+  initialDelaySeconds: 5
+  periodSeconds: 5
+
+quantflow:
+  replicaCount: 1
+  image:
+    repository: quantmind-hft
+  requests:
+    memory: "128Mi"
+    cpu: "250m"
+  limits:
+    memory: "1Gi"
+    cpu: "1"
+  readinessProbe:
+    httpGet:
+      path: /ready
+      port: http
+    initialDelaySeconds: 20
+    periodSeconds: 7
+  command:
+    - fluid
+    - bot
+
+vars: {}
+secrets: {}

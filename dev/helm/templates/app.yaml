@@ -1,0 +1,3 @@
+{{ $root := . }}
+{{ $values := mergeOverwrite (dict "name" "app") . }}
+{{ template "service.app" $values }}
