@@ -1,0 +1,10 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ template "quantflow.name" . }}
+  labels:
+    {{- include "quantflow.labels" . | nindent 4 }}
+data:
+  {{- range $key, $value := .Values.vars }}
+  {{ $key }}: {{ $value | quote }}
+  {{- end }}

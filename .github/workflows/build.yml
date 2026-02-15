@@ -21,7 +21,8 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4
-      - uses: quantmind/rops/.github/actions/setup-rops@main
+      - name: install rops
+        uses: quantmind/rops/.github/actions/setup-rops@main
       - name: install taplo
         run: rops tools update taplo
       - name: Set up Python ${{ matrix.python-version }}
@@ -59,7 +60,7 @@ jobs:
 
   deploy:
     name: Create Deployment
-    if: github.ref == 'refs/heads/deploy'
+    if: github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     permissions:
       deployments: write

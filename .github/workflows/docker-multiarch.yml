@@ -22,9 +22,7 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ github.token }}
       - name: install rops
-        run: |
-          curl -L https://raw.githubusercontent.com/quantmind/rops/main/dev/install-rops | bash
-          echo "$HOME/bin" >> $GITHUB_PATH
+        uses: quantmind/rops/.github/actions/setup-rops@main
       - name: build amd64
         run: rops docker build ${{ inputs.image-name }}
       - name: push amd64
@@ -45,9 +43,7 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ github.token }}
       - name: install rops
-        run: |
-          curl -L https://raw.githubusercontent.com/quantmind/rops/main/dev/install-rops | bash
-          echo "$HOME/bin" >> $GITHUB_PATH
+        uses: quantmind/rops/.github/actions/setup-rops@main
       - name: build arm64
         run: rops docker build ${{ inputs.image-name }}
       - name: push arm64
@@ -67,8 +63,6 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ github.token }}
       - name: install rops
-        run: |
-          curl -L https://raw.githubusercontent.com/quantmind/rops/main/dev/install-rops | bash
-          echo "$HOME/bin" >> $GITHUB_PATH
+        uses: quantmind/rops/.github/actions/setup-rops@main
       - name: create manifest
         run: rops docker manifest ${{ inputs.image-name }}

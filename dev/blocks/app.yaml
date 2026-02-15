@@ -1,0 +1,12 @@
+html: false
+upstream: http://quantflow-{{ block }}.fluid.svc
+tags:
+  - docs
+routes:
+  - name: service
+    protocols:
+      - https
+    strip_path: false
+    tags:
+      - public
+      - {{ space }}

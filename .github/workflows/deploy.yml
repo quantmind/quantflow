@@ -39,34 +39,17 @@ jobs:
           role-to-assume: arn:aws:iam::337900243020:role/GithubActions
           aws-region: eu-west-1
       - name: install rops
-        env:
-          GITHUB_TOKEN: ${{ secrets.TOKEN_DEPLOYMENT }}
-        run: |
-          ./devops/install/rops
-          echo "${HOME}/bin" >> $GITHUB_PATH
+        uses: quantmind/rops/.github/actions/setup-rops@main
       - name: Install mozilla sops
         uses: mdgreenwald/mozilla-sops-action@v1.4.1
-      - name: deploy hft
+      - name: deploy quantflow
         run: |
           rops charts update
           rops charts deploy \
-          hft \
+          quantflow \
           --env ${K8S_ENV} \
           --set image.tag=${IMAGE_TAG} \
           --wait
-      - name: deploy code-server
-        run: |
-          rops charts deploy \
-          code-server \
-          --env ${K8S_ENV} \
-          --set image.tag=${IMAGE_TAG} \
-          --wait
-      - name: Update ingress configuration
-        uses: quantmind/metablock-ingress@v3
-        with:
-          token: ${{ secrets.METABLOCK_API_TOKEN }}
-          space: quantmind
-          path: devops/blocks
       - name: Update deployment status (success)
         if: success()
         uses: chrnorm/deployment-status@v2
