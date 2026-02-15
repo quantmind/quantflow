@@ -64,8 +64,10 @@ spec:
             {{- toYaml $livenessProbe | nindent 12 }}
           readinessProbe:
             {{- toYaml $readinessProbe | nindent 12 }}
+          {{- if $values.command }}
           command:
             {{- toYaml $values.command | nindent 12 }}
+          {{- end }}
           resources:
             requests:
               memory: {{ $values.requests.memory }}

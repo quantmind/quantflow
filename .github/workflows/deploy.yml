@@ -1,0 +1,83 @@
+name: deploy
+
+on: deployment
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    # These permissions are needed for AWS GitHub's OIDC Token endpoint.
+    permissions:
+      id-token: write
+      contents: read
+    env:
+      K8S_ENV: ${{ github.event.deployment.environment }}
+      IMAGE_TAG: ${{ github.event.deployment.payload.tag }}
+      METABLOCK_API_TOKEN: ${{ secrets.METABLOCK_API_TOKEN }}
+      RUST_LOG: info
+
+    steps:
+      - name: Update deployment status (in_progress)
+        if: success()
+        uses: chrnorm/deployment-status@v2
+        with:
+          token: "${{ secrets.TOKEN_DEPLOYMENT }}"
+          deployment-id: ${{ github.event.deployment.id }}
+          state: "in_progress"
+      - name: checkout repo
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.deployment.sha }}
+      - name: checkout vars
+        uses: actions/checkout@v4
+        with:
+          repository: quantmind/metaplatform
+          path: metaplatform
+          token: ${{ secrets.TOKEN_DEPLOYMENT }}
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v2
+        with:
+          role-to-assume: arn:aws:iam::337900243020:role/GithubActions
+          aws-region: eu-west-1
+      - name: install rops
+        env:
+          GITHUB_TOKEN: ${{ secrets.TOKEN_DEPLOYMENT }}
+        run: |
+          ./devops/install/rops
+          echo "${HOME}/bin" >> $GITHUB_PATH
+      - name: Install mozilla sops
+        uses: mdgreenwald/mozilla-sops-action@v1.4.1
+      - name: deploy hft
+        run: |
+          rops charts update
+          rops charts deploy \
+          hft \
+          --env ${K8S_ENV} \
+          --set image.tag=${IMAGE_TAG} \
+          --wait
+      - name: deploy code-server
+        run: |
+          rops charts deploy \
+          code-server \
+          --env ${K8S_ENV} \
+          --set image.tag=${IMAGE_TAG} \
+          --wait
+      - name: Update ingress configuration
+        uses: quantmind/metablock-ingress@v3
+        with:
+          token: ${{ secrets.METABLOCK_API_TOKEN }}
+          space: quantmind
+          path: devops/blocks
+      - name: Update deployment status (success)
+        if: success()
+        uses: chrnorm/deployment-status@v2
+        with:
+          token: "${{ secrets.TOKEN_DEPLOYMENT }}"
+          deployment-id: ${{ github.event.deployment.id }}
+          state: "success"
+      - name: Update deployment status (failure)
+        if: failure()
+        uses: chrnorm/deployment-status@v2
+        with:
+          token: "${{ secrets.TOKEN_DEPLOYMENT }}"
+          deployment-id: ${{ github.event.deployment.id }}
+          state: "failure"

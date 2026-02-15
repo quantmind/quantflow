@@ -21,10 +21,7 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4
-      - name: install rops
-        run: |
-          curl -L https://raw.githubusercontent.com/quantmind/rops/main/dev/install-rops | bash
-          echo "$HOME/bin" >> $GITHUB_PATH
+      - uses: quantmind/rops/.github/actions/setup-rops@main
       - name: install taplo
         run: rops tools update taplo
       - name: Set up Python ${{ matrix.python-version }}
@@ -56,5 +53,22 @@ jobs:
   image:
     if: github.ref == 'refs/heads/main'
     uses: ./.github/workflows/docker-multiarch.yml
+    needs: build
     with:
       image-name: quantflow
+
+  deploy:
+    name: Create Deployment
+    if: github.ref == 'refs/heads/deploy'
+    runs-on: ubuntu-latest
+    permissions:
+      deployments: write
+    needs: image
+    steps:
+      - uses: chrnorm/deployment-action@v2
+        name: Create GitHub deployment
+        id: deployment
+        with:
+          token: "${{ secrets.TOKEN_DEPLOYMENT }}"
+          environment: prod
+          payload: '{"tag": "main-${{ github.sha }}"}'
