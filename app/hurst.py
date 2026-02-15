@@ -74,6 +74,46 @@ def _(paths):
 
 
 @app.cell
+def _(mo):
+    mo.md(r"""
+    ### Realized Variance
+
+    At this point we estimate the standard deviation using the **realized variance** along the path (we use the **scaled** flag so that the standard deviation is scaled by the square-root of time step, in this way it removes the dependency on the time step size).
+    The value should be close to the **sigma** of the WeinerProcess defined above.
+    """)
+    return
+
+
+@app.cell
+def _(paths):
+    float(paths.paths_std(scaled=True)[0])
+
+    return
+
+
+@app.cell
+def _(mo):
+    mo.md(r"""
+    The evaluation of the hurst exponent is done by calculating the variance for several time windows and by fitting a line to the log-log plot of the variance vs the time window.
+    """)
+    return
+
+
+@app.cell
+def _(paths):
+    paths.hurst_exponent()
+    return
+
+
+@app.cell
+def _(mo):
+    mo.md(r"""
+    As expected, the Hurst exponent should be close to 0.5, since we have calculated the exponent from the paths of a Weiner process.
+    """)
+    return
+
+
+@app.cell
 def _():
     return
 

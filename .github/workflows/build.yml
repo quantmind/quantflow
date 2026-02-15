@@ -55,8 +55,6 @@ jobs:
 
   image:
     if: github.ref == 'refs/heads/main'
-    needs:
-      - build
     uses: ./.github/workflows/docker-multiarch.yml
     with:
       image-name: quantflow

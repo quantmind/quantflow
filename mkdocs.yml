@@ -54,7 +54,7 @@ plugins:
                   schema: false
 nav:
   - Home: index.md
-  - Getting Started: getting-started.md
+  - Contributing: contributing.md
   - Examples:
       - Gaussian Sampling: examples/gaussian-sampling
       - Supersmoother: examples/supersmoother

@@ -1,13 +1,14 @@
 from __future__ import annotations
 
 from datetime import datetime
-from typing import Any, cast
+from typing import Any, cast, Self
 
 import numpy as np
 import pandas as pd
 from numpy.random import normal
 from pydantic import BaseModel, Field
 from scipy.integrate import cumulative_trapezoid
+from typing_extensions import Annotated, Doc
 
 from quantflow.utils import plot
 from quantflow.utils.bins import pdf as bins_pdf
@@ -168,7 +169,7 @@ class Paths(BaseModel, arbitrary_types_allowed=True):
         )
 
     def plot(self, **kwargs: Any) -> Any:
-        """Plot paths
+        """Plot paths as lines
 
         It requires plotly installed
         """
@@ -177,19 +178,22 @@ class Paths(BaseModel, arbitrary_types_allowed=True):
     @classmethod
     def normal_draws(
         cls,
-        paths: int,
-        time_horizon: float = 1,
-        time_steps: int = 1000,
-        antithetic_variates: bool = True,
-    ) -> Paths:
-        """Generate normal draws
-
-        :param paths: number of paths
-        :param time_horizon: time horizon
-        :param time_steps: number of time steps to arrive at horizon
-        :param antithetic_variates: whether to use `antithetic variates`_
-
-        .. _antithetic variates: https://en.wikipedia.org/wiki/Antithetic_variates
+        paths: Annotated[int, Doc("Number of paths to simulate")],
+        time_horizon: Annotated[float, Doc("Time horizon")] = 1,
+        time_steps: Annotated[
+            int, Doc("Number of time steps to arrive at horizon")
+        ] = 1000,
+        antithetic_variates: Annotated[
+            bool,
+            Doc(
+                "Whether to use [antithetic variates]"
+                "(https://en.wikipedia.org/wiki/Antithetic_variates)"
+                " to reduce variance by generating pairs of paths that are mirror"
+                " images of each other"
+            ),
+        ] = True,
+    ) -> Self:
+        """Create paths from normal draws
         """
         time_horizon / time_steps
         odd = 0
