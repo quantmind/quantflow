@@ -20,7 +20,7 @@ jobs:
         with:
           registry: ghcr.io
           username: ${{ github.actor }}
-          password: ${{ secrets.token }}
+          password: ${{ github.token }}
       - name: install rops
         run: |
           curl -L https://raw.githubusercontent.com/quantmind/rops/main/dev/install-rops | bash
