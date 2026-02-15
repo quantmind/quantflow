@@ -133,7 +133,7 @@ def _(mo):
     * **Garman & Klass** (1980)
     * **Rogers & Satchell** (1991)
 
-    See {cite:p}`molnar` for a detailed overview of the properties of range-based estimators.
+    See [molnar](/bibliography/#molnar) for a detailed overview of the properties of range-based estimators.
 
     For this we build an OHLC estimator as template and use it to create OHLC estimators for different periods.
     """)

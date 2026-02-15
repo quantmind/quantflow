@@ -54,9 +54,9 @@ plugins:
                   schema: false
 nav:
   - Home: index.md
-  - Contributing: contributing.md
   - Examples:
       - Gaussian Sampling: examples/gaussian-sampling
+      - Hurst: examples/hurst
       - Supersmoother: examples/supersmoother
   - API Reference:
       - api/index.md
@@ -93,6 +93,8 @@ nav:
           - Bins: api/utils/bins.md
           - Distributions: api/utils/distributions.md
           - Marginal 1D: api/utils/marginal1d.md
+  - Contributing: contributing.md
+  - Bibliography: bibliography.md
 markdown_extensions:
   - tables
   - pymdownx.arithmatex:
