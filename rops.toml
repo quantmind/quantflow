@@ -5,5 +5,5 @@ default_branch = "main"
 
 [docker]
 image_branch_tag_prefix = "branch"
-image_repo_url = "quantmind/quantflow"
+image_repo_url = "ghcr.io/quantmind"
 files_path = "dev"
