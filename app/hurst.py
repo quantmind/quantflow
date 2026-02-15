@@ -69,7 +69,15 @@ def _(paths):
 
     from quantflow.utils.dates import start_of_day
     df = paths.as_datetime_df(start=start_of_day(), unit="d").reset_index()
+    from quantflow.utils import plot
 
+    plot.plot_lines(
+        df,
+        x=df.columns[0],
+        y=df.columns[1],
+        title="Weiner Process Path",
+        labels={"value": "Value", "variable": "Path", df.columns[0]: "Date"},
+    )
     return
 
 

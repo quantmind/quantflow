@@ -26,14 +26,15 @@ jobs:
           curl -L https://raw.githubusercontent.com/quantmind/rops/main/dev/install-rops | bash
           echo "$HOME/bin" >> $GITHUB_PATH
       - name: build amd64
-        run: rops docker build ${{ inputs.image-name }}
+        run: DOCKER_BUILDKIT=0 docker build . -f dev/quantflow.dockerfile -t ${{ inputs.image-name }}:${{ github.sha }}-amd64
       - name: push amd64
-        run: rops docker push ${{ inputs.image-name }} --arch
+        run: docker push ${{ inputs.image-name }}:${{ github.sha }}-amd64
 
   build-arm64:
     runs-on: ubuntu-24.04-arm
     env:
       GITHUB_TOKEN: ${{ github.token }}
+      DOCKER_BUILDKIT: 0
 
     steps:
       - uses: actions/checkout@v4
@@ -48,9 +49,9 @@ jobs:
           curl -L https://raw.githubusercontent.com/quantmind/rops/main/dev/install-rops | bash
           echo "$HOME/bin" >> $GITHUB_PATH
       - name: build arm64
-        run: rops docker build ${{ inputs.image-name }}
+        run: DOCKER_BUILDKIT=0 docker build . -f dev/quantflow.dockerfile -t ${{ inputs.image-name }}:${{ github.sha }}-arm64
       - name: push arm64
-        run: rops docker push ${{ inputs.image-name }} --arch
+        run: docker push ${{ inputs.image-name }}:${{ github.sha }}-arm64
 
   manifest:
     needs: [build-amd64, build-arm64]
@@ -70,4 +71,4 @@ jobs:
           curl -L https://raw.githubusercontent.com/quantmind/rops/main/dev/install-rops | bash
           echo "$HOME/bin" >> $GITHUB_PATH
       - name: create manifest
-        run: rops docker manifest ${{ inputs.image-name }}
+        run: docker manifest create ${{ inputs.image-name }}
