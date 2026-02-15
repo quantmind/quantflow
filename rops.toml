@@ -7,3 +7,8 @@ default_branch = "main"
 image_branch_tag_prefix = "branch"
 image_repo_url = "ghcr.io/quantmind"
 files_path = "dev"
+
+[charts]
+envs = { prod = "metablock-eks2" }
+vars = "metaplatform"
+config = "dev/charts.yaml"

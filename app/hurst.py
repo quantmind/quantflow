@@ -48,12 +48,32 @@ def _(mo):
 
 
 @app.cell
-def _():
+def _(mo):
+    regenerate_btn = mo.ui.run_button(label="Regenerate Path", kind="info")
+    regenerate_btn
+    return (regenerate_btn,)
+
+
+@app.cell
+def _(regenerate_btn):
     from quantflow.sp.weiner import WeinerProcess
+    from quantflow.utils import plot
+    from quantflow.utils.dates import start_of_day
+
+    regenerate_btn
+
     weiner = WeinerProcess(sigma=2.0)
     weiner_paths = weiner.sample(n=1, time_horizon=1, time_steps=24*60*60)
-    weiner_paths.plot(title="A path of Weiner process with sigma=2.0")
-    return (weiner_paths,)
+    weiner_df = weiner_paths.as_datetime_df(start=start_of_day(), unit="d").reset_index()
+
+    plot.plot_lines(
+        weiner_df,
+        x=weiner_df.columns[0],
+        y=weiner_df.columns[1],
+        title="Weiner Process Path",
+        labels={"value": "Value", "variable": "Path", weiner_df.columns[0]: "Date"},
+    )
+    return plot, start_of_day, weiner_df, weiner_paths
 
 
 @app.cell
@@ -62,23 +82,6 @@ def _(mo):
     In order to down-sample the timeseries, we need to convert it into a dataframe with dates as indices.
     """)
     return
-
-
-@app.cell
-def _(weiner_paths):
-
-    from quantflow.utils.dates import start_of_day
-    df = weiner_paths.as_datetime_df(start=start_of_day(), unit="d").reset_index()
-    from quantflow.utils import plot
-
-    plot.plot_lines(
-        df,
-        x=df.columns[0],
-        y=df.columns[1],
-        title="Weiner Process Path",
-        labels={"value": "Value", "variable": "Path", df.columns[0]: "Date"},
-    )
-    return df, plot, start_of_day
 
 
 @app.cell
@@ -140,7 +143,7 @@ def _(mo):
 
 
 @app.cell
-def _(df):
+def _(weiner_df):
     import pandas as pd
     import polars as pl
     import math
@@ -164,7 +167,7 @@ def _(df):
     results = []
     for period in ("10s", "20s", "30s", "1m", "2m", "3m", "5m", "10m", "30m"):
         ohlc = template.model_copy(update=dict(period=period))
-        rf = ohlc(df)
+        rf = ohlc(weiner_df)
         ts = pd.to_timedelta(period).to_pytimedelta().total_seconds()
         data = dict(period=period)
         for name in ("pk", "gk", "rs"):
@@ -214,7 +217,7 @@ def _(mo):
 
 
 @app.cell
-def _(OHLC, pd):
+def _(OHLC, pd, weiner_df):
     from typing import Sequence
     import numpy as np
     from collections import defaultdict
@@ -241,7 +244,7 @@ def _(OHLC, pd):
             estimators = defaultdict(list)
             for period in periods:
                 ohlc = template.model_copy(update=dict(period=period))
-                rf = ohlc(df)
+                rf = ohlc(weiner_df)
                 ts = pd.to_timedelta(period).to_pytimedelta().total_seconds()
                 time_range.append(ts)
                 for name in estimator_names:
@@ -252,8 +255,8 @@ def _(OHLC, pd):
 
 
 @app.cell
-def _(df, ohlc_hurst_exponent):
-    ohlc_hurst_exponent(df, series=["0"])
+def _(ohlc_hurst_exponent, weiner_df):
+    ohlc_hurst_exponent(weiner_df, series=["0"])
     return
 
 
@@ -270,13 +273,54 @@ def _(mo):
 
 
 @app.cell
-def _(pd, start_of_day):
+def _(pd, regenerate_vasicek, start_of_day):
     from quantflow.sp.ou import Vasicek
-
+    regenerate_vasicek
     p = Vasicek(kappa=2)
     paths = {f"kappa={k}": Vasicek(kappa=k).sample(n=1, time_horizon=1, time_steps=24*60*6) for k in (1.0, 10.0, 50.0, 100.0, 500.0)}
     pdf = pd.DataFrame({k: p.path(0) for k, p in paths.items()}, index=paths["kappa=1.0"].dates(start=start_of_day()))
     pdf.plot()
+    return paths, pdf
+
+
+@app.cell
+def _(mo):
+    regenerate_vasicek = mo.ui.run_button(label="Regenerate Paths", kind="info")
+    regenerate_vasicek
+    return (regenerate_vasicek,)
+
+
+@app.cell
+def _(mo):
+    mo.md(r"""
+    We can now estimate the Hurst exponent from the realized variance. As we can see the Hurst exponent decreases as we increase the mean reversion parameter.
+    """)
+    return
+
+
+@app.cell
+def _(paths, pd):
+    pd.DataFrame({k: [p.hurst_exponent()] for k, p in paths.items()})
+    return
+
+
+@app.cell
+def _(mo):
+    mo.md(r"""
+    And we can also estimate the Hurst exponent from the range-based estimators. As we can see the Hurst exponent decreases as we increase the mean reversion parameter along the same lines as the realized variance.
+    """)
+    return
+
+
+@app.cell
+def _(ohlc_hurst_exponent, paths, pdf):
+    ohlc_hurst_exponent(pdf.reset_index(), list(paths), periods=("10m", "20m", "30m", "1h"))
+    return
+
+
+@app.cell
+def _(pdf):
+    pdf.columns
     return
 
 
