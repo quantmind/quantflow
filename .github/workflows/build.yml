@@ -60,5 +60,3 @@ jobs:
     uses: ./.github/workflows/docker-multiarch.yml
     with:
       image-name: quantflow
-    secrets:
-      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
