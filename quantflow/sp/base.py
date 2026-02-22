@@ -6,6 +6,7 @@ from typing import Generic, TypeVar
 import numpy as np
 from pydantic import BaseModel, ConfigDict, Field
 from scipy.optimize import Bounds
+from typing_extensions import Annotated, Doc
 
 from quantflow.ta.paths import Paths
 from quantflow.utils.marginal import Marginal1D, default_bounds
@@ -26,29 +27,33 @@ class StochasticProcess(BaseModel, ABC, extra="forbid"):
         """Sample :class:`.Paths` from the process given a set of draws"""
 
     @abstractmethod
-    def sample(self, n: int, time_horizon: float = 1, time_steps: int = 100) -> Paths:
-        """Generate random :class:`.Paths` from the process.
-
-        :param n: number of paths
-        :param time_horizon: time horizon
-        :param time_steps: number of time steps to arrive at horizon
-        """
+    def sample(
+        self,
+        n: Annotated[int, Doc("number of paths")],
+        time_horizon: Annotated[float, Doc("time horizon")] = 1,
+        time_steps: Annotated[
+            int, Doc("number of time steps to arrive at horizon")
+        ] = 100,
+    ) -> Paths:
+        """Generate random :class:`.Paths` from the process."""
 
     @abstractmethod
     def characteristic_exponent(self, t: FloatArrayLike, u: Vector) -> Vector:
         """Characteristic exponent at time `t` for a given input parameter"""
 
-    def characteristic(self, t: FloatArrayLike, u: Vector) -> Vector:
+    def characteristic(
+        self,
+        t: Annotated[FloatArrayLike, Doc("Time horizon")],
+        u: Annotated[Vector, Doc("Characteristic function input parameter")],
+    ) -> Vector:
         r"""Characteristic function at time `t` for a given input parameter
 
         The characteristic function represents the Fourier transform of the
         probability density function
 
-        .. math::
+        \begin{equation}
             \phi = {\mathbb E} \left[e^{i u x_t}\right]
-
-        :param t: time horizon
-        :param u: characteristic function input parameter
+        \end{equation}
         """
         return np.exp(-self.characteristic_exponent(t, u))
 
@@ -174,14 +179,15 @@ class IntensityProcess(StochasticProcess1D):
     r"""Mean reversion speed :math:`\kappa`"""
 
     @abstractmethod
-    def integrated_log_laplace(self, t: FloatArrayLike, u: Vector) -> Vector:
+    def integrated_log_laplace(
+        self,
+        t: Annotated[FloatArrayLike, Doc("time horizon")],
+        u: Annotated[Vector, Doc("frequency")],
+    ) -> Vector:
         r"""The log-Laplace transform of the cumulative process:
 
         .. math::
             e^{\phi_{t, u}} = {\mathbb E} \left[e^{i u \int_0^t x_s ds}\right]
-
-        :param t: time horizon
-        :param u: frequency
         """
 
     def domain_range(self) -> Bounds:

@@ -1,18 +1,6 @@
-================
-Heston process
-================
+# Heston process
 
-.. currentmodule:: quantflow.sp.heston
-
-.. autoclass:: Heston
-   :members:
-   :member-order: groupwise
-   :autosummary:
-   :autosummary-nosignatures:
+::: quantflow.sp.heston.Heston
 
 
-.. autoclass:: HestonJ
-   :members:
-   :member-order: groupwise
-   :autosummary:
-   :autosummary-nosignatures:
+::: quantflow.sp.heston.HestonJ

@@ -8,6 +8,7 @@ from pydantic import Field
 from scipy.integrate import simpson
 from scipy.optimize import Bounds
 from scipy.stats import poisson
+from typing_extensions import Annotated, Doc
 
 from quantflow.ta.paths import Paths
 from quantflow.utils.distributions import Distribution1D
@@ -22,23 +23,34 @@ D = TypeVar("D", bound=Distribution1D)
 
 class PoissonBase(StochasticProcess1D):
     @abstractmethod
-    def sample_jumps(self, n: int) -> np.ndarray:
+    def sample_jumps(self, n: Annotated[int, Doc("Number of jumps")]) -> np.ndarray:
         """Generate a list of jump sizes"""
 
     @abstractmethod
-    def arrivals(self, time_horizon: float = 1) -> list[float]:
-        """Generate a list of jump arrivals times up to time t"""
+    def arrivals(
+        self, time_horizon: Annotated[float, Doc("Time horizon")] = 1
+    ) -> FloatArray:
+        """Generate a list of jump arrivals times up to time `time_horizon`"""
 
-    def sample(self, n: int, time_horizon: float = 1, time_steps: int = 100) -> Paths:
+    def sample(
+        self,
+        n: Annotated[int, Doc("Number of paths")],
+        time_horizon: Annotated[float, Doc("Time horizon")] = 1,
+        time_steps: Annotated[int, Doc("Number of time steps")] = 100,
+    ) -> Paths:
+        """Sample a number of paths of the process up to a given time horizon and
+        with a given number of time steps.
+        """
         dt = time_horizon / time_steps
         paths = np.zeros((time_steps + 1, n))
         for p in range(n):
-            if arrivals := self.arrivals(time_horizon):
-                jumps = self.sample_jumps(len(arrivals))
+            arrivals = self.arrivals(time_horizon)
+            if num_arrivals := len(arrivals):
+                jumps = self.sample_jumps(num_arrivals)
                 i = 1
                 y = 0.0
                 for j, arrival in enumerate(arrivals):
-                    while i * dt < arrival:
+                    while i <= time_steps and i * dt < arrival:
                         paths[i, p] = y
                         i += 1
                     y += jumps[j]
@@ -52,22 +64,33 @@ class PoissonBase(StochasticProcess1D):
         return Bounds(0, np.inf)
 
 
-def poisson_arrivals(intensity: float, time_horizon: float = 1) -> list[float]:
-    """Generate a list of jump arrivals times up to time t"""
-    exp_rate = 1.0 / intensity
-    arrivals = []
-    tt = 0.0
-    while tt < time_horizon:
-        dt = np.random.exponential(scale=exp_rate)
-        tt += dt
-        if tt <= time_horizon:
-            arrivals.append(tt)
-    return arrivals
+def poisson_arrivals(intensity: float, time_horizon: float = 1) -> FloatArray:
+    r"""Generate a list of jump arrivals times up to time t
+
+    This method conditions on the total number of arrivals $N$, which follows
+    a Poisson distribution with mean $\lambda T$.
+
+    Given $N$, the arrival times are distributed as the order statistics
+    of $N$ uniform random variables on $[0, T]$.
+    """
+    n = np.random.poisson(intensity * time_horizon)
+    return np.sort(np.random.uniform(0, time_horizon, n))
 
 
 class PoissonProcess(PoissonBase):
-    intensity: float = Field(default=1.0, ge=0, description="intensity rate")
-    r"""Intensity rate :math:`\lambda` of the Poisson process"""
+    r"""A Poisson process is a pure jump process where the number of jumps
+    in a time interval follows a Poisson distribution
+    and the jump sizes are always 1.
+
+    The expected number of jumps and the variance in a unit of time
+    is given by the non-negative `intensity` parameter $\lambda$.
+    """
+
+    intensity: float = Field(
+        default=1.0,
+        ge=0,
+        description=r"Intensity rate $\lambda$ of the Poisson process",
+    )
 
     def marginal(self, t: FloatArrayLike) -> StochasticProcess1DMarginal:
         return MarginalDiscrete1D(process=self, t=t)
@@ -75,7 +98,10 @@ class PoissonProcess(PoissonBase):
     def characteristic_exponent(self, t: Vector, u: Vector) -> Vector:
         return t * self.intensity * (1 - np.exp(Im * u))
 
-    def arrivals(self, time_horizon: float = 1) -> list[float]:
+    def arrivals(
+        self, time_horizon: Annotated[float, Doc("Time horizon")] = 1
+    ) -> FloatArray:
+        """Generate a list of jump arrivals times up to time `time_horizon`"""
         return poisson_arrivals(self.intensity, time_horizon)
 
     def sample_jumps(self, n: int) -> np.ndarray:
@@ -104,13 +130,13 @@ class PoissonProcess(PoissonBase):
 
         It's given by
 
-        .. math::
-            :label: poisson_cdf
-
+        \begin{equation}
             F\left(n\right)=\frac{\Gamma\left(\left\lfloor n+1\right\rfloor
             ,\lambda\right)}{\left\lfloor n\right\rfloor !}
+            \tag{1}
+        \end{equation}
 
-        where :math:`\Gamma` is the upper incomplete gamma function.
+        where $\Gamma$ is the upper incomplete gamma function.
         """
         return poisson.cdf(n, t * self.intensity)
 
@@ -120,10 +146,10 @@ class PoissonProcess(PoissonBase):
 
         It's given by
 
-        .. math::
-            :label: poisson_pdf
-
-            f\left(n\right)=\frac{\lambda^{n}e^{-\lambda}}{n!}
+        \begin{equation}
+            f\left(n\right)=\frac{(\lambda t)^{n}e^{-\lambda t}}{n!}
+            \tag{2}
+        \end{equation}
         """
         return poisson.pmf(n, t * self.intensity)
 
@@ -133,11 +159,11 @@ class PoissonProcess(PoissonBase):
 
         It's given by
 
-        .. math::
-            :label: poisson_cdf_jacobian
-
-            \frac{\partial F}{\partial\lambda}=-\frac{\lambda^{\left\lfloor
+        \begin{equation}
+            \frac{\partial F}{\partial\lambda}=-\frac{(\lambda t)^{\left\lfloor
             n\right\rfloor }e^{-\lambda}}{\left\lfloor n\right\rfloor !}
+            \tag{3}
+        \end{equation}
         """
         k = np.floor(n).astype(int)
         rate = self.intensity
@@ -147,28 +173,30 @@ class PoissonProcess(PoissonBase):
 class CompoundPoissonProcess(PoissonBase, Generic[D]):
     """A generic Compound Poisson process."""
 
-    intensity: float = Field(default=1.0, gt=0, description="jump intensity rate")
-    r"""Intensity rate :math:`\lambda` of the Poisson process
-
-    It determines the number of jumps in the same way as the :class:`.PoissonProcess`
-    """
+    intensity: float = Field(
+        default=1.0,
+        gt=0,
+        description=r"Intensity rate $\lambda$ of the Poisson process",
+    )
     jumps: D = Field(description="Jump size distribution")
-    """Jump size distribution"""
 
     def characteristic_exponent(self, t: FloatArrayLike, u: Vector) -> Vector:
         r"""The characteristic exponent of the Compound Poisson process,
         given by
 
-        .. math::
+        \begin{equation}
             \phi_{x_t,u} = t\lambda \left(1 - \Phi_{j,u}\right)
+        \end{equation}
 
-        where :math:`\Phi_{j,u}` is the characteristic function
+        where $\Phi_{j,u}$ is the characteristic function
         of the jump distribution
         """
         return t * self.intensity * (1 - self.jumps.characteristic(u))
 
-    def arrivals(self, time_horizon: float = 1) -> list[float]:
-        """Same as Poisson process"""
+    def arrivals(
+        self, time_horizon: Annotated[float, Doc("Time horizon")] = 1
+    ) -> FloatArray:
+        """Generate a list of jump arrivals times up to time `time_horizon`"""
         return poisson_arrivals(self.intensity, time_horizon)
 
     def sample_jumps(self, n: int) -> FloatArray:
