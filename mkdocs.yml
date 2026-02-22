@@ -57,6 +57,7 @@ nav:
   - Examples:
       - Gaussian Sampling: examples/gaussian-sampling
       - Poisson Sampling: examples/poisson-sampling
+      - Double Exponential Sampling: examples/double-exponential-sampling
       - Hurst: examples/hurst
       - Supersmoother: examples/supersmoother
   - API Reference:

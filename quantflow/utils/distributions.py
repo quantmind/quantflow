@@ -4,6 +4,7 @@ from typing import Self
 import numpy as np
 from pydantic import Field
 from scipy import stats
+from typing_extensions import Annotated, Doc
 
 from .marginal import Marginal1D
 from .types import FloatArray, FloatArrayLike, Vector
@@ -96,15 +97,12 @@ class Exponential(Distribution1D):
 
 
 class Normal(Distribution1D):
-    r"""A :class:`.Distribution1D` for the `Normal distribution`_
-
-    The normal distribution is a continuous probability distribution with PDF
+    r"""The normal distribution is a continuous probability distribution with PDF
     given by
 
-    .. math::
+    \begin{equation}
         f(x) = \frac{e^{-\frac{\left(x - \mu\right)^2}{2\sigma^2}}}{\sqrt{2\pi\sigma^2}}
-
-    .. _Normal distribution: https://en.wikipedia.org/wiki/Normal_distribution
+    \end{equation}
     """
 
     mu: float = Field(default=0, description="mean")
@@ -146,34 +144,40 @@ class Normal(Distribution1D):
 
 
 class DoubleExponential(Exponential):
-    r"""A :class:`.Marginal1D` for the generalized double exponential distribution
+    r"""The generalized double exponential distribution
 
-    This is also know as the Asymmetric Laplace distribution (`ALD`_) which is
+    This is also know as the Asymmetric Laplace distribution which is
     a continuous probability distribution with PDF
 
-    .. math::
-        \begin{align}
-            f(x) &= \frac{\lambda}{\kappa + \frac{1}{\kappa}}
-                e^{-\left(x - m\right) \lambda s(x) \kappa^{s(x)}}\\
-            s(x) &= {\tt sgn}\left({x - m}\right)
-        \end{align}
+    \begin{align}
+        f(x) &= \frac{\lambda}{\kappa + \frac{1}{\kappa}}
+            e^{-\left(x - m\right) \lambda s(x) \kappa^{s(x)}}\\
+        s(x) &= {\tt sgn}\left({x - m}\right)
+    \end{align}
 
-    where `m` is the :attr:`.loc` parameter, :math:`\lambda` is the :attr:`.decay`
-    parameter, and :math:`\kappa` is the asymmetric :attr:`.kappa` parameter.
+    where $m$ is the `loc` parameter,
+    $\lambda$ is the `decay`  parameter,
+    and $\kappa$ is the asymmetric parameter.
 
     The Asymmetric Laplace distribution is similar to the Gaussian/normal distribution,
     but is sharper at the peak, it has fatter tails and allow for skewness.
     It represents the difference between two independent, exponential random variables.
-
-    .. _ALD: https://en.wikipedia.org/wiki/Asymmetric_Laplace_distribution
     """
 
-    loc: float = Field(default=0, description="location parameter")
-    """The location parameter `m`"""
-    decay: float = Field(default=1, gt=0, description="exponential decay rate")
-    r"""The exponential decay rate :math:`\lambda`"""
-    kappa: float = Field(default=1, gt=0, description="asymmetric parameter")
-    """Asymmetric parameter - when k=1, the distribution is symmetric"""
+    loc: float = Field(
+        default=0, description=r"location parameter $m$ of the distribution"
+    )
+    decay: float = Field(
+        default=1, gt=0, description=r"exponential decay rate $\lambda$"
+    )
+    kappa: float = Field(
+        default=1,
+        gt=0,
+        description=(
+            r"asymmetric parameter $\kappa$ - when $\kappa=1$,"
+            " the distribution is symmetric"
+        ),
+    )
 
     @property
     def log_kappa(self) -> float:
@@ -188,17 +192,14 @@ class DoubleExponential(Exponential):
     def from_moments(
         cls,
         *,
-        mean: float = 0,
-        variance: float = 1,
-        kappa: float = 1,
+        mean: Annotated[float, Doc("The mean of the distribution")] = 0,
+        variance: Annotated[float, Doc("The variance of the distribution")] = 1,
+        kappa: Annotated[
+            float, Doc("The asymmetry parameter of the distribution, 1 for symmetric")
+        ] = 1,
     ) -> Self:
         r"""Create a double exponential distribution from the mean, variance
-        and asymmetry
-
-        :param mean: The mean of the distribution
-        :param variance: The variance of the distribution
-        :param kappa: The asymmetry parameter of the distribution, 1 for symmetric
-        """
+        and asymmetry"""
         k2 = kappa * kappa
         decay = np.sqrt((1 + k2 * k2) / (variance * k2))
         return cls(decay=decay, kappa=kappa, loc=mean - (1 - k2) / (kappa * decay))
