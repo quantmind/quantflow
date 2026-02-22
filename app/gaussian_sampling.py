@@ -8,7 +8,6 @@ app = marimo.App(width="medium")
 def _():
     import marimo as mo
     from app.utils import nav_menu
-
     nav_menu()
     return (mo,)
 
