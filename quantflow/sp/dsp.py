@@ -15,12 +15,12 @@ class DSP(PoissonBase):
     Doubly Stochastic Poisson process.
 
     It's a process where the inter-arrival time is exponentially distributed
-    with rate :math:`\lambda_t`
+    with rate $\lambda_t$
 
     :param intensity: the stochastic intensity of the Poisson
     """
 
-    intensity: IntensityProcess = Field(  # type ignore
+    intensity: IntensityProcess = Field(
         default_factory=CIR, description="intensity process"
     )
     poisson: PoissonProcess = Field(default_factory=PoissonProcess, exclude=True)
@@ -39,7 +39,7 @@ class DSP(PoissonBase):
         phi = self.poisson.characteristic_exponent(t, u)
         return -self.intensity.integrated_log_laplace(t, phi)
 
-    def arrivals(self, t: float = 1) -> list[float]:
+    def arrivals(self, t: float = 1) -> FloatArray:
         paths = self.intensity.sample(1, t, math.ceil(100 * t)).integrate()
         intensity = paths.data[-1, 0]
         return poisson_arrivals(intensity, t)

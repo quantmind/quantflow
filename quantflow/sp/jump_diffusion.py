@@ -4,6 +4,7 @@ from typing import Generic
 
 import numpy as np
 from pydantic import Field
+from typing_extensions import Annotated, Doc
 
 from ..ta.paths import Paths
 from ..utils.types import FloatArrayLike, Vector
@@ -15,20 +16,20 @@ from .weiner import WeinerProcess
 class JumpDiffusion(StochasticProcess1D, Generic[D]):
     r"""A generic jump-diffusion model
 
-    .. math::
+    \begin{equation}
         dx_t = \sigma d w_t + d N_t
+    \end{equation}
 
-    where :math:`w_t` is a Weiner process with standard deviation :math:`\sigma`
-    and :math:`N_t` is a :class:`.CompoundPoissonProcess`
-    with intensity :math:`\lambda` and generic jump distribution `D`
+    where $w_t$ is a [WeinerProcess][quantflow.sp.weiner.WeinerProcess] process
+    with standard deviation $\sigma$ and $N_t$ is a
+    [CompoundPoissonProcess][quantflow.sp.poisson.CompoundPoissonProcess]
+    with intensity $\lambda$ and generic jump distribution $D$
     """
 
     diffusion: WeinerProcess = Field(
-        default_factory=WeinerProcess, description="diffusion"
+        default_factory=WeinerProcess, description="diffusion process"
     )
-    """The diffusion process is a standard :class:`.WeinerProcess`"""
-    jumps: CompoundPoissonProcess[D] = Field(description="jump process")
-    """The jump process is a generic :class:`.CompoundPoissonProcess`"""
+    jumps: CompoundPoissonProcess[D] = Field(description="The jump process")
 
     def characteristic_exponent(self, t: FloatArrayLike, u: Vector) -> Vector:
         return self.diffusion.characteristic_exponent(
@@ -56,25 +57,33 @@ class JumpDiffusion(StochasticProcess1D, Generic[D]):
     @classmethod
     def create(
         cls,
-        jump_distribution: type[D],
-        vol: float = 0.5,
-        jump_intensity: float = 100,
-        jump_fraction: float = 0.5,
-        jump_asymmetry: float = 0.0,
+        jump_distribution: Annotated[
+            type[D],
+            Doc(
+                "The distribution of jump sizes. Currently "
+                "[Normal][quantflow.utils.distributions.Normal] and "
+                "[DoubleExponential][quantflow.utils.distributions.DoubleExponential] "
+                "are supported. If the jump distribution is set to the Normal "
+                "distribution, the model reduces to a Merton jump-diffusion."
+            ),
+        ],
+        vol: Annotated[float, Doc("total standard deviation per unit time")] = 0.5,
+        jump_intensity: Annotated[
+            float, Doc("The expected number of jumps per unit time")
+        ] = 100,
+        jump_fraction: Annotated[
+            float, Doc("The fraction of variance due to jumps (between 0 and 1)")
+        ] = 0.5,
+        jump_asymmetry: Annotated[
+            float,
+            Doc(
+                "The asymmetry of the jump distribution "
+                "(0 for symmetric, only used by distributions with asymmetry)"
+            ),
+        ] = 0.0,
     ) -> JumpDiffusion[D]:
         """Create a jump-diffusion model with a given jump distribution, volatility
         and jump fraction.
-
-        :param jump_distribution: The distribution of jump sizes (currently only
-            :class:`.Normal` and :class:`.DoubleExponential` are supported)
-        :param vol: total annualized standard deviation
-        :param jump_intensity: The average number of jumps per year
-        :param jump_fraction: The fraction of variance due to jumps (between 0 and 1)
-        :param jump_asymmetry: The asymmetry of the jump distribution (0 for symmetric,
-            only used by distributions with asymmetry)
-
-        If the jump distribution is set to the :class:`.Normal` distribution, the
-        model reduces to a Merton jump-diffusion model.
         """
         variance = vol * vol
         if jump_fraction >= 1:

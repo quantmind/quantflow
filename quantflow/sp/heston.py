@@ -4,6 +4,7 @@ from typing import Generic, Self
 
 import numpy as np
 from pydantic import Field
+from typing_extensions import Annotated, Doc
 
 from quantflow.ta.paths import Paths
 from quantflow.utils.types import FloatArrayLike, Vector
@@ -18,53 +19,78 @@ class Heston(StochasticProcess1D):
     r"""The Heston stochastic volatility model
 
     The classical square-root stochastic volatility model of Heston (1993)
-    can be regarded as a standard Brownian motion :math:`x_t` time changed by a CIR
+    can be regarded as a standard Brownian motion $x_t$ time changed by a CIR
     activity rate process.
 
-    .. math::
-        \begin{align}
-            d x_t &= d w^1_t \\
-            d v_t &= \kappa (\theta - v_t) dt + \nu \sqrt{v_t} dw^2_t \\
-            \rho dt &= {\tt E}[dw^1 dw^2]
-        \end{align}
+    \begin{align}
+        d x_t &= d w^1_t \\
+        d v_t &= \kappa (\theta - v_t) dt + \nu \sqrt{v_t} dw^2_t \\
+        \rho dt &= {\tt E}[dw^1 dw^2]
+    \end{align}
     """
 
-    variance_process: CIR = Field(default_factory=CIR, description="Variance process")
-    """The variance process is a Cox-Ingersoll-Ross (:class:`.CIR`) process"""
-    rho: float = Field(default=0, ge=-1, le=1, description="Correlation")
-    """Correlation between the Brownian motions - provides the leverage effect"""
+    variance_process: CIR = Field(
+        default_factory=CIR,
+        description="The variance process is a Cox-Ingersoll-Ross process",
+    )
+    rho: float = Field(
+        default=0,
+        ge=-1,
+        le=1,
+        description=(
+            "Correlation between the Brownian motions, it provides "
+            "the leverage effect and therefore the skewness of the distribution"
+        ),
+    )
 
     @classmethod
     def create(
         cls,
         *,
-        rate: float = 1.0,
-        vol: float = 0.5,
-        kappa: float = 1,
-        sigma: float = 0.8,
-        rho: float = 0,
-        theta: float | None = None,
+        rate: Annotated[float, Doc("Initial rate of the variance process")] = 1.0,
+        vol: Annotated[
+            float,
+            Doc(
+                "Volatility of the price process, normalized by the "
+                "square root of time, as time tends to infinity "
+                "(the long term standard deviation)"
+            ),
+        ] = 0.5,
+        kappa: Annotated[
+            float,
+            Doc(
+                "Mean reversion speed for the variance process, the lower the "
+                "more pronounced the volatility clustering and therefore the fatter "
+                "the tails of the distribution of the price process"
+            ),
+        ] = 1,
+        sigma: Annotated[
+            float, Doc("Volatility of the variance process (a.k.a. the vol of vol)")
+        ] = 0.8,
+        rho: Annotated[
+            float,
+            Doc(
+                "Correlation between the Brownian motions of the "
+                "variance and price processes"
+            ),
+        ] = 0,
+        theta: Annotated[
+            float | None,
+            Doc(
+                "Long-term mean of the variance process. "
+                r"If `None`, it defaults to the variance given by ${\tt var}$"
+                " the long term variance described above."
+            ),
+        ] = None,
     ) -> Self:
         r"""Create an Heston model.
 
         To understand the parameters lets introduce the following notation:
 
-        .. math::
-            \begin{align}
-                {\tt var} &= {\tt vol}^2 \\
-                v_0 &= {\tt rate}\cdot{\tt var}
-            \end{align}
-
-        :param rate: define the initial value of the variance process
-        :param vol: The standard deviation of the price process, normalized by the
-            square root of time, as time tends to infinity
-            (the long term standard deviation)
-        :param kappa: The mean reversion speed for the variance process
-        :param sigma: The volatility of the variance process
-        :param rho: The correlation between the Brownian motions of the
-            variance and price processes
-        :param theta: The long-term mean of the variance process, if `None`, it
-            defaults to the variance given by :math:`{\tt var}`
+        \begin{align}
+            {\tt var} &= {\tt vol}^2 \\
+            v_0 &= {\tt rate}\cdot{\tt var}
+        \end{align}
         """
         variance = vol * vol
         return cls(
@@ -118,20 +144,20 @@ class HestonJ(Heston, Generic[D]):
     stochastic volatility model of Heston (1993) with the addition of jump
     processes. The jumps are modeled via a compound Poisson process
 
-    .. math::
+    \begin{align}
         d x_t &= d w^1_t + d N_t\\
         d v_t &= \kappa (\theta - v_t) dt + \nu \sqrt{v_t} dw^2_t \\
         \rho dt &= {\tt E}[dw^1 dw^2]
+    \end{align}
 
     This model is generic and therefore allows for different types of jumps
     distributions **D**.
 
     The Bates model is obtained by using the
-    :class:`.Normal` distribution for the jump sizes.
+    [Normal][quantflow.utils.distributions.Normal] distribution for the jump sizes.
     """
 
-    jumps: CompoundPoissonProcess[D] = Field(description="jumps process")
-    """Jump process driven by a :class:`.CompoundPoissonProcess`"""
+    jumps: CompoundPoissonProcess[D] = Field(description="Jump process")
 
     @classmethod
     def create(  # type: ignore [override]
@@ -152,13 +178,12 @@ class HestonJ(Heston, Generic[D]):
 
         To understand the parameters lets introduce the following notation:
 
-        .. math::
-            \begin{align}
-                {\tt var} &= {\tt vol}^2 \\
-                {\tt var}_j &= {\tt var} \cdot {\tt jump\_fraction} \\
-                {\tt var}_d &= {\tt var} - {\tt var}_j \\
-                v_0 &= {\tt rate}\cdot{\tt var}_d
-            \end{align}
+        \begin{align}
+            {\tt var} &= {\tt vol}^2 \\
+            {\tt var}_j &= {\tt var} \cdot {\tt jump\_fraction} \\
+            {\tt var}_d &= {\tt var} - {\tt var}_j \\
+            v_0 &= {\tt rate}\cdot{\tt var}_d
+        \end{align}
 
         :param jump_distribution: The distribution of jump size (currently only
             :class:`.Normal` and :class:`.DoubleExponential` are supported)

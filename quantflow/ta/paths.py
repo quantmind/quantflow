@@ -22,14 +22,12 @@ class Paths(BaseModel, arbitrary_types_allowed=True):
     This is the output from a simulation of a stochastic process.
     """
 
-    t: float = Field(description="time horizon")
-    """Time horizon - the unit of time is not specified"""
-    data: FloatArray = Field(description="paths")
-    """Paths of the stochastic process"""
+    t: float = Field(description="Time horizon - the unit of time is not specified")
+    data: FloatArray = Field(description="Paths of the stochastic process")
 
     @property
     def dt(self) -> float:
-        """Time step"""
+        """Time step given by the time horizon divided by time steps"""
         return self.t / self.time_steps
 
     @property
@@ -124,12 +122,17 @@ class Paths(BaseModel, arbitrary_types_allowed=True):
             data=cumulative_trapezoid(self.data, dx=self.dt, axis=0, initial=0),
         )
 
-    def hurst_exponent(self, steps: int | None = None) -> float:
-        """Estimate the Hurst exponent from all paths
-
-        :param steps: number of lags to consider, if not provided it uses
-            half of the time steps capped at 100
-        """
+    def hurst_exponent(
+        self,
+        steps: Annotated[
+            int | None,
+            Doc(
+                "number of lags to consider, if not provided it uses half "
+                "of the time steps capped at 100"
+            ),
+        ] = None,
+    ) -> float:
+        """Estimate the Hurst exponent from all paths"""
         ts = self.time_steps // 2
         n = min(steps or ts, 100)
         lags = []
@@ -140,7 +143,9 @@ class Paths(BaseModel, arbitrary_types_allowed=True):
             lags.extend([lag] * self.samples)
         return float(np.polyfit(np.log(lags), np.log(tau), 1)[0]) / 2.0
 
-    def cross_section(self, t: float | None = None) -> FloatArray:
+    def cross_section(
+        self, t: Annotated[float | None, Doc("time of cross section")] = None
+    ) -> FloatArray:
         """Cross section of paths at time t"""
         index = self.time_steps
         if t is not None:
@@ -149,23 +154,27 @@ class Paths(BaseModel, arbitrary_types_allowed=True):
 
     def pdf(
         self,
-        t: float | None = None,
-        num_bins: int | None = None,
-        delta: float | None = None,
-        symmetric: float | None = None,
+        t: Annotated[float | None, Doc("time at which to calculate the pdf")] = None,
+        num_bins: Annotated[int | None, Doc("number of bins to use")] = None,
+        delta: Annotated[
+            float | None, Doc("optional size of bins (cannot be set with num_bins)")
+        ] = None,
+        symmetric: Annotated[
+            float | None, Doc("An optional value where to center bins")
+        ] = None,
     ) -> pd.DataFrame:
-        """Probability density function of paths
+        """Estimate the Probability density function from paths at a given
+        time horizon.
 
-        Calculate a DataFrame with the probability density function of the paths
-        at a given cross section of time. By default it take the last section.
-
-        :param t: time at which to calculate the pdf
-        :param num_bins: number of bins
-        :param delta: optional size of bins (cannot be set with num_bins)
-        :param symmetric: optional center of bins
+        This method calculates a DataFrame with the probability density function
+        of the paths at a given cross section of time.
+        By default it take the last section.
         """
         return bins_pdf(
-            self.cross_section(t), num_bins=num_bins, delta=delta, symmetric=symmetric
+            self.cross_section(t),
+            num_bins=num_bins,
+            delta=delta,
+            symmetric=symmetric,
         )
 
     def plot(self, **kwargs: Any) -> Any:
