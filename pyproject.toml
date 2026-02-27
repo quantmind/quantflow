@@ -1,6 +1,6 @@
 [project]
 name = "quantflow"
-version = "0.4.3"
+version = "0.4.4"
 description = "quantitative analysis"
 authors = [ { name = "Luca Sbardella", email = "luca@quantmind.com" } ]
 license = "BSD-3-Clause"
@@ -37,11 +37,11 @@ qf = "quantflow.cli.script:main"
 [tool.poetry.group.dev.dependencies]
 black = "^26.1.0"
 ghp-import = "^2.0.2"
-isort = "^7.0.0"
+isort = "^8.0.0"
 mypy = "^1.14.1"
 pytest-asyncio = "^1.0.0"
 pytest-cov = "^7.0.0"
-ruff = "^0.14.14"
+ruff = "^0.15.4"
 types-python-dateutil = "^2.9.0.20251115"
 
 [tool.poetry.group.docs]
