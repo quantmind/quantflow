@@ -8,12 +8,12 @@ help:
 
 .PHONY: lint
 lint:				## Lint and fix
-	@poetry run ./dev/lint fix
+	@uv run ./dev/lint fix
 
 
 .PHONY: lint-check
 lint-check:			## Lint check only
-	@poetry run ./dev/lint
+	@uv run ./dev/lint
 
 
 .PHONY: install-dev
@@ -27,15 +27,15 @@ marimo:				## Run marimo for editing notebooks
 .PHONY: docs
 docs:				## build documentation
 	@cp docs/index.md readme.md
-	@poetry run mkdocs build
+	@uv run mkdocs build
 
 .PHONY: docs-serve
 docs-serve:			## serve documentation
-	@poetry run mkdocs serve --livereload --watch quantflow --watch docs
+	@uv run mkdocs serve --livereload --watch quantflow --watch docs
 
 .PHONY: publish
 publish:			## Release to pypi
-	@poetry publish --build -u __token__ -p $(PYPI_TOKEN)
+	@uv publish --token $(PYPI_TOKEN)
 
 .PHONY: tests
 tests:				## Unit tests
@@ -44,4 +44,4 @@ tests:				## Unit tests
 
 .PHONY: outdated
 outdated:			## Show outdated packages
-	poetry show -o -a
+	uv tree --outdated

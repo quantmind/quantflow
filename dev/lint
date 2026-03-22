@@ -15,12 +15,12 @@ fi
 
 taplo ${TAPLO_ARG}
 echo isort
-isort quantflow quantflow_tests ${ISORT_ARGS}
+uv run isort quantflow quantflow_tests ${ISORT_ARGS}
 echo black
-black quantflow quantflow_tests ${BLACK_ARG}
+uv run black quantflow quantflow_tests ${BLACK_ARG}
 echo ruff
-ruff check quantflow quantflow_tests ${RUFF_ARG}
+uv run ruff check quantflow quantflow_tests ${RUFF_ARG}
 echo mypy
-mypy quantflow
+uv run mypy quantflow
 echo mypy tests
-mypy quantflow_tests --explicit-package-bases
+uv run mypy quantflow_tests --explicit-package-bases
