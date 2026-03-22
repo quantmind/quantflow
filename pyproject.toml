@@ -63,7 +63,6 @@ ml = [
 ]
 
 [project.scripts]
-qf = "quantflow.cli.script:main"
 qf-mcp = "quantflow.ai.server:main"
 
 [build-system]
