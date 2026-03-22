@@ -3,9 +3,9 @@ from __future__ import annotations
 import enum
 from datetime import datetime
 from decimal import Decimal
-from typing import TypeVar
+from typing import Self, TypeVar
 
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 from quantflow.utils.numbers import ZERO
 
@@ -39,34 +39,87 @@ class VolSecurityType(enum.StrEnum):
     forward = enum.auto()
     option = enum.auto()
 
+
+class VolSurfaceSecurity(BaseModel):
     def vol_surface_type(self) -> VolSecurityType:
-        return self
+        raise NotImplementedError("vol_surface_type must be implemented by subclasses")
+
+
+class DefaultVolSecurity(VolSurfaceSecurity):
+    security_type: VolSecurityType = Field(
+        default=VolSecurityType.spot,
+        description="Type of security for the volatility surface",
+    )
+
+    def vol_surface_type(self) -> VolSecurityType:
+        return self.security_type
+
+    @classmethod
+    def spot(cls) -> Self:
+        return cls(security_type=VolSecurityType.spot)
+
+    @classmethod
+    def forward(cls) -> Self:
+        return cls(security_type=VolSecurityType.forward)
+
+    @classmethod
+    def option(cls) -> Self:
+        return cls(security_type=VolSecurityType.option)
 
 
 class VolSurfaceInput(BaseModel):
-    bid: Decimal
-    ask: Decimal
-    open_interest: Decimal = ZERO
-    volume: Decimal = ZERO
+    """Base class for volatility surface inputs"""
+
+    bid: Decimal = Field(description="Bid price of the security")
+    ask: Decimal = Field(description="Ask price of the security")
+    open_interest: Decimal = Field(
+        default=ZERO, description="Open interest of the security"
+    )
+    volume: Decimal = Field(default=ZERO, description="Volume of the security")
 
 
 class SpotInput(VolSurfaceInput):
-    security_type: VolSecurityType = VolSecurityType.spot
+    """Input data for a spot contract in the volatility surface"""
+
+    security_type: VolSecurityType = Field(
+        default=VolSecurityType.spot,
+        description="Type of security for the volatility surface",
+    )
 
 
 class ForwardInput(VolSurfaceInput):
-    maturity: datetime
-    security_type: VolSecurityType = VolSecurityType.forward
+    """Input data for a forward contract in the volatility surface"""
+
+    maturity: datetime = Field(description="Expiry date of the forward contract")
+    security_type: VolSecurityType = Field(
+        default=VolSecurityType.forward,
+        description="Type of security for the volatility surface",
+    )
 
 
 class OptionInput(VolSurfaceInput):
-    strike: Decimal
-    maturity: datetime
-    option_type: OptionType
-    security_type: VolSecurityType = VolSecurityType.option
+    """Input data for an option in the volatility surface"""
+
+    strike: Decimal = Field(description="Strike price of the option")
+    maturity: datetime = Field(description="Expiry date of the option")
+    option_type: OptionType = Field(description="Type of the option - call or put")
+    security_type: VolSecurityType = Field(
+        default=VolSecurityType.option,
+        description="Type of security for the volatility surface",
+    )
+    iv_bid: Decimal | None = Field(
+        default=None, description="Implied volatility based on the bid price"
+    )
+    iv_ask: Decimal | None = Field(
+        default=None, description="Implied volatility based on the ask price"
+    )
 
 
 class VolSurfaceInputs(BaseModel):
-    asset: str
-    ref_date: datetime
-    inputs: list[ForwardInput | SpotInput | OptionInput]
+    """Class representing the inputs for a volatility surface"""
+
+    asset: str = Field(description="Underlying asset of the volatility surface")
+    ref_date: datetime = Field(description="Reference date for the volatility surface")
+    inputs: list[ForwardInput | SpotInput | OptionInput] = Field(
+        description="List of inputs for the volatility surface"
+    )

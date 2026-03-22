@@ -8,6 +8,11 @@ applyTo: '/**'
 # Quantflow Instructions
 
 
+## Development
+
+* Always run `make lint` after code changes — runs taplo, isort, black, ruff, and mypy
+* Never edit `readme.md` directly — it is generated from `docs/index.md` via `make docs`
+
 ## Docker
 
 * The Dockerfile is at `dev/quantflow.dockerfile`

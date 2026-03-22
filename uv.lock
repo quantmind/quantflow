@@ -232,15 +232,6 @@ wheels = [
 ]
 
 [[package]]
-name = "async-cache"
-version = "2.0.0"
-source = { registry = "https://pypi.org/simple" }
-sdist = { url = "https://files.pythonhosted.org/packages/d9/fc/2c1f3ad6eeb791547512d220fd704dafb60550300aab0cf6d7e2fd726603/async_cache-2.0.0.tar.gz", hash = "sha256:62b17c216b0b437dcfdf1890b4770b8b11f3b42ce4be1c30949575c2c2194911", size = 17046, upload-time = "2026-02-28T11:23:08.875Z" }
-wheels = [
-    { url = "https://files.pythonhosted.org/packages/c9/de/67f89784b5f332e68cd666c998fc993abe6a6ac01a63a1912b0eeacf3396/async_cache-2.0.0-py3-none-any.whl", hash = "sha256:620b632adc7f26efdcae3f371d7627bbc4649815f42ec661ccc05953d5e93b76", size = 9755, upload-time = "2026-02-28T11:23:07.492Z" },
-]
-
-[[package]]
 name = "async-timeout"
 version = "5.0.1"
 source = { registry = "https://pypi.org/simple" }
@@ -341,6 +332,11 @@ dependencies = [
 sdist = { url = "https://files.pythonhosted.org/packages/66/09/ffa486dcd1ec2aecca710de4b9535350d2546c1c1512d3db75f3c2d05473/ccy-1.7.2.tar.gz", hash = "sha256:6ad8241a9d00883c50f878665cb65271740dae9b32ebcc35364c8e166dbdbfdc", size = 11931, upload-time = "2025-12-28T20:38:44.428Z" }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/60/fd/4129e0b64de10b40fedcf8d0587a1f7e5e5e4513051554476a2d6d00c25a/ccy-1.7.2-py3-none-any.whl", hash = "sha256:dd5fae95005e7b9918543e508c41af75107682ce81b540dea8825a6bf1b56402", size = 15341, upload-time = "2025-12-28T20:38:43.605Z" },
+]
+
+[package.optional-dependencies]
+holidays = [
+    { name = "holidays" },
 ]
 
 [[package]]
@@ -1093,14 +1089,14 @@ wheels = [
 
 [[package]]
 name = "holidays"
-version = "0.92"
+version = "0.63"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "python-dateutil" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/a4/9a/e397b5c64a17f198b7b9b719244b1ffb823ac685656e608b70de7a5b59da/holidays-0.92.tar.gz", hash = "sha256:5d716ececf94e0d354ccee255541f6ba702078d7ed17b693262f6446214904a5", size = 844925, upload-time = "2026-03-02T19:33:17.152Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/b0/a9/5f62d56a59bbd3647872175829d881fbecb3f08fccd9bf751523da61e2e1/holidays-0.63.tar.gz", hash = "sha256:0e0fe872c9c4c18bbdf0ddf34990d99f077484ba21d28e14e7d1ad1643b72544", size = 603749, upload-time = "2024-12-16T21:01:02.811Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/85/00/8ee09c2c671cc7e95c6212d1c15b2b67c2011468f352c21200e18c08e6c0/holidays-0.92-py3-none-any.whl", hash = "sha256:92c192a20d80cd2ddbdf3166d73a9692c59701ded34f6754115b3c849ac60857", size = 1385981, upload-time = "2026-03-02T19:33:15.627Z" },
+    { url = "https://files.pythonhosted.org/packages/90/9c/5235772fc9d2399f41401e6a054a26b4a993bd8a38e4ff849a6097a912a9/holidays-0.63-py3-none-any.whl", hash = "sha256:f834a86635e4593eb3d8c76c9b4207ca11b200767b53cdef3468b9fe71401412", size = 1181014, upload-time = "2024-12-16T21:00:58.575Z" },
 ]
 
 [[package]]
@@ -2532,18 +2528,6 @@ wheels = [
 ]
 
 [[package]]
-name = "prompt-toolkit"
-version = "3.0.52"
-source = { registry = "https://pypi.org/simple" }
-dependencies = [
-    { name = "wcwidth" },
-]
-sdist = { url = "https://files.pythonhosted.org/packages/a1/96/06e01a7b38dce6fe1db213e061a4602dd6032a8a97ef6c1a862537732421/prompt_toolkit-3.0.52.tar.gz", hash = "sha256:28cde192929c8e7321de85de1ddbe736f1375148b02f2e17edd840042b1be855", size = 434198, upload-time = "2025-08-27T15:24:02.057Z" }
-wheels = [
-    { url = "https://files.pythonhosted.org/packages/84/03/0d3ce49e2505ae70cf43bc5bb3033955d2fc9f932163e84dc0779cc47f48/prompt_toolkit-3.0.52-py3-none-any.whl", hash = "sha256:9aac639a3bbd33284347de5ad8d68ecc044b91a762dc39b7c21095fcd6a19955", size = 391431, upload-time = "2025-08-27T15:23:59.498Z" },
-]
-
-[[package]]
 name = "propcache"
 version = "0.4.1"
 source = { registry = "https://pypi.org/simple" }
@@ -3161,7 +3145,7 @@ wheels = [
 
 [[package]]
 name = "quantflow"
-version = "0.4.4"
+version = "0.5.0"
 source = { editable = "." }
 dependencies = [
     { name = "ccy" },
@@ -3173,26 +3157,23 @@ dependencies = [
 ]
 
 [package.optional-dependencies]
+ai = [
+    { name = "asciichartpy" },
+    { name = "ccy", extra = ["holidays"] },
+    { name = "google-genai" },
+    { name = "mcp" },
+    { name = "openai" },
+    { name = "pydantic-ai-slim" },
+    { name = "rich" },
+]
 book = [
     { name = "altair" },
     { name = "autodocsumm" },
     { name = "duckdb" },
     { name = "fastapi" },
-    { name = "google-genai" },
     { name = "marimo" },
-    { name = "mcp" },
-    { name = "openai" },
     { name = "plotly" },
-    { name = "pydantic-ai-slim" },
     { name = "sympy" },
-]
-cli = [
-    { name = "asciichartpy" },
-    { name = "async-cache" },
-    { name = "click" },
-    { name = "holidays" },
-    { name = "prompt-toolkit" },
-    { name = "rich" },
 ]
 data = [
     { name = "aio-fluid", extra = ["http"] },
@@ -3223,37 +3204,34 @@ ml = [
 requires-dist = [
     { name = "aio-fluid", extras = ["http"], marker = "extra == 'data'", specifier = ">=1.2.1" },
     { name = "altair", marker = "extra == 'book'", specifier = ">=6.0.0" },
-    { name = "asciichartpy", marker = "extra == 'cli'", specifier = ">=1.5.25" },
-    { name = "async-cache", marker = "extra == 'cli'", specifier = ">=1.1.1" },
+    { name = "asciichartpy", marker = "extra == 'ai'", specifier = ">=1.5.25" },
     { name = "autodocsumm", marker = "extra == 'book'", specifier = ">=0.2.14" },
     { name = "black", marker = "extra == 'dev'", specifier = ">=26.3.1" },
     { name = "ccy", specifier = ">=1.7.1" },
-    { name = "click", marker = "extra == 'cli'", specifier = ">=8.1.7" },
+    { name = "ccy", extras = ["holidays"], marker = "extra == 'ai'", specifier = ">=1.7.1" },
     { name = "duckdb", marker = "extra == 'book'", specifier = ">=1.4.4" },
     { name = "fastapi", marker = "extra == 'book'", specifier = ">=0.129.0" },
     { name = "ghp-import", marker = "extra == 'dev'", specifier = ">=2.0.2" },
-    { name = "google-genai", marker = "extra == 'book'", specifier = ">=1.61.0" },
+    { name = "google-genai", marker = "extra == 'ai'", specifier = ">=1.61.0" },
     { name = "griffe-pydantic", marker = "extra == 'docs'", specifier = ">=1.1.0" },
     { name = "griffe-typingdoc", marker = "extra == 'docs'", specifier = ">=0.2.7" },
-    { name = "holidays", marker = "extra == 'cli'", specifier = ">=0.63" },
     { name = "isort", marker = "extra == 'dev'", specifier = ">=8.0.0" },
     { name = "marimo", marker = "extra == 'book'", specifier = ">=0.19.7" },
-    { name = "mcp", marker = "extra == 'book'", specifier = ">=1.26.0" },
+    { name = "mcp", marker = "extra == 'ai'", specifier = ">=1.26.0" },
     { name = "mkdocs-macros-plugin", marker = "extra == 'docs'", specifier = ">=1.3.7" },
     { name = "mkdocs-material", marker = "extra == 'docs'", specifier = ">=9.7.0" },
     { name = "mkdocs-redirects", marker = "extra == 'docs'", specifier = ">=1.2.1" },
     { name = "mkdocstrings", extras = ["python"], marker = "extra == 'docs'", specifier = "==1.0.0" },
     { name = "mypy", marker = "extra == 'dev'", specifier = ">=1.14.1" },
-    { name = "openai", marker = "extra == 'book'", specifier = ">=2.16.0" },
+    { name = "openai", marker = "extra == 'ai'", specifier = ">=2.16.0" },
     { name = "plotly", marker = "extra == 'book'", specifier = ">=6.2.0" },
     { name = "polars", extras = ["pandas", "pyarrow"], specifier = ">=1.11.0" },
-    { name = "prompt-toolkit", marker = "extra == 'cli'", specifier = ">=3.0.43" },
     { name = "pydantic", specifier = ">=2.0.2" },
-    { name = "pydantic-ai-slim", marker = "extra == 'book'", specifier = ">=1.51.0" },
+    { name = "pydantic-ai-slim", marker = "extra == 'ai'", specifier = ">=1.51.0" },
     { name = "pytest-asyncio", marker = "extra == 'dev'", specifier = ">=1.0.0" },
     { name = "pytest-cov", marker = "extra == 'dev'", specifier = ">=7.0.0" },
     { name = "python-dotenv", specifier = ">=1.0.1" },
-    { name = "rich", marker = "extra == 'cli'", specifier = ">=13.9.4" },
+    { name = "rich", marker = "extra == 'ai'", specifier = ">=13.9.4" },
     { name = "ruff", marker = "extra == 'dev'", specifier = ">=0.15.4" },
     { name = "scipy", specifier = ">=1.14.1" },
     { name = "statsmodels", specifier = ">=0.14.6,<0.15.0" },
@@ -3261,7 +3239,7 @@ requires-dist = [
     { name = "torch", marker = "extra == 'ml'", specifier = ">=2.10.0", index = "https://download.pytorch.org/whl/cu126" },
     { name = "types-python-dateutil", marker = "extra == 'dev'", specifier = ">=2.9.0.20251115" },
 ]
-provides-extras = ["book", "cli", "data", "dev", "docs", "ml"]
+provides-extras = ["ai", "book", "data", "dev", "docs", "ml"]
 
 [[package]]
 name = "redis"
@@ -4024,15 +4002,6 @@ wheels = [
     { url = "https://files.pythonhosted.org/packages/07/f6/d0e5b343768e8bcb4cda79f0f2f55051bf26177ecd5651f84c07567461cf/watchdog-6.0.0-py3-none-win32.whl", hash = "sha256:07df1fdd701c5d4c8e55ef6cf55b8f0120fe1aef7ef39a1c6fc6bc2e606d517a", size = 79065, upload-time = "2024-11-01T14:07:09.525Z" },
     { url = "https://files.pythonhosted.org/packages/db/d9/c495884c6e548fce18a8f40568ff120bc3a4b7b99813081c8ac0c936fa64/watchdog-6.0.0-py3-none-win_amd64.whl", hash = "sha256:cbafb470cf848d93b5d013e2ecb245d4aa1c8fd0504e863ccefa32445359d680", size = 79070, upload-time = "2024-11-01T14:07:10.686Z" },
     { url = "https://files.pythonhosted.org/packages/33/e8/e40370e6d74ddba47f002a32919d91310d6074130fe4e17dabcafc15cbf1/watchdog-6.0.0-py3-none-win_ia64.whl", hash = "sha256:a1914259fa9e1454315171103c6a30961236f508b9b623eae470268bbcc6a22f", size = 79067, upload-time = "2024-11-01T14:07:11.845Z" },
-]
-
-[[package]]
-name = "wcwidth"
-version = "0.6.0"
-source = { registry = "https://pypi.org/simple" }
-sdist = { url = "https://files.pythonhosted.org/packages/35/a2/8e3becb46433538a38726c948d3399905a4c7cabd0df578ede5dc51f0ec2/wcwidth-0.6.0.tar.gz", hash = "sha256:cdc4e4262d6ef9a1a57e018384cbeb1208d8abbc64176027e2c2455c81313159", size = 159684, upload-time = "2026-02-06T19:19:40.919Z" }
-wheels = [
-    { url = "https://files.pythonhosted.org/packages/68/5a/199c59e0a824a3db2b89c5d2dade7ab5f9624dbf6448dc291b46d5ec94d3/wcwidth-0.6.0-py3-none-any.whl", hash = "sha256:1a3a1e510b553315f8e146c54764f4fb6264ffad731b3d78088cdb1478ffbdad", size = 94189, upload-time = "2026-02-06T19:19:39.646Z" },
 ]
 
 [[package]]

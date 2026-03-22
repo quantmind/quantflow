@@ -12,8 +12,8 @@ from fluid.utils.data import compact_dict
 from fluid.utils.http_client import AioHttpClient, HttpResponse, HttpResponseError
 from typing_extensions import Annotated, Doc
 
-from quantflow.options.inputs import OptionType
-from quantflow.options.surface import VolSecurityType, VolSurfaceLoader
+from quantflow.options.inputs import DefaultVolSecurity, OptionType
+from quantflow.options.surface import VolSurfaceLoader
 from quantflow.utils.numbers import (
     Number,
     round_to_step,
@@ -112,7 +112,8 @@ class Deribit(AioHttpClient):
             Number | None, Doc("Exclude options with volume below this threshold")
         ] = None,
     ) -> VolSurfaceLoader:
-        """Create a :class:`.VolSurfaceLoader` for a given crypto-currency"""
+        """Create a [VolSurfaceLoader][quantflow.options.surface.VolSurfaceLoader]
+        for a given crypto-currency"""
         loader = VolSurfaceLoader(
             asset=currency,
             exclude_open_interest=to_decimal_or_none(exclude_open_interest),
@@ -137,7 +138,7 @@ class Deribit(AioHttpClient):
                 ask = round_to_step(ask_, tick_size)
                 if meta["settlement_period"] == "perpetual":
                     loader.add_spot(
-                        VolSecurityType.spot,
+                        DefaultVolSecurity.spot(),
                         bid=bid,
                         ask=ask,
                         open_interest=to_decimal(entry["open_interest"]),
@@ -150,7 +151,7 @@ class Deribit(AioHttpClient):
                         utc=True,
                     ).to_pydatetime()
                     loader.add_forward(
-                        VolSecurityType.forward,
+                        DefaultVolSecurity.forward(),
                         maturity=maturity,
                         bid=bid,
                         ask=ask,
@@ -167,7 +168,7 @@ class Deribit(AioHttpClient):
                 tick_size = to_decimal(meta["tick_size"])
                 min_tick_size = min(min_tick_size, tick_size)
                 loader.add_option(
-                    VolSecurityType.option,
+                    DefaultVolSecurity.option(),
                     strike=round_to_step(meta["strike"], tick_size),
                     maturity=pd.to_datetime(
                         meta["expiration_timestamp"],

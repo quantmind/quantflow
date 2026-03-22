@@ -1,6 +1,6 @@
 [project]
 name = "quantflow"
-version = "0.4.4"
+version = "0.5.0"
 description = "quantitative analysis"
 authors = [ { name = "Luca Sbardella", email = "luca@quantmind.com" } ]
 license = "BSD-3-Clause"
@@ -21,26 +21,23 @@ Repository = "https://github.com/quantmind/quantflow"
 Documentation = "https://quantmind.github.io/quantflow/"
 
 [project.optional-dependencies]
+ai = [
+    "asciichartpy>=1.5.25",
+    "ccy[holidays]>=1.7.1",
+    "google-genai>=1.61.0",
+    "mcp>=1.26.0",
+    "openai>=2.16.0",
+    "pydantic-ai-slim>=1.51.0",
+    "rich>=13.9.4",
+]
 book = [
     "altair>=6.0.0",
     "autodocsumm>=0.2.14",
     "duckdb>=1.4.4",
     "fastapi>=0.129.0",
-    "google-genai>=1.61.0",
     "marimo>=0.19.7",
-    "mcp>=1.26.0",
-    "openai>=2.16.0",
     "plotly>=6.2.0",
-    "pydantic-ai-slim>=1.51.0",
     "sympy>=1.12",
-]
-cli = [
-    "asciichartpy>=1.5.25",
-    "async-cache>=1.1.1",
-    "click>=8.1.7",
-    "holidays>=0.63",
-    "prompt-toolkit>=3.0.43",
-    "rich>=13.9.4",
 ]
 data = [ "aio-fluid[http]>=1.2.1" ]
 dev = [
@@ -67,6 +64,7 @@ ml = [
 
 [project.scripts]
 qf = "quantflow.cli.script:main"
+qf-mcp = "quantflow.ai.server:main"
 
 [build-system]
 requires = [ "hatchling" ]

@@ -6,6 +6,7 @@ import pytest
 
 from quantflow.options import bs
 from quantflow.options.calibration import HestonCalibration
+from quantflow.options.inputs import OptionInput
 from quantflow.options.pricer import OptionPricer
 from quantflow.options.surface import (
     OptionPrice,
@@ -71,6 +72,51 @@ def test_vol_surface(vol_surface: VolSurface):
         crosses.append(vol_surface.options_df(index=index))
     assert len(crosses) == CROSS_SECTIONS
     assert len(options) == sum(len(cross) for cross in crosses)
+
+
+def test_term_structure(vol_surface: VolSurface) -> None:
+    ts = vol_surface.term_structure()
+    assert len(ts) == len(vol_surface.maturities)
+    assert list(ts.columns) == [
+        "maturity",
+        "ttm",
+        "forward",
+        "basis",
+        "rate_percent",
+        "open_interest",
+        "volume",
+    ]
+    assert (ts["ttm"] > 0).all()
+    assert ts["ttm"].is_monotonic_increasing
+
+
+def test_trim(vol_surface: VolSurface) -> None:
+    n = len(vol_surface.maturities)
+    assert n > 2
+
+    trimmed = vol_surface.trim(2)
+    assert len(trimmed.maturities) == 2
+    assert trimmed.maturities == vol_surface.maturities[-2:]
+    assert trimmed.spot == vol_surface.spot
+    assert trimmed.ref_date == vol_surface.ref_date
+
+
+def test_trim_full(vol_surface: VolSurface) -> None:
+    n = len(vol_surface.maturities)
+    trimmed = vol_surface.trim(n)
+    assert trimmed == vol_surface
+
+
+def test_inputs_implied_vols(vol_surface: VolSurface) -> None:
+    vol_surface.bs()
+    inputs = vol_surface.inputs()
+    option_inputs = [i for i in inputs.inputs if isinstance(i, OptionInput)]
+    assert option_inputs
+    assert all(i.iv_bid is not None or i.iv_ask is not None for i in option_inputs)
+    converged = [
+        i for i in option_inputs if i.iv_bid is not None and i.iv_ask is not None
+    ]
+    assert converged
 
 
 def test_same_vol_surface(vol_surface: VolSurface):
