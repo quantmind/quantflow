@@ -26,7 +26,7 @@ def register(mcp: FastMCP, tool: McpTool) -> None:
         import pandas as pd
 
         df = pd.DataFrame(cats, columns=["id", "name"])
-        return f"FRED categories:\n{df.to_string(index=False)}"
+        return df.to_csv(index=False)
 
     @mcp.tool()
     async def fred_series(category_id: str) -> str:
@@ -55,7 +55,7 @@ def register(mcp: FastMCP, tool: McpTool) -> None:
                 "observation_end",
             ],
         ).sort_values("popularity", ascending=False)
-        return f"FRED series for category {category_id}:\n{df.to_string(index=False)}"
+        return df.to_csv(index=False)
 
     @mcp.tool()
     async def fred_data(
@@ -79,4 +79,4 @@ def register(mcp: FastMCP, tool: McpTool) -> None:
                     sort_order="desc",
                 )
             )
-        return f"FRED data for {series_id}:\n{df.to_string(index=False)}"
+        return df.to_csv(index=False)

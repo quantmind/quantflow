@@ -37,7 +37,7 @@ def register(mcp: FastMCP, tool: McpTool) -> None:
             df = await client.get_volatility(currency)
         if df.empty:
             return f"No volatility data for {currency}"
-        return f"Historical volatility for {currency}:\n{df.to_string(index=False)}"
+        return df.to_csv(index=False)
 
     @mcp.tool()
     async def crypto_term_structure(currency: str) -> str:
@@ -52,7 +52,7 @@ def register(mcp: FastMCP, tool: McpTool) -> None:
             loader = await client.volatility_surface_loader(currency)
         vs: VolSurface = loader.surface()
         ts = vs.term_structure().round({"ttm": 4})
-        return f"Term structure for {currency}:\n{ts.to_string(index=False)}"
+        return ts.to_csv(index=False)
 
     @mcp.tool()
     async def crypto_implied_volatility(currency: str, maturity_index: int = -1) -> str:
@@ -71,7 +71,7 @@ def register(mcp: FastMCP, tool: McpTool) -> None:
         vs.bs(index=index)
         df = vs.options_df(index=index)
         df["implied_vol"] = df["implied_vol"].map("{:.2%}".format)
-        return f"Implied volatility for {currency}:\n{df.to_string(index=False)}"
+        return df.to_csv(index=False)
 
     @mcp.tool()
     async def crypto_prices(symbol: str, frequency: str = "") -> str:
@@ -87,4 +87,4 @@ def register(mcp: FastMCP, tool: McpTool) -> None:
         if df.empty:
             return f"No price data for {symbol}"
         df = df[["date", "open", "high", "low", "close", "volume"]].sort_values("date")
-        return f"Prices for {symbol}:\n{df.tail(50).to_string(index=False)}"
+        return df.tail(50).to_csv(index=False)

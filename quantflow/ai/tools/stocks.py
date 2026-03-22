@@ -1,8 +1,12 @@
 """Stocks tools for the quantflow MCP server."""
 
 from datetime import timedelta
+from typing import cast
 
 import pandas as pd
+from ccy import period as to_period
+from ccy.tradingcentres import prevbizday
+from fluid.utils.data import compact_dict
 from mcp.server.fastmcp import FastMCP
 
 from quantflow.utils.dates import utcnow
@@ -17,7 +21,7 @@ def register(mcp: FastMCP, tool: McpTool) -> None:
         """List available stock market indices."""
         async with tool.fmp() as client:
             data = await client.indices()
-        return tool.rich(pd.DataFrame(data))
+        return pd.DataFrame(data).to_csv(index=False)
 
     @mcp.tool()
     async def stock_search(query: str) -> str:
@@ -30,7 +34,7 @@ def register(mcp: FastMCP, tool: McpTool) -> None:
             data = await client.search(query)
 
         df = pd.DataFrame(data, columns=["symbol", "name", "currency", "stockExchange"])
-        return f"Search results for '{query}':\n{df.to_string(index=False)}"
+        return df.to_csv(index=False)
 
     @mcp.tool()
     async def stock_profile(symbol: str) -> str:
@@ -62,7 +66,7 @@ def register(mcp: FastMCP, tool: McpTool) -> None:
         if df.empty:
             return f"No price data for {symbol}"
         df = df[["date", "open", "high", "low", "close", "volume"]].sort_values("date")
-        return f"Prices for {symbol}:\n{df.tail(50).to_string(index=False)}"
+        return df.to_csv(index=False)
 
     @mcp.tool()
     async def sector_performance(period: str = "1d") -> str:
@@ -71,10 +75,6 @@ def register(mcp: FastMCP, tool: McpTool) -> None:
         Args:
             period: Time period - 1d, 1w, 1m, 3m, 6m, 1y (default: 1d)
         """
-        from ccy import period as to_period
-        from ccy.tradingcentres import prevbizday
-        from fluid.utils.data import compact_dict
-
         async with tool.fmp() as client:
             to_date = utcnow().date()
             if period != "1d":
@@ -89,11 +89,6 @@ def register(mcp: FastMCP, tool: McpTool) -> None:
             pe = await client.sector_pe(
                 params=compact_dict(date=prevbizday(to_date, 0).isoformat())
             )
-
-        from typing import cast
-
-        import pandas as pd
-
         spd = cast(dict, sp)
         pes = {k["sector"]: round(float(k["pe"]), 3) for k in pe if k["sector"] in spd}
         rows = [
@@ -101,4 +96,4 @@ def register(mcp: FastMCP, tool: McpTool) -> None:
             for k, v in spd.items()
         ]
         df = pd.DataFrame(rows).sort_values("performance", ascending=False)
-        return f"Sector performance ({period}):\n{df.to_string(index=False)}"
+        return df.to_csv(index=False)

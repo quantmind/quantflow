@@ -220,6 +220,18 @@ wheels = [
 ]
 
 [[package]]
+name = "asciichartpy"
+version = "1.5.25"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "setuptools" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/41/3a/b01436be647f881515ec2f253616bf4a40c1d27d02a69e7f038e27fcdf81/asciichartpy-1.5.25.tar.gz", hash = "sha256:63a305302b2aad51da288b58226009b7b0313eba7d8e2452d5a21a13fcf44d74", size = 8201, upload-time = "2020-08-17T02:07:18.292Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/3f/d0/7b958df957e4827837b590944008f0b28078f552b451f7407b4b3d54f574/asciichartpy-1.5.25-py2.py3-none-any.whl", hash = "sha256:33c417a3c8ef7d0a11b98eb9ea6dd9b2c1b17559e539b207a17d26d4302d0258", size = 7228, upload-time = "2020-08-17T02:07:16.386Z" },
+]
+
+[[package]]
 name = "async-timeout"
 version = "5.0.1"
 source = { registry = "https://pypi.org/simple" }
@@ -320,6 +332,11 @@ dependencies = [
 sdist = { url = "https://files.pythonhosted.org/packages/66/09/ffa486dcd1ec2aecca710de4b9535350d2546c1c1512d3db75f3c2d05473/ccy-1.7.2.tar.gz", hash = "sha256:6ad8241a9d00883c50f878665cb65271740dae9b32ebcc35364c8e166dbdbfdc", size = 11931, upload-time = "2025-12-28T20:38:44.428Z" }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/60/fd/4129e0b64de10b40fedcf8d0587a1f7e5e5e4513051554476a2d6d00c25a/ccy-1.7.2-py3-none-any.whl", hash = "sha256:dd5fae95005e7b9918543e508c41af75107682ce81b540dea8825a6bf1b56402", size = 15341, upload-time = "2025-12-28T20:38:43.605Z" },
+]
+
+[package.optional-dependencies]
+holidays = [
+    { name = "holidays" },
 ]
 
 [[package]]
@@ -1068,6 +1085,18 @@ source = { registry = "https://pypi.org/simple" }
 sdist = { url = "https://files.pythonhosted.org/packages/82/e5/0b56d723a76ca67abadbf7fb71609fb0ea7e6926e94fcca6c65a85b36a0e/hjson-3.1.0.tar.gz", hash = "sha256:55af475a27cf83a7969c808399d7bccdec8fb836a07ddbd574587593b9cdcf75", size = 40541, upload-time = "2022-08-13T02:53:01.919Z" }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/1f/7f/13cd798d180af4bf4c0ceddeefba2b864a63c71645abc0308b768d67bb81/hjson-3.1.0-py3-none-any.whl", hash = "sha256:65713cdcf13214fb554eb8b4ef803419733f4f5e551047c9b711098ab7186b89", size = 54018, upload-time = "2022-08-13T02:52:59.899Z" },
+]
+
+[[package]]
+name = "holidays"
+version = "0.63"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "python-dateutil" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/b0/a9/5f62d56a59bbd3647872175829d881fbecb3f08fccd9bf751523da61e2e1/holidays-0.63.tar.gz", hash = "sha256:0e0fe872c9c4c18bbdf0ddf34990d99f077484ba21d28e14e7d1ad1643b72544", size = 603749, upload-time = "2024-12-16T21:01:02.811Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/90/9c/5235772fc9d2399f41401e6a054a26b4a993bd8a38e4ff849a6097a912a9/holidays-0.63-py3-none-any.whl", hash = "sha256:f834a86635e4593eb3d8c76c9b4207ca11b200767b53cdef3468b9fe71401412", size = 1181014, upload-time = "2024-12-16T21:00:58.575Z" },
 ]
 
 [[package]]
@@ -3129,6 +3158,8 @@ dependencies = [
 
 [package.optional-dependencies]
 ai = [
+    { name = "asciichartpy" },
+    { name = "ccy", extra = ["holidays"] },
     { name = "google-genai" },
     { name = "mcp" },
     { name = "openai" },
@@ -3173,9 +3204,11 @@ ml = [
 requires-dist = [
     { name = "aio-fluid", extras = ["http"], marker = "extra == 'data'", specifier = ">=1.2.1" },
     { name = "altair", marker = "extra == 'book'", specifier = ">=6.0.0" },
+    { name = "asciichartpy", marker = "extra == 'ai'", specifier = ">=1.5.25" },
     { name = "autodocsumm", marker = "extra == 'book'", specifier = ">=0.2.14" },
     { name = "black", marker = "extra == 'dev'", specifier = ">=26.3.1" },
     { name = "ccy", specifier = ">=1.7.1" },
+    { name = "ccy", extras = ["holidays"], marker = "extra == 'ai'", specifier = ">=1.7.1" },
     { name = "duckdb", marker = "extra == 'book'", specifier = ">=1.4.4" },
     { name = "fastapi", marker = "extra == 'book'", specifier = ">=0.129.0" },
     { name = "ghp-import", marker = "extra == 'dev'", specifier = ">=2.0.2" },

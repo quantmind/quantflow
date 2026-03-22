@@ -22,6 +22,8 @@ Documentation = "https://quantmind.github.io/quantflow/"
 
 [project.optional-dependencies]
 ai = [
+    "asciichartpy>=1.5.25",
+    "ccy[holidays]>=1.7.1",
     "google-genai>=1.61.0",
     "mcp>=1.26.0",
     "openai>=2.16.0",
