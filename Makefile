@@ -35,6 +35,7 @@ docs-serve:			## serve documentation
 
 .PHONY: publish
 publish:			## Release to pypi
+	@uv build
 	@uv publish --token $(PYPI_TOKEN)
 
 .PHONY: tests
