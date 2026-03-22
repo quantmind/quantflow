@@ -40,6 +40,8 @@ jobs:
           aws-region: eu-west-1
       - name: install rops
         uses: quantmind/rops/.github/actions/setup-rops@main
+        env:
+          GITHUB_TOKEN: ${{ secrets.TOKEN_DEPLOYMENT }}
       - name: Install mozilla sops
         uses: mdgreenwald/mozilla-sops-action@v1.4.1
       - name: deploy quantflow
