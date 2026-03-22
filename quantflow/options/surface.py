@@ -332,10 +332,14 @@ class OptionPrices(BaseModel, Generic[S]):
             maturity=self.meta.maturity,
             option_type=self.meta.option_type,
             iv_bid=to_decimal_or_none(
-                None if np.isnan(self.bid.implied_vol) else self.bid.implied_vol
+                None
+                if np.isnan(self.bid.implied_vol)
+                else round(self.bid.implied_vol, 5)
             ),
             iv_ask=to_decimal_or_none(
-                None if np.isnan(self.ask.implied_vol) else self.ask.implied_vol
+                None
+                if np.isnan(self.ask.implied_vol)
+                else round(self.ask.implied_vol, 5)
             ),
         )
 

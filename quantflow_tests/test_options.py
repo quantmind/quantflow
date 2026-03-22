@@ -119,6 +119,17 @@ def test_inputs_implied_vols(vol_surface: VolSurface) -> None:
     assert converged
 
 
+def test_inputs_implied_vols_rounded(vol_surface: VolSurface) -> None:
+    vol_surface.bs()
+    inputs = vol_surface.inputs()
+    option_inputs = [i for i in inputs.inputs if isinstance(i, OptionInput)]
+    for opt in option_inputs:
+        for iv in (opt.iv_bid, opt.iv_ask):
+            if iv is not None:
+                v = float(iv)
+                assert v == round(v, 5)
+
+
 def test_same_vol_surface(vol_surface: VolSurface):
     inputs = vol_surface.inputs()
     vol_surface2 = surface_from_inputs(inputs)
