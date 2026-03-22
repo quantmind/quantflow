@@ -13,7 +13,7 @@ authors:
     email: luca@quantmind.com
   - name: quantmind
 repository-code: 'https://github.com/quantmind/quantflow'
-url: 'https://quantmind.github.io/quantflow/'
+url: 'https://quantflow.quantmind.com'
 abstract: Quantitative finance and derivative pricing
 keywords:
   - finance
