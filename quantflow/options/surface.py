@@ -15,7 +15,7 @@ from typing_extensions import Annotated, Doc
 from quantflow.utils import plot
 from quantflow.utils.dates import utcnow
 from quantflow.utils.interest_rates import rate_from_spot_and_forward
-from quantflow.utils.numbers import ZERO, Number, sigfig, to_decimal
+from quantflow.utils.numbers import ZERO, Number, sigfig, to_decimal, to_decimal_or_none
 
 from .bs import black_price, implied_black_volatility
 from .inputs import (
@@ -331,8 +331,12 @@ class OptionPrices(BaseModel, Generic[S]):
             strike=self.meta.strike,
             maturity=self.meta.maturity,
             option_type=self.meta.option_type,
-            iv_bid=to_decimal(self.bid.implied_vol),
-            iv_ask=to_decimal(self.ask.implied_vol),
+            iv_bid=to_decimal_or_none(
+                None if np.isnan(self.bid.implied_vol) else self.bid.implied_vol
+            ),
+            iv_ask=to_decimal_or_none(
+                None if np.isnan(self.ask.implied_vol) else self.ask.implied_vol
+            ),
         )
 
 
@@ -961,9 +965,3 @@ def surface_from_inputs(inputs: VolSurfaceInputs) -> VolSurface[DefaultVolSecuri
     for input in inputs.inputs:
         loader.add(input)
     return loader.surface(ref_date=inputs.ref_date)
-
-
-def assert_same(a: Any, b: Any) -> Any:
-    if a != b:
-        raise ValueError(f"Values are not the same: {a} != {b}")
-    return a
