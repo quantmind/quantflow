@@ -11,7 +11,7 @@ from typing_extensions import Annotated, Doc
 from quantflow.ta.paths import Paths
 from quantflow.utils.marginal import Marginal1D, default_bounds
 from quantflow.utils.numbers import sigfig
-from quantflow.utils.transforms import lower_bound, upper_bound
+from quantflow.utils.transforms import bound_from_any
 from quantflow.utils.types import FloatArray, FloatArrayLike, Vector
 
 Im = complex(0, 1)
@@ -113,8 +113,8 @@ class StochasticProcess1D(StochasticProcess):
     def support(self, mean: float, std: float, points: int) -> FloatArray:
         """Support of the process at time `t`"""
         bounds = self.domain_range()
-        start = float(sigfig(lower_bound(bounds.lb, mean - std)))
-        end = float(sigfig(upper_bound(bounds.ub, mean + std)))
+        start = float(sigfig(bound_from_any(bounds.lb, mean - std)))
+        end = float(sigfig(bound_from_any(bounds.ub, mean + std)))
         return np.linspace(start, end, points + 1)
 
 

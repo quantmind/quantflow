@@ -1,29 +1,60 @@
+from typing import NamedTuple
+
 import numpy as np
-from scipy.optimize import RootResults, newton
+from scipy.optimize import newton
 from scipy.stats import norm
 from typing_extensions import Annotated, Doc
 
-from ..utils.types import FloatArray, FloatArrayLike
+from ..utils.types import BoolArray, Float, FloatArray, FloatArrayLike
+
+
+class ImpliedVol(NamedTuple):
+    """Result of implied volatility calculation"""
+
+    value: Float
+    """The implied volatility in decimals (0.2 for 20%)"""
+    converged: bool
+    """Whether the root finding algorithm converged"""
+
+
+class ImpliedVols(NamedTuple):
+    """Result of root finding algorithm"""
+
+    values: FloatArray
+    """The implied volatilities in decimals (0.2 for 20%)"""
+    converged: BoolArray
+    """Whether the root finding algorithm converged"""
+
+    def single(self) -> ImpliedVol:
+        """Return the first implied volatility and convergence status a
+        a single ImpliedVol"""
+        if len(self.values) != 1 or len(self.converged) != 1:
+            raise ValueError("Expected exactly one root and convergence status")
+        return ImpliedVol(value=self.values[0], converged=self.converged[0])
 
 
 def black_call(
-    k: Annotated[np.ndarray, Doc("Vector or single value of log-strikes")],
+    k: Annotated[FloatArrayLike, Doc("Vector or single value of log-strikes")],
     sigma: Annotated[
         FloatArrayLike,
         Doc(
-            "Corresponding vector or single value of implied volatilities (0.2 for 20%)"
+            "Corresponding vector or single value of implied volatilities "
+            "(0.2 for 20%)"
         ),
     ],
     ttm: Annotated[
         FloatArrayLike, Doc("Corresponding vector or single value of Time to Maturity")
     ],
-) -> np.ndarray:
+) -> FloatArrayLike:
     kk = np.asarray(k)
     return black_price(kk, np.asarray(sigma), np.asarray(ttm), np.ones(kk.shape))
 
 
 def black_price(
-    k: Annotated[np.ndarray, Doc("Vector of log-strikes")],
+    k: Annotated[
+        FloatArrayLike,
+        Doc("Vector or single value of log-strikes"),
+    ],
     sigma: Annotated[
         FloatArrayLike,
         Doc(
@@ -36,7 +67,13 @@ def black_price(
     ttm: Annotated[
         FloatArrayLike, Doc("Corresponding vector or single value of Time to Maturity")
     ],
-    s: Annotated[FloatArrayLike, Doc("Call/Put Flag (1 for call, -1 for put)")],
+    s: Annotated[
+        FloatArrayLike,
+        Doc(
+            "Corresponding vector or single value of call/put flag "
+            "(1 for call, -1 for put)"
+        ),
+    ],
 ) -> np.ndarray:
     r"""Calculate the Black call/put option prices in forward terms
     from the following params
@@ -61,17 +98,23 @@ def black_price(
 
 
 def black_delta(
-    k: Annotated[np.ndarray, Doc("a vector of moneyness, see above")],
+    k: Annotated[np.ndarray, Doc("Vector of log-strikes")],
     sigma: Annotated[
         FloatArrayLike,
-        Doc("a corresponding vector of implied volatilities (0.2 for 20%)"),
+        Doc(
+            "Corresponding vector or single value of implied volatilities "
+            "(0.2 for 20%)"
+        ),
     ],
     ttm: Annotated[
         FloatArrayLike, Doc("Corresponding vector or single value of Time to Maturity")
     ],
     s: Annotated[
         FloatArrayLike,
-        Doc("Call/Put vector or single value Flag (1 for call, -1 for put)"),
+        Doc(
+            "Corresponding vector or single value of call/put flag "
+            "(1 for call, -1 for put)"
+        ),
     ],
 ) -> np.ndarray:
     r"""Calculate the Black call/put option delta from the moneyness,
@@ -91,13 +134,18 @@ def black_delta(
 
 
 def black_vega(
-    k: Annotated[np.ndarray, Doc("a vector of moneyness, see above")],
+    k: Annotated[FloatArrayLike, Doc("Vector of log-strikes")],
     sigma: Annotated[
-        np.ndarray, Doc("corresponding vector of implied volatilities (0.2 for 20%)")
+        FloatArrayLike,
+        Doc(
+            "Corresponding vector or single value of implied volatilities (0.2 for 20%)"
+        ),
     ],
-    ttm: Annotated[FloatArrayLike, Doc("Time to Maturity")],
-) -> np.ndarray:
-    r"""Calculate the Black option vega from the moneyness,
+    ttm: Annotated[
+        FloatArrayLike, Doc("Corresponding vector or single value of Time to Maturity")
+    ],
+) -> FloatArrayLike:
+    r"""Calculate the Black option vega from the log-strikes,
     volatility and time to maturity. The vega is the same for calls and puts.
 
     $$
@@ -117,16 +165,49 @@ def black_vega(
 
 
 def implied_black_volatility(
-    k: Annotated[np.ndarray, Doc("Vector of log strikes")],
-    price: Annotated[np.ndarray, Doc("Corresponding vector of option_price/forward")],
-    ttm: Annotated[FloatArrayLike, Doc("Time to Maturity")],
-    initial_sigma: Annotated[FloatArray, Doc("Initial Volatility")],
-    call_put: Annotated[FloatArrayLike, Doc("Call/Put Flag")],
-) -> RootResults:
-    """Calculate the implied block volatility via Newton's method"""
-    return newton(
+    k: Annotated[
+        FloatArrayLike,
+        Doc("Vector or scalar of log strikes"),
+    ],
+    price: Annotated[
+        FloatArrayLike,
+        Doc(
+            "Corresponding vector or scalar of option price in forward terms "
+            "(price divided by forward price)"
+        ),
+    ],
+    ttm: Annotated[
+        FloatArrayLike,
+        Doc("Corresponding vector or single value of Time to Maturity"),
+    ],
+    initial_sigma: Annotated[
+        FloatArrayLike,
+        Doc("Corresponding vector or single value of initial volatility"),
+    ],
+    call_put: Annotated[
+        FloatArrayLike,
+        Doc(
+            "Corresponding vector or single value of call/put flag "
+            "(1 for call, -1 for put)"
+        ),
+    ],
+) -> ImpliedVols:
+    """Calculate the implied black volatility via Newton's method
+
+    It returns a scipy `RootResults` object which contains the implied volatility
+    in the `root` attribute. Implied volatility is in decimals (0.2 for 20%).
+    """
+    if not np.isscalar(k) and np.isscalar(initial_sigma):
+        initial_sigma = np.full_like(k, initial_sigma)
+    result = newton(
         lambda x: black_price(k, x, ttm, call_put) - price,
         initial_sigma,
         fprime=lambda x: black_vega(k, x, ttm),
         full_output=True,
     )
+    if hasattr(result, "root"):
+        return ImpliedVols(values=result.root, converged=result.converged)
+    else:
+        return ImpliedVols(
+            values=np.asarray([result[0]]), converged=np.asarray([result[1]])
+        )

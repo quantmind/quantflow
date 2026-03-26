@@ -1,10 +1,15 @@
 import math
 from decimal import Decimal
 from enum import IntEnum, auto, unique
+from typing import Annotated
+
+from pydantic import WithJsonSchema
 
 Number = Decimal | float | int | str
 ZERO = Decimal(0)
 ONE = Decimal(1)
+
+DecimalNumber = Annotated[Decimal, WithJsonSchema({"type": "number"})]
 
 
 @unique

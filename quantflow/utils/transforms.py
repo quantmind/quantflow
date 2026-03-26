@@ -61,15 +61,11 @@ def default_bounds() -> Bounds:
     return Bounds(-np.inf, np.inf)
 
 
-def lower_bound(b: Any, value: float) -> float:
-    try:
-        v = float(b[0])
-        return value if np.isinf(v) else v
-    except TypeError:
-        return value
-
-
-def upper_bound(b: Any, value: float) -> float:
+def bound_from_any(b: Any, value: float) -> float:
+    """Return a bound value from b, falling back to value if b is a plain scalar
+    (not subscriptable) or infinite. b is expected to be a scalar bound value
+    (e.g. domain_range.lb or domain_range.ub) — b[0] is attempted purely to
+    handle sequence-like inputs."""
     try:
         v = float(b[0])
         return value if np.isinf(v) else v
@@ -120,8 +116,8 @@ class Transform:
 
     def space_domain(self, delta_x: float) -> FloatArray:
         """Return the space domain discretization points"""
-        b0 = lower_bound(self.domain_range.lb, -0.5 * delta_x * self.n)
-        b1 = upper_bound(self.domain_range.ub, delta_x * self.n + b0)
+        b0 = bound_from_any(self.domain_range.lb, -0.5 * delta_x * self.n)
+        b1 = bound_from_any(self.domain_range.ub, delta_x * self.n + b0)
         if not np.isclose((b1 - b0) / self.n, delta_x):
             raise TransformError("Incompatible delta_x with domain bounds")
         return delta_x * grid(self.n) + b0
@@ -170,7 +166,7 @@ class Transform:
                     dict(
                         frequency=self.frequency_domain,
                         characteristic=psi.imag,
-                        name="iamg",
+                        name="imag",
                     )
                 ),
             )

@@ -33,7 +33,7 @@ class BNS(StochasticProcess1D):
 
     def sample_from_draws(self, path_dw: Paths, *args: Paths) -> Paths:
         if args:
-            args[0]
+            path_dz = args[0]
         else:
             # generate the background driving process samples if not provided
             path_dz = self.variance_process.bdlp.sample(

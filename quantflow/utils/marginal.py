@@ -84,7 +84,7 @@ class Marginal1D(BaseModel, ABC, extra="forbid"):
         :param n: Location in the stochastic process domain space. If a numpy array,
             the output should have the same shape as the input.
         """
-        raise NotImplementedError("Analytical CFD not available")
+        raise NotImplementedError("Analytical CDF not available")
 
     def pdf(self, x: FloatArrayLike) -> FloatArrayLike:
         """
@@ -97,7 +97,7 @@ class Marginal1D(BaseModel, ABC, extra="forbid"):
         :param n: Location in the stochastic process domain space. If a numpy array,
             the output should have the same shape as the input.
         """
-        raise NotImplementedError("Analytical PFD not available")
+        raise NotImplementedError("Analytical PDF not available")
 
     def pdf_from_characteristic(
         self,
@@ -138,7 +138,7 @@ class Marginal1D(BaseModel, ABC, extra="forbid"):
         use_fft: bool = False,
         frequency_n: int | None = None,
     ) -> TransformResult:
-        raise NotImplementedError("CFD not available")
+        raise NotImplementedError("CDF not available")
 
     def call_option(
         self,
@@ -249,7 +249,7 @@ class Marginal1D(BaseModel, ABC, extra="forbid"):
 
         Optional to implement, otherwise raises ``NotImplementedError`` if called.
         """
-        raise NotImplementedError("Analytical CFD Jacobian not available")
+        raise NotImplementedError("Analytical CDF Jacobian not available")
 
     def option_support(
         self, points: int = 101, max_moneyness: float = 1.0
@@ -274,7 +274,7 @@ class Marginal1D(BaseModel, ABC, extra="forbid"):
         """Option time value transform
 
         This transform does not require any additional correction since
-        the integrant is already bounded for positive and negative moneyess"""
+        the integrand is already bounded for positive and negative moneyness"""
         ia = 1j * alpha
         return 0.5 * (
             self._option_time_value_transform(u - ia)
@@ -285,7 +285,7 @@ class Marginal1D(BaseModel, ABC, extra="forbid"):
         """Option time value transform
 
         This transform does not require any additional correction since
-        the integrant is already bounded for positive and negative moneyess"""
+        the integrand is already bounded for positive and negative moneyness"""
         iu = 1j * u
         return (
             1 / (1 + iu) - 1 / iu - self.characteristic_corrected(u - 1j) / (u * u - iu)

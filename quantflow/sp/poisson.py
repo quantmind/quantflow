@@ -223,7 +223,7 @@ class CompoundPoissonProcess(PoissonBase, Generic[D]):
         jump_asymmetry: float = 0.0,
     ) -> CompoundPoissonProcess[D]:
         """Create a Compound Poisson process with a given jump distribution, volatility,
-        jump intensity a nd jump asymmetry .
+        jump intensity and jump asymmetry.
 
         :param jump_distribution: The distribution of jump size (currently only
             :class:`.Normal` and :class:`.DoubleExponential` are supported)

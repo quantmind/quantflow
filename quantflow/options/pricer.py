@@ -60,7 +60,7 @@ class MaturityPricer(NamedTuple):
             ttm=self.ttm,
             initial_sigma=0.5 * np.ones_like(self.moneyness),
             call_put=1.0,
-        ).root
+        ).values
 
     @property
     def df(self) -> pd.DataFrame:
@@ -97,7 +97,9 @@ class MaturityPricer(NamedTuple):
     def black(self) -> MaturityPricer:
         """Calculate the Maturity Result for the Black model with same std"""
         return self._replace(
-            call=black_call(self.moneyness, self.std / np.sqrt(self.ttm), ttm=self.ttm),
+            call=np.asarray(
+                black_call(self.moneyness, self.std / np.sqrt(self.ttm), ttm=self.ttm)
+            ),
             name="Black",
         )
 
@@ -116,7 +118,7 @@ class OptionPricer(BaseModel, Generic[M], arbitrary_types_allowed=True):
     )
     """Cache for :class:`.MaturityPricer` for different time to maturity"""
     n: int = 128
-    """NUmber of discretization points for the marginal distribution"""
+    """Number of discretization points for the marginal distribution"""
     max_moneyness_ttm: float = 1.5
     """Max time-adjusted moneyness to calculate prices"""
 
