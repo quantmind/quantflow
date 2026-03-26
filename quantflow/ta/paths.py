@@ -65,7 +65,10 @@ class Paths(BaseModel, arbitrary_types_allowed=True):
         return self.data[:, i]
 
     def dates(
-        self, *, start: datetime | None = None, unit: str = "d"
+        self,
+        *,
+        start: datetime | None = None,
+        unit: str = "D",
     ) -> pd.DatetimeIndex:
         """Dates of paths as a pandas DatetimeIndex"""
         start = start or utcnow()
@@ -110,7 +113,10 @@ class Paths(BaseModel, arbitrary_types_allowed=True):
         return np.var(np.diff(self.data, axis=0), axis=0) / scale
 
     def as_datetime_df(
-        self, *, start: datetime | None = None, unit: str = "d"
+        self,
+        *,
+        start: datetime | None = None,
+        unit: str = "D",
     ) -> pd.DataFrame:
         """Paths as pandas DataFrame with datetime index"""
         return pd.DataFrame(self.data, index=self.dates(start=start, unit=unit))
@@ -203,7 +209,6 @@ class Paths(BaseModel, arbitrary_types_allowed=True):
         ] = True,
     ) -> Self:
         """Create paths from normal draws"""
-        time_horizon / time_steps
         odd = 0
         if antithetic_variates:
             odd = paths % 2

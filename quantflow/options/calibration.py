@@ -34,7 +34,7 @@ class OptionEntry:
     ttm: float
     moneyness: float
     options: list[OptionPrice] = field(default_factory=list)
-    _prince_range: Bounds | None = None
+    _price_range: Bounds | None = None
 
     def implied_vol_range(self) -> Bounds:
         """Get the range of implied volatilities"""
@@ -50,10 +50,10 @@ class OptionEntry:
 
     def price_range(self) -> Bounds:
         """Get the range of prices"""
-        if self._prince_range is None:
+        if self._price_range is None:
             prices = tuple(float(option.call_price) for option in self.options)
-            self._prince_range = Bounds(min(prices), max(prices))
-        return self._prince_range
+            self._price_range = Bounds(min(prices), max(prices))
+        return self._price_range
 
 
 class VolModelCalibration(BaseModel, ABC, Generic[M], arbitrary_types_allowed=True):

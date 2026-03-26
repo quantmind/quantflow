@@ -15,7 +15,14 @@ from typing_extensions import Annotated, Doc
 from quantflow.utils import plot
 from quantflow.utils.dates import utcnow
 from quantflow.utils.interest_rates import rate_from_spot_and_forward
-from quantflow.utils.numbers import ZERO, Number, sigfig, to_decimal, to_decimal_or_none
+from quantflow.utils.numbers import (
+    ZERO,
+    DecimalNumber,
+    Number,
+    sigfig,
+    to_decimal,
+    to_decimal_or_none,
+)
 
 from .bs import black_price, implied_black_volatility
 from .inputs import (
@@ -58,8 +65,8 @@ class OptionSelection(enum.Enum):
 
 class Price(BaseModel, Generic[S]):
     security: S = Field(description="The underlying security of the price")
-    bid: Decimal = Field(description="Bid price")
-    ask: Decimal = Field(description="Ask price")
+    bid: DecimalNumber = Field(description="Bid price")
+    ask: DecimalNumber = Field(description="Ask price")
 
     @property
     def mid(self) -> Decimal:
@@ -67,10 +74,10 @@ class Price(BaseModel, Generic[S]):
 
 
 class SpotPrice(Price[S]):
-    open_interest: Decimal = Field(
+    open_interest: DecimalNumber = Field(
         default=ZERO, description="Open interest of the spot price"
     )
-    volume: Decimal = Field(default=ZERO, description="Volume of the spot price")
+    volume: DecimalNumber = Field(default=ZERO, description="Volume of the spot price")
 
     def inputs(self) -> SpotInput:
         return SpotInput(
@@ -83,10 +90,12 @@ class SpotPrice(Price[S]):
 
 class FwdPrice(Price[S]):
     maturity: datetime = Field(description="Maturity date of the forward price")
-    open_interest: Decimal = Field(
+    open_interest: DecimalNumber = Field(
         default=ZERO, description="Open interest of the forward price"
     )
-    volume: Decimal = Field(default=ZERO, description="Volume of the forward price")
+    volume: DecimalNumber = Field(
+        default=ZERO, description="Volume of the forward price"
+    )
 
     def inputs(self) -> ForwardInput:
         return ForwardInput(
@@ -99,24 +108,24 @@ class FwdPrice(Price[S]):
 
 
 class OptionMetadata(BaseModel):
-    strike: Decimal = Field(description="Strike price of the option")
+    strike: DecimalNumber = Field(description="Strike price of the option")
     option_type: OptionType = Field(description="Type of the option, call or put")
     maturity: datetime = Field(description="Maturity date of the option")
-    forward: Decimal = Field(
+    forward: DecimalNumber = Field(
         default=ZERO, description="Forward price of the underlying"
     )
     ttm: float = Field(default=0, description="Time to maturity in years")
-    open_interest: Decimal = Field(
+    open_interest: DecimalNumber = Field(
         default=ZERO, description="Open interest of the option"
     )
-    volume: Decimal = Field(default=ZERO, description="Volume of the option")
+    volume: DecimalNumber = Field(default=ZERO, description="Volume of the option")
 
 
 class OptionPrice(BaseModel):
     """Represents the price of an option quoted in the market along with
     its metadata and implied volatility information."""
 
-    price: Decimal = Field(
+    price: DecimalNumber = Field(
         description="Price of the option as a percentage of the forward price"
     )
     meta: OptionMetadata = Field(description="Metadata of the option price")
@@ -334,12 +343,12 @@ class OptionPrices(BaseModel, Generic[S]):
             iv_bid=to_decimal_or_none(
                 None
                 if np.isnan(self.bid.implied_vol)
-                else round(self.bid.implied_vol, 5)
+                else round(self.bid.implied_vol, 7)
             ),
             iv_ask=to_decimal_or_none(
                 None
                 if np.isnan(self.ask.implied_vol)
-                else round(self.ask.implied_vol, 5)
+                else round(self.ask.implied_vol, 7)
             ),
         )
 
@@ -347,7 +356,7 @@ class OptionPrices(BaseModel, Generic[S]):
 class Strike(BaseModel, Generic[S]):
     """Option prices for a single strike"""
 
-    strike: Decimal = Field(description="Strike price of the options")
+    strike: DecimalNumber = Field(description="Strike price of the options")
     call: OptionPrices[S] | None = Field(
         default=None, description="Call option prices for the strike"
     )
@@ -486,9 +495,9 @@ class VolSurface(BaseModel, Generic[S], arbitrary_types_allowed=True):
     """Sorted tuple of :class:`.VolCrossSection` for different maturities"""
     day_counter: DayCounter = default_day_counter
     """Day counter for time to maturity calculations - by default it uses Act/Act"""
-    tick_size_forwards: Decimal | None = None
+    tick_size_forwards: DecimalNumber | None = None
     """Tick size for rounding forward and spot prices - optional"""
-    tick_size_options: Decimal | None = None
+    tick_size_options: DecimalNumber | None = None
     """Tick size for rounding option prices - optional"""
 
     def securities(self) -> Iterator[SpotPrice[S] | FwdPrice[S] | OptionPrices[S]]:
@@ -600,7 +609,7 @@ class VolSurface(BaseModel, Generic[S], arbitrary_types_allowed=True):
                 call_put=d.call_put,
             )
         for option, implied_vol, converged in zip(
-            d.options, result.root, result.converged
+            d.options, result.values, result.converged
         ):
             option.implied_vol = float(implied_vol)
             option.converged = converged
@@ -810,18 +819,18 @@ class GenericVolSurfaceLoader(BaseModel, Generic[S], arbitrary_types_allowed=Tru
         ),
     )
     """Day counter for time to maturity calculations - by default it uses Act/Act"""
-    tick_size_forwards: Decimal | None = Field(
+    tick_size_forwards: DecimalNumber | None = Field(
         default=None,
         description="Tick size for rounding forward and spot prices - optional",
     )
-    tick_size_options: Decimal | None = Field(
+    tick_size_options: DecimalNumber | None = Field(
         default=None, description="Tick size for rounding option prices - optional"
     )
-    exclude_open_interest: Decimal | None = Field(
+    exclude_open_interest: DecimalNumber | None = Field(
         default=None,
         description="Exclude options with open interest at or below this value",
     )
-    exclude_volume: Decimal | None = Field(
+    exclude_volume: DecimalNumber | None = Field(
         default=None, description="Exclude options with volume at or below this value"
     )
 

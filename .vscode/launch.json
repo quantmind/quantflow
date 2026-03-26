@@ -14,7 +14,7 @@
             "args": [
                 "-x",
                 "-vvv",
-                "quantflow_tests/test_data.py::test_fed_yc",
+                "quantflow_tests/test_options.py",
             ]
         },
     ]

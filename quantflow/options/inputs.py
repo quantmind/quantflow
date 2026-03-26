@@ -2,12 +2,11 @@ from __future__ import annotations
 
 import enum
 from datetime import datetime
-from decimal import Decimal
 from typing import Self, TypeVar
 
 from pydantic import BaseModel, Field
 
-from quantflow.utils.numbers import ZERO
+from quantflow.utils.numbers import ZERO, DecimalNumber
 
 P = TypeVar("P")
 
@@ -70,12 +69,12 @@ class DefaultVolSecurity(VolSurfaceSecurity):
 class VolSurfaceInput(BaseModel):
     """Base class for volatility surface inputs"""
 
-    bid: Decimal = Field(description="Bid price of the security")
-    ask: Decimal = Field(description="Ask price of the security")
-    open_interest: Decimal = Field(
+    bid: DecimalNumber = Field(description="Bid price of the security")
+    ask: DecimalNumber = Field(description="Ask price of the security")
+    open_interest: DecimalNumber = Field(
         default=ZERO, description="Open interest of the security"
     )
-    volume: Decimal = Field(default=ZERO, description="Volume of the security")
+    volume: DecimalNumber = Field(default=ZERO, description="Volume of the security")
 
 
 class SpotInput(VolSurfaceInput):
@@ -100,18 +99,26 @@ class ForwardInput(VolSurfaceInput):
 class OptionInput(VolSurfaceInput):
     """Input data for an option in the volatility surface"""
 
-    strike: Decimal = Field(description="Strike price of the option")
+    strike: DecimalNumber = Field(description="Strike price of the option")
     maturity: datetime = Field(description="Expiry date of the option")
     option_type: OptionType = Field(description="Type of the option - call or put")
     security_type: VolSecurityType = Field(
         default=VolSecurityType.option,
         description="Type of security for the volatility surface",
     )
-    iv_bid: Decimal | None = Field(
-        default=None, description="Implied volatility based on the bid price"
+    iv_bid: DecimalNumber | None = Field(
+        default=None,
+        description=(
+            "Implied volatility based on the bid price as decimal number "
+            "(e.g. 0.2 for 20%)"
+        ),
     )
-    iv_ask: Decimal | None = Field(
-        default=None, description="Implied volatility based on the ask price"
+    iv_ask: DecimalNumber | None = Field(
+        default=None,
+        description=(
+            "Implied volatility based on the ask price as decimal number "
+            "(e.g. 0.2 for 20%)"
+        ),
     )
 
 
