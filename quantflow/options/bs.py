@@ -21,9 +21,10 @@ class ImpliedVols(NamedTuple):
     """Result of root finding algorithm"""
 
     values: FloatArray
-    """The implied volatilities in decimals (0.2 for 20%)"""
+    """Array of implied volatilities in decimals (0.2 for 20%)"""
     converged: BoolArray
-    """Whether the root finding algorithm converged"""
+    """Array indicating whether the root finding algorithm converged for each
+    implied volatility"""
 
     def single(self) -> ImpliedVol:
         """Return the first implied volatility and convergence status a
@@ -194,8 +195,9 @@ def implied_black_volatility(
 ) -> ImpliedVols:
     """Calculate the implied black volatility via Newton's method
 
-    It returns a scipy `RootResults` object which contains the implied volatility
-    in the `root` attribute. Implied volatility is in decimals (0.2 for 20%).
+    It returns a [ImpliedVols][quantflow.options.bs.ImpliedVols] object which
+    contains the implied volatility and convergence status.
+    Implied volatility is in decimals (0.2 for 20%).
     """
     if not np.isscalar(k) and np.isscalar(initial_sigma):
         initial_sigma = np.full_like(k, initial_sigma)
