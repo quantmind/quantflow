@@ -5,6 +5,7 @@ from typing import Any, Generic, NamedTuple, TypeVar, cast
 import numpy as np
 import pandas as pd
 from pydantic import BaseModel, Field
+from typing_extensions import Annotated, Doc
 
 from quantflow.sp.base import StochasticProcess1D
 from quantflow.utils import plot
@@ -116,19 +117,20 @@ class OptionPricer(BaseModel, Generic[M], arbitrary_types_allowed=True):
     ttm: dict[int, MaturityPricer] = Field(
         default_factory=dict, repr=False, exclude=True
     )
-    """Cache for :class:`.MaturityPricer` for different time to maturity"""
+    """Cache for [MaturityPricer][quantflow.options.pricer.MaturityPricer]
+    for different time to maturity"""
     n: int = 128
     """Number of discretization points for the marginal distribution"""
     max_moneyness_ttm: float = 1.5
     """Max time-adjusted moneyness to calculate prices"""
 
     def reset(self) -> None:
-        """Clear the :attr:`.ttm` cache"""
+        """Clear the [ttm][quantflow.options.pricer.OptionPricer.ttm] cache"""
         self.ttm.clear()
 
     def maturity(self, ttm: float, **kwargs: Any) -> MaturityPricer:
-        """Get a :class:`.MaturityPricer` from cache or create
-        a new one and return it"""
+        """Get a [MaturityPricer][quantflow.options.pricer.MaturityPricer]
+        from cache or create a new one and return it"""
         ttm_int = int(TTM_FACTOR * ttm)
         if ttm_int not in self.ttm:
             ttmr = ttm_int / TTM_FACTOR
@@ -145,11 +147,12 @@ class OptionPricer(BaseModel, Generic[M], arbitrary_types_allowed=True):
             )
         return self.ttm[ttm_int]
 
-    def call_price(self, ttm: float, moneyness: float) -> float:
+    def call_price(
+        self,
+        ttm: Annotated[float, Doc("Time to maturity")],
+        moneyness: Annotated[float, Doc("Moneyness as log(Strike/Forward)")],
+    ) -> float:
         """Price a single call option
-
-        :param ttm: Time to maturity
-        :param moneyness: Moneyness as log(Strike/Forward)
 
         This method will use the cache to get the maturity pricer if possible
         """

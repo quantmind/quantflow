@@ -1,19 +1,5 @@
----
-jupytext:
-  encoding: '# -*- coding: utf-8 -*-'
-  formats: ipynb,md:myst
-  text_representation:
-    extension: .md
-    format_name: myst
-    format_version: 0.13
-    jupytext_version: 1.16.6
-kernelspec:
-  display_name: Python 3 (ipykernel)
-  language: python
-  name: python3
----
+# Lévy Process
 
-# Lévy process
 A Lévy process $x_t$ is a stochastic process which satisfies the following properties
 
 * $x_0 = 0$
@@ -26,7 +12,7 @@ This means that the shocks to the process are independent, while the stationarit
 Thanks to almost sure right continuity of paths, one may show in addition that Lévy processes are also
 Strong Markov processes. See ([Markov property](https://en.wikipedia.org/wiki/Markov_property)).
 
-## Characteristic function
+## Characteristic Function
 
 The independence and stationarity of the increments of the Lévy process imply that the [characteristic function](./characteristic.md) of $x_t$ has the form
 
@@ -34,23 +20,21 @@ The independence and stationarity of the increments of the Lévy process imply t
  \Phi_{x_t, u} = {\mathbb E}\left[e^{i u x_t}\right] = e^{-\phi_{x_t, u}} = e^{-t \phi_{x_1,u}}
 \end{equation}
 
-where the [](characteristic-exponent) $\phi_{x_1,u}$ is given by the [Lévy–Khintchine formula](https://en.wikipedia.org/wiki/L%C3%A9vy_process).
+where the characteristic exponent $\phi_{x_1,u}$ is given by the [Lévy-Khintchine formula](https://en.wikipedia.org/wiki/L%C3%A9vy_process).
 
-There are several Lévy processes in the literature, including, the [Poisson process](../models/poisson.md), the compound Poisson process
-and the [Brownian motion](../models/weiner.md).
+There are several Lévy processes in the literature, including the [Poisson process](../api/sp/poisson.md),
+the compound Poisson process, and the [Brownian motion](../api/sp/weiner.md).
 
-+++
+## Time-Changed Lévy Processes
 
-## Time Changed Lévy Processes
-
-We follow the paper by Carr and Wu {cite:p}`carr_wu` to defined a continuous time changed Lévy process $y_t$ as
+We follow Carr and Wu (2004) to define a continuous time-changed Lévy process $y_t$ as
 
 \begin{align}
 y_t &= x_{\tau_t}\\
 \tau_t &= \int_0^t \lambda_s ds
 \end{align}
 
-where $x_s$ is a Lévy process and $\lambda_s$ is a positive and integrable process which we refer to **stochastic intensity process**.
+where $x_s$ is a Lévy process and $\lambda_s$ is a positive and integrable process which we refer to as the **stochastic intensity process**.
 While $\tau_t$ is always continuous, $\lambda$ can exhibit jumps. Since the time-changed process is a stochastic process evaluated at a stochastic time, its characteristic function involves expectations over two sources of randomness:
 
 \begin{equation}
@@ -67,12 +51,12 @@ where the inside expectation is taken on $x_{\tau_t}$ conditional on a fixed val
 
 Therefore the characteristic function of $y_t$ can be expressed in closed form if
 
-* the characteristic exponent of the Lévy process $x_t$ is available in closed from
-* the Laplace transform of $\tau_t$, the integrated intensity process, is known in closed from
+* the characteristic exponent of the Lévy process $x_t$ is available in closed form
+* the Laplace transform of $\tau_t$, the integrated intensity process, is known in closed form
 
 ## Leverage Effect
 
-To obtain the Laplace transform  of $\tau_t$ in closed form, consider its specification in terms of the intensity process $\lambda_t$:
+To obtain the Laplace transform of $\tau_t$ in closed form, consider its specification in terms of the intensity process $\lambda_t$:
 
 \begin{equation}
 {\mathbb L}_{\tau_t}\left(u\right) = {\mathbb E}\left[e^{- u \int_0^t \lambda_s ds}\right]
@@ -82,7 +66,7 @@ This equation is very common in the bond pricing literature if we regard $u\lamb
 In the general case, the intensity process is correlated with the Lévy process of increments, this is well
 known in the literature as the **leverage effect**.
 
-Carr and Wu {cite:p}`carr_wu` solve this problem by changing the measure from an economy with leverage effect to one without it.
+Carr and Wu (2004) solve this problem by changing the measure from an economy with leverage effect to one without it.
 
 \begin{align}
 \Phi_{y_t, u} &= {\mathbb E}\left[e^{i u y_t}\right] \\
@@ -92,14 +76,14 @@ Carr and Wu {cite:p}`carr_wu` solve this problem by changing the measure from an
      &= {\mathbb L}_{\tau_t}^u\left(\phi_{x_1,u}\right)
 \end{align}
 
-where $E[\cdot]$ and $E^u[\cdot]$ denote the expectation under probability measure $P$ and $Q^u$, respectively. The two measures are linked via
-the complex-valued [Radon–Nikodym derivative](https://en.wikipedia.org/wiki/Radon%E2%80%93Nikodym_theorem#Radon%E2%80%93Nikodym_derivative)
+where $\mathbb{E}[\cdot]$ and $\mathbb{E}^u[\cdot]$ denote the expectation under probability measure $P$ and $Q^u$, respectively. The two measures are linked via
+the complex-valued [Radon-Nikodym derivative](https://en.wikipedia.org/wiki/Radon%E2%80%93Nikodym_theorem#Radon%E2%80%93Nikodym_derivative)
 
 \begin{equation}
 M_{t, u} = \frac{d Q^u}{d P} = \exp{\left(i u y_t + \tau_t \phi_{x_1, u}\right)} = \exp{\left(i u y_t + \phi_{x_1, u}\int_0^t \lambda_s ds\right)}
 \end{equation}
 
-## Affine definition
+## Affine Intensity
 
 In order to obtain analytically tractable models we need to impose some restriction on the stochastic intensity process.
 An affine intensity process takes the general form
@@ -108,15 +92,11 @@ An affine intensity process takes the general form
     v_t = r_0 + r z_t
 \end{equation}
 
-where $r_0$ and $r_1$ are contants and ${\bf z}_t$ is a Markov process called the **state process**.
-When the intensity process is affine, the Laplace transform takes the following form.
+where $r_0$ and $r$ are constants and $z_t$ is a Markov process called the **state process**.
+When the intensity process is affine, the Laplace transform takes the following form:
 
 \begin{equation}
 {\mathbb L}_{\tau_t}\left(z\right) = {\mathbb E}\left[e^{- z \tau_t}\right] = e^{-a_{u, t} - b_{u, t} z_0}
 \end{equation}
 
 where coefficients $a$ and $b$ satisfy Riccati ODEs, which can be solved numerically and, in some cases, analytically.
-
-```{code-cell}
-
-```

@@ -200,9 +200,7 @@ class CompoundPoissonProcess(PoissonBase, Generic[D]):
         return poisson_arrivals(self.intensity, time_horizon)
 
     def sample_jumps(self, n: int) -> FloatArray:
-        """Sample jump sizes from an exponential distribution with rate
-        parameter :class:b
-        """
+        """Sample jump sizes from the jump distribution"""
         return self.jumps.sample(n)
 
     def analytical_mean(self, t: FloatArrayLike) -> FloatArrayLike:
@@ -216,21 +214,30 @@ class CompoundPoissonProcess(PoissonBase, Generic[D]):
     @classmethod
     def create(
         cls,
-        jump_distribution: type[D],
+        jump_distribution: Annotated[
+            type[D],
+            Doc(
+                "The distribution of jump size (currently only"
+                " [Normal][quantflow.utils.distributions.Normal] and"
+                " [DoubleExponential][quantflow.utils.distributions.DoubleExponential]"
+                " are supported)"
+            ),
+        ],
         *,
-        vol: float = 0.5,
-        jump_intensity: float = 100,
-        jump_asymmetry: float = 0.0,
+        vol: Annotated[float, Doc("Annualized standard deviation")] = 0.5,
+        jump_intensity: Annotated[
+            float, Doc("The average number of jumps per year")
+        ] = 100,
+        jump_asymmetry: Annotated[
+            float,
+            Doc(
+                "The asymmetry of the jump distribution (0 for symmetric,"
+                " only used by distributions with asymmetry)"
+            ),
+        ] = 0.0,
     ) -> CompoundPoissonProcess[D]:
         """Create a Compound Poisson process with a given jump distribution, volatility,
         jump intensity and jump asymmetry.
-
-        :param jump_distribution: The distribution of jump size (currently only
-            :class:`.Normal` and :class:`.DoubleExponential` are supported)
-        :param vol: Annualized standard deviation
-        :param jump_intensity: The average number of jumps per year
-        :param jump_asymmetry: The asymmetry of the jump distribution (0 for symmetric,
-            only used by distributions with asymmetry)
         """
         variance = vol * vol
         jump_distribution_variance = variance / jump_intensity

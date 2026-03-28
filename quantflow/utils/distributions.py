@@ -12,11 +12,11 @@ from .types import FloatArray, FloatArrayLike, Vector
 
 class Distribution1D(Marginal1D):
     """Base class for 1D distributions to be used as
-    Jump distributions in Compound Poisson processes
+    jump distributions in [CompoundPoisson][quantflow.sp.poisson.CompoundPoissonProcess]
     """
 
     @abstractmethod
-    def sample(self, n: int) -> np.ndarray:
+    def sample(self, n: Annotated[int, Doc("Number of samples to draw")]) -> np.ndarray:
         """Sample from the distribution"""
 
     @classmethod
@@ -25,10 +25,7 @@ class Distribution1D(Marginal1D):
         raise NotImplementedError
 
     def asymmetry(self) -> float:
-        """Asymmetry of the distribution, 0 for symmetric
-
-        Implemented by distributions that have asymmetry
-        """
+        """Asymmetry of the distribution, 0 for symmetric distributions"""
         raise NotImplementedError
 
     def set_variance(self, variance: float) -> None:
@@ -36,31 +33,29 @@ class Distribution1D(Marginal1D):
         raise NotImplementedError
 
     def set_asymmetry(self, asymmetry: float) -> None:
-        """Set the asymmetry of the distribution
-
-        Implemented by distributions that have asymmetry
-        """
+        """Set the asymmetry of the distribution"""
         raise NotImplementedError
 
 
 class Exponential(Distribution1D):
-    r"""A :class:`.Distribution1D` for the `Exponential distribution`_
+    r"""The [Exponential](https://en.wikipedia.org/wiki/Exponential_distribution)
+    distribution is a continuous probability distribution that describes
+    the time between events in a Poisson process.
 
-    The exponential distribution is a continuous probability distribution with PDF
-    given by
+    It is a special case of the gamma distribution and is given by
 
-    .. math::
-        f(x) = \lambda e^{-\lambda x}\ \ \forall x \geq 0
-
-    .. _Exponential distribution: https://en.wikipedia.org/wiki/Exponential_distribution
+    $$
+    f(x) = \lambda e^{-\lambda x}\ \ \forall x \geq 0
+    $$
     """
 
-    decay: float = Field(default=1, gt=0, description="exponential decay rate")
-    r"""The exponential decay rate :math:`\lambda`"""
+    decay: float = Field(
+        default=1, gt=0, description=r"exponential decay rate $\lambda$"
+    )
 
     @property
     def scale(self) -> float:
-        """The scale parameter, it is the inverse of the :attr:`.decay` rate"""
+        """The scale parameter, it is the inverse of the `decay` rate"""
         return 1 / self.decay
 
     @property
@@ -68,7 +63,13 @@ class Exponential(Distribution1D):
         return self.scale**2
 
     def characteristic(self, u: Vector) -> Vector:
-        return self.decay / (self.decay - complex(0, 1) * u)
+        r"""The characteristic function of the exponential distribution is given by
+
+        $$
+        \phi_u = \frac{\lambda}{\lambda - i u}
+        $$
+        """
+        return self.decay / (self.decay - 1j * u)
 
     def mean(self) -> float:
         return self.scale
@@ -89,9 +90,9 @@ class Exponential(Distribution1D):
     def cdf(self, x: FloatArrayLike) -> FloatArrayLike:
         r"""The analytical CDF of the exponential distribution
 
-        .. math::
-            F(x) = 1 - e^{-\lambda x}\ \ \forall x \geq 0
-
+        $$
+        F(x) = 1 - e^{-\lambda x}\ \ \forall x \geq 0
+        $$
         """
         return 1.0 - np.exp(-self.decay * x)
 
@@ -181,7 +182,8 @@ class DoubleExponential(Exponential):
 
     @property
     def log_kappa(self) -> float:
-        """The log of the :attr:`.kappa` parameter"""
+        """The log of the
+        [kappa][quantflow.utils.distributions.DoubleExponential.kappa] parameter"""
         return np.log(self.kappa)
 
     @classmethod

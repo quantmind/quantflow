@@ -2,30 +2,40 @@ from typing import Any, Sequence, cast
 
 import numpy as np
 from pandas import DataFrame
+from typing_extensions import Annotated, Doc
 
 from .types import FloatArray
 
 
 def pdf(
-    data: FloatArray,
+    data: Annotated[
+        FloatArray,
+        Doc("The data to extract the PDF from"),
+    ],
     *,
-    num_bins: int | None = None,
-    delta: float | None = None,
-    symmetric: float | None = None,
-    precision: int = 6,
+    num_bins: Annotated[
+        int | None,
+        Doc(
+            "The number of bins to use in the histogram. if not provided "
+            "it is calculated from the `delta` parameter (if provided) "
+            "or set to 50"
+        ),
+    ] = None,
+    delta: Annotated[
+        float | None,
+        Doc(
+            "The spacing between bins, if not provided "
+            " it is calculated from the `num_bins`"
+        ),
+    ] = None,
+    symmetric: Annotated[
+        float | None, Doc("If provided, the bins are centered around this value")
+    ] = None,
+    precision: Annotated[int, Doc("The precision to use in the calculation")] = 6,
 ) -> DataFrame:
     """Extract a probability density function from the data as a DataFrame
     with index given by the bin centers and a single column `pdf` with the
     estimated probability density function values
-
-    :param data: the data to extract the PDF from
-    :param num_bins: the number of bins to use in the histogram,
-        if not provided it is calculated from the `delta` parameter (if provided)
-        or set to 50
-    :param delta: the spacing between bins, if not provided it is calculated
-        from the `num_bins`
-    :param symmetric: if provided, the bins are centered around this value
-    :param precision: the precision to use in the calculation
     """
     max_value = cast(float, np.max(data))
     min_value = cast(float, np.min(data))
@@ -54,7 +64,11 @@ def pdf(
 
 
 def event_density(
-    df: DataFrame, columns: Sequence[str], num: int = 10
+    df: Annotated[DataFrame, Doc("The dataframe to extract the event density from")],
+    columns: Annotated[
+        Sequence[str], Doc("The columns to calculate the event density for")
+    ],
+    num: Annotated[int, Doc("The number of events to consider")] = 10,
 ) -> dict[str, Any]:
     """Calculate the probability density of the number of events
     in the dataframe columns

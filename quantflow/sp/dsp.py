@@ -16,8 +16,6 @@ class DSP(PoissonBase):
 
     It's a process where the inter-arrival time is exponentially distributed
     with rate $\lambda_t$
-
-    :param intensity: the stochastic intensity of the Poisson
     """
 
     intensity: IntensityProcess = Field(

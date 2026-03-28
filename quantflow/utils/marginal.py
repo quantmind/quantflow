@@ -7,6 +7,7 @@ import numpy as np
 import pandas as pd
 from pydantic import BaseModel
 from scipy.optimize import Bounds
+from typing_extensions import Annotated, Doc
 
 from .transforms import Transform, TransformResult, default_bounds
 from .types import FloatArray, FloatArrayLike, Vector
@@ -77,47 +78,70 @@ class Marginal1D(BaseModel, ABC, extra="forbid"):
         s = -(c1 - 2 * c0 + c2) / (d * d) - m * m
         return s.real
 
-    def cdf(self, x: FloatArrayLike) -> FloatArrayLike:
+    def cdf(
+        self,
+        x: Annotated[
+            FloatArrayLike,
+            Doc(
+                "Location in the stochastic process domain space. If a numpy array,"
+                " the output should have the same shape as the input."
+            ),
+        ],
+    ) -> FloatArrayLike:
         """
         Compute the cumulative distribution function
-
-        :param n: Location in the stochastic process domain space. If a numpy array,
-            the output should have the same shape as the input.
         """
         raise NotImplementedError("Analytical CDF not available")
 
-    def pdf(self, x: FloatArrayLike) -> FloatArrayLike:
+    def pdf(
+        self,
+        x: Annotated[
+            FloatArrayLike,
+            Doc(
+                "Location in the stochastic process domain space. If a numpy array,"
+                " the output should have the same shape as the input."
+            ),
+        ],
+    ) -> FloatArrayLike:
         """
         Computes the probability density (or mass) function of the process.
 
         It has a base implementation that computes the pdf from the
-        :class:`cdf` method, but a subclass should overload this method if a
+        [cdf][quantflow.utils.marginal.Marginal1D.cdf] method, but a subclass should
+        overload this method if a
         more optimized way of computing it is available.
-
-        :param n: Location in the stochastic process domain space. If a numpy array,
-            the output should have the same shape as the input.
         """
         raise NotImplementedError("Analytical PDF not available")
 
     def pdf_from_characteristic(
         self,
-        n: int | None = None,
+        n: Annotated[
+            int | None,
+            Doc(
+                "Number of discretization points to use in the transform."
+                " If None, use 128."
+            ),
+        ] = None,
         *,
-        max_frequency: float | None = None,
-        simpson_rule: bool = False,
-        use_fft: bool = False,
+        max_frequency: Annotated[
+            float | None,
+            Doc(
+                "The maximum frequency to use in the transform. If not provided,"
+                " the value from the [frequency_range]"
+                "[quantflow.utils.marginal.Marginal1D.frequency_range] method is used."
+                " Only needed for special cases/testing."
+            ),
+        ] = None,
+        simpson_rule: Annotated[
+            bool, Doc("Use Simpson's rule for integration. Default is False.")
+        ] = False,
+        use_fft: Annotated[
+            bool, Doc("Use FFT for the transform. Default is False.")
+        ] = False,
         frequency_n: int | None = None,
     ) -> TransformResult:
         """
         Compute the probability density function from the characteristic function.
-
-        :param n: Number of discretization points to use in the transform.
-            If None, use 128.
-        :param max_frequency: The maximum frequency to use in the transform. If not
-            provided, the value from the :meth:`frequency_range` method is used.
-            Only needed for special cases/testing.
-        :param simpson_rule: Use Simpson's rule for integration. Default is False.
-        :param use_fft: Use FFT for the transform. Default is False.
         """
         transform = self.get_transform(
             frequency_n or n,
@@ -237,7 +261,8 @@ class Marginal1D(BaseModel, ABC, extra="forbid"):
         """
         Jacobian of the pdf with respect to the parameters of the process.
         It has a base implementation that computes it from the
-        :class:`cdf_jacobian` method, but a subclass should overload this method if a
+        [cdf_jacobian][quantflow.utils.marginal.Marginal1D.cdf_jacobian] method,
+        but a subclass should overload this method if a
         more optimized way of computing it is available.
         """
         return self.cdf_jacobian(x) - self.cdf_jacobian(x - 1)

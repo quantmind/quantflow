@@ -492,7 +492,8 @@ class VolSurface(BaseModel, Generic[S], arbitrary_types_allowed=True):
     spot: SpotPrice[S]
     """Spot price of the underlying asset"""
     maturities: tuple[VolCrossSection[S], ...]
-    """Sorted tuple of :class:`.VolCrossSection` for different maturities"""
+    """Sorted tuple of [VolCrossSection][quantflow.options.surface.VolCrossSection]
+    for different maturities"""
     day_counter: DayCounter = default_day_counter
     """Day counter for time to maturity calculations - by default it uses Act/Act"""
     tick_size_forwards: DecimalNumber | None = None
@@ -799,7 +800,12 @@ class VolCrossSectionLoader(BaseModel, Generic[S], arbitrary_types_allowed=True)
 
 
 class GenericVolSurfaceLoader(BaseModel, Generic[S], arbitrary_types_allowed=True):
-    """Helper class to build a volatility surface from a list of securities"""
+    """Helper class to build a volatility surface from a list of securities
+
+    Use this class to add spot, forward and option securities with their prices
+    and then call the `surface` method to build a `VolSurface` instance
+    from the provided data.
+    """
 
     asset: str = Field(default="", description="Name of the underlying asset")
     spot: SpotPrice[S] | None = Field(
@@ -818,7 +824,6 @@ class GenericVolSurfaceLoader(BaseModel, Generic[S], arbitrary_types_allowed=Tru
             "by default it uses Act/Act"
         ),
     )
-    """Day counter for time to maturity calculations - by default it uses Act/Act"""
     tick_size_forwards: DecimalNumber | None = Field(
         default=None,
         description="Tick size for rounding forward and spot prices - optional",
@@ -834,7 +839,12 @@ class GenericVolSurfaceLoader(BaseModel, Generic[S], arbitrary_types_allowed=Tru
         default=None, description="Exclude options with volume at or below this value"
     )
 
-    def get_or_create_maturity(self, maturity: datetime) -> VolCrossSectionLoader[S]:
+    def get_or_create_maturity(
+        self, maturity: Annotated[datetime, Doc("Maturity date for the options")]
+    ) -> VolCrossSectionLoader[S]:
+        """Get or create a
+        [VolCrossSectionLoader][quantflow.options.surface.VolCrossSectionLoader]
+        for a given maturity"""
         if maturity not in self.maturities:
             self.maturities[maturity] = VolCrossSectionLoader(
                 maturity=maturity,
@@ -844,11 +854,11 @@ class GenericVolSurfaceLoader(BaseModel, Generic[S], arbitrary_types_allowed=Tru
 
     def add_spot(
         self,
-        security: S,
-        bid: Decimal = ZERO,
-        ask: Decimal = ZERO,
-        open_interest: Decimal = ZERO,
-        volume: Decimal = ZERO,
+        security: Annotated[S, Doc("Security for the spot price")],
+        bid: Annotated[Decimal, Doc("Bid price for the spot")] = ZERO,
+        ask: Annotated[Decimal, Doc("Ask price for the spot")] = ZERO,
+        open_interest: Annotated[Decimal, Doc("Open interest for the spot")] = ZERO,
+        volume: Annotated[Decimal, Doc("Volume for the spot")] = ZERO,
     ) -> None:
         """Add a spot to the volatility surface loader"""
         if security.vol_surface_type() != VolSecurityType.spot:
@@ -863,12 +873,12 @@ class GenericVolSurfaceLoader(BaseModel, Generic[S], arbitrary_types_allowed=Tru
 
     def add_forward(
         self,
-        security: S,
-        maturity: datetime,
-        bid: Decimal = ZERO,
-        ask: Decimal = ZERO,
-        open_interest: Decimal = ZERO,
-        volume: Decimal = ZERO,
+        security: Annotated[S, Doc("Security for the forward price")],
+        maturity: Annotated[datetime, Doc("Maturity date for the forward price")],
+        bid: Annotated[Decimal, Doc("Bid price for the forward")] = ZERO,
+        ask: Annotated[Decimal, Doc("Ask price for the forward")] = ZERO,
+        open_interest: Annotated[Decimal, Doc("Open interest for the forward")] = ZERO,
+        volume: Annotated[Decimal, Doc("Volume for the forward")] = ZERO,
     ) -> None:
         """Add a forward to the volatility surface loader"""
         if security.vol_surface_type() != VolSecurityType.forward:
@@ -884,14 +894,14 @@ class GenericVolSurfaceLoader(BaseModel, Generic[S], arbitrary_types_allowed=Tru
 
     def add_option(
         self,
-        security: S,
-        strike: Decimal,
-        maturity: datetime,
-        option_type: OptionType,
-        bid: Decimal = ZERO,
-        ask: Decimal = ZERO,
-        open_interest: Decimal = ZERO,
-        volume: Decimal = ZERO,
+        security: Annotated[S, Doc("Security for the option")],
+        strike: Annotated[Decimal, Doc("Strike price for the option")],
+        maturity: Annotated[datetime, Doc("Maturity date for the option")],
+        option_type: Annotated[OptionType, Doc("Type of the option (call or put)")],
+        bid: Annotated[Decimal, Doc("Bid price for the option")] = ZERO,
+        ask: Annotated[Decimal, Doc("Ask price for the option")] = ZERO,
+        open_interest: Annotated[Decimal, Doc("Open interest for the option")] = ZERO,
+        volume: Annotated[Decimal, Doc("Volume for the option")] = ZERO,
     ) -> None:
         """Add an option to the volatility surface loader"""
         if security.vol_surface_type() != VolSecurityType.option:
@@ -913,7 +923,12 @@ class GenericVolSurfaceLoader(BaseModel, Generic[S], arbitrary_types_allowed=Tru
             volume=volume,
         )
 
-    def surface(self, ref_date: datetime | None = None) -> VolSurface[S]:
+    def surface(
+        self,
+        ref_date: Annotated[
+            datetime | None, Doc("Reference date for the volatility surface")
+        ] = None,
+    ) -> VolSurface[S]:
         """Build a volatility surface from the provided data"""
         if not self.spot or self.spot.mid == ZERO:
             raise ValueError("No spot price provided")
@@ -933,14 +948,17 @@ class GenericVolSurfaceLoader(BaseModel, Generic[S], arbitrary_types_allowed=Tru
 
 
 class VolSurfaceLoader(GenericVolSurfaceLoader[DefaultVolSecurity]):
-    """A volatility surface loader"""
+    """Helper class to build a volatility surface from a list of securities
 
-    def add(self, input: VolSurfaceInput) -> None:
-        """Add a volatility security input to the loader
+    Use this class to add spot, forward and option securities with their prices
+    and then call the `surface` method to build a `VolSurface` instance
+    from the provided data.
+    """
 
-        :params input: The input data for the security,
-            it can be spot, forward or option
-        """
+    def add(
+        self, input: Annotated[VolSurfaceInput, Doc("Volatility surface input data")]
+    ) -> None:
+        """Add a volatility security input to the loader"""
         if isinstance(input, SpotInput):
             self.add_spot(
                 DefaultVolSecurity.spot(),

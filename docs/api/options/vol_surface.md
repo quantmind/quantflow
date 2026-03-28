@@ -9,6 +9,10 @@
 
 ::: quantflow.options.surface.VolSurfaceLoader
 
+::: quantflow.options.surface.VolCrossSectionLoader
+
+::: quantflow.options.surface.Strike
+
 ::: quantflow.options.surface.OptionPrice
 
 ::: quantflow.options.surface.OptionSelection

@@ -162,19 +162,57 @@ class HestonJ(Heston, Generic[D]):
     @classmethod
     def create(  # type: ignore [override]
         cls,
-        jump_distribution: type[D],
+        jump_distribution: Annotated[
+            type[D],
+            Doc(
+                "The distribution of jump size (currently only"
+                " [Normal][quantflow.utils.distributions.Normal] and"
+                " [DoubleExponential][quantflow.utils.distributions.DoubleExponential]"
+                " are supported)"
+            ),
+        ],
         *,
-        rate: float = 1.0,
-        vol: float = 0.5,
-        kappa: float = 1,
-        sigma: float = 0.8,
-        rho: float = 0,
-        theta: float | None = None,
-        jump_intensity: float = 100,  # number of jumps per year
-        jump_fraction: float = 0.1,  # percentage of variance due to jumps
-        jump_asymmetry: float = 0.0,
+        rate: Annotated[
+            float, Doc("Define the initial value of the variance process")
+        ] = 1.0,
+        vol: Annotated[
+            float,
+            Doc(
+                "The standard deviation of the price process, normalized by the"
+                " square root of time, as time tends to infinity"
+                " (the long term standard deviation)"
+            ),
+        ] = 0.5,
+        kappa: Annotated[
+            float, Doc("The mean reversion speed for the variance process")
+        ] = 1,
+        sigma: Annotated[float, Doc("The volatility of the variance process")] = 0.8,
+        rho: Annotated[
+            float,
+            Doc(
+                "The correlation between the Brownian motions of the"
+                " variance and price processes"
+            ),
+        ] = 0,
+        theta: Annotated[
+            float | None,
+            Doc(
+                r"The long-term mean of the variance process, if `None`, it"
+                r" defaults to the diffusion variance given by :math:`{\tt var}_d`"
+            ),
+        ] = None,
+        jump_intensity: Annotated[
+            float, Doc("The average number of jumps per year")
+        ] = 100,
+        jump_fraction: Annotated[
+            float, Doc("The fraction of variance due to jumps (between 0 and 1)")
+        ] = 0.1,
+        jump_asymmetry: Annotated[
+            float, Doc("The asymmetry of the jump distribution (0 for symmetric jumps)")
+        ] = 0.0,
     ) -> HestonJ[D]:
-        r"""Create an Heston model with :class:`.DoubleExponential` jumps.
+        r"""Create an Heston model with
+        [DoubleExponential][quantflow.utils.distributions.DoubleExponential] jumps.
 
         To understand the parameters lets introduce the following notation:
 
@@ -184,23 +222,6 @@ class HestonJ(Heston, Generic[D]):
             {\tt var}_d &= {\tt var} - {\tt var}_j \\
             v_0 &= {\tt rate}\cdot{\tt var}_d
         \end{align}
-
-        :param jump_distribution: The distribution of jump size (currently only
-            :class:`.Normal` and :class:`.DoubleExponential` are supported)
-        :param rate: define the initial value of the variance process
-        :param vol: The standard deviation of the price process, normalized by the
-            square root of time, as time tends to infinity
-            (the long term standard deviation)
-        :param kappa: The mean reversion speed for the variance process
-        :param sigma: The volatility of the variance process
-        :param rho: The correlation between the Brownian motions of the
-            variance and price processes
-        :param theta: The long-term mean of the variance process, if `None`, it
-            defaults to the diffusion variance given by :math:`{\tt var}_d`
-        :param jump_intensity: The average number of jumps per year
-        :param jump_fraction: The fraction of variance due to jumps (between 0 and 1)
-        :param jump_asymmetry: The asymmetry of the jump distribution
-            (0 for symmetric jumps)
         """
         jd = JumpDiffusion.create(
             jump_distribution,

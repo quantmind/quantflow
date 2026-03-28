@@ -3,6 +3,10 @@ site_url: https://quantmind.github.io/quantflow/
 site_dir: app/docs
 repo_name: quantmind/quantflow
 repo_url: https://github.com/quantmind/quantflow
+extra:
+  analytics:
+    provider: google
+    property: G-CM0DR45HDR
 theme:
   name: material
   palette:
@@ -78,6 +82,7 @@ nav:
           - api/sp/index.md
           - CIR Process: api/sp/cir.md
           - Compound Poisson: api/sp/compound_poisson.md
+          - Doubly Stochastic Poisson: api/sp/dsp.md
           - Heston Model: api/sp/heston.md
           - Jump Diffusion: api/sp/jump_diffusion.md
           - Ornstein-Uhlenbeck: api/sp/ou.md
@@ -95,6 +100,14 @@ nav:
           - Bins: api/utils/bins.md
           - Distributions: api/utils/distributions.md
           - Marginal 1D: api/utils/marginal1d.md
+          - Numbers: api/utils/numbers.md
+          - Types: api/utils/types.md
+  - Theory:
+      - theory/index.md
+      - Characteristic Function: theory/characteristic.md
+      - Inversion: theory/inversion.md
+      - Lévy Process: theory/levy.md
+      - Option Pricing: theory/option_pricing.md
   - Contributing: contributing.md
   - Bibliography: bibliography.md
 markdown_extensions:

@@ -60,9 +60,10 @@ class VolModelCalibration(BaseModel, ABC, Generic[M], arbitrary_types_allowed=Tr
     """Abstract class for calibration of a stochastic volatility model"""
 
     pricer: OptionPricer[M]
-    """The :class:`.OptionPricer` for the model"""
+    """The [OptionPricer][quantflow.options.pricer.OptionPricer] for the model"""
     vol_surface: VolSurface[Any] = Field(repr=False)
-    """The :class:`.VolSurface` to calibrate the model with"""
+    """The [VolSurface][quantflow.options.surface.VolSurface]
+    to calibrate the model with"""
     minimize_method: str | None = None
     """The optimization method to use - if None, the default is used"""
     moneyness_weight: float = Field(default=0.0, ge=0.0)
@@ -203,8 +204,8 @@ class VolModelCalibration(BaseModel, ABC, Generic[M], arbitrary_types_allowed=Tr
 
 
 class HestonCalibration(VolModelCalibration[Heston]):
-    """A :class:`.VolModelCalibration` for the :class:`.Heston`
-    stochastic volatility model"""
+    """A [VolModelCalibration][quantflow.options.calibration.VolModelCalibration]
+    for the [Heston][quantflow.sp.heston.Heston] stochastic volatility model"""
 
     feller_penalize: float = 0.0
 
@@ -242,9 +243,9 @@ class HestonCalibration(VolModelCalibration[Heston]):
 
 
 class HestonJCalibration(VolModelCalibration[HestonJ[D]], Generic[D]):
-    """A :class:`.VolModelCalibration` for the :class:`.HestonJ`
-    stochastic volatility model with :class:`.DoubleExponential`
-    jumps
+    """A [VolModelCalibration][quantflow.options.calibration.VolModelCalibration]
+    for the [HestonJ][quantflow.sp.heston.HestonJ] stochastic volatility model
+    with [DoubleExponential][quantflow.utils.distributions.DoubleExponential] jumps
     """
 
     feller_penalize: float = 0.0

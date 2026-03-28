@@ -24,7 +24,8 @@ class StochasticProcess(BaseModel, ABC, extra="forbid"):
 
     @abstractmethod
     def sample_from_draws(self, draws: Paths, *args: Paths) -> Paths:
-        """Sample :class:`.Paths` from the process given a set of draws"""
+        """Sample [Paths][quantflow.ta.paths.Paths]
+        from the process given a set of draws"""
 
     @abstractmethod
     def sample(
@@ -35,7 +36,7 @@ class StochasticProcess(BaseModel, ABC, extra="forbid"):
             int, Doc("number of time steps to arrive at horizon")
         ] = 100,
     ) -> Paths:
-        """Generate random :class:`.Paths` from the process."""
+        """Generate random [Paths][quantflow.ta.paths.Paths] from the process."""
 
     @abstractmethod
     def characteristic_exponent(self, t: FloatArrayLike, u: Vector) -> Vector:

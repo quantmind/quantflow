@@ -2,6 +2,36 @@
 
 ---
 
+### carr_madan
+
+Peter Carr, Dilip Madan
+
+[Option Valuation Using the Fast Fourier Transform](https://doi.org/10.1002/(SICI)1097-0261(199904)2:1<61::AID-FUT4>3.0.CO;2-4)
+
+Journal of Computational Finance, 2(4):61-73, 1999
+
+---
+
+### carr_wu
+
+Peter Carr, Liuren Wu
+
+[Time-Changed Lévy Processes and Option Pricing](https://doi.org/10.1016/S0304-405X(03)00171-5)
+
+Journal of Financial Economics, 71(1):113-141, 2004
+
+---
+
+### chourdakis
+
+Kyriakos Chourdakis
+
+[Option Pricing Using the Fractional FFT](https://doi.org/10.21314/JCF.2005.102)
+
+Journal of Computational Finance, 8(2):1-18, 2005
+
+---
+
 ### molnar
 
 Peter Molnar
