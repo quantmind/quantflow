@@ -87,7 +87,7 @@ class VolModelCalibration(BaseModel, ABC, Generic[M], arbitrary_types_allowed=Tr
     def model_post_init(self, _ctx: Any) -> None:
         if not self.options:
             self.vol_surface.bs()
-            for option in self.vol_surface.option_prices():
+            for option in self.vol_surface.option_prices(converged=True):
                 key = ModelCalibrationEntryKey(option.maturity, option.strike)
                 if key not in self.options:
                     entry = OptionEntry(ttm=option.ttm, moneyness=option.moneyness)

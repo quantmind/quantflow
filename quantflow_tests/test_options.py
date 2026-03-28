@@ -153,8 +153,8 @@ def test_black_vol(vol_surface: VolSurface):
     for option in options:
         assert option.price_time > 0
 
-    options = vol_surface.bs(index=1)
-    converged = [o for o in options if o.converged]
+    vol_surface.bs(index=1)
+    converged = vol_surface.option_list(converged=True, index=1)
     assert converged
     # calculate the black price now
     prices = vol_surface.calc_bs_prices(index=1)

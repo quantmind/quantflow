@@ -19,10 +19,12 @@ from quantflow.utils.numbers import (
     ZERO,
     DecimalNumber,
     Number,
+    normalize_decimal,
     sigfig,
     to_decimal,
     to_decimal_or_none,
 )
+from quantflow.utils.types import FloatArray
 
 from .bs import black_price, implied_black_volatility
 from .inputs import (
@@ -61,9 +63,15 @@ class OptionSelection(enum.Enum):
     """Select the call options only"""
     put = enum.auto()
     """Select the put options only"""
+    all = enum.auto()
+    """Select all options regardless of their moneyness"""
 
 
 class Price(BaseModel, Generic[S]):
+    """Represents the bid/ask price of a security,
+    which can be a spot price, forward price or option price
+    """
+
     security: S = Field(description="The underlying security of the price")
     bid: DecimalNumber = Field(description="Bid price")
     ask: DecimalNumber = Field(description="Ask price")
@@ -74,10 +82,12 @@ class Price(BaseModel, Generic[S]):
 
 
 class SpotPrice(Price[S]):
+    """Represents the spot bid/ask price of an underlying asset"""
+
     open_interest: DecimalNumber = Field(
         default=ZERO, description="Open interest of the spot price"
     )
-    volume: DecimalNumber = Field(default=ZERO, description="Volume of the spot price")
+    volume: DecimalNumber = Field(default=ZERO, description="Total volume traded")
 
     def inputs(self) -> SpotInput:
         return SpotInput(
@@ -89,13 +99,14 @@ class SpotPrice(Price[S]):
 
 
 class FwdPrice(Price[S]):
+    """Represents the forward bid/ask price of an underlying asset
+    at a specific maturity"""
+
     maturity: datetime = Field(description="Maturity date of the forward price")
     open_interest: DecimalNumber = Field(
         default=ZERO, description="Open interest of the forward price"
     )
-    volume: DecimalNumber = Field(
-        default=ZERO, description="Volume of the forward price"
-    )
+    volume: DecimalNumber = Field(default=ZERO, description="Total volume traded")
 
     def inputs(self) -> ForwardInput:
         return ForwardInput(
@@ -108,6 +119,9 @@ class FwdPrice(Price[S]):
 
 
 class OptionMetadata(BaseModel):
+    """Represents the metadata of an option, including its strike, type, maturity,
+    and other relevant information."""
+
     strike: DecimalNumber = Field(description="Strike price of the option")
     option_type: OptionType = Field(description="Type of the option, call or put")
     maturity: datetime = Field(description="Maturity date of the option")
@@ -118,7 +132,14 @@ class OptionMetadata(BaseModel):
     open_interest: DecimalNumber = Field(
         default=ZERO, description="Open interest of the option"
     )
-    volume: DecimalNumber = Field(default=ZERO, description="Volume of the option")
+    volume: DecimalNumber = Field(default=ZERO, description="Total volume traded")
+
+    def is_in_the_money(self, forward: Decimal) -> bool:
+        """Check if the option is in the money given the forward price"""
+        if self.option_type.is_call():
+            return self.strike < forward
+        else:
+            return self.strike > forward
 
 
 class OptionPrice(BaseModel):
@@ -136,7 +157,8 @@ class OptionPrice(BaseModel):
         default=Side.bid, description="Side of the market for the option price"
     )
     converged: bool = Field(
-        default=True, description="Flag indicating if implied vol calculation converged"
+        default=False,
+        description="Flag indicating if implied vol calculation converged",
     )
 
     @classmethod
@@ -217,6 +239,8 @@ class OptionPrice(BaseModel):
 
     @property
     def price_intrinsic(self) -> Decimal:
+        """Intrinsic price of the option, which is the price
+        if the option had zero time value"""
         if self.option_type.is_call():
             return max(self.forward - self.strike, ZERO) / self.forward
         else:
@@ -224,6 +248,7 @@ class OptionPrice(BaseModel):
 
     @property
     def price_time(self) -> Decimal:
+        """Time value of the option, which is the price minus its intrinsic value"""
         return self.price - self.price_intrinsic
 
     @property
@@ -248,15 +273,8 @@ class OptionPrice(BaseModel):
         else:
             return self.price
 
-    def can_price(self, converged: bool, select: OptionSelection) -> bool:
-        """Check if the option price can be used for implied volatility calculation"""
-        if self.price_time > ZERO and not np.isnan(self.implied_vol):
-            if not self.converged and converged is True:
-                return False
-            if select == OptionSelection.best:
-                return self.price_intrinsic == ZERO
-            return True
-        return False
+    def is_in_the_money(self, forward: Decimal) -> bool:
+        return self.meta.is_in_the_money(forward)
 
     def calculate_price(self) -> OptionPrice:
         self.price = Decimal(
@@ -292,32 +310,65 @@ class OptionPrice(BaseModel):
 
 
 class OptionArrays(NamedTuple):
+    """Represents the option data in array form for efficient calculations
+    via vectorized operations"""
+
     options: list[OptionPrice]
-    moneyness: np.ndarray
-    price: np.ndarray
-    ttm: np.ndarray
-    implied_vol: np.ndarray
-    call_put: np.ndarray
+    """List of option prices corresponding to the arrays below"""
+    moneyness: FloatArray
+    """The log strike of the options, calculated as log(strike/forward)"""
+    price: FloatArray
+    """The option prices"""
+    ttm: FloatArray
+    """Time to maturity of the options"""
+    implied_vol: FloatArray
+    """Implied volatility of the options"""
+    call_put: FloatArray
+    """Indicator for call (1) or put (-1) options"""
 
 
 class OptionPrices(BaseModel, Generic[S]):
+    """Represents the market for a single option contract (identified by its
+    strike, maturity and option type), holding the bid and ask sides as separate
+    [OptionPrice][quantflow.options.surface.OptionPrice] objects.
+    """
+
     security: S = Field(description="The underlying security of the option prices")
     meta: OptionMetadata = Field(description="Metadata for the option prices")
     bid: OptionPrice = Field(description="Bid option price")
     ask: OptionPrice = Field(description="Ask option price")
+
+    @property
+    def converged(self) -> bool:
+        """Check if the implied volatility calculation has converged
+        for both bid and ask"""
+        return self.bid.converged and self.ask.converged
+
+    def iv_bid_ask_spread(self) -> float:
+        """Calculate the bid-ask spread of the implied volatility"""
+        return self.ask.implied_vol - self.bid.implied_vol
+
+    def iv_mid(self) -> float:
+        """Calculate the mid implied volatility"""
+        return (self.bid.implied_vol + self.ask.implied_vol) / 2
+
+    def is_in_the_money(self, forward: Decimal) -> bool:
+        """Check if the option is in the money given the forward price"""
+        return self.meta.is_in_the_money(forward)
+
+    def disable(self) -> None:
+        """Disable the option by setting its implied volatility convergence to False"""
+        self.bid.converged = False
+        self.ask.converged = False
 
     def prices(
         self,
         forward: Annotated[Decimal, Doc("Forward price of the underlying asset")],
         ttm: Annotated[float, Doc("Time to maturity in years")],
         *,
-        select: Annotated[
-            OptionSelection, Doc("Option selection method")
-        ] = OptionSelection.best,
         initial_vol: Annotated[
             float, Doc("Initial volatility for the root finding algorithm")
         ] = INITIAL_VOL,
-        converged: Annotated[bool, Doc("Whether the calculation has converged")] = True,
     ) -> Iterator[OptionPrice]:
         """Iterator over bid/ask option prices"""
         self.meta.forward = forward
@@ -327,8 +378,7 @@ class OptionPrices(BaseModel, Generic[S]):
             o.meta.ttm = ttm
             if not o.implied_vol:
                 o.implied_vol = initial_vol
-            if o.can_price(converged, select):
-                yield o
+            yield o
 
     def inputs(self) -> OptionInput:
         """Convert the option prices to an OptionInput instance"""
@@ -364,6 +414,62 @@ class Strike(BaseModel, Generic[S]):
         default=None, description="Put option prices for the strike"
     )
 
+    def options_iter(
+        self,
+        forward: Annotated[Decimal, Doc("Forward price of the underlying asset")],
+        *,
+        select: Annotated[
+            OptionSelection, Doc("Option selection method")
+        ] = OptionSelection.all,
+    ) -> Iterator[OptionPrices[S]]:
+        """Iterator over option prices for the strike
+
+        It uses the `select` parameter to determine which options to include in
+        the iteration. The forward price is used to determine the moneyness of
+        the options when the `best` selection method is used, in which
+        case only the Out of the Money options are included in the iteration.
+        """
+        match select:
+            case OptionSelection.best:
+                if self.call:
+                    if self.call.is_in_the_money(forward) and self.put:
+                        yield self.put
+                    else:
+                        yield self.call
+                elif self.put:
+                    yield self.put
+            case OptionSelection.call:
+                if self.call:
+                    yield self.call
+            case OptionSelection.put:
+                if self.put:
+                    yield self.put
+            case OptionSelection.all:
+                if self.call:
+                    yield self.call
+                if self.put:
+                    yield self.put
+
+    def securities(
+        self,
+        forward: Annotated[Decimal, Doc("Forward price of the underlying asset")],
+        *,
+        select: Annotated[
+            OptionSelection, Doc("Option selection method")
+        ] = OptionSelection.all,
+        converged: Annotated[
+            bool,
+            Doc(
+                "Include options with implied volatility converged only if True, "
+                "otherwise include all options regardless of convergence"
+            ),
+        ] = False,
+    ) -> Iterator[OptionPrices[S]]:
+        """Iterator over option prices for the strike"""
+        for option in self.options_iter(forward, select=select):
+            if not converged or option.converged:
+                yield option
+
     def option_prices(
         self,
         forward: Annotated[Decimal, Doc("Forward price of the underlying asset")],
@@ -375,37 +481,42 @@ class Strike(BaseModel, Generic[S]):
         initial_vol: Annotated[
             float, Doc("Initial volatility for the root finding algorithm")
         ] = INITIAL_VOL,
-        converged: Annotated[bool, Doc("Whether the calculation has converged")] = True,
+        converged: Annotated[
+            bool,
+            Doc(
+                "Include options with implied volatility converged only if True, "
+                "otherwise include all options regardless of convergence"
+            ),
+        ] = False,
     ) -> Iterator[OptionPrice]:
-        if select != OptionSelection.put and self.call:
-            yield from self.call.prices(
-                forward,
-                ttm,
-                select=select,
-                initial_vol=initial_vol,
-                converged=converged,
-            )
-        if select != OptionSelection.call and self.put:
-            yield from self.put.prices(
-                forward,
-                ttm,
-                select=select,
-                initial_vol=initial_vol,
-                converged=converged,
-            )
+        for option in self.options_iter(forward, select=select):
+            if not converged or option.converged:
+                yield from option.prices(
+                    forward,
+                    ttm,
+                    initial_vol=initial_vol,
+                )
 
 
 class VolCrossSection(BaseModel, Generic[S], arbitrary_types_allowed=True):
     """Represents a cross section of a volatility surface at a specific maturity."""
 
-    maturity: datetime
-    """Maturity date of the cross section"""
-    forward: FwdPrice[S]
-    """Forward price of the underlying asset at the time of the cross section"""
-    strikes: tuple[Strike[S], ...]
-    """Tuple of sorted strikes and their corresponding option prices"""
-    day_counter: DayCounter = default_day_counter
-    """Day counter for time to maturity calculations - by default it uses Act/Act"""
+    maturity: datetime = Field(description="Maturity date of the cross section")
+    forward: FwdPrice[S] = Field(
+        description=(
+            "Forward price of the underlying asset at the time " "of the cross section"
+        )
+    )
+    strikes: tuple[Strike[S], ...] = Field(
+        description="Tuple of sorted strikes and their corresponding option prices"
+    )
+    day_counter: DayCounter = Field(
+        default=default_day_counter,
+        description=(
+            "Day counter for time to maturity calculations "
+            "- by default it uses Act/Act"
+        ),
+    )
 
     def ttm(self, ref_date: datetime) -> float:
         """Time to maturity in years"""
@@ -437,7 +548,9 @@ class VolCrossSection(BaseModel, Generic[S], arbitrary_types_allowed=True):
         initial_vol: Annotated[
             float, Doc("Initial volatility for the root finding algorithm")
         ] = INITIAL_VOL,
-        converged: Annotated[bool, Doc("Whether the calculation has converged")] = True,
+        converged: Annotated[
+            bool, Doc("Whether the calculation has converged")
+        ] = False,
     ) -> Iterator[OptionPrice]:
         """Iterator over option prices in the cross section"""
         for s in self.strikes:
@@ -449,14 +562,111 @@ class VolCrossSection(BaseModel, Generic[S], arbitrary_types_allowed=True):
                 converged=converged,
             )
 
-    def securities(self) -> Iterator[FwdPrice[S] | OptionPrices[S]]:
-        """Return a list of all securities in the cross section"""
+    def securities(
+        self,
+        *,
+        select: Annotated[
+            OptionSelection, Doc("Option selection method")
+        ] = OptionSelection.all,
+        converged: Annotated[
+            bool,
+            Doc(
+                "Include the forward and options with implied volatility "
+                "converged only if `True`, otherwise include all securities regardless "
+                "of convergence"
+            ),
+        ] = False,
+    ) -> Iterator[FwdPrice[S] | OptionPrices[S]]:
+        """Iterator over all securities in the cross section"""
         yield self.forward
+        yield from self.option_securities(select=select, converged=converged)
+
+    def option_securities(
+        self,
+        *,
+        select: Annotated[
+            OptionSelection, Doc("Option selection method")
+        ] = OptionSelection.all,
+        converged: Annotated[
+            bool,
+            Doc(
+                "Include the forward and options with implied volatility "
+                "converged only if `True`, otherwise include all securities regardless "
+                "of convergence"
+            ),
+        ] = False,
+    ) -> Iterator[OptionPrices[S]]:
+        """Iterator over all option securities in the cross section"""
         for strike in self.strikes:
-            if strike.call is not None:
-                yield strike.call
-            if strike.put is not None:
-                yield strike.put
+            yield from strike.securities(
+                self.forward.mid,
+                select=select,
+                converged=converged,
+            )
+
+    def disable_outliers(
+        self,
+        *,
+        bid_ask_spread: Annotated[
+            float,
+            Doc(
+                "Maximum allowed bid/ask spread as a fraction of the mid "
+                "implied volatility. A value of 0.3 means that options with a bid/ask"
+                "spread greater than 30% of the mid implied volatility will be "
+                "considered outliers and have their implied volatility convergence "
+                "set to False",
+            ),
+        ] = 0.3,
+        quantile: Annotated[float, Doc("Quantile for determining outliers")] = 0.99,
+        repeat: Annotated[
+            int, Doc("Number of times to repeat the outlier removal process")
+        ] = 2,
+    ) -> None:
+        """Disable outlier options in the cross section by marking them as not
+        converged.
+
+        Two passes are applied:
+
+
+        First pass: options where the bid/ask spread in implied vol space exceeds
+        `bid_ask_spread` as a fraction of the mid implied vol are disabled.
+        For example, a value of 0.3 disables options where the spread is more
+        than 30% of the mid vol. Options with a zero mid vol are also disabled.
+
+        Second pass: a degree-2 polynomial is fitted to the smile (mid implied vol
+        vs log-moneyness). Options whose residual from the fit exceeds the
+        `quantile` threshold of all residuals are disabled. This is repeated up
+        to `repeat` times, refitting after each removal. The loop stops early if
+        no outliers are found or fewer than 4 options remain.
+        """
+        options = list(self.option_securities(converged=True))
+        # first remove options with high bid/offer spread
+        for option in options:
+            spread = option.iv_bid_ask_spread()
+            mid = option.iv_mid()
+            if mid > 0:
+                if spread / mid > bid_ask_spread:
+                    option.disable()
+            else:
+                option.disable()
+        # remove outliers based on residuals from a quadratic smile fit
+        forward = float(self.forward.mid)
+        for _ in range(repeat):
+            options = list(self.option_securities(converged=True))
+            if len(options) < 4:
+                break
+            log_m = np.array([np.log(float(o.meta.strike) / forward) for o in options])
+            iv_mid = np.array([o.iv_mid() for o in options])
+            coeffs = np.polyfit(log_m, iv_mid, 2)
+            residuals = np.abs(iv_mid - np.polyval(coeffs, log_m))
+            threshold = np.quantile(residuals, quantile)
+            found = False
+            for option, residual in zip(options, residuals):
+                if residual > threshold:
+                    option.disable()
+                    found = True
+            if not found:
+                break
 
 
 class VolSurface(BaseModel, Generic[S], arbitrary_types_allowed=True):
@@ -485,35 +695,75 @@ class VolSurface(BaseModel, Generic[S], arbitrary_types_allowed=True):
         future volatility.
     """
 
-    ref_date: datetime
-    """Reference date for the volatility surface"""
-    asset: str
-    """Name of the underlying asset"""
-    spot: SpotPrice[S]
-    """Spot price of the underlying asset"""
-    maturities: tuple[VolCrossSection[S], ...]
-    """Sorted tuple of [VolCrossSection][quantflow.options.surface.VolCrossSection]
-    for different maturities"""
-    day_counter: DayCounter = default_day_counter
-    """Day counter for time to maturity calculations - by default it uses Act/Act"""
-    tick_size_forwards: DecimalNumber | None = None
-    """Tick size for rounding forward and spot prices - optional"""
-    tick_size_options: DecimalNumber | None = None
-    """Tick size for rounding option prices - optional"""
+    ref_date: datetime = Field(description="Reference date for the volatility surface")
+    asset: str = Field(description="Underlying asset of the volatility surface")
+    spot: SpotPrice[S] = Field(description="Spot price of the underlying asset")
+    maturities: tuple[VolCrossSection[S], ...] = Field(
+        description=(
+            "Sorted tuple of "
+            "[VolCrossSection][quantflow.options.surface.VolCrossSection], "
+            "each containing the forward price and option prices for that maturity"
+        )
+    )
+    day_counter: DayCounter = Field(
+        default=default_day_counter,
+        description=(
+            "Day counter for time to maturity calculations, "
+            "by default it uses Act/Act"
+        ),
+    )
+    tick_size_forwards: DecimalNumber | None = Field(
+        default=None,
+        description="Tick size for rounding forward and spot prices - optional",
+    )
+    tick_size_options: DecimalNumber | None = Field(
+        default=None,
+        description="Tick size for rounding option prices - optional",
+    )
 
-    def securities(self) -> Iterator[SpotPrice[S] | FwdPrice[S] | OptionPrices[S]]:
-        """Iterator over all securities in the volatility surface"""
+    def securities(
+        self,
+        *,
+        select: Annotated[
+            OptionSelection, Doc("Option selection method")
+        ] = OptionSelection.all,
+        converged: Annotated[
+            bool,
+            Doc(
+                "Include the spot, forwards and options with implied volatility "
+                "converged only if True, otherwise include all securities regardless "
+                "of convergence"
+            ),
+        ] = False,
+    ) -> Iterator[SpotPrice[S] | FwdPrice[S] | OptionPrices[S]]:
+        """Iterator over securities in the volatility surface"""
         yield self.spot
         for maturity in self.maturities:
-            yield from maturity.securities()
+            yield from maturity.securities(select=select, converged=converged)
 
-    def inputs(self) -> VolSurfaceInputs:
+    def inputs(
+        self,
+        *,
+        select: Annotated[
+            OptionSelection, Doc("Option selection method")
+        ] = OptionSelection.all,
+        converged: Annotated[
+            bool,
+            Doc(
+                "Include spot, forwards and options with implied volatility "
+                "converged only if True, otherwise include all securities regardless "
+                "of convergence"
+            ),
+        ] = False,
+    ) -> VolSurfaceInputs:
         """Convert the volatility surface to a
         [VolSurfaceInputs][quantflow.options.inputs.VolSurfaceInputs] instance"""
         return VolSurfaceInputs(
             asset=self.asset,
             ref_date=self.ref_date,
-            inputs=list(s.inputs() for s in self.securities()),
+            inputs=list(
+                s.inputs() for s in self.securities(select=select, converged=converged)
+            ),
         )
 
     def term_structure(self) -> pd.DataFrame:
@@ -543,10 +793,11 @@ class VolSurface(BaseModel, Generic[S], arbitrary_types_allowed=True):
         converged: Annotated[
             bool,
             Doc(
-                "Returns options with converged implied volatility "
-                "calculation only if True"
+                "Include options with implied volatility "
+                "converged only if True, otherwise include all options regardless "
+                "of convergence"
             ),
-        ] = True,
+        ] = False,
     ) -> Iterator[OptionPrice]:
         """Iterator over selected option prices in the surface"""
         if index is not None:
@@ -568,9 +819,20 @@ class VolSurface(BaseModel, Generic[S], arbitrary_types_allowed=True):
     def option_list(
         self,
         *,
-        select: OptionSelection = OptionSelection.best,
-        index: int | None = None,
-        converged: bool = True,
+        select: Annotated[
+            OptionSelection, Doc("Option selection method")
+        ] = OptionSelection.best,
+        index: Annotated[
+            int | None, Doc("Index of the cross section to use, if None use all")
+        ] = None,
+        converged: Annotated[
+            bool,
+            Doc(
+                "Include options with implied volatility "
+                "converged only if True, otherwise include all options regardless "
+                "of convergence"
+            ),
+        ] = False,
     ) -> list[OptionPrice]:
         "List of selected option prices in the surface"
         return list(self.option_prices(select=select, index=index, converged=converged))
@@ -588,17 +850,17 @@ class VolSurface(BaseModel, Generic[S], arbitrary_types_allowed=True):
             float, Doc("Initial volatility for the root finding algorithm")
         ] = INITIAL_VOL,
     ) -> list[OptionPrice]:
-        """Calculate Black-Scholes implied volatility for all options
+        """Calculate Black-Scholes implied volatility for options
         in the surface.
-        For some options, the implied volatility calculation may not converge,
+        For some option prices, the implied volatility calculation may not converge,
         in this case the implied volatility is not
         calculated correctly and the option is marked as not converged.
         """
+        self.reset_convergence()
         d = self.as_array(
             select=select,
             index=index,
             initial_vol=initial_vol,
-            converged=False,
         )
         with warnings.catch_warnings():
             warnings.simplefilter("ignore")
@@ -613,7 +875,7 @@ class VolSurface(BaseModel, Generic[S], arbitrary_types_allowed=True):
             d.options, result.values, result.converged
         ):
             option.implied_vol = float(implied_vol)
-            option.converged = converged
+            option.converged = converged and not np.isnan(implied_vol)
         return d.options
 
     def calc_bs_prices(
@@ -625,9 +887,13 @@ class VolSurface(BaseModel, Generic[S], arbitrary_types_allowed=True):
         index: Annotated[
             int | None, Doc("Index of the cross section to use, if None use all")
         ] = None,
-    ) -> np.ndarray:
-        """calculate Black-Scholes prices for all options in the surface"""
-        d = self.as_array(select=select, index=index)
+    ) -> FloatArray:
+        """calculate Black-Scholes prices for all options in the surface
+
+        It uses options with a converged implied volatility calculation only,
+        otherwise the price calculation won't be correct.
+        """
+        d = self.as_array(select=select, index=index, converged=True)
         return black_price(k=d.moneyness, sigma=d.implied_vol, ttm=d.ttm, s=d.call_put)
 
     def options_df(
@@ -642,7 +908,9 @@ class VolSurface(BaseModel, Generic[S], arbitrary_types_allowed=True):
         initial_vol: Annotated[
             float, Doc("Initial volatility for the root finding algorithm")
         ] = INITIAL_VOL,
-        converged: Annotated[bool, Doc("Whether the calculation has converged")] = True,
+        converged: Annotated[
+            bool, Doc("Whether the calculation has converged")
+        ] = False,
     ) -> pd.DataFrame:
         """Time frame of Black-Scholes call input data"""
         data = self.option_prices(
@@ -665,9 +933,21 @@ class VolSurface(BaseModel, Generic[S], arbitrary_types_allowed=True):
         initial_vol: Annotated[
             float, Doc("Initial volatility for the root finding algorithm")
         ] = INITIAL_VOL,
-        converged: Annotated[bool, Doc("Whether the calculation has converged")] = True,
+        converged: Annotated[
+            bool,
+            Doc(
+                "If True, include only options for which the calculation has converged"
+            ),
+        ] = False,
     ) -> OptionArrays:
-        """Organize option prices in a numpy arrays for black volatility calculation"""
+        """Organize option prices in a numpy arrays for Black volatility
+        and price calculation
+
+        It returns an [OptionArrays][quantflow.options.surface.OptionArrays] instance,
+        which contains the option prices and their corresponding moneyness,
+        time to maturity and implied volatility in numpy arrays
+        for efficient calculations.
+        """
         options = list(
             self.option_prices(
                 select=select,
@@ -696,35 +976,67 @@ class VolSurface(BaseModel, Generic[S], arbitrary_types_allowed=True):
             call_put=np.array(call_put),
         )
 
-    def disable_outliers(self, quantile: float = 0.99, repeat: int = 2) -> VolSurface:
-        for _ in range(repeat):
-            option_prices = self.option_list()
-            implied_vols = [o.implied_vol for o in option_prices]
-            exclude_above = np.quantile(implied_vols, quantile)
-            for option in option_prices:
-                if option.implied_vol > exclude_above:
-                    option.converged = False
+    def reset_convergence(self) -> None:
+        """Reset the convergence flag for all options in the surface"""
+        for option in self.option_prices(select=OptionSelection.all):
+            option.converged = False
+
+    def disable_outliers(
+        self,
+        *,
+        bid_ask_spread: Annotated[
+            float,
+            Doc(
+                "Maximum allowed bid/ask spread as a fraction of the mid "
+                "implied volatility. A value of 0.3 means that options with a bid/ask"
+                "spread greater than 30% of the mid implied volatility will be "
+                "considered outliers and have their implied volatility convergence "
+                "set to False",
+            ),
+        ] = 0.3,
+        quantile: Annotated[float, Doc("Quantile for determining outliers")] = 0.99,
+        repeat: Annotated[
+            int, Doc("Number of times to repeat the outlier removal process")
+        ] = 2,
+    ) -> Self:
+        """Disable outlier options across all maturities in the surface.
+
+        Calls
+        [VolCrossSection.disable_outliers]
+        [quantflow.options.surface.VolCrossSection.disable_outliers]
+        on each maturity with the same parameters.
+        """
+        for maturity in self.maturities:
+            maturity.disable_outliers(
+                bid_ask_spread=bid_ask_spread, quantile=quantile, repeat=repeat
+            )
         return self
 
     def plot(
         self,
         *,
-        index: int | None = None,
-        select: OptionSelection = OptionSelection.best,
+        index: Annotated[
+            int | None, Doc("Index of the cross section to use, if None use all")
+        ] = None,
+        select: Annotated[
+            OptionSelection, Doc("Option selection method")
+        ] = OptionSelection.best,
         **kwargs: Any,
     ) -> Any:
         """Plot the volatility surface"""
-        df = self.options_df(index=index, select=select)
+        df = self.options_df(index=index, select=select, converged=True)
         return plot.plot_vol_surface(df, **kwargs)
 
     def plot3d(
         self,
         *,
-        select: OptionSelection = OptionSelection.best,
+        select: Annotated[
+            OptionSelection, Doc("Option selection method")
+        ] = OptionSelection.best,
         **kwargs: Any,
     ) -> Any:
         """Plot the volatility surface"""
-        df = self.options_df(select=select)
+        df = self.options_df(select=select, converged=True)
         return plot.plot_vol_surface_3d(df, **kwargs)
 
 
@@ -758,20 +1070,21 @@ class VolCrossSectionLoader(BaseModel, Generic[S], arbitrary_types_allowed=True)
         open_interest: Decimal = ZERO,
         volume: Decimal = ZERO,
     ) -> None:
+        strike = normalize_decimal(strike)
         if strike not in self.strikes:
             self.strikes[strike] = Strike(strike=strike)
         meta = OptionMetadata(
             strike=strike,
             option_type=option_type,
             maturity=self.maturity,
-            open_interest=open_interest,
-            volume=volume,
+            open_interest=normalize_decimal(open_interest),
+            volume=normalize_decimal(volume),
         )
         option = OptionPrices(
             security=security,
             meta=meta,
-            bid=OptionPrice(price=bid, meta=meta, side=Side.bid),
-            ask=OptionPrice(price=ask, meta=meta, side=Side.ask),
+            bid=OptionPrice(price=normalize_decimal(bid), meta=meta, side=Side.bid),
+            ask=OptionPrice(price=normalize_decimal(ask), meta=meta, side=Side.ask),
         )
         if option_type.is_call():
             self.strikes[strike].call = option
@@ -865,10 +1178,10 @@ class GenericVolSurfaceLoader(BaseModel, Generic[S], arbitrary_types_allowed=Tru
             raise ValueError("Security is not a spot")
         self.spot = SpotPrice(
             security=security,
-            bid=bid,
-            ask=ask,
-            open_interest=open_interest,
-            volume=volume,
+            bid=normalize_decimal(bid),
+            ask=normalize_decimal(ask),
+            open_interest=normalize_decimal(open_interest),
+            volume=normalize_decimal(volume),
         )
 
     def add_forward(
@@ -885,11 +1198,11 @@ class GenericVolSurfaceLoader(BaseModel, Generic[S], arbitrary_types_allowed=Tru
             raise ValueError("Security is not a forward")
         self.get_or_create_maturity(maturity=maturity).forward = FwdPrice(
             security=security,
-            bid=bid,
-            ask=ask,
+            bid=normalize_decimal(bid),
+            ask=normalize_decimal(ask),
             maturity=maturity,
-            open_interest=open_interest,
-            volume=volume,
+            open_interest=normalize_decimal(open_interest),
+            volume=normalize_decimal(volume),
         )
 
     def add_option(

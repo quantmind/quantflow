@@ -75,7 +75,7 @@ def black_price(
             "(1 for call, -1 for put)"
         ),
     ],
-) -> np.ndarray:
+) -> FloatArray:
     r"""Calculate the Black call/put option prices in forward terms
     from the following params
 

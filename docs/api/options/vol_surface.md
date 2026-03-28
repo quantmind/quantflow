@@ -11,11 +11,29 @@
 
 ::: quantflow.options.surface.VolCrossSectionLoader
 
+## Bid/Ask Prices
+
+::: quantflow.options.surface.Price
+
+::: quantflow.options.surface.SpotPrice
+
+::: quantflow.options.surface.FwdPrice
+
 ::: quantflow.options.surface.Strike
+
+::: quantflow.options.surface.OptionArrays
+
+::: quantflow.options.surface.OptionMetadata
 
 ::: quantflow.options.surface.OptionPrice
 
+::: quantflow.options.surface.OptionPrices
+
 ::: quantflow.options.surface.OptionSelection
+
+::: quantflow.options.inputs.OptionType
+
+## Vol Surface Inputs
 
 ::: quantflow.options.inputs.VolSurfaceInputs
 
