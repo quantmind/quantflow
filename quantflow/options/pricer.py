@@ -132,7 +132,7 @@ class MaturityPricer(BaseModel, arbitrary_types_allowed=True):
         """
         strike_ = to_decimal(strike)
         forward_ = to_decimal(forward)
-        moneyness = float((strike_ / forward_).logb())
+        moneyness = float((strike_ / forward_).ln())
         return ModelOptionPrice(
             option_type=OptionType.call,
             strike=strike_,
@@ -173,16 +173,23 @@ class MaturityPricer(BaseModel, arbitrary_types_allowed=True):
         return float(np.interp(moneyness, self.moneyness, self.call))
 
     def call_delta(self, moneyness: float) -> float:
-        r"""Delta of a call option is change in price for a change in forward."""
-        delta = np.gradient(self.call, self.moneyness)
-        return -float(np.interp(moneyness, self.moneyness, delta))
+        r"""Delta of a call option as change in price per unit change in forward.
+
+        Since prices are stored in forward space (c = C/F) and m = log(K/F),
+        the chain rule gives: dC/dF = c - dc/dm
+        """
+        dc_dm = np.gradient(self.call, self.moneyness)
+        return float(np.interp(moneyness, self.moneyness, self.call - dc_dm))
 
     def call_gamma(self, moneyness: float) -> float:
-        """Gamma of a call option as second gradient of call price
-        with respect to moneyness"""
-        delta = np.gradient(self.call, self.moneyness)
-        gamma = np.gradient(delta, self.moneyness)
-        return float(np.interp(moneyness, self.moneyness, gamma))
+        """Gamma of a call option as change in delta per unit change in forward.
+
+        Since prices are stored in forward space (c = C/F) and m = log(K/F),
+        the chain rule gives: d2C/dF2 = d2c/dm2 - dc/dm
+        """
+        dc_dm = np.gradient(self.call, self.moneyness)
+        d2c_dm2 = np.gradient(dc_dm, self.moneyness)
+        return float(np.interp(moneyness, self.moneyness, d2c_dm2 - dc_dm))
 
     def interp(self, moneyness: FloatArray) -> Self:
         """get interpolated prices"""

@@ -4,6 +4,7 @@ import pytest
 
 from quantflow.options.pricer import OptionPricer, OptionType
 from quantflow.sp.heston import HestonJ
+from quantflow.sp.weiner import WeinerProcess
 from quantflow.utils.distributions import DoubleExponential
 from quantflow_tests.utils import has_plotly
 
@@ -37,3 +38,16 @@ def test_price_call(pricer: OptionPricer):
     black = price.black
     assert black.iv < 0.5
     assert black.price == pytest.approx(price.price)
+
+
+@pytest.mark.parametrize("strike,forward", [(90, 100), (100, 100), (110, 100)])
+def test_weiner_matches_black(strike: int, forward: int) -> None:
+    sigma = 0.3
+    pricer = OptionPricer(model=WeinerProcess(sigma=sigma))
+    price = pricer.price(
+        option_type=OptionType.call, strike=strike, forward=forward, ttm=1.0
+    )
+    black = price.black
+    assert float(black.iv) == pytest.approx(sigma, rel=1e-3)
+    assert price.delta == pytest.approx(float(black.delta), rel=1e-3)
+    assert price.gamma == pytest.approx(float(black.gamma), rel=5e-3)

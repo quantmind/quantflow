@@ -14,8 +14,6 @@ negative for in-the-money (ITM) call options, and positive for out-of-the-money 
 
 ::: quantflow.options.bs.black_call
 
-::: quantflow.options.bs.black_delta
-
 ::: quantflow.options.bs.black_vega
 
 ::: quantflow.options.bs.BlackSensitivities

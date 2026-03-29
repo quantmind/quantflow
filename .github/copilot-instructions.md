@@ -28,3 +28,4 @@ applyTo: '/**'
 * Documentation is built using [mkdocs](https://www.mkdocs.org/) and stored in the `docs/` directory. The documentation source files are written in markdown format.
 * Do not use em dashes (—) in documentation files or docstrings. Use colons, parentheses, or restructure the sentence instead.
 * Math in documentation and docstrings uses `$...$` for inline and `$$...$$` or `\begin{equation}...\end{equation}` for block equations. Do not use `.. math::` or `:math:` (RST syntax).
+* To rebuild doc examples run `uv run ./dev/build-examples` — runs all scripts in `docs/examples/` and writes their output to `docs/examples_output/`

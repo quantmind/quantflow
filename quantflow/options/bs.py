@@ -188,43 +188,6 @@ def black_price(
     return s * norm.cdf(s * d1) - s * np.exp(k) * norm.cdf(s * d2)
 
 
-def black_delta(
-    k: Annotated[
-        FloatArrayLike,
-        Doc("Vector or single value of log-strikes"),
-    ],
-    sigma: Annotated[
-        FloatArrayLike,
-        Doc(
-            "Corresponding vector or single value of implied volatilities "
-            "(0.2 for 20%)"
-        ),
-    ],
-    ttm: Annotated[
-        FloatArrayLike, Doc("Corresponding vector or single value of Time to Maturity")
-    ],
-    s: Annotated[
-        FloatArrayLike,
-        Doc(
-            "Corresponding vector or single value of call/put flag "
-            "(1 for call, -1 for put)"
-        ),
-    ],
-) -> FloatArrayLike:
-    r"""Calculate the Black call/put option delta from the moneyness,
-    volatility and time to maturity.
-
-    \begin{align}
-        \delta_c &= \frac{\partial C}{\partial F} = N(d1) \\
-        \delta_p &= \frac{\partial P}{\partial F} = N(d1) - 1
-    \end{align}
-    """
-    sig2 = sigma * sigma * ttm
-    sig = np.sqrt(sig2)
-    d1 = (-k + 0.5 * sig2) / sig
-    return norm.cdf(d1) - 0.5 * (1 - s)
-
-
 def black_vega(
     k: Annotated[
         FloatArrayLike,
