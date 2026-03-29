@@ -8,7 +8,7 @@ from typing import Any, Generic, Iterator, NamedTuple, Self, TypeVar
 
 import numpy as np
 import pandas as pd
-from ccy.core.daycounter import ActAct, DayCounter
+from ccy.core.daycounter import DayCounter
 from pydantic import BaseModel, Field
 from typing_extensions import Annotated, Doc
 
@@ -41,7 +41,7 @@ from .inputs import (
 )
 
 INITIAL_VOL = 0.5
-default_day_counter = ActAct()
+default_day_counter = DayCounter.ACTACT
 
 
 S = TypeVar("S", bound=VolSurfaceSecurity)
@@ -133,6 +133,13 @@ class OptionMetadata(BaseModel):
         default=ZERO, description="Open interest of the option"
     )
     volume: DecimalNumber = Field(default=ZERO, description="Total volume traded")
+    inverse: bool = Field(
+        default=True,
+        description=(
+            "Whether the option is an inverse option (i.e. quoted in terms of the "
+            "underlying) or not (i.e. quoted in terms of the quote currency)"
+        ),
+    )
 
     def is_in_the_money(self, forward: Decimal) -> bool:
         """Check if the option is in the money given the forward price"""
@@ -175,6 +182,7 @@ class OptionPrice(BaseModel):
         option_type: OptionType = OptionType.call,
         open_interest: Number = ZERO,
         volume: Number = ZERO,
+        inverse: bool = True,
     ) -> OptionPrice:
         """Create an option price
 
@@ -194,6 +202,7 @@ class OptionPrice(BaseModel):
                 ttm=day_counter.dcf(ref_date, maturity),
                 open_interest=to_decimal(open_interest),
                 volume=to_decimal(volume),
+                inverse=inverse,
             ),
         )
 
@@ -203,6 +212,7 @@ class OptionPrice(BaseModel):
 
     @property
     def forward(self) -> Decimal:
+        """Forward price of the underlying asset at the time of the option price"""
         return self.meta.forward
 
     @property
@@ -230,16 +240,30 @@ class OptionPrice(BaseModel):
         return float(np.log(float(self.strike / self.forward)))
 
     @property
-    def price_bp(self) -> Decimal:
-        return self.price * 10000
+    def price_in_forward_space(self) -> Decimal:
+        """Price of the option as a percentage of the forward price"""
+        if self.meta.inverse:
+            return self.price
+        else:
+            return self.price / self.forward
 
     @property
-    def forward_price(self) -> Decimal:
-        return self.forward * self.price
+    def price_bp(self) -> Decimal:
+        """Price of the option in basis points, calculated as price in forward space
+        multiplied by 10000"""
+        return self.price_in_forward_space * 10000
+
+    @property
+    def price_in_quote(self) -> Decimal:
+        """Price of the option in quote currency"""
+        if self.meta.inverse:
+            return self.forward * self.price
+        else:
+            return self.price
 
     @property
     def price_intrinsic(self) -> Decimal:
-        """Intrinsic price of the option, which is the price
+        """Intrinsic price of the option in forward space, which is the price
         if the option had zero time value"""
         if self.option_type.is_call():
             return max(self.forward - self.strike, ZERO) / self.forward
@@ -248,36 +272,37 @@ class OptionPrice(BaseModel):
 
     @property
     def price_time(self) -> Decimal:
-        """Time value of the option, which is the price minus its intrinsic value"""
-        return self.price - self.price_intrinsic
+        """Time value of the option in forward space, which is the price minus
+        its intrinsic value"""
+        return self.price_in_forward_space - self.price_intrinsic
 
     @property
     def call_price(self) -> Decimal:
-        """call price
+        """call price in forward space
 
         use put-call parity to calculate the call price if a put
         """
         if self.option_type.is_call():
-            return self.price
+            return self.price_in_forward_space
         else:
-            return self.price + 1 - self.strike / self.forward
+            return self.price_in_forward_space + 1 - self.strike / self.forward
 
     @property
     def put_price(self) -> Decimal:
-        """put price
+        """put price in forward space
 
         use put-call parity to calculate the put price if a call
         """
         if self.option_type.is_call():
-            return self.price - 1 + self.strike / self.forward
+            return self.price_in_forward_space - 1 + self.strike / self.forward
         else:
-            return self.price
+            return self.price_in_forward_space
 
     def is_in_the_money(self, forward: Decimal) -> bool:
         return self.meta.is_in_the_money(forward)
 
     def calculate_price(self) -> OptionPrice:
-        self.price = Decimal(
+        price = Decimal(
             sigfig(
                 black_price(
                     np.asarray(self.moneyness),
@@ -288,6 +313,7 @@ class OptionPrice(BaseModel):
                 8,
             )
         )
+        self.price = price if self.meta.inverse else price * self.forward
         return self
 
     def info_dict(self) -> dict[str, Any]:
@@ -299,9 +325,9 @@ class OptionPrice(BaseModel):
             moneyness_ttm=self.moneyness / np.sqrt(self.ttm),
             ttm=self.ttm,
             implied_vol=self.implied_vol,
-            price=float(self.price),
+            price=float(self.price_in_forward_space),
             price_bp=float(self.price_bp),
-            forward_price=float(self.forward_price),
+            price_quote=float(self.price_in_quote),
             type=str(self.option_type),
             side=str(self.side),
             open_interest=float(self.open_interest),
@@ -498,7 +524,7 @@ class Strike(BaseModel, Generic[S]):
                 )
 
 
-class VolCrossSection(BaseModel, Generic[S], arbitrary_types_allowed=True):
+class VolCrossSection(BaseModel, Generic[S]):
     """Represents a cross section of a volatility surface at a specific maturity."""
 
     maturity: datetime = Field(description="Maturity date of the cross section")
@@ -669,7 +695,7 @@ class VolCrossSection(BaseModel, Generic[S], arbitrary_types_allowed=True):
                 break
 
 
-class VolSurface(BaseModel, Generic[S], arbitrary_types_allowed=True):
+class VolSurface(BaseModel, Generic[S]):
     """Represents a volatility surface, which captures the implied volatility of an
     option for different strikes and maturities.
 
@@ -963,7 +989,7 @@ class VolSurface(BaseModel, Generic[S], arbitrary_types_allowed=True):
         call_put = []
         for option in options:
             moneyness.append(float(option.moneyness))
-            price.append(float(option.price))
+            price.append(float(option.price_in_forward_space))
             ttm.append(float(option.ttm))
             vol.append(float(option.implied_vol))
             call_put.append(1 if option.option_type.is_call() else -1)
@@ -1040,7 +1066,7 @@ class VolSurface(BaseModel, Generic[S], arbitrary_types_allowed=True):
         return plot.plot_vol_surface_3d(df, **kwargs)
 
 
-class VolCrossSectionLoader(BaseModel, Generic[S], arbitrary_types_allowed=True):
+class VolCrossSectionLoader(BaseModel, Generic[S]):
     maturity: datetime = Field(description="Maturity date of the cross section")
     forward: FwdPrice[S] | None = Field(
         default=None,
@@ -1062,14 +1088,16 @@ class VolCrossSectionLoader(BaseModel, Generic[S], arbitrary_types_allowed=True)
 
     def add_option(
         self,
-        strike: Decimal,
-        option_type: OptionType,
-        security: S,
-        bid: Decimal = ZERO,
-        ask: Decimal = ZERO,
-        open_interest: Decimal = ZERO,
-        volume: Decimal = ZERO,
+        security: Annotated[S, Doc("Security for the option")],
+        strike: Annotated[Decimal, Doc("Strike price for the option")],
+        option_type: Annotated[OptionType, Doc("Type of the option (call or put)")],
+        bid: Annotated[Decimal, Doc("Bid price for the option")] = ZERO,
+        ask: Annotated[Decimal, Doc("Ask price for the option")] = ZERO,
+        open_interest: Annotated[Decimal, Doc("Open interest for the option")] = ZERO,
+        volume: Annotated[Decimal, Doc("Volume for the option")] = ZERO,
+        inverse: Annotated[bool, Doc("Whether the option is an inverse option")] = True,
     ) -> None:
+        """Add an option to the cross section loader"""
         strike = normalize_decimal(strike)
         if strike not in self.strikes:
             self.strikes[strike] = Strike(strike=strike)
@@ -1079,6 +1107,7 @@ class VolCrossSectionLoader(BaseModel, Generic[S], arbitrary_types_allowed=True)
             maturity=self.maturity,
             open_interest=normalize_decimal(open_interest),
             volume=normalize_decimal(volume),
+            inverse=inverse,
         )
         option = OptionPrices(
             security=security,
@@ -1215,6 +1244,7 @@ class GenericVolSurfaceLoader(BaseModel, Generic[S], arbitrary_types_allowed=Tru
         ask: Annotated[Decimal, Doc("Ask price for the option")] = ZERO,
         open_interest: Annotated[Decimal, Doc("Open interest for the option")] = ZERO,
         volume: Annotated[Decimal, Doc("Volume for the option")] = ZERO,
+        inverse: Annotated[bool, Doc("Whether the option is an inverse option")] = True,
     ) -> None:
         """Add an option to the volatility surface loader"""
         if security.vol_surface_type() != VolSecurityType.option:
@@ -1227,13 +1257,14 @@ class GenericVolSurfaceLoader(BaseModel, Generic[S], arbitrary_types_allowed=Tru
         ):
             return
         self.get_or_create_maturity(maturity=maturity).add_option(
+            security=security,
             strike=strike,
             option_type=option_type,
-            security=security,
             bid=bid,
             ask=ask,
             open_interest=open_interest,
             volume=volume,
+            inverse=inverse,
         )
 
     def surface(
@@ -1299,6 +1330,7 @@ class VolSurfaceLoader(GenericVolSurfaceLoader[DefaultVolSecurity]):
                 ask=input.ask,
                 open_interest=input.open_interest,
                 volume=input.volume,
+                inverse=input.inverse,
             )
         else:
             raise ValueError(f"Unknown input type {type(input)}")

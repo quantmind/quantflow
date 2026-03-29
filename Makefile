@@ -27,6 +27,7 @@ marimo:				## Run marimo for editing notebooks
 .PHONY: docs
 docs:				## build documentation
 	@cp docs/index.md readme.md
+	@uv run ./dev/build-examples
 	@uv run mkdocs build
 
 .PHONY: docs-serve

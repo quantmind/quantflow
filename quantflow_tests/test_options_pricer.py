@@ -1,6 +1,8 @@
+from decimal import Decimal
+
 import pytest
 
-from quantflow.options.pricer import OptionPricer
+from quantflow.options.pricer import OptionPricer, OptionType
 from quantflow.sp.heston import HestonJ
 from quantflow.utils.distributions import DoubleExponential
 from quantflow_tests.utils import has_plotly
@@ -20,3 +22,18 @@ def test_plot_surface(pricer: OptionPricer):
     assert surface.x is not None
     assert surface.y is not None
     assert surface.z is not None
+
+
+def test_price_call(pricer: OptionPricer):
+    price = pricer.price(
+        option_type=OptionType.call,
+        strike=100,
+        forward=100,
+        ttm=1.0,
+    )
+    assert price.strike == Decimal(100)
+    assert price.forward == Decimal(100)
+    assert price.moneyness == 0.0
+    black = price.black
+    assert black.iv < 0.5
+    assert black.price == pytest.approx(price.price)

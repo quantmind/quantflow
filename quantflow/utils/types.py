@@ -1,9 +1,10 @@
 from decimal import Decimal
-from typing import Any
+from typing import Annotated, Any
 
 import numpy as np
 import numpy.typing as npt
 import pandas as pd
+from pydantic import PlainSerializer
 from typing_extensions import TypeAlias
 
 Number = Decimal
@@ -11,10 +12,16 @@ Float = float | np.floating[Any]
 Numbers = int | Float | np.number
 NumberType = float | int | str | Number
 Vector: TypeAlias = int | float | complex | np.ndarray | pd.Series
-FloatArray = npt.NDArray[np.floating[Any]]
+FloatArray = Annotated[
+    npt.NDArray[np.floating[Any]],
+    PlainSerializer(lambda x: x.tolist(), return_type=list),
+]
 IntArray = npt.NDArray[np.signedinteger[Any]]
 BoolArray = npt.NDArray[np.bool_]
-FloatArrayLike = Float | FloatArray
+FloatArrayLike = Annotated[
+    Float | npt.NDArray[np.floating[Any]],
+    PlainSerializer(lambda x: x.tolist() if isinstance(x, np.ndarray) else float(x)),
+]
 
 
 def as_number(num: NumberType | None = None) -> Number:

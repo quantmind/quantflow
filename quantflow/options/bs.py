@@ -1,6 +1,9 @@
+from __future__ import annotations
+
 from typing import NamedTuple
 
 import numpy as np
+from pydantic import BaseModel, Field
 from scipy.optimize import newton
 from scipy.stats import norm
 from typing_extensions import Annotated, Doc
@@ -32,6 +35,91 @@ class ImpliedVols(NamedTuple):
         if len(self.values) != 1 or len(self.converged) != 1:
             raise ValueError("Expected exactly one root and convergence status")
         return ImpliedVol(value=self.values[0], converged=self.converged[0])
+
+
+class BlackSensitivities(BaseModel, frozen=True, arbitrary_types_allowed=True):
+    """Black model sensitivities (Greeks) for a single option or array of options"""
+
+    iv: FloatArrayLike = Field(description="Implied Black volatility (0.1 for 10%)")
+    price: FloatArrayLike = Field(description="Option price in forward space")
+    delta: FloatArrayLike = Field(
+        description="Change in price per unit change in forward"
+    )
+    gamma: FloatArrayLike = Field(
+        description="Change in delta per unit change in forward"
+    )
+    vega: FloatArrayLike = Field(
+        description="Change in price per unit change in volatility"
+    )
+    volga: FloatArrayLike = Field(
+        description="Change in vega per unit change in volatility"
+    )
+    vanna: FloatArrayLike = Field(
+        description="Change in delta per unit change in volatility"
+    )
+    theta: FloatArrayLike = Field(
+        description="Change in price per unit time (negative = time decay)"
+    )
+
+    @classmethod
+    def calculate(
+        cls,
+        k: Annotated[FloatArrayLike, Doc("Vector or single value of log-strikes")],
+        ttm: Annotated[FloatArrayLike, Doc("Time to maturity")],
+        s: Annotated[FloatArrayLike, Doc("Call/put flag (1 for call, -1 for put)")],
+        iv: Annotated[
+            FloatArrayLike | None, Doc("Implied volatility (0.2 for 20%)")
+        ] = None,
+        price: Annotated[
+            FloatArrayLike | None, Doc("Option price in forward space")
+        ] = None,
+    ) -> BlackSensitivities:
+        r"""Calculate Black model sensitivities (Greeks) in forward space.
+        Either the implied volatility `iv` or the option `price` must be provided.
+        If both are provided, the implied volatility will be used.
+
+        \begin{align}
+            d_1 &= \frac{-k + \frac{1}{2}\sigma^2 t}{\sigma\sqrt{t}} \\
+            \Delta &= N(d_1) - \frac{1-s}{2} \\
+            \Gamma &= \frac{N'(d_1)}{\sigma\sqrt{t}} \\
+            \nu &= N'(d_1)\sqrt{t} \\
+            \text{volga} &= \nu \cdot \frac{d_1 d_2}{\sigma\sqrt{t}} \\
+            \text{vanna} &= -\frac{N'(d_1) d_2}{\sigma\sqrt{t}} \\
+            \Theta &= -\frac{N'(d_1)\sigma}{2\sqrt{t}}
+        \end{align}
+        """
+        if iv is None:
+            if price is None:
+                raise ValueError(
+                    "Either implied volatility or option price must be provided"
+                )
+            result = implied_black_volatility(
+                k=k,
+                price=price,
+                ttm=ttm,
+                initial_sigma=0.2,
+                call_put=s,
+            )
+            iv = result.single().value if np.isscalar(price) else result.values
+        else:
+            price = black_price(k, iv, ttm, s)
+        sig2 = iv * iv * ttm
+        sig = np.sqrt(sig2)
+        d1 = (-k + 0.5 * sig2) / sig
+        d2 = d1 - sig
+        npd1 = norm.pdf(d1)
+        nd1 = norm.cdf(d1)
+        vega = npd1 * np.sqrt(ttm)
+        return cls(
+            iv=iv,
+            price=price,
+            delta=nd1 - 0.5 * (1 - s),
+            gamma=npd1 / sig,
+            vega=vega,
+            volga=vega * d1 * d2 / sig,
+            vanna=-npd1 * d2 / sig,
+            theta=-npd1 * iv / (2 * np.sqrt(ttm)),
+        )
 
 
 def black_call(
@@ -89,7 +177,9 @@ def black_price(
     $$
 
     The results are option prices divided by the forward price also known as
-    option prices in forward terms.
+    option prices in forward terms. These are non-dimensional prices
+    that can be easily converted to actual option prices by multiplying with the
+    forward price of the underlying asset.
     """
     sig2 = sigma * sigma * ttm
     sig = np.sqrt(sig2)
@@ -99,7 +189,10 @@ def black_price(
 
 
 def black_delta(
-    k: Annotated[np.ndarray, Doc("Vector of log-strikes")],
+    k: Annotated[
+        FloatArrayLike,
+        Doc("Vector or single value of log-strikes"),
+    ],
     sigma: Annotated[
         FloatArrayLike,
         Doc(
@@ -117,16 +210,14 @@ def black_delta(
             "(1 for call, -1 for put)"
         ),
     ],
-) -> np.ndarray:
+) -> FloatArrayLike:
     r"""Calculate the Black call/put option delta from the moneyness,
     volatility and time to maturity.
 
-    $$
     \begin{align}
         \delta_c &= \frac{\partial C}{\partial F} = N(d1) \\
         \delta_p &= \frac{\partial P}{\partial F} = N(d1) - 1
     \end{align}
-    $$
     """
     sig2 = sigma * sigma * ttm
     sig = np.sqrt(sig2)
@@ -135,7 +226,10 @@ def black_delta(
 
 
 def black_vega(
-    k: Annotated[FloatArrayLike, Doc("Vector of log-strikes")],
+    k: Annotated[
+        FloatArrayLike,
+        Doc("Vector or single value of log-strikes"),
+    ],
     sigma: Annotated[
         FloatArrayLike,
         Doc(

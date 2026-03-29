@@ -7,3 +7,5 @@ different stochastic volatility models.
 ::: quantflow.options.pricer.OptionPricer
 
 ::: quantflow.options.pricer.MaturityPricer
+
+::: quantflow.options.pricer.ModelOptionPrice

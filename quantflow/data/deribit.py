@@ -66,22 +66,39 @@ class Deribit(AioHttpClient):
     async def get_book_summary_by_currency(
         self,
         currency: Annotated[str, Doc("Currency")],
+        *,
         kind: Annotated[InstrumentKind | None, Doc("Optional instrument kind")] = None,
+        base: Annotated[
+            str | None, Doc("Optional base currency for linear futures/options")
+        ] = None,
         **kw: Any,
     ) -> list[dict]:
-        """Get the book summary for a given currency."""
+        """Get the book summary for a given currency.
+
+        For linear futures/options, the `currency` parameter should be set to "usdc"
+        and the `base` parameter should be set to the underlying
+        currency (e.g. "btc" or "eth").
+        """
         kw.update(
             params=compact_dict(currency=currency, kind=kind), callback=self.to_result
         )
-        return cast(
+        data = cast(
             list[dict], await self.get_path("public/get_book_summary_by_currency", **kw)
         )
+        if base:
+            base = base.upper()
+            data = [d for d in data if d["base_currency"] == base]
+        return data
 
     async def get_instruments(
         self,
         currency: Annotated[str, Doc("Currency")],
+        *,
         kind: Annotated[InstrumentKind | None, Doc("Optional instrument kind")] = None,
         expired: Annotated[bool | None, Doc("Include expired instruments")] = None,
+        base: Annotated[
+            str | None, Doc("Optional base currency for linear futures/options")
+        ] = None,
         **kw: Any,
     ) -> list[dict]:
         """Get the list of instruments for a given currency."""
@@ -89,7 +106,11 @@ class Deribit(AioHttpClient):
             params=compact_dict(currency=currency, kind=kind, expired=expired),
             callback=self.to_result,
         )
-        return cast(list[dict], await self.get_path("public/get_instruments", **kw))
+        data = cast(list[dict], await self.get_path("public/get_instruments", **kw))
+        if base:
+            base = base.upper()
+            data = [d for d in data if d["base_currency"] == base]
+        return data
 
     async def get_volatility(
         self,
@@ -104,6 +125,13 @@ class Deribit(AioHttpClient):
         self,
         currency: Annotated[str, Doc("Currency")],
         *,
+        inverse: Annotated[
+            bool,
+            Doc(
+                "Whether to use inverse or linear options. Inverse options are priced "
+                "in the base currency, while linear options are priced in USD."
+            ),
+        ] = True,
         exclude_open_interest: Annotated[
             Number | None,
             Doc("Exclude options with open interest below this threshold"),
@@ -119,13 +147,22 @@ class Deribit(AioHttpClient):
             exclude_open_interest=to_decimal_or_none(exclude_open_interest),
             exclude_volume=to_decimal_or_none(exclude_volume),
         )
-        futures = await self.get_book_summary_by_currency(
-            currency=currency, kind=InstrumentKind.future
-        )
-        options = await self.get_book_summary_by_currency(
-            currency=currency, kind=InstrumentKind.option
-        )
-        instruments = await self.get_instruments(currency=currency)
+        if inverse:
+            futures = await self.get_book_summary_by_currency(
+                currency=currency, kind=InstrumentKind.future
+            )
+            options = await self.get_book_summary_by_currency(
+                currency=currency, kind=InstrumentKind.option
+            )
+            instruments = await self.get_instruments(currency=currency)
+        else:
+            futures = await self.get_book_summary_by_currency(
+                currency="usdc", kind=InstrumentKind.future, base=currency
+            )
+            options = await self.get_book_summary_by_currency(
+                currency="usdc", kind=InstrumentKind.option, base=currency
+            )
+            instruments = await self.get_instruments(currency="usdc", base=currency)
         instrument_map = {i["instrument_name"]: i for i in instruments}
         min_tick_size = Decimal("inf")
         for entry in futures:
@@ -184,6 +221,7 @@ class Deribit(AioHttpClient):
                     ask=round_to_step(ask_, tick_size),
                     open_interest=to_decimal(entry["open_interest"]),
                     volume=to_decimal(entry["volume_usd"]),
+                    inverse=inverse,
                 )
         loader.tick_size_options = min_tick_size
         return loader

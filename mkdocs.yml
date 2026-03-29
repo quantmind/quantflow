@@ -58,13 +58,6 @@ plugins:
                   schema: false
 nav:
   - Home: index.md
-  - Examples:
-      - Gaussian Sampling: examples/gaussian-sampling
-      - Poisson Sampling: examples/poisson-sampling
-      - Double Exponential Sampling: examples/double-exponential-sampling
-      - Hurst: examples/hurst
-      - Supersmoother: examples/supersmoother
-      - Volatility Surface: examples/volatility-surface
   - API Reference:
       - api/index.md
       - Data:
@@ -103,12 +96,21 @@ nav:
           - Marginal 1D: api/utils/marginal1d.md
           - Numbers: api/utils/numbers.md
           - Types: api/utils/types.md
+  - Tutorials:
+      - Option Pricing: tutorials/option_pricing.md
   - Theory:
       - theory/index.md
       - Characteristic Function: theory/characteristic.md
       - Inversion: theory/inversion.md
       - Lévy Process: theory/levy.md
       - Option Pricing: theory/option_pricing.md
+  - Examples:
+      - Gaussian Sampling: examples/gaussian-sampling
+      - Poisson Sampling: examples/poisson-sampling
+      - Double Exponential Sampling: examples/double-exponential-sampling
+      - Hurst: examples/hurst
+      - Supersmoother: examples/supersmoother
+      - Volatility Surface: examples/volatility-surface
   - Contributing: contributing.md
   - Bibliography: bibliography.md
 markdown_extensions:

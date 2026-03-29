@@ -30,6 +30,10 @@ class OptionType(enum.StrEnum):
     def is_put(self) -> bool:
         return self is OptionType.put
 
+    def call_put(self) -> int:
+        """Return 1 for call options and -1 for put options"""
+        return 1 if self is OptionType.call else -1
+
 
 class VolSecurityType(enum.StrEnum):
     """Type of security for the volatility surface"""
@@ -118,6 +122,13 @@ class OptionInput(VolSurfaceInput):
         description=(
             "Implied volatility based on the ask price as decimal number "
             "(e.g. 0.2 for 20%)"
+        ),
+    )
+    inverse: bool = Field(
+        default=True,
+        description=(
+            "Whether the security is inverse (i.e. quoted in terms of the underlying) "
+            "or not (i.e. quoted in terms of the quote currency)"
         ),
     )
 

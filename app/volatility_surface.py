@@ -43,12 +43,19 @@ def _(mo):
 
 
 @app.cell
-async def _():
+def _(mo):
+    inverse = mo.ui.checkbox(value=True, label="Inverse options")
+    inverse
+    return (inverse,)
+
+
+@app.cell
+async def _(inverse):
     import pandas as pd
     from quantflow.data.deribit import Deribit
 
     async with Deribit() as cli:
-        loader = await cli.volatility_surface_loader("eth", exclude_open_interest=0)
+        loader = await cli.volatility_surface_loader("eth", exclude_open_interest=0, inverse=inverse.value)
 
     # build the volatility surface
     surface = loader.surface()
