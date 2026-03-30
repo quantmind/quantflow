@@ -111,6 +111,7 @@ nav:
       - Hurst: examples/hurst
       - Supersmoother: examples/supersmoother
       - Volatility Surface: examples/volatility-surface
+  - Glossary: glossary.md
   - Contributing: contributing.md
   - Bibliography: bibliography.md
 markdown_extensions:

@@ -29,3 +29,8 @@ applyTo: '/**'
 * Do not use em dashes (—) in documentation files or docstrings. Use colons, parentheses, or restructure the sentence instead.
 * Math in documentation and docstrings uses `$...$` for inline and `$$...$$` or `\begin{equation}...\end{equation}` for block equations. Do not use `.. math::` or `:math:` (RST syntax).
 * To rebuild doc examples run `uv run ./dev/build-examples` — runs all scripts in `docs/examples/` and writes their output to `docs/examples_output/`
+
+## Package structure
+
+* Strategy runtime markdown descriptions (read by `load_description()` at runtime) live inside the package at `quantflow/options/strategies/docs/` — they must be inside the package to be accessible when the library is installed
+* mkdocs documentation pages live in `docs/api/options/` — do not mix these two locations
