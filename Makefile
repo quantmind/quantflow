@@ -47,3 +47,7 @@ tests:				## Unit tests
 .PHONY: outdated
 outdated:			## Show outdated packages
 	uv tree --outdated
+
+.PHONY: upgrade
+upgrade:			## Upgrade dependencies
+	uv lock --upgrade
