@@ -1,3 +1,5 @@
 """Quantitative analysis and pricing"""
 
-__version__ = "0.6.1"
+from importlib.metadata import version
+
+__version__ = version("quantflow")
