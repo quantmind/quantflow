@@ -88,7 +88,7 @@ class ModelOptionPrice(BaseModel, frozen=True):
                 update=dict(
                     option_type=option_type,
                     price=self.price - self.intrinsic_value,
-                    delta=-self.delta,
+                    delta=self.delta - 1.0,
                     gamma=self.gamma,
                 )
             )

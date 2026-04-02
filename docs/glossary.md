@@ -1,21 +1,8 @@
----
-jupytext:
-  text_representation:
-    extension: .md
-    format_name: myst
-    format_version: 0.13
-    jupytext_version: 1.16.6
-kernelspec:
-  display_name: Python 3 (ipykernel)
-  language: python
-  name: python3
----
-
 # Glossary
 
 ## Characteristic Function
 
-The [characteristic function](../theory/characteristic.md) of a random variable $x$ is the Fourier transform of ${\mathbb P}_x$,
+The [characteristic function](../theory/characteristic) of a random variable $x$ is the Fourier transform of ${\mathbb P}_x$,
 where ${\mathbb P}_x$ is the distrubution measure of $x$.
 
 \begin{equation}
@@ -47,24 +34,24 @@ Check this study on the [Hurst exponent with OHLC data](../applications/hurst).
 
 ## Moneyness
 
-Moneyness is used in the context of option pricing and it is defined as
+Moneyness, or log strike/forward ratio, is used in the context of option pricing and it is defined as
 
 \begin{equation}
     \ln\frac{K}{F}
 \end{equation}
 
-where $K$ is the strike and $F$ is the Forward price. A positive value implies strikes above the forward, which means put options are in the money and call options are out of the money.
+where $K$ is the strike and $F$ is the Forward price. A positive value implies strikes above the forward, which means put options are in the money (ITM) and call options are out of the money (OTM).
 
 
-## Moneyness Time Adjusted
+## Moneyness Vol Adjusted
 
-The time-adjusted moneyness is used in the context of option pricing in order to compare options with different maturities. It is defined as
+The vol-adjusted moneyness is used in the context of option pricing in order to compare options with different maturities. It is defined as
 
 \begin{equation}
-    \frac{1}{\sqrt{T}}\ln\frac{K}{F}
+    \frac{1}{\sigma\sqrt{T}}\ln\frac{K}{F}
 \end{equation}
 
-where $K$ is the strike and $F$ is the Forward price and $T$ is the time to maturity.
+where $K$ is the strike and $F$ is the Forward price and $T$ is the time to maturity and $\sigma$ is the implied Black volatility.
 
 The key reason for dividing by the square root of time-to-maturity is related to how volatility and price movement behave over time.
 The price of the underlying asset is subject to random fluctuations, if these fluctuations follow a Brownian motion than the
