@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from abc import abstractmethod
 from decimal import Decimal
 from typing import Any, Generic, Self, TypeVar, cast
 
@@ -226,10 +227,15 @@ class MaturityPricer(BaseModel, arbitrary_types_allowed=True):
         return plot.plot_vol_cross(self.df, series=series, **kwargs)
 
 
-class OptionPricer(BaseModel, Generic[M], arbitrary_types_allowed=True):
-    """Pricer for options"""
+class OptionPricerBase(BaseModel, arbitrary_types_allowed=True):
+    """Abstract base class for option pricers.
 
-    model: M = Field(description="Stochastic process model for the underlying")
+    Provides caching of [MaturityPricer][quantflow.options.pricer.MaturityPricer]
+    results and generic pricing/plotting methods. Subclasses implement
+    ``_compute_maturity`` to define how call prices are computed for a given
+    time to maturity.
+    """
+
     ttm: dict[int, MaturityPricer] = Field(
         default_factory=dict,
         repr=False,
@@ -239,35 +245,27 @@ class OptionPricer(BaseModel, Generic[M], arbitrary_types_allowed=True):
             "for different time to maturity"
         ),
     )
-    n: int = Field(
-        default=128,
-        description="Number of discretization points for the marginal distribution",
-    )
-    max_moneyness_ttm: float = Field(
-        default=1.5, description="Max time-adjusted moneyness to calculate prices"
-    )
+
+    @abstractmethod
+    def _compute_maturity(self, ttm: float, **kwargs: Any) -> MaturityPricer:
+        """Compute a [MaturityPricer][quantflow.options.pricer.MaturityPricer]
+        for the given time to maturity.
+
+        Called by [maturity][quantflow.options.pricer.OptionPricerBase.maturity]
+        on a cache miss. Subclasses must implement this method.
+        """
 
     def reset(self) -> None:
-        """Clear the [ttm][quantflow.options.pricer.OptionPricer.ttm] cache"""
+        """Clear the [ttm][quantflow.options.pricer.OptionPricerBase.ttm] cache"""
         self.ttm.clear()
 
     def maturity(self, ttm: float, **kwargs: Any) -> MaturityPricer:
         """Get a [MaturityPricer][quantflow.options.pricer.MaturityPricer]
-        from cache or create a new one and return it"""
+        from cache or compute a new one and return it"""
         ttm_int = int(TTM_FACTOR * ttm)
         if ttm_int not in self.ttm:
             ttmr = ttm_int / TTM_FACTOR
-            marginal = self.model.marginal(ttmr)
-            transform = marginal.call_option(
-                self.n, max_moneyness=self.max_moneyness_ttm * np.sqrt(ttmr), **kwargs
-            )
-            self.ttm[ttm_int] = MaturityPricer(
-                ttm=ttmr,
-                std=float(np.max(marginal.std())),
-                moneyness=transform.x,
-                call=transform.y,
-                name=type(self.model).__name__,
-            )
+            self.ttm[ttm_int] = self._compute_maturity(ttmr, **kwargs)
         return self.ttm[ttm_int]
 
     def price(
@@ -332,4 +330,34 @@ class OptionPricer(BaseModel, Generic[M], arbitrary_types_allowed=True):
             y=ttm,
             z=implied,
             **properties,
+        )
+
+
+class OptionPricer(OptionPricerBase, Generic[M]):
+    """Pricer for options based on a stochastic process model.
+
+    Computes call prices via the inverse Fourier transform of the
+    characteristic function of the underlying stochastic process.
+    """
+
+    model: M = Field(description="Stochastic process model for the underlying")
+    n: int = Field(
+        default=128,
+        description="Number of discretization points for the marginal distribution",
+    )
+    max_moneyness_ttm: float = Field(
+        default=1.5, description="Max time-adjusted moneyness to calculate prices"
+    )
+
+    def _compute_maturity(self, ttm: float, **kwargs: Any) -> MaturityPricer:
+        marginal = self.model.marginal(ttm)
+        transform = marginal.call_option(
+            self.n, max_moneyness=self.max_moneyness_ttm * np.sqrt(ttm), **kwargs
+        )
+        return MaturityPricer(
+            ttm=ttm,
+            std=float(np.max(marginal.std())),
+            moneyness=transform.x,
+            call=transform.y,
+            name=type(self.model).__name__,
         )

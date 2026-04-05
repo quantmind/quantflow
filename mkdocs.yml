@@ -70,6 +70,7 @@ nav:
           - api/options/index.md
           - Black-Scholes: api/options/black.md
           - Calibration: api/options/calibration.md
+          - Deep IV Factor Model: api/options/divfm.md
           - Pricer: api/options/pricer.md
           - Volatility Surface: api/options/vol_surface.md
       - Stochastic Processes:

@@ -14,7 +14,7 @@
             "args": [
                 "-x",
                 "-vvv",
-                "quantflow_tests/test_options_pricer.py",
+                "quantflow_tests/test_divfm.py",
             ]
         },
     ]

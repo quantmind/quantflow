@@ -16,7 +16,7 @@ from quantflow.sp.heston import Heston, HestonJ
 from quantflow.sp.jump_diffusion import D
 from quantflow.utils import plot
 
-from .pricer import OptionPricer
+from .pricer import OptionPricerBase
 from .surface import OptionPrice, VolSurface
 
 M = TypeVar("M", bound=StochasticProcess1D)
@@ -59,8 +59,12 @@ class OptionEntry:
 class VolModelCalibration(BaseModel, ABC, Generic[M], arbitrary_types_allowed=True):
     """Abstract class for calibration of a stochastic volatility model"""
 
-    pricer: OptionPricer[M]
-    """The [OptionPricer][quantflow.options.pricer.OptionPricer] for the model"""
+    pricer: OptionPricerBase = Field(
+        description=(
+            "The [OptionPricerBase][quantflow.options.pricer.OptionPricerBase]"
+            " for the model"
+        )
+    )
     vol_surface: VolSurface[Any] = Field(repr=False)
     """The [VolSurface][quantflow.options.surface.VolSurface]
     to calibrate the model with"""
@@ -111,7 +115,7 @@ class VolModelCalibration(BaseModel, ABC, Generic[M], arbitrary_types_allowed=Tr
     @property
     def model(self) -> M:
         """Get the model"""
-        return self.pricer.model
+        return self.pricer.model  # type: ignore[attr-defined]
 
     @property
     def ref_date(self) -> datetime:
