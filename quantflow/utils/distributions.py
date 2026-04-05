@@ -209,9 +209,10 @@ class DoubleExponential(Exponential):
     def characteristic(self, u: Vector) -> Vector:
         r"""Characteristic function of the double exponential distribution
 
-        .. math::
-            \phi(u) = \frac{e^{i u m}}{\left(1 + \frac{i u \kappa}{\lambda}\right)
-                \left(1 - \frac{i u}{\lambda \kappa}\right)}
+        \begin{equation}
+        \phi(u) = \frac{e^{i u m}}{\left(1 + \frac{i u \kappa}{\lambda}\right)
+            \left(1 - \frac{i u}{\lambda \kappa}\right)}
+        \end{equation}
         """
         den = (1.0 + 1j * u * self.kappa / self.decay) * (
             1.0 - 1j * u / (self.kappa * self.decay)
