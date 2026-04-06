@@ -201,7 +201,7 @@ class VolModelCalibration(BaseModel, ABC, Generic[M], arbitrary_types_allowed=Tr
     ) -> Any:
         """Plot the implied volatility for market and model prices"""
         cross = self.vol_surface.maturities[index]
-        options = tuple(self.vol_surface.option_prices(index=index))
+        options = tuple(self.vol_surface.option_prices(index=index, converged=True))
         cross = self.vol_surface.maturities[index]
         model = self.pricer.maturity(cross.ttm(self.ref_date))
         if max_moneyness_ttm is not None:

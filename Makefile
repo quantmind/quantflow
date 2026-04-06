@@ -24,6 +24,10 @@ install-dev:			## Install development dependencies
 marimo:				## Run marimo for editing notebooks
 	@./dev/marimo edit
 
+.PHONY: docs-png
+docs-png:			## Regenerate PNG assets in docs/assets/ (requires Chrome via kaleido)
+	@for f in docs/examples_png/*.py; do uv run python $$f; done
+
 .PHONY: docs
 docs:				## build documentation
 	@cp docs/index.md readme.md

@@ -132,11 +132,11 @@ down-weights near-expiry options.
 ### Plotting the Calibrated Smile
 
 Use [plot()][quantflow.options.calibration.VolModelCalibration.plot] to produce a
-Plotly figure overlaying market bid/ask implied vols against the model smile, then
-export it to PNG with `write_image`:
+Plotly figure overlaying market bid/ask implied vols against the model smile:
 
 ```python
---8<-- "docs/examples/vol_surface_heston_plot.py"
+fig = calibration.plot(index=1, max_moneyness_ttm=1.5, support=101)
+fig.write_image("heston_calibrated_smile.png", width=900, height=500)
 ```
 
 ![Heston calibrated smile](../assets/heston_calibrated_smile.png)
@@ -160,11 +160,11 @@ which captures asymmetric jump behaviour common in equity and crypto markets.
 ### Plotting the Calibrated Smile
 
 Use [plot()][quantflow.options.calibration.VolModelCalibration.plot] to produce a
-Plotly figure overlaying market bid/ask implied vols against the model smile, then
-export it to PNG with `write_image`:
+Plotly figure overlaying market bid/ask implied vols against the model smile:
 
 ```python
---8<-- "docs/examples/vol_surface_hestonj_plot.py"
+fig = calibration.plot(index=1, max_moneyness_ttm=1.5, support=101)
+fig.write_image("hestonj_calibrated_smile.png", width=900, height=500)
 ```
 
 ![HestonJ calibrated smile](../assets/hestonj_calibrated_smile.png)
