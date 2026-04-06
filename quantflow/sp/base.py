@@ -47,14 +47,17 @@ class StochasticProcess(BaseModel, ABC, extra="forbid"):
         t: Annotated[FloatArrayLike, Doc("Time horizon")],
         u: Annotated[Vector, Doc("Characteristic function input parameter")],
     ) -> Vector:
-        r"""Characteristic function at time `t` for a given input parameter
+        r"""Characteristic function at time `t` for a given input parameter `u`
 
         The characteristic function represents the Fourier transform of the
         probability density function
 
         \begin{equation}
-            \phi = {\mathbb E} \left[e^{i u x_t}\right]
+            \phi = {\mathbb E} \left[e^{i u x_t}\right] = e^{-\psi(t, u)}
         \end{equation}
+
+        where $\psi$ is the characteristic exponent, which can be more easily
+        computed for many processes.
         """
         return np.exp(-self.characteristic_exponent(t, u))
 
@@ -187,8 +190,9 @@ class IntensityProcess(StochasticProcess1D):
     ) -> Vector:
         r"""The log-Laplace transform of the cumulative process:
 
-        .. math::
+        \begin{equation}
             e^{\phi_{t, u}} = {\mathbb E} \left[e^{i u \int_0^t x_s ds}\right]
+        \end{equation}
         """
 
     def domain_range(self) -> Bounds:

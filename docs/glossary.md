@@ -42,20 +42,26 @@ Moneyness, or log strike/forward ratio, is used in the context of option pricing
 
 where $K$ is the strike and $F$ is the Forward price. A positive value implies strikes above the forward, which means put options are in the money (ITM) and call options are out of the money (OTM).
 
+## Moneyness Time Scaled
+
+The time to maturity scaled moneyness, is used in the context of option pricing in order to compare options with different maturities. It is defined as
+
+\begin{equation}
+    \frac{1}{\sqrt{T}}\ln{\frac{K}{F}}
+\end{equation}
+
+where $K$ is the strike, $F$ is the Forward price, and $T$ is the time to maturity. It is used to compare options with different maturities by scaling the moneyness by the square root of time to maturity. This is because the price of the underlying asset is subject to random fluctuations, if these fluctuations follow a Brownian motion than the standard deviation of the price movement will increase with the square root of time.
+
 
 ## Moneyness Vol Adjusted
 
-The vol-adjusted moneyness is used in the context of option pricing in order to compare options with different maturities. It is defined as
+The vol-adjusted moneyness is used in the context of option pricing in order to compare options with different maturities and different levels of volatility. It is defined as
 
 \begin{equation}
     \frac{1}{\sigma\sqrt{T}}\ln\frac{K}{F}
 \end{equation}
 
-where $K$ is the strike and $F$ is the Forward price and $T$ is the time to maturity and $\sigma$ is the implied Black volatility.
-
-The key reason for dividing by the square root of time-to-maturity is related to how volatility and price movement behave over time.
-The price of the underlying asset is subject to random fluctuations, if these fluctuations follow a Brownian motion than the
-standard deviation of the price movement will increase with the square root of time.
+where $K$ is the strike, $F$ is the Forward price, $T$ is the time to maturity and $\sigma$ is the implied Black volatility.
 
 ## Probability Density Function (PDF)
 

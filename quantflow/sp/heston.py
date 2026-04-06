@@ -31,7 +31,11 @@ class Heston(StochasticProcess1D):
 
     variance_process: CIR = Field(
         default_factory=CIR,
-        description="The variance process is a Cox-Ingersoll-Ross process",
+        description=(
+            "The variance process is a [Cox-Ingersoll-Ross][quantflow.sp.cir.CIR] "
+            "process which is guaranteed to be positive if the Feller condition is "
+            "satisfied"
+        ),
     )
     rho: float = Field(
         default=0,

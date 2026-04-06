@@ -41,3 +41,11 @@ Peter Molnar
 Master's thesis, University of Economics in Prague, 2020
 
 ---
+
+### Gauthier
+
+Gauthier Godin & Legros
+
+[Deep Implied Volatility Factor Models for Stock Options](https://drive.google.com/file/d/1Rjypn1IqnhpiZz08s0hxl5ISQDC8KeWk/view?usp=sharing)
+
+2025
