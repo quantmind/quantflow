@@ -6,7 +6,7 @@ from quantflow.options.inputs import OptionInput
 from quantflow.options.surface import VolSurface, VolSurfaceInputs, surface_from_inputs
 
 # Load a saved volatility surface snapshot from JSON
-with open("quantflow_tests/volsurface.json") as fp:
+with open("docs/examples/volsurface.json") as fp:
     surface_inputs = VolSurfaceInputs(**json.load(fp))
 
 # Build the VolSurface from the inputs and calculate implied volatilities

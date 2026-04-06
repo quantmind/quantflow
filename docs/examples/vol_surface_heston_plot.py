@@ -7,7 +7,7 @@ from quantflow.options.surface import VolSurface, VolSurfaceInputs, surface_from
 from quantflow.sp.heston import Heston
 
 # Load a saved volatility surface snapshot and build the surface
-with open("quantflow_tests/volsurface.json") as fp:
+with open("docs/examples/volsurface.json") as fp:
     surface: VolSurface = surface_from_inputs(VolSurfaceInputs(**json.load(fp)))
 
 surface.bs()
