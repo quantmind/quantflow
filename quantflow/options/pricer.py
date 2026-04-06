@@ -297,6 +297,8 @@ class OptionPricerBase(BaseModel, arbitrary_types_allowed=True):
         max_moneyness_ttm: float = 1.0,
         support: int = 51,
         ttm: FloatArray | None = None,
+        dragmode: str = "turntable",
+        scene_camera: dict | None = None,
         **kwargs: Any,
     ) -> Any:
         """Plot the implied vols surface
@@ -314,12 +316,13 @@ class OptionPricerBase(BaseModel, arbitrary_types_allowed=True):
             xaxis_title="moneyness_ttm",
             yaxis_title="TTM",
             colorscale="viridis",
+            dragmode=dragmode,
             scene=dict(
                 xaxis=dict(title="moneyness_ttm"),
                 yaxis=dict(title="TTM"),
                 zaxis=dict(title="implied_vol"),
             ),
-            scene_camera=dict(eye=dict(x=1.2, y=-1.8, z=0.3)),
+            scene_camera=scene_camera or dict(eye=dict(x=1.2, y=-1.8, z=0.3)),
             contours=dict(
                 x=dict(show=True, color="white"), y=dict(show=True, color="white")
             ),

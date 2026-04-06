@@ -223,19 +223,22 @@ def test_to_weights_forward_matches_network() -> None:
 # ---------------------------------------------------------------------------
 
 
-def _make_days(num_days: int = 20, iv: float = 0.3) -> list[DayData]:
-    """Synthetic training set with a constant IV surface."""
+def _make_days(
+    num_days: int = 20,
+    iv: float = 0.3,
+    iv_fn: object = None,
+) -> list[DayData]:
+    """Synthetic training set with a constant or structured IV surface."""
     rng = np.random.default_rng(7)
     days = []
     for _ in range(num_days):
-        n = rng.integers(20, 60)
-        days.append(
-            DayData(
-                moneyness_ttm=rng.uniform(-2.0, 2.0, n).astype(np.float32),
-                ttm=rng.uniform(0.1, 2.0, n).astype(np.float32),
-                implied_vols=np.full(n, iv, dtype=np.float64),
-            )
+        n = int(rng.integers(20, 60))
+        m = rng.uniform(-2.0, 2.0, n).astype(np.float32)
+        t = rng.uniform(0.1, 2.0, n).astype(np.float32)
+        implied_vols = (
+            iv_fn(m, t) if callable(iv_fn) else np.full(n, iv, dtype=np.float64)  # type: ignore[operator]
         )
+        days.append(DayData(moneyness_ttm=m, ttm=t, implied_vols=implied_vols))
     return days
 
 
@@ -269,12 +272,24 @@ def test_trainer_evaluate() -> None:
 
 @pytest.mark.skipif(not has_torch, reason="torch not installed")
 def test_trainer_fit_loss_decreases() -> None:
-    """Loss should decrease over training steps on a simple constant-IV surface."""
+    """Loss should decrease over training steps on a structured IV surface.
+
+    A constant IV surface is trivially representable by the constant factor f_1=1,
+    so OLS residual is zero from random initialisation and there is no gradient
+    signal.  Using a surface that varies with moneyness ensures a non-trivial
+    initial loss that training can meaningfully reduce.
+    """
+    import torch
+
+    torch.manual_seed(0)
     net = DIVFMNetwork(num_factors=NUM_FACTORS, hidden_size=HIDDEN_SIZE)
     trainer = DIVFMTrainer(net, lr=1e-2, batch_days=8)
-    days = _make_days(num_days=30)
-    losses = trainer.fit(days, num_steps=50, log_every=0)
-    assert len(losses) == 50
+    days = _make_days(
+        num_days=30,
+        iv_fn=lambda m, t: (0.2 + 0.1 * np.abs(m) + 0.05 * t).astype(np.float64),
+    )
+    losses = trainer.fit(days, num_steps=100, log_every=0)
+    assert len(losses) == 100
     # Average loss over the last 10 steps should be lower than the first 10
     assert np.mean(losses[-10:]) < np.mean(losses[:10])
 
