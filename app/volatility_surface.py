@@ -1,6 +1,6 @@
 import marimo
 
-__generated_with = "0.20.4"
+__generated_with = "0.22.0"
 app = marimo.App(width="medium")
 
 
@@ -43,19 +43,30 @@ def _(mo):
 
 
 @app.cell
-def _(mo):
-    inverse = mo.ui.checkbox(value=True, label="Inverse options")
-    inverse
-    return (inverse,)
+def _():
+    kwargs = dict()
+    return
 
 
 @app.cell
-async def _(inverse):
+def _(mo):
+    asset = mo.ui.dropdown(["btc", "eth", "sol"], value="btc", label="asset")
+    inverse = mo.ui.checkbox(value=True, label="Inverse options")
+    mo.hstack([asset, inverse])
+    return asset, inverse
+
+
+@app.cell
+async def _(asset, inverse):
     import pandas as pd
     from quantflow.data.deribit import Deribit
 
     async with Deribit() as cli:
-        loader = await cli.volatility_surface_loader("eth", exclude_open_interest=0, inverse=inverse.value)
+        loader = await cli.volatility_surface_loader(
+            asset.value,
+            inverse=inverse.value,
+            use_perp=not inverse.value
+        )
 
     # build the volatility surface
     surface = loader.surface()
@@ -63,37 +74,15 @@ async def _(inverse):
     surface.bs()
     # disable outliers
     surface.disable_outliers()
+    surface.plot3d()
+    return pd, surface
+
+
+@app.cell
+def _(pd, surface):
     # display inputs - only options with converged implied volatility
     surface_inputs = surface.inputs(converged=True)
     pd.DataFrame([i.model_dump() for i in surface_inputs.inputs])
-    return (surface,)
-
-
-@app.cell(hide_code=True)
-def _(mo):
-    mo.md(r"""
-    ##Volatility Surface
-    """)
-    return
-
-
-@app.cell
-def _(surface):
-    surface.plot3d()
-    return
-
-
-@app.cell(hide_code=True)
-def _(mo):
-    mo.md(r"""
-    ## Term Structure
-    """)
-    return
-
-
-@app.cell
-def _(surface):
-    surface.term_structure()
     return
 
 

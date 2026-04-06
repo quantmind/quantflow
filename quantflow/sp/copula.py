@@ -42,12 +42,13 @@ class Copula(BaseModel, ABC):
 
 
 class IndependentCopula(Copula):
-    """
+    r"""
     No-op copula that keep the distributions independent.
 
-    .. math::
-
+    \begin{equation}
         C(u,v) = uv
+    \end{equation}
+
     """
 
     def __call__(self, u: FloatArrayLike, v: FloatArrayLike) -> FloatArrayLike:
@@ -65,13 +66,13 @@ class IndependentCopula(Copula):
 
 class FrankCopula(Copula):
     r"""
-    Frank Copula with parameter :math:`\kappa`
+    Frank Copula with parameter $\kappa$
 
-    .. math::
-
+    \begin{equation}
         C(u, v) = -\frac{1}{\kappa}\log\left[1+\frac{\left(\exp\left(-\kappa
         u\right)-1\right)\left(\exp\left(-\kappa
         v\right)-1\right)}{\exp\left(-\kappa\right)-1}\right]
+    \end{equation}
     """
 
     kappa: Decimal = Field(default=ZERO, description="Frank copula parameter")

@@ -26,31 +26,56 @@ of a real-valued random variable $x$ is the function given by
 
 where ${\mathbb P}_x$ is the distrubution measure of $x$.
 
+## Feller Condition
+
+The Feller condition is a parameter constraint on a square-root diffusion process
+(such as [CIR][quantflow.sp.cir.CIR]) that ensures the process remains strictly
+positive. For a process of the form
+
+$$dx_t = \kappa(\theta - x_t)\,dt + \sigma\sqrt{x_t}\,dw_t$$
+
+the condition is
+
+$$2\kappa\theta \geq \sigma^2$$
+
+where $\kappa$ is the mean reversion speed, $\theta$ is the long-run mean, and $\sigma$
+is the diffusion coefficient. When the condition holds, the origin is an inaccessible
+boundary, so $x_t > 0$ for all $t > 0$ almost surely.
+
+In the [Heston model][quantflow.sp.heston.Heston] the variance process $v_t$ is a CIR
+process, so the same condition applies with $\sigma$ being the vol of vol. The
+[CIR.is_positive][quantflow.sp.cir.CIR.is_positive] property checks whether the
+condition holds. The
+[HestonCalibration][quantflow.options.calibration.HestonCalibration] class provides a
+`feller_enforce` flag (default `True`) that imposes this as a hard inequality constraint
+during optimisation.
+
 ## Hurst Exponent
 
 The Hurst exponent is a measure of the long-term memory of time series. The Hurst exponent is a measure of the relative tendency of a time series either to regress strongly to the mean or to cluster in a direction.
 
 Check this study on the [Hurst exponent with OHLC data](../applications/hurst).
 
-## Moneyness
+## Log-Strike
 
-Moneyness, or log strike/forward ratio, is used in the context of option pricing and it is defined as
+Log-strike, or log strike/forward ratio, is used in the context of option pricing and it is defined as
 
 \begin{equation}
-    \ln\frac{K}{F}
+    k = \ln\frac{K}{F}
 \end{equation}
 
 where $K$ is the strike and $F$ is the Forward price. A positive value implies strikes above the forward, which means put options are in the money (ITM) and call options are out of the money (OTM).
+The log-strike is used as input for all Black-Scholes type formulas.
 
 ## Moneyness Time Scaled
 
 The time to maturity scaled moneyness, is used in the context of option pricing in order to compare options with different maturities. It is defined as
 
 \begin{equation}
-    \frac{1}{\sqrt{T}}\ln{\frac{K}{F}}
+    m = \frac{1}{\sqrt{\tau}}\ln{\frac{K}{F}}
 \end{equation}
 
-where $K$ is the strike, $F$ is the Forward price, and $T$ is the time to maturity. It is used to compare options with different maturities by scaling the moneyness by the square root of time to maturity. This is because the price of the underlying asset is subject to random fluctuations, if these fluctuations follow a Brownian motion than the standard deviation of the price movement will increase with the square root of time.
+where $K$ is the strike, $F$ is the Forward price, and $\tau$ is the time to maturity. It is used to compare options with different maturities by scaling the moneyness by the square root of time to maturity. This is because the price of the underlying asset is subject to random fluctuations, if these fluctuations follow a Brownian motion than the standard deviation of the price movement will increase with the square root of time.
 
 
 ## Moneyness Vol Adjusted
@@ -58,10 +83,10 @@ where $K$ is the strike, $F$ is the Forward price, and $T$ is the time to maturi
 The vol-adjusted moneyness is used in the context of option pricing in order to compare options with different maturities and different levels of volatility. It is defined as
 
 \begin{equation}
-    \frac{1}{\sigma\sqrt{T}}\ln\frac{K}{F}
+    m_\sigma = \frac{1}{\sigma\sqrt{\tau}}\ln\frac{K}{F}
 \end{equation}
 
-where $K$ is the strike, $F$ is the Forward price, $T$ is the time to maturity and $\sigma$ is the implied Black volatility.
+where $K$ is the strike, $F$ is the Forward price, $\tau$ is the time to maturity and $\sigma$ is the implied Black volatility.
 
 ## Probability Density Function (PDF)
 
@@ -71,3 +96,15 @@ The [probability density function](https://en.wikipedia.org/wiki/Probability_den
 \begin{equation}
     F_x(x) = \int_{-\infty}^x f_x(s) ds
 \end{equation}
+
+## Time To Maturity (TTM)
+
+Time to maturity is the time remaining until an option or forward contract expires,
+expressed in years. It is calculated using a day count convention applied to the
+interval between the reference date and the expiry date. For a reference date $t_0$
+and expiry date $T$:
+
+$$\tau = \text{dcf}(t_0, T)$$
+
+where $\text{dcf}$ is the day count fraction function (Act/Act by default in quantflow).
+TTM is denoted $\tau$ throughout the pricing and calibration formulas.

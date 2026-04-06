@@ -83,6 +83,7 @@ nav:
           - Ornstein-Uhlenbeck: api/sp/ou.md
           - Poisson Process: api/sp/poisson.md
           - Weiner Process: api/sp/weiner.md
+          - Copulas: api/sp/copula.md
       - Technical Analysis:
           - api/ta/index.md
           - EWMA: api/ta/ewma.md
@@ -98,7 +99,9 @@ nav:
           - Numbers: api/utils/numbers.md
           - Types: api/utils/types.md
   - Tutorials:
+      - tutorials/index.md
       - Option Pricing: tutorials/option_pricing.md
+      - Volatility Surface: tutorials/volatility_surface.md
   - Theory:
       - theory/index.md
       - Characteristic Function: theory/characteristic.md

@@ -145,6 +145,14 @@ class VolModelCalibration(BaseModel, ABC, Generic[M], arbitrary_types_allowed=Tr
         """Get the constraints for the calibration"""
         return None
 
+    def get_minimize_method(self) -> str | None:
+        """Get the minimisation method to use.
+
+        Returns `minimize_method` by default. Override in subclasses to select
+        a method based on active constraints or bounds.
+        """
+        return self.minimize_method
+
     def implied_vol_range(self) -> Bounds:
         """Get the range of implied volatilities"""
         return Bounds(
@@ -157,7 +165,7 @@ class VolModelCalibration(BaseModel, ABC, Generic[M], arbitrary_types_allowed=Tr
         return minimize(
             self.cost_function,
             self.get_params(),
-            method=self.minimize_method,
+            method=self.get_minimize_method(),
             bounds=self.get_bounds(),
             constraints=self.get_constraints(),
         )
@@ -212,6 +220,15 @@ class HestonCalibration(VolModelCalibration[Heston]):
     for the [Heston][quantflow.sp.heston.Heston] stochastic volatility model"""
 
     feller_penalize: float = 0.0
+    feller_enforce: bool = Field(
+        default=True,
+        description=(
+            "Enforce the Feller condition $2\\kappa\\theta \\geq \\sigma^2$ as a hard "
+            "inequality constraint during optimisation. When True, "
+            "`get_minimize_method` returns SLSQP unless `minimize_method` "
+            "is already set explicitly."
+        ),
+    )
 
     def get_bounds(self) -> Sequence[Bounds] | None:
         vol_range = self.implied_vol_range()
@@ -239,6 +256,27 @@ class HestonCalibration(VolModelCalibration[Heston]):
         self.model.variance_process.kappa = params[2]
         self.model.variance_process.sigma = params[3]
         self.model.rho = params[4]
+
+    def get_constraints(self) -> Sequence[dict[str, Any]] | None:
+        """Return the Feller condition $2\\kappa\\theta \\geq \\sigma^2$ as a scipy
+        inequality constraint when `feller_enforce` is True.
+
+        Params layout: `[rate, theta, kappa, sigma, rho]` at indices 0-4.
+        The constraint function returns $2 \\cdot kappa \\cdot theta - sigma^2$,
+        which scipy requires to be $\\geq 0$.
+        """
+        if not self.feller_enforce:
+            return None
+        return [{"type": "ineq", "fun": lambda p: 2.0 * p[2] * p[1] - p[3] ** 2}]
+
+    def get_minimize_method(self) -> str | None:
+        """Return SLSQP when `feller_enforce` is True and no explicit method is
+        set, since SLSQP supports both bounds and inequality constraints.
+        Otherwise delegates to the base class.
+        """
+        if self.feller_enforce and self.minimize_method is None:
+            return "SLSQP"
+        return self.minimize_method
 
     def penalize(self) -> float:
         kt = 2 * self.model.variance_process.kappa * self.model.variance_process.theta

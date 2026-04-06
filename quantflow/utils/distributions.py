@@ -106,10 +106,10 @@ class Normal(Distribution1D):
     \end{equation}
     """
 
-    mu: float = Field(default=0, description="mean")
-    r"""The mean :math:`\mu` of the normal distribution"""
-    sigma: float = Field(default=1, gt=0, description="standard deviation")
-    r"""The standard deviation :math:`\sigma` of the normal distribution"""
+    mu: float = Field(default=0, description="mean of the normal distribution")
+    sigma: float = Field(
+        default=1, gt=0, description="standard deviation of the normal distribution"
+    )
 
     @classmethod
     def from_variance_and_asymmetry(cls, variance: float, asymmetry: float) -> Self:

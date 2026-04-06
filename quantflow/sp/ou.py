@@ -32,9 +32,7 @@ class Vasicek(IntensityProcess):
         default_factory=WeinerProcess,
         description="Background driving Weiner process",
     )
-    """Background driving Weiner process"""
     theta: float = Field(default=1.0, gt=0, description="Mean rate")
-    r"""Mean rate :math:`\theta`"""
 
     def characteristic_exponent(self, t: FloatArrayLike, u: Vector) -> Vector:
         mu = self.analytical_mean(t)

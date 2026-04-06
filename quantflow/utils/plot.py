@@ -147,12 +147,20 @@ def plot_vol_surface(
 def plot_vol_surface_3d(
     df: pd.DataFrame,
     *,
-    marker_size: int = 10,
     series: str = "implied_vol",
+    fig: Any | None = None,
+    dragmode: str = "turntable",
+    uirevision: str = "preserve_ui_state",
     **kwargs: Any,
 ) -> Any:
     check_plotly()
-    return px.scatter_3d(df, x="moneyness_ttm", y="ttm", z=series, color="side")
+    new_fig = px.scatter_3d(df, x="moneyness_ttm", y="ttm", z=series, color="side")
+    if fig is None:
+        fig = new_fig
+        fig.update_layout(scene_dragmode=dragmode, uirevision=uirevision, **kwargs)
+    else:
+        fig.data = new_fig.data
+    return fig
 
 
 def plot_vol_cross(

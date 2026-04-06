@@ -53,6 +53,7 @@ dev = [
 docs = [
     "griffe-pydantic>=1.1.0",
     "griffe-typingdoc>=0.2.7",
+    "kaleido>=1.2.0",
     "mkdocs-macros-plugin>=1.3.7",
     "mkdocs-material>=9.7.0",
     "mkdocs-redirects>=1.2.1",

@@ -139,6 +139,9 @@ class Deribit(AioHttpClient):
         exclude_volume: Annotated[
             Number | None, Doc("Exclude options with volume below this threshold")
         ] = None,
+        use_perp: Annotated[
+            bool, Doc("Whether to use perpetual as futures proxies")
+        ] = False,
     ) -> VolSurfaceLoader:
         """Create a [VolSurfaceLoader][quantflow.options.surface.VolSurfaceLoader]
         for a given crypto-currency"""
@@ -165,8 +168,24 @@ class Deribit(AioHttpClient):
             instruments = await self.get_instruments(currency="usdc", base=currency)
         instrument_map = {i["instrument_name"]: i for i in instruments}
         min_tick_size = Decimal("inf")
+        perp_bid_ask: tuple[Any, Any] | None = None
         for entry in futures:
-            if (bid_ := entry["bid_price"]) and (ask_ := entry["ask_price"]):
+            name = entry["instrument_name"]
+            meta = instrument_map[name]
+            if (
+                meta["settlement_period"] == "perpetual"
+                and (bid_ := entry["bid_price"])
+                and (ask_ := entry["ask_price"])
+            ):
+                perp_bid_ask = (bid_, ask_)
+                break
+
+        for entry in futures:
+            bid_ = entry["bid_price"]
+            ask_ = entry["ask_price"]
+            if not (bid_ and ask_) and use_perp and perp_bid_ask is not None:
+                bid_, ask_ = perp_bid_ask
+            if bid_ and ask_:
                 name = entry["instrument_name"]
                 meta = instrument_map[name]
                 tick_size = to_decimal(meta["tick_size"])

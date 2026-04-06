@@ -202,7 +202,7 @@ class HestonJ(Heston, Generic[D]):
             float | None,
             Doc(
                 r"The long-term mean of the variance process, if `None`, it"
-                r" defaults to the diffusion variance given by :math:`{\tt var}_d`"
+                r" defaults to the diffusion variance given by ${\tt var}_d$"
             ),
         ] = None,
         jump_intensity: Annotated[

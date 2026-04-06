@@ -12,6 +12,7 @@ applyTo: '/**'
 
 * Always run `make lint` after code changes — runs taplo, isort, black, ruff, and mypy
 * Never edit `readme.md` directly — it is generated from `docs/index.md` via `make docs`
+* To install all dependencies (including all optional extras) run `make install-dev` — runs `uv sync --all-extras`
 * To run all tests use `make test` — runs all tests in the `tests/` directory using pytest
 * To run a specific test file, use `uv run pytest tests/path/to/test_file.py`
 
@@ -28,6 +29,7 @@ applyTo: '/**'
 * Documentation is built using [mkdocs](https://www.mkdocs.org/) and stored in the `docs/` directory. The documentation source files are written in markdown format.
 * Do not use em dashes (—) in documentation files or docstrings. Use colons, parentheses, or restructure the sentence instead.
 * Math in documentation and docstrings uses `$...$` for inline and `$$...$$` or `\begin{equation}...\end{equation}` for block equations. Do not use `.. math::` or `:math:` (RST syntax).
+* Glossary entries in `docs/glossary.md` must be kept in alphabetical order.
 * To rebuild doc examples run `uv run ./dev/build-examples` — runs all scripts in `docs/examples/` and writes their output to `docs/examples_output/`
 
 ## Package structure

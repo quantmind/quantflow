@@ -31,9 +31,11 @@
 
 ::: quantflow.options.surface.OptionSelection
 
-::: quantflow.options.inputs.OptionType
+::: quantflow.options.surface.surface_from_inputs
 
 ## Vol Surface Inputs
+
+::: quantflow.options.inputs.OptionType
 
 ::: quantflow.options.inputs.VolSurfaceInputs
 

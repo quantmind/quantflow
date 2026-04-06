@@ -1059,11 +1059,14 @@ class VolSurface(BaseModel, Generic[S]):
         select: Annotated[
             OptionSelection, Doc("Option selection method")
         ] = OptionSelection.best,
+        dragmode: Annotated[
+            str, Doc("Drag interaction mode for the 3D scene")
+        ] = "turntable",
         **kwargs: Any,
     ) -> Any:
         """Plot the volatility surface"""
         df = self.options_df(select=select, converged=True)
-        return plot.plot_vol_surface_3d(df, **kwargs)
+        return plot.plot_vol_surface_3d(df, dragmode=dragmode, **kwargs)
 
 
 class VolCrossSectionLoader(BaseModel, Generic[S]):
@@ -1336,7 +1339,12 @@ class VolSurfaceLoader(GenericVolSurfaceLoader[DefaultVolSecurity]):
             raise ValueError(f"Unknown input type {type(input)}")
 
 
-def surface_from_inputs(inputs: VolSurfaceInputs) -> VolSurface[DefaultVolSecurity]:
+def surface_from_inputs(
+    inputs: Annotated[VolSurfaceInputs, Doc("Volatility surface input data")],
+) -> VolSurface[DefaultVolSecurity]:
+    """Helper function to build a volatility surface from a
+    [VolSurfaceInputs][quantflow.options.inputs.VolSurfaceInputs] instance
+    """
     loader = VolSurfaceLoader()
     for input in inputs.inputs:
         loader.add(input)
