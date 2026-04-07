@@ -1,0 +1,30 @@
+[
+  {
+    "instrument_name": "BTC-25APR26-70000-C",
+    "bid_price": 0.05,
+    "ask_price": 0.06,
+    "open_interest": 100,
+    "volume_usd": 500000
+  },
+  {
+    "instrument_name": "BTC-25APR26-70000-P",
+    "bid_price": 0.04,
+    "ask_price": 0.05,
+    "open_interest": 80,
+    "volume_usd": 400000
+  },
+  {
+    "instrument_name": "BTC-25APR26-75000-C",
+    "bid_price": 0.02,
+    "ask_price": 0.03,
+    "open_interest": 60,
+    "volume_usd": 200000
+  },
+  {
+    "instrument_name": "BTC-10APR26-67500-P",
+    "bid_price": 0.01,
+    "ask_price": 0.02,
+    "open_interest": 10,
+    "volume_usd": 50000
+  }
+]

@@ -1,0 +1,48 @@
+[
+  {
+    "instrument_name": "BTC-PERPETUAL",
+    "kind": "future",
+    "settlement_period": "perpetual",
+    "tick_size": 0.5,
+    "expiration_timestamp": 32503680000000,
+    "is_active": true
+  },
+  {
+    "instrument_name": "BTC-25APR26",
+    "kind": "future",
+    "settlement_period": "month",
+    "tick_size": 0.5,
+    "expiration_timestamp": 1745568000000,
+    "is_active": true
+  },
+  {
+    "instrument_name": "BTC-25APR26-70000-C",
+    "kind": "option",
+    "option_type": "call",
+    "settlement_period": "month",
+    "tick_size": 0.0001,
+    "strike": 70000,
+    "expiration_timestamp": 1745568000000,
+    "is_active": true
+  },
+  {
+    "instrument_name": "BTC-25APR26-70000-P",
+    "kind": "option",
+    "option_type": "put",
+    "settlement_period": "month",
+    "tick_size": 0.0001,
+    "strike": 70000,
+    "expiration_timestamp": 1745568000000,
+    "is_active": true
+  },
+  {
+    "instrument_name": "BTC-25APR26-75000-C",
+    "kind": "option",
+    "option_type": "call",
+    "settlement_period": "month",
+    "tick_size": 0.0001,
+    "strike": 75000,
+    "expiration_timestamp": 1745568000000,
+    "is_active": true
+  }
+]

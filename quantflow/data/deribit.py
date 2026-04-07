@@ -171,7 +171,8 @@ class Deribit(AioHttpClient):
         perp_bid_ask: tuple[Any, Any] | None = None
         for entry in futures:
             name = entry["instrument_name"]
-            meta = instrument_map[name]
+            if (meta := instrument_map.get(name)) is None:
+                continue
             if (
                 meta["settlement_period"] == "perpetual"
                 and (bid_ := entry["bid_price"])
@@ -187,7 +188,8 @@ class Deribit(AioHttpClient):
                 bid_, ask_ = perp_bid_ask
             if bid_ and ask_:
                 name = entry["instrument_name"]
-                meta = instrument_map[name]
+                if (meta := instrument_map.get(name)) is None:
+                    continue
                 tick_size = to_decimal(meta["tick_size"])
                 min_tick_size = min(min_tick_size, tick_size)
                 bid = round_to_step(bid_, tick_size)
@@ -220,7 +222,8 @@ class Deribit(AioHttpClient):
         for entry in options:
             if (bid_ := entry["bid_price"]) and (ask_ := entry["ask_price"]):
                 name = entry["instrument_name"]
-                meta = instrument_map[name]
+                if (meta := instrument_map.get(name)) is None:
+                    continue
                 tick_size = to_decimal(meta["tick_size"])
                 min_tick_size = min(min_tick_size, tick_size)
                 loader.add_option(

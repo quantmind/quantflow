@@ -1,0 +1,23 @@
+[
+  {
+    "instrument_name": "BTC-PERPETUAL",
+    "bid_price": 68678.0,
+    "ask_price": 68680.0,
+    "open_interest": 937968230,
+    "volume_usd": 1500000000
+  },
+  {
+    "instrument_name": "BTC-25APR26",
+    "bid_price": 68900.0,
+    "ask_price": 68910.0,
+    "open_interest": 85568390,
+    "volume_usd": 250000000
+  },
+  {
+    "instrument_name": "BTC-GHOST-26",
+    "bid_price": 69000.0,
+    "ask_price": 69010.0,
+    "open_interest": 1000,
+    "volume_usd": 100000
+  }
+]
