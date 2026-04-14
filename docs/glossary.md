@@ -97,6 +97,24 @@ The [probability density function](https://en.wikipedia.org/wiki/Probability_den
     F_x(x) = \int_{-\infty}^x f_x(s) ds
 \end{equation}
 
+## Put-Call Parity
+
+Put-call parity is a no-arbitrage relationship between the prices of European call
+and put options with the same strike $K$ and maturity. Denoting forward-space prices
+$c = C/F$ and $p = P/F$ (see [Black Pricing](api/options/black.md)), the relationship
+reads:
+
+\begin{equation}
+    c - p = 1 - \frac{K}{F} = 1 - e^k
+\end{equation}
+
+where $k$ is the [log-strike](#log-strike).
+In quoting currency terms, multiplying through by $F$:
+
+\begin{equation}
+    C - P = F - K
+\end{equation}
+
 ## Time To Maturity (TTM)
 
 Time to maturity is the time remaining until an option or forward contract expires,

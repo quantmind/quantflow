@@ -1,51 +1,100 @@
 from __future__ import annotations
 
 import math
-from datetime import timedelta
+from datetime import datetime
 from decimal import Decimal
-from typing import NamedTuple
+from typing import Self
 
-from .numbers import to_decimal
+from ccy import DayCounter, Period
+from pydantic import BaseModel, Field
+from typing_extensions import Annotated, Doc
+
+from .numbers import ZERO, Number, to_decimal
+
+ROUND_RATE = 7
 
 
-class Rate(NamedTuple):
-    rate: Decimal = Decimal("0")
-    frequency: int = 0
+class Rate(BaseModel, arbitrary_types_allowed=True):
+    """Class representing an interest rate with optional compounding frequency"""
+
+    rate: Decimal = Field(
+        default=ZERO, description="Interest rate as a decimal (e.g. 0.05 for 5%)"
+    )
+    day_counter: DayCounter = Field(
+        default=DayCounter.ACTACT,
+        description="Day count convention to use",
+    )
+    frequency: Period | None = Field(
+        default=None,
+        description=(
+            "Compounding frequency, when None it is considered as "
+            "continuous compounding"
+        ),
+    )
 
     @classmethod
-    def from_number(cls, rate: float, frequency: int = 0) -> Rate:
-        return cls(rate=round(to_decimal(rate), 7), frequency=frequency)
+    def from_number(
+        cls,
+        rate: Annotated[Number, Doc("interest rate as a decimal (e.g. 0.05 for 5%)")],
+        *,
+        frequency: Annotated[
+            Period | None,
+            Doc(
+                "Compounding frequency, when None it is considered as "
+                "continuous compounding"
+            ),
+        ] = None,
+        day_counter: Annotated[
+            DayCounter, Doc("Day count convention to use")
+        ] = DayCounter.ACTACT,
+    ) -> Self:
+        """Create a Rate instance from a Number"""
+        return cls(
+            rate=round(to_decimal(rate), ROUND_RATE),
+            frequency=frequency,
+            day_counter=day_counter,
+        )
 
     @property
     def percent(self) -> Decimal:
-        return round(100 * self.rate, 5)
+        """Interest rate as a percentage"""
+        return round(100 * self.rate, ROUND_RATE - 2)
 
     @property
     def bps(self) -> Decimal:
-        return round(10000 * self.rate, 3)
+        """Interest rate as basis points, 1 bps = 0.01% = 0.0001 in decimal"""
+        return round(10000 * self.rate, ROUND_RATE - 4)
 
-
-def rate_from_spot_and_forward(
-    spot: Decimal, forward: Decimal, maturity: timedelta, frequency: int = 0
-) -> Rate:
-    """Calculate rate from spot and forward
-
-    Args:
-        basis: basis point
-        maturity: maturity in years
-        frequency: number of payments per year - 0 for continuous compounding
-
-    Returns:
-        Rate
-    """
-    # use Act/365 for now
-    ttm = maturity.days / 365
-    if ttm <= 0:
-        return Rate(frequency=frequency)
-    if frequency == 0:
-        return Rate.from_number(
-            rate=math.log(forward / spot) / ttm, frequency=frequency
-        )
-    else:
-        # TODO: implement this
-        raise NotImplementedError
+    @classmethod
+    def from_spot_and_forward(
+        cls,
+        spot: Annotated[Decimal, Doc("Spot price of the underlying asset")],
+        forward: Annotated[Decimal, Doc("Forward price of the underlying asset")],
+        ref_date: Annotated[datetime, Doc("Reference date for the calculation")],
+        maturity_date: Annotated[datetime, Doc("Maturity date for the calculation")],
+        *,
+        frequency: Annotated[
+            Period | None,
+            Doc(
+                "Compounding frequency, when None it is considered as "
+                "continuous compounding"
+            ),
+        ] = None,
+        day_counter: Annotated[
+            DayCounter, Doc("Day count convention to use")
+        ] = DayCounter.ACTACT,
+    ) -> Self:
+        """Calculate rate from spot and forward"""
+        # use Act/365 for now
+        ttm = day_counter.dcf(ref_date, maturity_date)
+        if ttm <= 0:
+            return cls(frequency=frequency, day_counter=day_counter)
+        if frequency is None:
+            return cls.from_number(
+                rate=math.log(float(forward / spot)) / ttm,
+                day_counter=day_counter,
+                frequency=frequency,
+            )
+        else:
+            # TODO: implement this
+            raise NotImplementedError("Discrete compounding is not implemented yet")
