@@ -91,6 +91,10 @@ nav:
           - OHLC: api/ta/ohlc.md
           - Paths: api/ta/paths.md
           - Supersmoother: api/ta/supersmoother.md
+      - Rates:
+          - api/rates/index.md
+          - Interest Rate: api/rates/interest_rate.md
+          - Yield Curve: api/rates/yield_curve.md
       - Utilities:
           - api/utils/index.md
           - Bins: api/utils/bins.md

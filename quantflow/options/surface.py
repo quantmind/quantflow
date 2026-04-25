@@ -13,9 +13,9 @@ from ccy.core.daycounter import DayCounter
 from pydantic import BaseModel, Field
 from typing_extensions import Annotated, Doc
 
+from quantflow.rates.interest_rate import Rate
 from quantflow.utils import plot
 from quantflow.utils.dates import utcnow
-from quantflow.utils.interest_rates import Rate
 from quantflow.utils.numbers import (
     ZERO,
     DecimalNumber,
@@ -79,10 +79,12 @@ class Price(BaseModel, Generic[S]):
 
     @property
     def mid(self) -> Decimal:
+        """Calculate the mid price by averaging the bid and ask prices"""
         return (self.bid + self.ask) / 2
 
     @property
     def spread(self) -> Decimal:
+        """Calculate the bid-ask spread"""
         return self.ask - self.bid
 
     @property
@@ -152,22 +154,87 @@ class ImpliedFwdPrice(FwdPrice[S]):
 
     @classmethod
     def aggregate(
-        cls, forwards: list[Self], ttm: float, default: FwdPrice[S] | None = None
+        cls,
+        forwards: list[Self],
+        ttm: float,
+        default: FwdPrice[S] | None = None,
+        previous_forward: Decimal | None = None,
     ) -> FwdPrice[S] | None:
-        """Aggregate multiple implied forward prices into a single forward price"""
+        r"""Aggregate implied forward prices extracted from put-call parity into a
+        single best-estimate forward price.
+
+        Each implied forward is an independent noisy estimate of the true forward,
+        obtained at a different strike. Strikes near the money tend to produce the
+        most reliable estimates (tightest bid-ask spreads, smallest put-call parity
+        error), so the aggregation weights each estimate by three independent factors
+        that all reward quality:
+
+        \begin{equation}
+            w_i = w^{\text{moneyness}}_i
+                  \cdot w^{\text{spread}}_i
+                  \cdot w^{\text{proximity}}_i
+        \end{equation}
+
+        **Moneyness weight** rewards strikes close to the current mid price.
+        It uses the same Gaussian shape as the standard normal density, where
+        $m_i = \log(K_i / F_i) / \sqrt{\tau}$ is the normalised log-moneyness:
+
+        \begin{equation}
+            w^{\text{moneyness}}_i = \exp\!\left(-\tfrac{m_i^2}{2}\right)
+        \end{equation}
+
+        **Spread weight** penalises wide bid-ask markets, which indicate either
+        low liquidity or high uncertainty in the put-call parity estimate. It
+        decays exponentially with the bid-ask spread relative to the adaptive
+        cutoff $c$:
+
+        \begin{equation}
+            w^{\text{spread}}_i
+                = \exp\!\left(-\frac{\text{bp\_spread}_i}{c}\right)
+        \end{equation}
+
+        **Proximity weight** anchors the result to the previous maturity's forward
+        $F_{\text{prev}}$ when provided. It down-weights estimates whose mid is
+        far from the known anchor, acting as a soft prior that limits how much the
+        result can deviate from a recent reliable observation:
+
+        \begin{equation}
+            w^{\text{proximity}}_i
+                = \exp\!\left(
+                    -\frac{1}{2}
+                    \left(\frac{F_i - F_{\text{prev}}}{F_{\text{prev}}}\right)^{\!2}
+                  \right)
+        \end{equation}
+
+        **Adaptive spread filter**: the cutoff $c$ starts at 10 bp and doubles
+        until at least half the valid forwards survive. This ensures that in
+        illiquid markets with universally wide spreads, the algorithm still
+        produces a result rather than discarding everything.
+
+        **Default blending**: the actual market forward (e.g. from futures) is
+        optionally blended into the weighted average using only the spread weight.
+        This forward may be unreliable (wide spread, stale price), so it receives
+        no moneyness or proximity weight.
+
+        **Default fallback**: if the computed mid lies within one default
+        spread-width of the default mid, the default is returned unchanged,
+        avoiding unnecessary deviation from the observable market price when
+        the implied estimate is consistent with it.
+        """
         forwards = [f for f in forwards if f.is_valid()]
         if not forwards:
             return default
         weights = 0.0
         values = 0.0
         spreads = 0.0
+        target_len = max(1, len(forwards) // 2)
         cleaned: list[Self] = []
-        spread_bp_cutoff = 50
+        spread_bp_cutoff = 10
         while True:
             cleaned = [
                 forward for forward in forwards if forward.bp_spread < spread_bp_cutoff
             ]
-            if not cleaned:
+            if len(cleaned) < target_len:
                 spread_bp_cutoff *= 2
             else:
                 forwards = cleaned
@@ -175,10 +242,13 @@ class ImpliedFwdPrice(FwdPrice[S]):
         for forward in forwards:
             m = forward.moneyness(ttm)
             moneyness_weight = math.exp(-(m**2) / 2)
-            spread_weight = math.exp(
-                -10000 * float(forward.spread) / float(forward.mid)
-            )
-            w = moneyness_weight * spread_weight
+            spread_weight = math.exp(-forward.bp_spread / spread_bp_cutoff)
+            if previous_forward is not None:
+                d = float((forward.mid - previous_forward) / previous_forward)
+                proximity_weight = math.exp(-(d**2) / 2)
+            else:
+                proximity_weight = 1.0
+            w = moneyness_weight * spread_weight * proximity_weight
             weights += w
             values += w * float(forward.mid)
             spreads += w * float(forward.spread)
@@ -1365,6 +1435,14 @@ class VolCrossSectionLoader(BaseModel, Generic[S]):
         ref_date: Annotated[
             datetime | None, Doc("Reference date for the volatility surface")
         ] = None,
+        previous_forward: Annotated[
+            Decimal | None,
+            Doc(
+                "Previous forward price for the volatility surface "
+                "Usaed by the implied forward calculation to replace missing "
+                "or unreliable forwards"
+            ),
+        ] = None,
     ) -> VolCrossSection[S] | None:
         strikes = []
         implied_forwards = []
@@ -1378,7 +1456,12 @@ class VolCrossSectionLoader(BaseModel, Generic[S]):
         forward = self.forward
         if implied_forwards:
             ttm = self.day_counter.dcf(ref_date or utcnow(), self.maturity)
-            forward = ImpliedFwdPrice.aggregate(implied_forwards, ttm, self.forward)
+            forward = ImpliedFwdPrice.aggregate(
+                implied_forwards,
+                ttm,
+                default=self.forward,
+                previous_forward=previous_forward,
+            )
         if forward is None or not forward.is_valid():
             return None
         return (
@@ -1530,8 +1613,13 @@ class GenericVolSurfaceLoader(BaseModel, Generic[S], arbitrary_types_allowed=Tru
             raise ValueError("No spot price provided")
         maturities = []
         ref_date = ref_date or utcnow()
+        previous_forward = self.spot.mid
         for maturity in sorted(self.maturities):
-            if section := self.maturities[maturity].cross_section(ref_date=ref_date):
+            if section := self.maturities[maturity].cross_section(
+                ref_date=ref_date,
+                previous_forward=previous_forward,
+            ):
+                previous_forward = section.forward.mid
                 maturities.append(section)
         return VolSurface(
             asset=self.asset,
