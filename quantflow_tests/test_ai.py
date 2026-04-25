@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import json
 from pathlib import Path
 from typing import Any
 from unittest.mock import AsyncMock, MagicMock, patch
@@ -14,7 +13,6 @@ from mcp.server.fastmcp import FastMCP
 from quantflow.ai.tools import charts, crypto, fred, stocks, vault
 from quantflow.ai.tools.base import McpTool
 from quantflow.data.vault import Vault
-from quantflow.options.surface import VolSurfaceInputs, surface_from_inputs
 
 # ---------------------------------------------------------------------------
 # Helpers
@@ -65,12 +63,6 @@ def mock_fred() -> AsyncMock:
     mock.__aenter__ = AsyncMock(return_value=mock)
     mock.__aexit__ = AsyncMock(return_value=False)
     return mock
-
-
-@pytest.fixture
-def vol_surface():
-    with open("quantflow_tests/volsurface.json") as fp:
-        return surface_from_inputs(VolSurfaceInputs(**json.load(fp)))
 
 
 @pytest.fixture

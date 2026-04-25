@@ -1,3 +1,5 @@
+import json
+from pathlib import Path
 from typing import cast
 
 import numpy as np
@@ -13,6 +15,16 @@ try:
     has_plotly = True
 except ImportError:
     has_plotly = False
+
+FIXTURES = Path(__file__).parent / "fixtures"
+
+
+def load_fixture(name: str) -> list[dict]:
+    return json.loads((FIXTURES / name).read_text())
+
+
+def load_fixture_dict(name: str) -> dict:
+    return json.loads((FIXTURES / name).read_text())
 
 
 def characteristic_tests(m: Marginal1D):

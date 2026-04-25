@@ -4,7 +4,7 @@
     "kind": "future",
     "settlement_period": "perpetual",
     "tick_size": 0.5,
-    "expiration_timestamp": 32503680000000,
+    "expiration_timestamp": 32503708800000,
     "is_active": true
   },
   {
@@ -12,7 +12,7 @@
     "kind": "future",
     "settlement_period": "month",
     "tick_size": 0.5,
-    "expiration_timestamp": 1745568000000,
+    "expiration_timestamp": 1777104000000,
     "is_active": true
   },
   {
@@ -22,7 +22,7 @@
     "settlement_period": "month",
     "tick_size": 0.0001,
     "strike": 70000,
-    "expiration_timestamp": 1745568000000,
+    "expiration_timestamp": 1777104000000,
     "is_active": true
   },
   {
@@ -32,7 +32,7 @@
     "settlement_period": "month",
     "tick_size": 0.0001,
     "strike": 70000,
-    "expiration_timestamp": 1745568000000,
+    "expiration_timestamp": 1777104000000,
     "is_active": true
   },
   {
@@ -42,7 +42,7 @@
     "settlement_period": "month",
     "tick_size": 0.0001,
     "strike": 75000,
-    "expiration_timestamp": 1745568000000,
+    "expiration_timestamp": 1777104000000,
     "is_active": true
   }
 ]

@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import enum
+import math
 import warnings
 from datetime import datetime, timedelta
 from decimal import Decimal
@@ -12,9 +13,9 @@ from ccy.core.daycounter import DayCounter
 from pydantic import BaseModel, Field
 from typing_extensions import Annotated, Doc
 
+from quantflow.rates.interest_rate import Rate
 from quantflow.utils import plot
 from quantflow.utils.dates import utcnow
-from quantflow.utils.interest_rates import rate_from_spot_and_forward
 from quantflow.utils.numbers import (
     ZERO,
     DecimalNumber,
@@ -78,7 +79,23 @@ class Price(BaseModel, Generic[S]):
 
     @property
     def mid(self) -> Decimal:
+        """Calculate the mid price by averaging the bid and ask prices"""
         return (self.bid + self.ask) / 2
+
+    @property
+    def spread(self) -> Decimal:
+        """Calculate the bid-ask spread"""
+        return self.ask - self.bid
+
+    @property
+    def bp_spread(self) -> Decimal:
+        """Bid-ask spread in basis points, calculated as spread divided by mid
+        price and multiplied by 10000"""
+        mid = self.mid
+        if mid > ZERO:
+            return 10000 * self.spread / mid
+        else:
+            return Decimal("inf")
 
 
 class SpotPrice(Price[S]):
@@ -115,6 +132,148 @@ class FwdPrice(Price[S]):
             maturity=self.maturity,
             open_interest=self.open_interest,
             volume=self.volume,
+        )
+
+    def is_valid(self) -> bool:
+        """Check if the forward price is valid, which means that the bid and ask
+        are positive and the bid is less than or equal to the ask"""
+        return self.bid > ZERO and self.ask > ZERO and self.bid <= self.ask
+
+
+class ImpliedFwdPrice(FwdPrice[S]):
+    """Represents the implied forward price of an underlying asset at a specific
+    maturity, extracted from option prices via put-call parity"""
+
+    strike: DecimalNumber = Field(
+        description="Strike price of the options used to extract the forward price"
+    )
+
+    def moneyness(self, ttm: float) -> float:
+        """Moneyness of the implied forward"""
+        return math.log(float(self.strike / self.mid)) / math.sqrt(ttm)
+
+    @classmethod
+    def aggregate(
+        cls,
+        forwards: list[Self],
+        ttm: float,
+        default: FwdPrice[S] | None = None,
+        previous_forward: Decimal | None = None,
+    ) -> FwdPrice[S] | None:
+        r"""Aggregate implied forward prices extracted from put-call parity into a
+        single best-estimate forward price.
+
+        Each implied forward is an independent noisy estimate of the true forward,
+        obtained at a different strike. Strikes near the money tend to produce the
+        most reliable estimates (tightest bid-ask spreads, smallest put-call parity
+        error), so the aggregation weights each estimate by three independent factors
+        that all reward quality:
+
+        \begin{equation}
+            w_i = w^{\text{moneyness}}_i
+                  \cdot w^{\text{spread}}_i
+                  \cdot w^{\text{proximity}}_i
+        \end{equation}
+
+        **Moneyness weight** rewards strikes close to the current mid price.
+        It uses the same Gaussian shape as the standard normal density, where
+        $m_i = \log(K_i / F_i) / \sqrt{\tau}$ is the normalised log-moneyness:
+
+        \begin{equation}
+            w^{\text{moneyness}}_i = \exp\!\left(-\tfrac{m_i^2}{2}\right)
+        \end{equation}
+
+        **Spread weight** penalises wide bid-ask markets, which indicate either
+        low liquidity or high uncertainty in the put-call parity estimate. It
+        decays exponentially with the bid-ask spread relative to the adaptive
+        cutoff $c$:
+
+        \begin{equation}
+            w^{\text{spread}}_i
+                = \exp\!\left(-\frac{\text{bp\_spread}_i}{c}\right)
+        \end{equation}
+
+        **Proximity weight** anchors the result to the previous maturity's forward
+        $F_{\text{prev}}$ when provided. It down-weights estimates whose mid is
+        far from the known anchor, acting as a soft prior that limits how much the
+        result can deviate from a recent reliable observation:
+
+        \begin{equation}
+            w^{\text{proximity}}_i
+                = \exp\!\left(
+                    -\frac{1}{2}
+                    \left(\frac{F_i - F_{\text{prev}}}{F_{\text{prev}}}\right)^{\!2}
+                  \right)
+        \end{equation}
+
+        **Adaptive spread filter**: the cutoff $c$ starts at 10 bp and doubles
+        until at least half the valid forwards survive. This ensures that in
+        illiquid markets with universally wide spreads, the algorithm still
+        produces a result rather than discarding everything.
+
+        **Default blending**: the actual market forward (e.g. from futures) is
+        optionally blended into the weighted average using only the spread weight.
+        This forward may be unreliable (wide spread, stale price), so it receives
+        no moneyness or proximity weight.
+
+        **Default fallback**: if the computed mid lies within one default
+        spread-width of the default mid, the default is returned unchanged,
+        avoiding unnecessary deviation from the observable market price when
+        the implied estimate is consistent with it.
+        """
+        forwards = [f for f in forwards if f.is_valid()]
+        if not forwards:
+            return default
+        weights = 0.0
+        values = 0.0
+        spreads = 0.0
+        target_len = max(1, len(forwards) // 2)
+        cleaned: list[Self] = []
+        spread_bp_cutoff = 10
+        while True:
+            cleaned = [
+                forward for forward in forwards if forward.bp_spread < spread_bp_cutoff
+            ]
+            if len(cleaned) < target_len:
+                spread_bp_cutoff *= 2
+            else:
+                forwards = cleaned
+                break
+        for forward in forwards:
+            m = forward.moneyness(ttm)
+            moneyness_weight = math.exp(-(m**2) / 2)
+            spread_weight = math.exp(-forward.bp_spread / spread_bp_cutoff)
+            if previous_forward is not None:
+                d = float((forward.mid - previous_forward) / previous_forward)
+                proximity_weight = math.exp(-(d**2) / 2)
+            else:
+                proximity_weight = 1.0
+            w = moneyness_weight * spread_weight * proximity_weight
+            weights += w
+            values += w * float(forward.mid)
+            spreads += w * float(forward.spread)
+        if (
+            default is not None
+            and default.is_valid()
+            and default.bp_spread < spread_bp_cutoff
+        ):
+            w = math.exp(-10000 * float(default.spread) / float(default.mid))
+            weights += w
+            values += w * float(default.mid)
+            spreads += w * float(default.spread)
+        mid = to_decimal(values / weights)
+        spread = to_decimal(spreads / weights)
+        if (
+            default is not None
+            and default.is_valid()
+            and abs(mid - default.mid) / default.spread < 1
+        ):
+            return default
+        return FwdPrice(
+            security=forwards[0].security.forward(),
+            bid=mid - spread / 2,
+            ask=mid + spread / 2,
+            maturity=forwards[0].maturity,
         )
 
 
@@ -370,6 +529,11 @@ class OptionPrices(BaseModel, Generic[S]):
         for both bid and ask"""
         return self.bid.converged and self.ask.converged
 
+    @property
+    def mid(self) -> Decimal:
+        """Calculate the mid option price by averaging the bid and ask prices"""
+        return (self.bid.price + self.ask.price) / 2
+
     def iv_bid_ask_spread(self) -> float:
         """Calculate the bid-ask spread of the implied volatility"""
         return self.ask.implied_vol - self.bid.implied_vol
@@ -439,6 +603,52 @@ class Strike(BaseModel, Generic[S]):
     put: OptionPrices[S] | None = Field(
         default=None, description="Put option prices for the strike"
     )
+
+    def implied_forward(self) -> ImpliedFwdPrice[S] | None:
+        r"""Extract the implied forward price from put-call parity.
+
+        Requires both a call and a put at this strike. Uses mid prices.
+        For inverse options (prices quoted in the underlying currency)
+        put-call parity reads
+
+        \begin{equation}
+            F = \frac{K}{1 - c + p}
+        \end{equation}
+
+        For non-inverse options (prices quoted in the quote currency)
+
+        \begin{equation}
+            F = K + C - P
+        \end{equation}
+
+        Returns None when the strike does not have both a call and a put,
+        or when the denominator is non-positive (arbitrage condition violated).
+        """
+        if self.call is None or self.put is None:
+            return None
+        cp_bid = self.call.bid.price - self.put.ask.price
+        cp_ask = self.call.ask.price - self.put.bid.price
+        if self.call.meta.inverse:
+            d_bid = 1 - cp_bid
+            d_ask = 1 - cp_ask
+            if d_bid <= ZERO or d_ask <= ZERO:
+                return None
+            bid = self.strike / d_bid
+            ask = self.strike / d_ask
+        else:
+            bid = self.strike + cp_bid
+            ask = self.strike + cp_ask
+            if bid <= ZERO or ask <= ZERO:
+                return None
+        if bid > ask:
+            return None
+        return ImpliedFwdPrice(
+            security=self.call.security.forward(),
+            strike=self.strike,
+            maturity=self.call.meta.maturity,
+            bid=bid,
+            ask=ask,
+        )
 
     def options_iter(
         self,
@@ -548,6 +758,23 @@ class VolCrossSection(BaseModel, Generic[S]):
         """Time to maturity in years"""
         return self.day_counter.dcf(ref_date, self.maturity)
 
+    def forward_rate(self, ref_date: datetime, spot: SpotPrice[S]) -> Rate:
+        """Compute the implied continuous rate from spot and forward mid"""
+        return Rate.from_spot_and_forward(
+            spot.mid,
+            self.forward.mid,
+            ref_date,
+            self.maturity,
+            day_counter=self.day_counter,
+        )
+
+    def forward_spread_fraction(self) -> Decimal:
+        """Bid-ask spread of the forward as a fraction of its mid price"""
+        mid = self.forward.mid
+        if mid <= ZERO:
+            return Decimal("Inf")
+        return (self.forward.ask - self.forward.bid) / mid
+
     def info_dict(self, ref_date: datetime, spot: SpotPrice[S]) -> dict:
         """Return a dictionary with information about the cross section"""
         return dict(
@@ -555,9 +782,8 @@ class VolCrossSection(BaseModel, Generic[S]):
             ttm=self.ttm(ref_date),
             forward=self.forward.mid,
             basis=self.forward.mid - spot.mid,
-            rate_percent=rate_from_spot_and_forward(
-                spot.mid, self.forward.mid, self.maturity - ref_date
-            ).percent,
+            rate_percent=self.forward_rate(ref_date, spot).percent,
+            fwd_spread_pct=round(100 * self.forward_spread_fraction(), 4),
             open_interest=self.forward.open_interest,
             volume=self.forward.volume,
         )
@@ -753,6 +979,9 @@ class VolSurface(BaseModel, Generic[S]):
         select: Annotated[
             OptionSelection, Doc("Option selection method")
         ] = OptionSelection.all,
+        index: Annotated[
+            int | None, Doc("Index of the cross section to use, if None use all")
+        ] = None,
         converged: Annotated[
             bool,
             Doc(
@@ -764,8 +993,13 @@ class VolSurface(BaseModel, Generic[S]):
     ) -> Iterator[SpotPrice[S] | FwdPrice[S] | OptionPrices[S]]:
         """Iterator over securities in the volatility surface"""
         yield self.spot
-        for maturity in self.maturities:
-            yield from maturity.securities(select=select, converged=converged)
+        if index is not None:
+            yield from self.maturities[index].securities(
+                select=select, converged=converged
+            )
+        else:
+            for maturity in self.maturities:
+                yield from maturity.securities(select=select, converged=converged)
 
     def inputs(
         self,
@@ -773,6 +1007,9 @@ class VolSurface(BaseModel, Generic[S]):
         select: Annotated[
             OptionSelection, Doc("Option selection method")
         ] = OptionSelection.all,
+        index: Annotated[
+            int | None, Doc("Index of the cross section to use, if None use all")
+        ] = None,
         converged: Annotated[
             bool,
             Doc(
@@ -788,12 +1025,15 @@ class VolSurface(BaseModel, Generic[S]):
             asset=self.asset,
             ref_date=self.ref_date,
             inputs=list(
-                s.inputs() for s in self.securities(select=select, converged=converged)
+                s.inputs()
+                for s in self.securities(
+                    select=select, converged=converged, index=index
+                )
             ),
         )
 
     def term_structure(self) -> pd.DataFrame:
-        """Return the term structure of the volatility surface"""
+        """Return the term structure of the volatility surface as a DataFrame"""
         return pd.DataFrame(
             cross.info_dict(self.ref_date, self.spot) for cross in self.maturities
         )
@@ -1038,6 +1278,70 @@ class VolSurface(BaseModel, Generic[S]):
             )
         return self
 
+    def calibrate_forwards(
+        self,
+        *,
+        max_spread_fraction: Annotated[
+            float,
+            Doc(
+                "Maximum allowed forward bid-ask spread as a fraction of the mid "
+                "price. Forwards exceeding this threshold are considered unreliable "
+                "and replaced with a synthetic price derived from interpolated rates. "
+                "A value of 0.05 flags forwards whose spread is more than 5% of mid."
+            ),
+        ] = 0.05,
+    ) -> Self:
+        """Replace forwards with wide bid-ask spreads with synthetic prices
+        interpolated from the smooth rate term structure.
+
+        For each maturity the implied continuous rate is computed as
+        `r = log(F_mid / S) / T`. Maturities whose forward bid-ask spread
+        exceeds `max_spread_fraction` of the mid are treated as unreliable.
+        A piecewise-linear interpolation (with flat extrapolation at the
+        boundaries) is fitted through the reliable `(T, r)` pairs, and the
+        synthetic forward is:
+
+        `F_synth = S * exp(r_interp * T)`
+
+        The synthetic bid and ask are both set to this value, giving a
+        zero spread, and the cross-section forward is replaced accordingly.
+        Returns a new `VolSurface` instance leaving the original unchanged.
+        """
+        spot = self.spot.mid
+        max_spread = to_decimal(max_spread_fraction)
+        good_ttms: list[float] = []
+        good_rates: list[float] = []
+        bad_indices: list[int] = []
+
+        for i, cross in enumerate(self.maturities):
+            ttm = cross.ttm(self.ref_date)
+            spread_frac = cross.forward_spread_fraction()
+            rate = cross.forward_rate(self.ref_date, self.spot)
+            if ttm > 0 and spread_frac <= max_spread:
+                good_ttms.append(ttm)
+                good_rates.append(float(rate.rate))
+            else:
+                bad_indices.append(i)
+
+        if not good_ttms or not bad_indices:
+            return self
+
+        ttm_arr = np.array(good_ttms)
+        rate_arr = np.array(good_rates)
+
+        new_maturities = list(self.maturities)
+        for i in bad_indices:
+            cross = self.maturities[i]
+            ttm = cross.ttm(self.ref_date)
+            if ttm <= 0:
+                continue
+            r_synth = float(np.interp(ttm, ttm_arr, rate_arr))
+            f_synth = to_decimal(float(spot) * math.exp(r_synth * ttm))
+            new_fwd = cross.forward.model_copy(update=dict(bid=f_synth, ask=f_synth))
+            new_maturities[i] = cross.model_copy(update=dict(forward=new_fwd))
+
+        return self.model_copy(update=dict(maturities=tuple(new_maturities)))
+
     def plot(
         self,
         *,
@@ -1059,13 +1363,16 @@ class VolSurface(BaseModel, Generic[S]):
         select: Annotated[
             OptionSelection, Doc("Option selection method")
         ] = OptionSelection.best,
+        index: Annotated[
+            int | None, Doc("Index of the cross section to use, if None use all")
+        ] = None,
         dragmode: Annotated[
             str, Doc("Drag interaction mode for the 3D scene")
         ] = "turntable",
         **kwargs: Any,
     ) -> Any:
         """Plot the volatility surface"""
-        df = self.options_df(select=select, converged=True)
+        df = self.options_df(select=select, index=index, converged=True)
         return plot.plot_vol_surface_3d(df, dragmode=dragmode, **kwargs)
 
 
@@ -1123,19 +1430,44 @@ class VolCrossSectionLoader(BaseModel, Generic[S]):
         else:
             self.strikes[strike].put = option
 
-    def cross_section(self) -> VolCrossSection[S] | None:
-        if self.forward is None or self.forward.mid == ZERO:
-            return None
+    def cross_section(
+        self,
+        ref_date: Annotated[
+            datetime | None, Doc("Reference date for the volatility surface")
+        ] = None,
+        previous_forward: Annotated[
+            Decimal | None,
+            Doc(
+                "Previous forward price for the volatility surface "
+                "Usaed by the implied forward calculation to replace missing "
+                "or unreliable forwards"
+            ),
+        ] = None,
+    ) -> VolCrossSection[S] | None:
         strikes = []
+        implied_forwards = []
         for strike in sorted(self.strikes):
             sk = self.strikes[strike]
             if sk.call is None and sk.put is None:
                 continue
+            if implied_forward := sk.implied_forward():
+                implied_forwards.append(implied_forward)
             strikes.append(sk)
+        forward = self.forward
+        if implied_forwards:
+            ttm = self.day_counter.dcf(ref_date or utcnow(), self.maturity)
+            forward = ImpliedFwdPrice.aggregate(
+                implied_forwards,
+                ttm,
+                default=self.forward,
+                previous_forward=previous_forward,
+            )
+        if forward is None or not forward.is_valid():
+            return None
         return (
             VolCrossSection(
                 maturity=self.maturity,
-                forward=self.forward,
+                forward=forward,
                 strikes=tuple(strikes),
                 day_counter=self.day_counter,
             )
@@ -1280,12 +1612,18 @@ class GenericVolSurfaceLoader(BaseModel, Generic[S], arbitrary_types_allowed=Tru
         if not self.spot or self.spot.mid == ZERO:
             raise ValueError("No spot price provided")
         maturities = []
+        ref_date = ref_date or utcnow()
+        previous_forward = self.spot.mid
         for maturity in sorted(self.maturities):
-            if section := self.maturities[maturity].cross_section():
+            if section := self.maturities[maturity].cross_section(
+                ref_date=ref_date,
+                previous_forward=previous_forward,
+            ):
+                previous_forward = section.forward.mid
                 maturities.append(section)
         return VolSurface(
             asset=self.asset,
-            ref_date=ref_date or utcnow(),
+            ref_date=ref_date,
             spot=self.spot,
             maturities=tuple(maturities),
             day_counter=self.day_counter,

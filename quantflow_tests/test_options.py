@@ -1,4 +1,3 @@
-import json
 import math
 
 import numpy as np
@@ -12,7 +11,6 @@ from quantflow.options.surface import (
     OptionPrice,
     OptionType,
     VolSurface,
-    VolSurfaceInputs,
     surface_from_inputs,
 )
 from quantflow.sp.heston import Heston
@@ -25,12 +23,6 @@ CROSS_SECTIONS = 8
 @pytest.fixture
 def heston() -> OptionPricer[Heston]:
     return OptionPricer(model=Heston.create(vol=0.5, kappa=1, sigma=0.8, rho=0))
-
-
-@pytest.fixture
-def vol_surface() -> VolSurface:
-    with open("quantflow_tests/volsurface.json") as fp:
-        return surface_from_inputs(VolSurfaceInputs(**json.load(fp)))
 
 
 def test_atm_black_pricing_multi():
@@ -95,6 +87,7 @@ def test_term_structure(vol_surface: VolSurface) -> None:
         "forward",
         "basis",
         "rate_percent",
+        "fwd_spread_pct",
         "open_interest",
         "volume",
     ]

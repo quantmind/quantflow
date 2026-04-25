@@ -43,12 +43,6 @@ def _(mo):
 
 
 @app.cell
-def _():
-    kwargs = dict()
-    return
-
-
-@app.cell
 def _(mo):
     asset = mo.ui.dropdown(["btc", "eth", "sol"], value="btc", label="asset")
     inverse = mo.ui.checkbox(value=True, label="Inverse options")
@@ -57,7 +51,7 @@ def _(mo):
 
 
 @app.cell
-async def _(asset, inverse):
+async def _(asset, inverse, mo):
     import pandas as pd
     from quantflow.data.deribit import Deribit
 
@@ -74,15 +68,40 @@ async def _(asset, inverse):
     surface.bs()
     # disable outliers
     surface.disable_outliers()
-    surface.plot3d()
-    return pd, surface
+    #
+    def int_or_none(v):
+        try:
+            return int(v)
+        except TypeError:
+            return None
+
+    maturites = [c.maturity for c in surface.maturities]
+    maturity_dropdown = mo.ui.dropdown(
+        options={m.strftime("%Y-%m-%d"): i for i, m in enumerate(maturites)},
+        label="Maturity"
+    )
+    maturity_dropdown
+    return int_or_none, maturity_dropdown, pd, surface
 
 
 @app.cell
-def _(pd, surface):
+def _(int_or_none, maturity_dropdown, surface):
+    index = int_or_none(maturity_dropdown.value)
+    surface.plot3d(index=index)
+    return (index,)
+
+
+@app.cell
+def _(index, pd, surface):
     # display inputs - only options with converged implied volatility
-    surface_inputs = surface.inputs(converged=True)
+    surface_inputs = surface.inputs(converged=True, index=index)
     pd.DataFrame([i.model_dump() for i in surface_inputs.inputs])
+    return
+
+
+@app.cell
+def _(surface):
+    surface.term_structure()
     return
 
 

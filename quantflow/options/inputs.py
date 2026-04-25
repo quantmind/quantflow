@@ -47,6 +47,10 @@ class VolSurfaceSecurity(BaseModel):
     def vol_surface_type(self) -> VolSecurityType:
         raise NotImplementedError("vol_surface_type must be implemented by subclasses")
 
+    @classmethod
+    def forward(cls) -> Self:
+        raise NotImplementedError("forward_input must be implemented by subclasses")
+
 
 class DefaultVolSecurity(VolSurfaceSecurity):
     security_type: VolSecurityType = Field(
