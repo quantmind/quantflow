@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-
 import pytest
 
 from quantflow.options.surface import VolSurface, VolSurfaceInputs, surface_from_inputs
