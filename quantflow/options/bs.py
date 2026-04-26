@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import warnings
 from typing import NamedTuple
 
 import numpy as np
@@ -258,12 +259,14 @@ def implied_black_volatility(
     """
     if not np.isscalar(k) and np.isscalar(initial_sigma):
         initial_sigma = np.full_like(k, initial_sigma)
-    result = newton(
-        lambda x: black_price(k, x, ttm, call_put) - price,
-        initial_sigma,
-        fprime=lambda x: black_vega(k, x, ttm),
-        full_output=True,
-    )
+    with warnings.catch_warnings():
+        warnings.simplefilter("ignore", RuntimeWarning)
+        result = newton(
+            lambda x: black_price(k, x, ttm, call_put) - price,
+            initial_sigma,
+            fprime=lambda x: black_vega(k, x, ttm),
+            full_output=True,
+        )
     if hasattr(result, "root"):
         return ImpliedVols(values=result.root, converged=result.converged)
     else:

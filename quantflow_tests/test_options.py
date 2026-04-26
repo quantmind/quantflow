@@ -1,10 +1,13 @@
 import math
+from datetime import timedelta
+from decimal import Decimal
 
 import numpy as np
 import pytest
 
 from quantflow.options import bs
-from quantflow.options.calibration import HestonCalibration
+from quantflow.options.calibration import ModelCalibrationEntryKey, OptionEntry
+from quantflow.options.heston_calibration import HestonCalibration
 from quantflow.options.inputs import OptionInput
 from quantflow.options.pricer import OptionPricer
 from quantflow.options.surface import (
@@ -202,3 +205,53 @@ def test_calibration(vol_surface: VolSurface, heston: OptionPricer[Heston]):
     cal.fit()
     if has_plotly:
         assert cal.plot(index=2) is not None
+
+
+def test_calibration_synthetic(vol_surface: VolSurface) -> None:
+    """Calibration recovers known Heston parameters from synthetic prices."""
+    true_vol = 0.3
+    true_kappa = 2.0
+    true_sigma = 0.5
+    true_rho = -0.7
+    true_pricer = OptionPricer(
+        model=Heston.create(
+            vol=true_vol, kappa=true_kappa, sigma=true_sigma, rho=true_rho
+        )
+    )
+
+    ttms = [0.25, 0.5, 1.0, 2.0]
+    moneynesses = np.linspace(-0.3, 0.3, 11)
+    ref_date = vol_surface.ref_date
+
+    options: dict[ModelCalibrationEntryKey, OptionEntry] = {}
+    for ttm in ttms:
+        maturity = ref_date + timedelta(days=round(ttm * 365))
+        for k in moneynesses:
+            price = true_pricer.call_price(ttm, float(k))
+            strike = round(np.exp(k), 6)
+            key = ModelCalibrationEntryKey(
+                maturity=maturity, strike=Decimal(str(strike))
+            )
+            op = OptionPrice.create(
+                strike=strike,
+                forward=1.0,
+                price=Decimal(str(round(price, 8))),
+                ref_date=ref_date,
+                maturity=maturity,
+            )
+            entry = OptionEntry(ttm=ttm, moneyness=float(k))
+            entry.options.append(op)
+            options[key] = entry
+
+    perturbed = OptionPricer(
+        model=Heston.create(vol=0.5, kappa=1.0, sigma=0.8, rho=0.0)
+    )
+    cal = HestonCalibration(pricer=perturbed, vol_surface=vol_surface, options=options)
+    result = cal.fit()
+
+    assert result.cost < 1e-6
+    vp = cal.model.variance_process
+    assert pytest.approx(vp.theta, rel=0.05) == true_vol**2
+    assert pytest.approx(vp.kappa, rel=0.1) == true_kappa
+    assert pytest.approx(vp.sigma, rel=0.1) == true_sigma
+    assert pytest.approx(cal.model.rho, abs=0.05) == true_rho

@@ -1,6 +1,6 @@
 import json
 
-from quantflow.options.calibration import HestonJCalibration
+from quantflow.options.heston_calibration import HestonJCalibration
 from quantflow.options.pricer import OptionPricer
 from quantflow.options.surface import VolSurface, VolSurfaceInputs, surface_from_inputs
 from quantflow.sp.heston import HestonJ
