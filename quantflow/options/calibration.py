@@ -156,10 +156,20 @@ class VolModelCalibration(BaseModel, ABC, Generic[M]):
         vector with parameter bounds for precise convergence.
         """
         bounds = self.get_bounds()
-        stage1 = minimize(self.cost_function, self.get_params(), method="Nelder-Mead")
-        x1 = np.clip(stage1.x, bounds.lb, bounds.ub)
+        stage1 = minimize(
+            self.cost_function,
+            self.get_params(),
+            method="L-BFGS-B",
+            bounds=list(zip(bounds.lb, bounds.ub)),
+        )
         result = least_squares(
-            self.residuals, x1, method="trf", bounds=(bounds.lb, bounds.ub)
+            self.residuals,
+            np.clip(stage1.x, bounds.lb, bounds.ub),
+            method="trf",
+            bounds=(bounds.lb, bounds.ub),
+            ftol=1e-10,
+            xtol=1e-10,
+            gtol=1e-10,
         )
         self.set_params(result.x)
         return result
