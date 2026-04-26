@@ -5,6 +5,7 @@ from __future__ import annotations
 from datetime import datetime, timezone
 from decimal import Decimal
 
+import pytest
 from hypothesis import given
 from hypothesis import strategies as st
 
@@ -132,13 +133,15 @@ def test_aggregate_with_previous_forward(
     assert min(mids) - 1e-4 <= float(result.mid) <= max(mids) + 1e-4
 
 
-def test_aggregate_default_returned_when_implied_agrees() -> None:
-    # implied forwards all near 100, default also at 100 with tight spread
-    # result mid ≈ 100, |result - default.mid| / default.spread < 1 → return default
+def test_aggregate_implied_tighter_than_default_uses_implied() -> None:
+    # implied forwards (5 bp) are tighter than the default (20 bp)
+    # the default is not included in the candidate pool, result comes from implied
     forwards = [make_implied(100, 5), make_implied(100, 5)]
     default = make_fwd(100, 20)
     result = ImpliedFwdPrice.aggregate(forwards, ttm=1.0, default=default)
-    assert result is default
+    assert result is not None
+    assert result is not default
+    assert float(result.mid) == pytest.approx(100.0, rel=1e-3)
 
 
 def test_aggregate_previous_forward_pulls_result_toward_anchor() -> None:

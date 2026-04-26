@@ -20,7 +20,9 @@ from quantflow.utils.numbers import (
     ZERO,
     DecimalNumber,
     Number,
+    Rounding,
     normalize_decimal,
+    round_to_step,
     sigfig,
     to_decimal,
     to_decimal_or_none,
@@ -40,6 +42,7 @@ from .inputs import (
     VolSurfaceInputs,
     VolSurfaceSecurity,
 )
+from .svi import SVI
 
 INITIAL_VOL = 0.5
 default_day_counter = DayCounter.ACTACT
@@ -93,7 +96,7 @@ class Price(BaseModel, Generic[S]):
         price and multiplied by 10000"""
         mid = self.mid
         if mid > ZERO:
-            return 10000 * self.spread / mid
+            return round(10000 * self.spread / mid, 2)
         else:
             return Decimal("inf")
 
@@ -155,124 +158,94 @@ class ImpliedFwdPrice(FwdPrice[S]):
     @classmethod
     def aggregate(
         cls,
-        forwards: list[Self],
-        ttm: float,
-        default: FwdPrice[S] | None = None,
-        previous_forward: Decimal | None = None,
+        implied_forwards: Annotated[
+            list[Self], Doc("Implied forward prices from put-call parity")
+        ],
+        ttm: Annotated[float, Doc("Time to maturity in years")],
+        default: Annotated[
+            FwdPrice[S] | None,
+            Doc("Market forward (e.g. from futures) used as fallback or for blending"),
+        ] = None,
+        previous_forward: Annotated[
+            Decimal | None,
+            Doc(
+                "Anchor forward for proximity weighting, "
+                "typically the previous maturity"
+            ),
+        ] = None,
+        tick_size: Annotated[
+            Decimal | None, Doc("Tick size for rounding the implied forward bid/ask")
+        ] = None,
     ) -> FwdPrice[S] | None:
         r"""Aggregate implied forward prices extracted from put-call parity into a
         single best-estimate forward price.
 
-        Each implied forward is an independent noisy estimate of the true forward,
-        obtained at a different strike. Strikes near the money tend to produce the
-        most reliable estimates (tightest bid-ask spreads, smallest put-call parity
-        error), so the aggregation weights each estimate by three independent factors
-        that all reward quality:
+        **Selection**: valid implied forwards are sorted by bid-ask spread in basis
+        points and the tightest 5 are retained as candidates. Let $c$ denote the
+        tightest bp spread among the candidates.
+
+        **Default priority**: if a default forward is provided and its bp spread is
+        tighter than $c$, it is returned immediately as the most reliable price.
+
+        **Default inclusion**: if the default's bp spread is wider than $c$ but
+        narrower than the worst candidate, it is appended to the candidate pool
+        and weighted on equal footing with the implied forwards.
+
+        **Weighting**: each candidate $i$ receives weight
 
         \begin{equation}
-            w_i = w^{\text{moneyness}}_i
-                  \cdot w^{\text{spread}}_i
-                  \cdot w^{\text{proximity}}_i
+            w_i = w^{\text{spread}}_i \cdot w^{\text{proximity}}_i
         \end{equation}
 
-        **Moneyness weight** rewards strikes close to the current mid price.
-        It uses the same Gaussian shape as the standard normal density, where
-        $m_i = \log(K_i / F_i) / \sqrt{\tau}$ is the normalised log-moneyness:
-
-        \begin{equation}
-            w^{\text{moneyness}}_i = \exp\!\left(-\tfrac{m_i^2}{2}\right)
-        \end{equation}
-
-        **Spread weight** penalises wide bid-ask markets, which indicate either
-        low liquidity or high uncertainty in the put-call parity estimate. It
-        decays exponentially with the bid-ask spread relative to the adaptive
-        cutoff $c$:
-
-        \begin{equation}
-            w^{\text{spread}}_i
-                = \exp\!\left(-\frac{\text{bp\_spread}_i}{c}\right)
-        \end{equation}
-
-        **Proximity weight** anchors the result to the previous maturity's forward
-        $F_{\text{prev}}$ when provided. It down-weights estimates whose mid is
-        far from the known anchor, acting as a soft prior that limits how much the
-        result can deviate from a recent reliable observation:
-
-        \begin{equation}
-            w^{\text{proximity}}_i
-                = \exp\!\left(
-                    -\frac{1}{2}
-                    \left(\frac{F_i - F_{\text{prev}}}{F_{\text{prev}}}\right)^{\!2}
-                  \right)
-        \end{equation}
-
-        **Adaptive spread filter**: the cutoff $c$ starts at 10 bp and doubles
-        until at least half the valid forwards survive. This ensures that in
-        illiquid markets with universally wide spreads, the algorithm still
-        produces a result rather than discarding everything.
-
-        **Default blending**: the actual market forward (e.g. from futures) is
-        optionally blended into the weighted average using only the spread weight.
-        This forward may be unreliable (wide spread, stale price), so it receives
-        no moneyness or proximity weight.
-
-        **Default fallback**: if the computed mid lies within one default
-        spread-width of the default mid, the default is returned unchanged,
-        avoiding unnecessary deviation from the observable market price when
-        the implied estimate is consistent with it.
+        where the spread weight is a Gaussian on the normalised distance from the
+        best spread $c$ and the proximity weight, applied only when
+        `previous_forward` is provided.
+        The result is the weighted average of the candidate mid prices, with the
+        bid/ask spread computed as the weighted average of candidate spreads.
+        When `tick_size` is provided the output bid is rounded down and the ask
+        is rounded up to the nearest tick.
         """
-        forwards = [f for f in forwards if f.is_valid()]
+        forwards: list[FwdPrice[S]] = [f for f in implied_forwards if f.is_valid()]
         if not forwards:
+            return default
+        forwards = sorted(forwards, key=lambda f: f.bp_spread)[:5]
+        best_bp_spread = forwards[0].bp_spread
+        if (
+            default is not None
+            and default.is_valid()
+            and default.bp_spread < best_bp_spread
+        ):
             return default
         weights = 0.0
         values = 0.0
         spreads = 0.0
-        target_len = max(1, len(forwards) // 2)
-        cleaned: list[Self] = []
-        spread_bp_cutoff = 10
-        while True:
-            cleaned = [
-                forward for forward in forwards if forward.bp_spread < spread_bp_cutoff
-            ]
-            if len(cleaned) < target_len:
-                spread_bp_cutoff *= 2
-            else:
-                forwards = cleaned
-                break
-        for forward in forwards:
-            m = forward.moneyness(ttm)
-            moneyness_weight = math.exp(-(m**2) / 2)
-            spread_weight = math.exp(-forward.bp_spread / spread_bp_cutoff)
-            if previous_forward is not None:
-                d = float((forward.mid - previous_forward) / previous_forward)
-                proximity_weight = math.exp(-(d**2) / 2)
-            else:
-                proximity_weight = 1.0
-            w = moneyness_weight * spread_weight * proximity_weight
-            weights += w
-            values += w * float(forward.mid)
-            spreads += w * float(forward.spread)
+        worse_bp_spread = forwards[-1].bp_spread
         if (
             default is not None
             and default.is_valid()
-            and default.bp_spread < spread_bp_cutoff
+            and default.bp_spread < worse_bp_spread
         ):
-            w = math.exp(-10000 * float(default.spread) / float(default.mid))
-            weights += w
-            values += w * float(default.mid)
-            spreads += w * float(default.spread)
+            forwards.append(default)
+        for forward in forwards:
+            s = (forward.bp_spread - best_bp_spread) / best_bp_spread
+            weight = math.exp(-s * s)
+            if previous_forward is not None:
+                d = (forward.mid - previous_forward) / previous_forward
+                weight *= math.exp(-d * d)
+            weights += weight
+            values += weight * float(forward.mid)
+            spreads += weight * float(forward.spread)
         mid = to_decimal(values / weights)
         spread = to_decimal(spreads / weights)
-        if (
-            default is not None
-            and default.is_valid()
-            and abs(mid - default.mid) / default.spread < 1
-        ):
-            return default
+        bid = mid - spread / 2
+        ask = mid + spread / 2
+        if tick_size is not None:
+            bid = round_to_step(bid, tick_size, Rounding.DOWN)
+            ask = round_to_step(ask, tick_size, Rounding.UP)
         return FwdPrice(
             security=forwards[0].security.forward(),
-            bid=mid - spread / 2,
-            ask=mid + spread / 2,
+            bid=bid,
+            ask=ask,
             maturity=forwards[0].maturity,
         )
 
@@ -534,6 +507,11 @@ class OptionPrices(BaseModel, Generic[S]):
         """Calculate the mid option price by averaging the bid and ask prices"""
         return (self.bid.price + self.ask.price) / 2
 
+    @property
+    def spread(self) -> Decimal:
+        """Calculate the bid-ask spread"""
+        return self.ask.price - self.bid.price
+
     def iv_bid_ask_spread(self) -> float:
         """Calculate the bid-ask spread of the implied volatility"""
         return self.ask.implied_vol - self.bid.implied_vol
@@ -604,10 +582,18 @@ class Strike(BaseModel, Generic[S]):
         default=None, description="Put option prices for the strike"
     )
 
-    def implied_forward(self) -> ImpliedFwdPrice[S] | None:
+    def implied_forward(
+        self,
+        tick_size: Annotated[
+            Decimal | None, Doc("Tick size for rounding the implied forward bid/ask")
+        ] = None,
+    ) -> ImpliedFwdPrice[S] | None:
         r"""Extract the implied forward price from put-call parity.
 
-        Requires both a call and a put at this strike. Uses mid prices.
+        Requires both a call and a put at this strike. Uses bid/ask prices
+        to construct the bid/ask of the implied forward. When `tick_size` is
+        provided, bid is rounded down and ask is rounded up to the nearest tick.
+
         For inverse options (prices quoted in the underlying currency)
         put-call parity reads
 
@@ -642,6 +628,9 @@ class Strike(BaseModel, Generic[S]):
                 return None
         if bid > ask:
             return None
+        if tick_size is not None:
+            bid = round_to_step(bid, tick_size, Rounding.DOWN)
+            ask = round_to_step(ask, tick_size, Rounding.UP)
         return ImpliedFwdPrice(
             security=self.call.security.forward(),
             strike=self.strike,
@@ -781,6 +770,7 @@ class VolCrossSection(BaseModel, Generic[S]):
             maturity=self.maturity,
             ttm=self.ttm(ref_date),
             forward=self.forward.mid,
+            bid_ask_spread=self.forward.spread,
             basis=self.forward.mid - spot.mid,
             rate_percent=self.forward_rate(ref_date, spot).percent,
             fwd_spread_pct=round(100 * self.forward_spread_fraction(), 4),
@@ -859,17 +849,23 @@ class VolCrossSection(BaseModel, Generic[S]):
     def disable_outliers(
         self,
         *,
-        bid_ask_spread: Annotated[
+        ttm: Annotated[float, Doc("Time to maturity in years, used for SVI fitting")],
+        bid_ask_spread_fraction: Annotated[
             float,
             Doc(
-                "Maximum allowed bid/ask spread as a fraction of the mid "
-                "implied volatility. A value of 0.3 means that options with a bid/ask"
-                "spread greater than 30% of the mid implied volatility will be "
-                "considered outliers and have their implied volatility convergence "
-                "set to False",
+                "Maximum allowed bid/ask spread as a fraction of the mid implied "
+                "volatility. A value of 0.2 means options with a spread greater than "
+                "20% of the mid vol are disabled."
             ),
-        ] = 0.3,
-        quantile: Annotated[float, Doc("Quantile for determining outliers")] = 0.99,
+        ] = 0.2,
+        svi_residual_fraction: Annotated[
+            float,
+            Doc(
+                "Maximum allowed SVI residual as a fraction of the mid implied "
+                "volatility. A value of 0.2 means options whose mid vol deviates "
+                "from the SVI fit by more than 20% of their mid vol are disabled."
+            ),
+        ] = 0.2,
         repeat: Annotated[
             int, Doc("Number of times to repeat the outlier removal process")
         ] = 2,
@@ -879,17 +875,17 @@ class VolCrossSection(BaseModel, Generic[S]):
 
         Two passes are applied:
 
-
         First pass: options where the bid/ask spread in implied vol space exceeds
-        `bid_ask_spread` as a fraction of the mid implied vol are disabled.
-        For example, a value of 0.3 disables options where the spread is more
-        than 30% of the mid vol. Options with a zero mid vol are also disabled.
+        `bid_ask_spread_fraction` of the mid implied vol are disabled.
+        For example, a value of 0.2 disables options where the spread is more
+        than 20% of the mid vol. Options with a zero mid vol are also disabled.
 
-        Second pass: a degree-2 polynomial is fitted to the smile (mid implied vol
-        vs log-moneyness). Options whose residual from the fit exceeds the
-        `quantile` threshold of all residuals are disabled. This is repeated up
-        to `repeat` times, refitting after each removal. The loop stops early if
-        no outliers are found or fewer than 4 options remain.
+        Second pass: an [SVI][quantflow.options.svi.SVI] smile is fitted to the
+        surviving options (mid implied vol vs log-moneyness). Options whose
+        residual from the SVI fit exceeds `svi_residual_fraction` of their mid
+        implied vol are disabled. This is repeated up to `repeat` times,
+        refitting after each removal. The loop stops early if no outliers are
+        found or fewer than 5 options remain.
         """
         options = list(self.option_securities(converged=True))
         # first remove options with high bid/offer spread
@@ -897,24 +893,27 @@ class VolCrossSection(BaseModel, Generic[S]):
             spread = option.iv_bid_ask_spread()
             mid = option.iv_mid()
             if mid > 0:
-                if spread / mid > bid_ask_spread:
+                if spread / mid > bid_ask_spread_fraction:
                     option.disable()
             else:
                 option.disable()
-        # remove outliers based on residuals from a quadratic smile fit
+        # remove outliers based on residuals from an SVI smile fit
         forward = float(self.forward.mid)
         for _ in range(repeat):
             options = list(self.option_securities(converged=True))
-            if len(options) < 4:
+            if len(options) < 5:
                 break
             log_m = np.array([np.log(float(o.meta.strike) / forward) for o in options])
             iv_mid = np.array([o.iv_mid() for o in options])
-            coeffs = np.polyfit(log_m, iv_mid, 2)
-            residuals = np.abs(iv_mid - np.polyval(coeffs, log_m))
-            threshold = np.quantile(residuals, quantile)
+            try:
+                svi = SVI.fit(log_m, iv_mid, ttm)
+            except Exception:
+                break
+            iv_fit = svi.implied_vol(log_m, ttm)
+            residuals = np.abs(iv_mid - iv_fit) / iv_mid
             found = False
             for option, residual in zip(options, residuals):
-                if residual > threshold:
+                if residual > svi_residual_fraction:
                     option.disable()
                     found = True
             if not found:
@@ -1250,17 +1249,22 @@ class VolSurface(BaseModel, Generic[S]):
     def disable_outliers(
         self,
         *,
-        bid_ask_spread: Annotated[
+        bid_ask_spread_fraction: Annotated[
             float,
             Doc(
-                "Maximum allowed bid/ask spread as a fraction of the mid "
-                "implied volatility. A value of 0.3 means that options with a bid/ask"
-                "spread greater than 30% of the mid implied volatility will be "
-                "considered outliers and have their implied volatility convergence "
-                "set to False",
+                "Maximum allowed bid/ask spread as a fraction of the mid implied "
+                "volatility. A value of 0.2 means options with a spread greater than "
+                "20% of the mid vol are disabled."
             ),
-        ] = 0.3,
-        quantile: Annotated[float, Doc("Quantile for determining outliers")] = 0.99,
+        ] = 0.2,
+        svi_residual_fraction: Annotated[
+            float,
+            Doc(
+                "Maximum allowed SVI residual as a fraction of the mid implied "
+                "volatility. A value of 0.2 means options whose mid vol deviates "
+                "from the SVI fit by more than 20% of their mid vol are disabled."
+            ),
+        ] = 0.2,
         repeat: Annotated[
             int, Doc("Number of times to repeat the outlier removal process")
         ] = 2,
@@ -1274,7 +1278,10 @@ class VolSurface(BaseModel, Generic[S]):
         """
         for maturity in self.maturities:
             maturity.disable_outliers(
-                bid_ask_spread=bid_ask_spread, quantile=quantile, repeat=repeat
+                ttm=maturity.ttm(self.ref_date),
+                bid_ask_spread_fraction=bid_ask_spread_fraction,
+                svi_residual_fraction=svi_residual_fraction,
+                repeat=repeat,
             )
         return self
 
@@ -1443,6 +1450,10 @@ class VolCrossSectionLoader(BaseModel, Generic[S]):
                 "or unreliable forwards"
             ),
         ] = None,
+        tick_size: Annotated[
+            Decimal | None,
+            Doc("Tick size for rounding implied forward bid/ask prices"),
+        ] = None,
     ) -> VolCrossSection[S] | None:
         strikes = []
         implied_forwards = []
@@ -1450,7 +1461,7 @@ class VolCrossSectionLoader(BaseModel, Generic[S]):
             sk = self.strikes[strike]
             if sk.call is None and sk.put is None:
                 continue
-            if implied_forward := sk.implied_forward():
+            if implied_forward := sk.implied_forward(tick_size=tick_size):
                 implied_forwards.append(implied_forward)
             strikes.append(sk)
         forward = self.forward
@@ -1461,6 +1472,7 @@ class VolCrossSectionLoader(BaseModel, Generic[S]):
                 ttm,
                 default=self.forward,
                 previous_forward=previous_forward,
+                tick_size=tick_size,
             )
         if forward is None or not forward.is_valid():
             return None
@@ -1618,6 +1630,7 @@ class GenericVolSurfaceLoader(BaseModel, Generic[S], arbitrary_types_allowed=Tru
             if section := self.maturities[maturity].cross_section(
                 ref_date=ref_date,
                 previous_forward=previous_forward,
+                tick_size=self.tick_size_forwards,
             ):
                 previous_forward = section.forward.mid
                 maturities.append(section)

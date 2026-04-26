@@ -101,12 +101,16 @@ def _(index, pd, surface):
 
 @app.cell
 def _(surface):
-    surface.term_structure()
-    return
+    ts = surface.term_structure()
+    ts
+    return (ts,)
 
 
 @app.cell
-def _():
+def _(ts):
+    from quantflow.utils import plot
+
+    plot.plot_lines(ts, x="ttm", y="rate_percent")
     return
 
 
