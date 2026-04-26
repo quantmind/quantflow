@@ -1,6 +1,6 @@
 [project]
 name = "quantflow"
-version = "0.6.3"
+version = "0.7.0"
 description = "quantitative analysis"
 authors = [ { name = "Luca Sbardella", email = "luca@quantmind.com" } ]
 license = "BSD-3-Clause"
@@ -90,6 +90,11 @@ theme = "dark"
 [tool.pytest.ini_options]
 asyncio_mode = "auto"
 testpaths = [ "quantflow_tests" ]
+
+[tool.coverage.report]
+exclude_also = [
+    "@abstractmethod",
+]
 
 [tool.isort]
 profile = "black"
