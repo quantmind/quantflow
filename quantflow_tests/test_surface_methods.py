@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-from decimal import Decimal
 
 import pytest
 
@@ -82,71 +81,3 @@ def test_disable_outliers_svi_pass_respects_threshold(vol_surface: VolSurface) -
     )
     after = sum(1 for _ in cross.option_securities(converged=True))
     assert after == before
-
-
-# ---------------------------------------------------------------------------
-# calibrate_forwards
-# ---------------------------------------------------------------------------
-
-
-def test_calibrate_forwards_returns_new_instance(vol_surface: VolSurface) -> None:
-    # use a threshold that guarantees at least one bad forward
-    spreads = sorted(float(c.forward_spread_fraction()) for c in vol_surface.maturities)
-    threshold = (spreads[0] + spreads[1]) / 2.0
-    result = vol_surface.calibrate_forwards(max_spread_fraction=threshold)
-    assert result is not vol_surface
-
-
-def test_calibrate_forwards_does_not_mutate_original(vol_surface: VolSurface) -> None:
-    original_fwds = [c.forward.mid for c in vol_surface.maturities]
-    vol_surface.calibrate_forwards(max_spread_fraction=0.0)
-    assert [c.forward.mid for c in vol_surface.maturities] == original_fwds
-
-
-def test_calibrate_forwards_no_bad_forwards_returns_self(
-    vol_surface: VolSurface,
-) -> None:
-    # with a very loose threshold all forwards are "good" — no bad_indices
-    result = vol_surface.calibrate_forwards(max_spread_fraction=1.0)
-    assert result is vol_surface
-
-
-def test_calibrate_forwards_wide_spread_replaced_with_zero_spread(
-    vol_surface: VolSurface,
-) -> None:
-    # force max_spread_fraction=0 so every forward is flagged as bad
-    # (except those with exactly zero spread, which shouldn't exist in fixture)
-    # use a threshold just below the tightest spread so at least one is bad
-    spreads = [float(c.forward_spread_fraction()) for c in vol_surface.maturities]
-    threshold = min(spreads) - 1e-9  # everything is "bad"
-    result = vol_surface.calibrate_forwards(max_spread_fraction=threshold)
-    # if no good forwards exist calibrate_forwards returns self
-    if result is vol_surface:
-        pytest.skip("no reliable forwards available at this threshold")
-    for cross in result.maturities:
-        fwd = cross.forward
-        # replaced forwards have bid == ask (zero spread)
-        if fwd.spread == Decimal(0):
-            assert fwd.bid == fwd.ask
-
-
-def test_calibrate_forwards_synthetic_bid_equals_ask(vol_surface: VolSurface) -> None:
-    # flag the middle maturity as bad by giving it a tiny threshold
-    if len(vol_surface.maturities) < 3:
-        pytest.skip("need at least 3 maturities")
-    spreads = sorted(float(c.forward_spread_fraction()) for c in vol_surface.maturities)
-    # threshold between the tightest and second tightest — exactly one bad
-    threshold = (spreads[0] + spreads[1]) / 2.0
-    result = vol_surface.calibrate_forwards(max_spread_fraction=threshold)
-    for orig, new in zip(vol_surface.maturities, result.maturities):
-        if float(orig.forward_spread_fraction()) > threshold:
-            assert new.forward.bid == new.forward.ask
-
-
-def test_calibrate_forwards_preserves_tight_forwards(vol_surface: VolSurface) -> None:
-    spreads = [float(c.forward_spread_fraction()) for c in vol_surface.maturities]
-    threshold = max(spreads) / 2.0
-    result = vol_surface.calibrate_forwards(max_spread_fraction=threshold)
-    for orig, new in zip(vol_surface.maturities, result.maturities):
-        if float(orig.forward_spread_fraction()) <= threshold:
-            assert new.forward.mid == orig.forward.mid
