@@ -23,6 +23,8 @@ jobs:
           password: ${{ github.token }}
       - name: install rops
         uses: quantmind/rops/.github/actions/setup-rops@main
+        env:
+          GITHUB_TOKEN: ${{ secrets.TOKEN_DEPLOYMENT }}
       - name: build amd64
         run: rops docker build ${{ inputs.image-name }}
       - name: push amd64
@@ -44,6 +46,8 @@ jobs:
           password: ${{ github.token }}
       - name: install rops
         uses: quantmind/rops/.github/actions/setup-rops@main
+        env:
+          GITHUB_TOKEN: ${{ secrets.TOKEN_DEPLOYMENT }}
       - name: build arm64
         run: rops docker build ${{ inputs.image-name }}
       - name: push arm64
@@ -64,5 +68,7 @@ jobs:
           password: ${{ github.token }}
       - name: install rops
         uses: quantmind/rops/.github/actions/setup-rops@main
+        env:
+          GITHUB_TOKEN: ${{ secrets.TOKEN_DEPLOYMENT }}
       - name: create manifest
         run: rops docker manifest ${{ inputs.image-name }}

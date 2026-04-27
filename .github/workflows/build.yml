@@ -23,6 +23,8 @@ jobs:
       - uses: actions/checkout@v4
       - name: install rops
         uses: quantmind/rops/.github/actions/setup-rops@main
+        env:
+          GITHUB_TOKEN: ${{ secrets.TOKEN_DEPLOYMENT }}
       - name: install taplo
         run: rops tools update taplo
       - name: Set up Python ${{ matrix.python-version }}
