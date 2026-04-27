@@ -14,8 +14,6 @@ RUN uv sync --frozen --no-install-project --extra ai --extra book --extra docs -
 COPY mkdocs.yml ./
 COPY docs/ ./docs/
 COPY quantflow/ ./quantflow/
-COPY dev/build-examples ./dev/build-examples
-RUN uv run ./dev/build-examples
 RUN uv run mkdocs build
 
 # Stage 2: Runtime stage

@@ -1,0 +1,22 @@
+`xtol` termination condition is satisfied.
+
+```json
+{
+  "variance_process": {
+    "rate": 0.12707150968097103,
+    "kappa": 1.8151617066397323,
+    "sigma": 1.3259134126578012,
+    "theta": 0.3211971404927874,
+    "sample_algo": "implicit"
+  },
+  "rho": -0.47899276376715205,
+  "jumps": {
+    "intensity": 99.12262880140118,
+    "jumps": {
+      "decay": 73.57139169343074,
+      "loc": 0.007499627395456639,
+      "kappa": 1.20055291473451
+    }
+  }
+}
+```
