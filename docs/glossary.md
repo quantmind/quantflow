@@ -67,15 +67,15 @@ Log-strike, or log strike/forward ratio, is used in the context of option pricin
 where $K$ is the strike and $F$ is the Forward price. A positive value implies strikes above the forward, which means put options are in the money (ITM) and call options are out of the money (OTM).
 The log-strike is used as input for all Black-Scholes type formulas.
 
-## Moneyness Time Scaled
+## Moneyness
 
-The time to maturity scaled moneyness, is used in the context of option pricing in order to compare options with different maturities. It is defined as
+Moneyness is used in the context of option pricing in order to compare options with different maturities. It is defined as
 
 \begin{equation}
     m = \frac{1}{\sqrt{\tau}}\ln{\frac{K}{F}}
 \end{equation}
 
-where $K$ is the strike, $F$ is the Forward price, and $\tau$ is the time to maturity. It is used to compare options with different maturities by scaling the moneyness by the square root of time to maturity. This is because the price of the underlying asset is subject to random fluctuations, if these fluctuations follow a Brownian motion than the standard deviation of the price movement will increase with the square root of time.
+where $K$ is the strike, $F$ is the Forward price, and $\tau$ is the time to maturity. It is used to compare options with different maturities by scaling the [log-strike](#log-strike) by the square root of time to maturity. This is because the price of the underlying asset is subject to random fluctuations, if these fluctuations follow a Brownian motion than the standard deviation of the price movement will increase with the square root of time.
 
 
 ## Moneyness Vol Adjusted

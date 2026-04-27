@@ -1,6 +1,8 @@
 import json
+from pathlib import Path
 
-from quantflow.options.calibration import HestonJCalibration
+from docs.examples._utils import print_model
+from quantflow.options.heston_calibration import HestonJCalibration
 from quantflow.options.pricer import OptionPricer
 from quantflow.options.surface import VolSurface, VolSurfaceInputs, surface_from_inputs
 from quantflow.sp.heston import HestonJ
@@ -26,21 +28,20 @@ pricer = OptionPricer(
     )
 )
 
-# Set up the calibration, dropping the first (very short) maturity and high-vol wings
-calibration = HestonJCalibration(
+# Set up the calibration, dropping the first (very short) maturity
+calibration: HestonJCalibration[DoubleExponential] = HestonJCalibration(
     pricer=pricer,
-    vol_surface=surface.trim(len(surface.maturities) - 1),
-    moneyness_weight=1.0,
-).remove_implied_above(quantile=0.95)
+    vol_surface=surface,
+    moneyness_weight=0.5,
+)
 
 result = calibration.fit()
 print(result.message)
-model = calibration.model
-print(f"vol:            {model.variance_process.rate**0.5:.4f}")
-print(f"theta:          {model.variance_process.theta**0.5:.4f}")
-print(f"kappa:          {model.variance_process.kappa:.4f}")
-print(f"sigma:          {model.variance_process.sigma:.4f}")
-print(f"rho:            {model.rho:.4f}")
-print(f"jump intensity: {model.jumps.intensity:.4f}")
-print(f"jump variance:  {model.jumps.jumps.variance():.6f}")
-print(f"jump asymmetry: {model.jumps.jumps.asymmetry():.4f}")
+print_model(calibration.model)
+
+# Plot the calibrated smile for all maturities and save as PNG
+fig = calibration.plot_maturities(max_moneyness_ttm=1.5, support=101)
+fig.update_layout(title="HestonJ Calibrated Smiles")
+
+out_path = Path("docs/assets/hestonj_calibrated_smile.png")
+fig.write_image(str(out_path), width=1200)

@@ -1,19 +1,16 @@
 from __future__ import annotations
 
 from abc import ABC, abstractmethod
-from dataclasses import dataclass, field
 from datetime import datetime
 from decimal import Decimal
-from typing import Any, Generic, NamedTuple, Sequence, TypeVar
+from typing import Any, Generic, NamedTuple, TypeVar
 
 import numpy as np
 import pandas as pd
-from pydantic import BaseModel, Field
-from scipy.optimize import Bounds, OptimizeResult, minimize
+from pydantic import BaseModel, Field, PrivateAttr
+from scipy.optimize import Bounds, OptimizeResult, least_squares, minimize
 
 from quantflow.sp.base import StochasticProcess1D
-from quantflow.sp.heston import Heston, HestonJ
-from quantflow.sp.jump_diffusion import D
 from quantflow.utils import plot
 
 from .pricer import OptionPricerBase
@@ -27,37 +24,49 @@ class ModelCalibrationEntryKey(NamedTuple):
     strike: Decimal
 
 
-@dataclass
-class OptionEntry:
-    """Entry for a single option"""
+class OptionEntry(BaseModel):
+    """Entry for a single option in the calibration dataset.
 
-    ttm: float
-    moneyness: float
-    options: list[OptionPrice] = field(default_factory=list)
-    _price_range: Bounds | None = None
+    Each entry corresponds to a unique (maturity, strike) pair and holds the
+    bid and ask sides as separate
+    [OptionPrice][quantflow.options.surface.OptionPrice] objects.
+    """
+
+    ttm: float = Field(description="Time to maturity in years")
+    moneyness: float = Field(description="Log-moneyness: log(strike / forward)")
+    options: list[OptionPrice] = Field(default_factory=list)
+    """Bid and ask option prices for this entry"""
+    _mid_price: float | None = PrivateAttr(default=None)
 
     def implied_vol_range(self) -> Bounds:
-        """Get the range of implied volatilities"""
+        """Get the range of implied volatilities across bid and ask"""
         implied_vols = tuple(option.implied_vol for option in self.options)
         return Bounds(min(implied_vols), max(implied_vols))
 
-    def residual(self, price: float) -> float:
-        """Calculate the residual for a given price
-
-        when inside bid/offer, the residual is 0
-        """
-        return min(np.min(self.price_range().residual(price)), 0)
-
-    def price_range(self) -> Bounds:
-        """Get the range of prices"""
-        if self._price_range is None:
+    def mid_price(self) -> float:
+        """Mid price as the average of bid and ask call prices"""
+        if self._mid_price is None:
             prices = tuple(float(option.call_price) for option in self.options)
-            self._price_range = Bounds(min(prices), max(prices))
-        return self._price_range
+            self._mid_price = sum(prices) / len(prices)
+        return self._mid_price
+
+    def mid_iv(self) -> float:
+        """Mid implied volatility as the average of bid and ask"""
+        ivs = tuple(option.implied_vol for option in self.options)
+        return sum(ivs) / len(ivs)
 
 
-class VolModelCalibration(BaseModel, ABC, Generic[M], arbitrary_types_allowed=True):
-    """Abstract class for calibration of a stochastic volatility model"""
+class VolModelCalibration(BaseModel, ABC, Generic[M]):
+    """Abstract base class for calibration of a stochastic volatility model.
+
+    Subclasses must implement `get_params`, `set_params`, and `get_bounds`.
+
+    The two-stage `fit` method is provided here and works for any subclass:
+
+    - Stage 1: Nelder-Mead on the scalar `cost_function` to find a good basin.
+    - Stage 2: Levenberg-Marquardt (TRF) on the `residuals` vector for
+      precise convergence with bound constraints.
+    """
 
     pricer: OptionPricerBase = Field(
         description=(
@@ -65,28 +74,37 @@ class VolModelCalibration(BaseModel, ABC, Generic[M], arbitrary_types_allowed=Tr
             " for the model"
         )
     )
-    vol_surface: VolSurface[Any] = Field(repr=False)
-    """The [VolSurface][quantflow.options.surface.VolSurface]
-    to calibrate the model with"""
-    minimize_method: str | None = None
-    """The optimization method to use - if None, the default is used"""
-    moneyness_weight: float = Field(default=0.0, ge=0.0)
-    """The weight for penalize options with moneyness as it moves away from 0
-
-    The weight is applied as exp(-moneyness_weight * moneyness), therefore
-    a value of 0 won't penalize moneyness at all
-    """
-    ttm_weight: float = Field(default=0.0, ge=0.0, le=1.0)
-    """The weight for penalize options with ttm as it approaches 0
-
-    The weight is applied as `1 - ttm_weight*exp(-ttm)`, therefore
-    a value of 0 won't penalize ttm at all, a value of 1 will penalize
-    options with ttm->0 the most
-    """
-    options: dict[ModelCalibrationEntryKey, OptionEntry] = Field(
-        default_factory=dict, repr=False
+    vol_surface: VolSurface[Any] = Field(
+        repr=False,
+        description=(
+            "The [VolSurface][quantflow.options.surface.VolSurface]"
+            " to calibrate the model with"
+        ),
     )
-    """The options to calibrate"""
+    moneyness_weight: float = Field(
+        default=0.0,
+        ge=0.0,
+        description=(
+            "Weight penalising options as moneyness moves away from 0."
+            " Applied as `exp(-moneyness_weight * |moneyness|)`."
+            " A value of 0 applies no penalisation."
+        ),
+    )
+    ttm_weight: float = Field(
+        default=0.0,
+        ge=0.0,
+        le=1.0,
+        description=(
+            "Weight penalising short-dated options as ttm approaches 0."
+            " Applied as `1 - ttm_weight * exp(-ttm)`."
+            " A value of 0 applies no penalisation."
+        ),
+    )
+    options: dict[ModelCalibrationEntryKey, OptionEntry] = Field(
+        default_factory=dict,
+        repr=False,
+        description="The options to calibrate",
+    )
 
     def model_post_init(self, _ctx: Any) -> None:
         if not self.options:
@@ -100,26 +118,22 @@ class VolModelCalibration(BaseModel, ABC, Generic[M], arbitrary_types_allowed=Tr
 
     @abstractmethod
     def get_params(self) -> np.ndarray:
-        """Get the parameters of the model
-
-        Must be implemented by the subclass
-        """
+        """Current model parameters as a flat array (starting point for fit)"""
 
     @abstractmethod
     def set_params(self, params: np.ndarray) -> None:
-        """Set the parameters of the model
+        """Apply a flat parameter array back to the model"""
 
-        Must be implemented by the subclass
-        """
+    @abstractmethod
+    def get_bounds(self) -> Bounds:
+        """Parameter bounds for the optimiser"""
 
     @property
     def model(self) -> M:
-        """Get the model"""
         return self.pricer.model  # type: ignore[attr-defined]
 
     @property
     def ref_date(self) -> datetime:
-        """Get the reference date"""
         return self.vol_surface.ref_date
 
     @property
@@ -129,67 +143,66 @@ class VolModelCalibration(BaseModel, ABC, Generic[M], arbitrary_types_allowed=Tr
             data.extend(option.implied_vol for option in entry.options)
         return np.asarray(data)
 
-    def remove_implied_above(self, quantile: float = 0.95) -> VolModelCalibration:
-        exclude_above = np.quantile(self.implied_vols, quantile)
-        options = {}
-        for key, entry in self.options.items():
-            if entry.implied_vol_range().ub <= exclude_above:
-                options[key] = entry
-        return self.model_copy(update=dict(options=options))
-
-    def get_bounds(self) -> Bounds | None:  # pragma: no cover
-        """Get the parameter bounds for the calibration"""
-        return None
-
-    def get_constraints(self) -> Sequence[dict[str, Any]] | None:
-        """Get the constraints for the calibration"""
-        return None
-
-    def get_minimize_method(self) -> str | None:
-        """Get the minimisation method to use.
-
-        Returns `minimize_method` by default. Override in subclasses to select
-        a method based on active constraints or bounds.
-        """
-        return self.minimize_method
-
     def implied_vol_range(self) -> Bounds:
-        """Get the range of implied volatilities"""
+        """Range of implied volatilities across all calibration options"""
         return Bounds(
             min(option.implied_vol_range().lb for option in self.options.values()),
             max(option.implied_vol_range().ub for option in self.options.values()),
         )
 
     def fit(self) -> OptimizeResult:
-        """Fit the model"""
-        return minimize(
+        """Two-stage fit: Nelder-Mead basin search then LM refinement.
+
+        Stage 1 (Nelder-Mead): gradient-free minimisation of `cost_function`
+        to reach the right basin of attraction.
+
+        Stage 2 (TRF/LM): `scipy.optimize.least_squares` on the `residuals`
+        vector with parameter bounds for precise convergence.
+        """
+        bounds = self.get_bounds()
+        stage1 = minimize(
             self.cost_function,
             self.get_params(),
-            method=self.get_minimize_method(),
-            bounds=self.get_bounds(),
-            constraints=self.get_constraints(),
+            method="L-BFGS-B",
+            bounds=list(zip(bounds.lb, bounds.ub)),
         )
+        result = least_squares(
+            self.residuals,
+            np.clip(stage1.x, bounds.lb, bounds.ub),
+            method="trf",
+            bounds=(bounds.lb, bounds.ub),
+            ftol=1e-10,
+            xtol=1e-10,
+            gtol=1e-10,
+        )
+        self.set_params(result.x)
+        return result
 
     def cost_weight(self, ttm: float, moneyness: float) -> float:
-        """Calculate the weight for the cost function for
-        a given time to maturity and moneyness"""
+        """Weight for a given time to maturity and moneyness"""
         return np.exp(-self.moneyness_weight * moneyness)
 
     def penalize(self) -> float:
-        """Penalize the cost function"""
+        """Additional scalar penalty added to the cost function (default: 0)"""
         return 0.0
 
-    def cost_function(self, params: np.ndarray) -> float:
-        """Calculate the cost function from the model prices"""
+    def residuals(self, params: np.ndarray) -> np.ndarray:
+        """Weighted price residuals: `weight * (model_price - mid_price)` per option"""
         self.set_params(params)
         self.pricer.reset()
-        cost = 0.0
-        for entry in self.options.values():
-            model_price = self.pricer.call_price(entry.ttm, entry.moneyness)
-            if residual := entry.residual(model_price):
+        res = []
+        with np.errstate(all="ignore"):
+            for entry in self.options.values():
+                model_price = self.pricer.call_price(entry.ttm, entry.moneyness)
                 weight = self.cost_weight(entry.ttm, entry.moneyness)
-                cost += weight * residual**2
-        return cost + self.penalize()
+                r = weight * (model_price - entry.mid_price())
+                res.append(r if np.isfinite(r) else 1e6)
+        return np.asarray(res)
+
+    def cost_function(self, params: np.ndarray) -> float:
+        """Scalar cost: sum of squared residuals plus any penalty"""
+        r = self.residuals(params)
+        return float(np.dot(r, r)) + self.penalize()
 
     def plot(
         self,
@@ -199,10 +212,9 @@ class VolModelCalibration(BaseModel, ABC, Generic[M], arbitrary_types_allowed=Tr
         support: int = 51,
         **kwargs: Any,
     ) -> Any:
-        """Plot the implied volatility for market and model prices"""
+        """Plot implied volatility for market and model prices"""
         cross = self.vol_surface.maturities[index]
         options = tuple(self.vol_surface.option_prices(index=index, converged=True))
-        cross = self.vol_surface.maturities[index]
         model = self.pricer.maturity(cross.ttm(self.ref_date))
         if max_moneyness_ttm is not None:
             model = model.max_moneyness_ttm(
@@ -214,144 +226,39 @@ class VolModelCalibration(BaseModel, ABC, Generic[M], arbitrary_types_allowed=Tr
             **kwargs,
         )
 
-
-class HestonCalibration(VolModelCalibration[Heston]):
-    """A [VolModelCalibration][quantflow.options.calibration.VolModelCalibration]
-    for the [Heston][quantflow.sp.heston.Heston] stochastic volatility model"""
-
-    feller_penalize: float = 0.0
-    feller_enforce: bool = Field(
-        default=True,
-        description=(
-            "Enforce the Feller condition $2\\kappa\\theta \\geq \\sigma^2$ as a hard "
-            "inequality constraint during optimisation. When True, "
-            "`get_minimize_method` returns SLSQP unless `minimize_method` "
-            "is already set explicitly."
-        ),
-    )
-
-    def get_bounds(self) -> Sequence[Bounds] | None:
-        vol_range = self.implied_vol_range()
-        vol_lb = 0.5 * vol_range.lb[0]
-        vol_ub = 1.5 * vol_range.ub[0]
-        return Bounds(
-            [vol_lb * vol_lb, vol_lb * vol_lb, 0.0, 0.0, -0.9],
-            [vol_ub * vol_ub, vol_ub * vol_ub, np.inf, np.inf, 0],
-        )
-
-    def get_params(self) -> np.ndarray:
-        return np.asarray(
-            [
-                self.model.variance_process.rate,
-                self.model.variance_process.theta,
-                self.model.variance_process.kappa,
-                self.model.variance_process.sigma,
-                self.model.rho,
-            ]
-        )
-
-    def set_params(self, params: np.ndarray) -> None:
-        self.model.variance_process.rate = params[0]
-        self.model.variance_process.theta = params[1]
-        self.model.variance_process.kappa = params[2]
-        self.model.variance_process.sigma = params[3]
-        self.model.rho = params[4]
-
-    def get_constraints(self) -> Sequence[dict[str, Any]] | None:
-        """Return the Feller condition $2\\kappa\\theta \\geq \\sigma^2$ as a scipy
-        inequality constraint when `feller_enforce` is True.
-
-        Params layout: `[rate, theta, kappa, sigma, rho]` at indices 0-4.
-        The constraint function returns $2 \\cdot kappa \\cdot theta - sigma^2$,
-        which scipy requires to be $\\geq 0$.
-        """
-        if not self.feller_enforce:
-            return None
-        return [{"type": "ineq", "fun": lambda p: 2.0 * p[2] * p[1] - p[3] ** 2}]
-
-    def get_minimize_method(self) -> str | None:
-        """Return SLSQP when `feller_enforce` is True and no explicit method is
-        set, since SLSQP supports both bounds and inequality constraints.
-        Otherwise delegates to the base class.
-        """
-        if self.feller_enforce and self.minimize_method is None:
-            return "SLSQP"
-        return self.minimize_method
-
-    def penalize(self) -> float:
-        kt = 2 * self.model.variance_process.kappa * self.model.variance_process.theta
-        neg = max(0.5 * self.model.variance_process.sigma2 - kt, 0)
-        return self.feller_penalize * neg * neg
-
-
-class HestonJCalibration(VolModelCalibration[HestonJ[D]], Generic[D]):
-    """A [VolModelCalibration][quantflow.options.calibration.VolModelCalibration]
-    for the [HestonJ][quantflow.sp.heston.HestonJ] stochastic volatility model
-    with [DoubleExponential][quantflow.utils.distributions.DoubleExponential] jumps
-    """
-
-    feller_penalize: float = 0.0
-
-    def get_bounds(self) -> Sequence[Bounds] | None:
-        vol_range = self.implied_vol_range()
-        vol_lb = 0.5 * vol_range.lb[0]
-        vol_ub = 1.5 * vol_range.ub[0]
-        lower = [
-            (0.5 * vol_lb) ** 2,  # rate
-            (0.5 * vol_lb) ** 2,  # theta
-            0.001,  # kappa - mean reversion speed
-            0.001,  # sigma - vol of vol
-            -0.9,  # correlation
-            1.0,  # jump intensity
-            (0.01 * vol_lb) ** 2,  # jump variance
+    def plot_maturities(
+        self,
+        *,
+        max_moneyness_ttm: float | None = 1.0,
+        support: int = 51,
+        cols: int = 2,
+        row_height: int = 400,
+        showlegend: bool = False,
+        **kwargs: Any,
+    ) -> Any:
+        """Plot implied volatility for all maturities as a subplot grid"""
+        plot.check_plotly()
+        n = len(self.vol_surface.maturities)
+        rows = (n + cols - 1) // cols
+        titles = [
+            cross.maturity.strftime("%Y-%m-%d") for cross in self.vol_surface.maturities
         ]
-        upper = [
-            (1.5 * vol_ub) ** 2,  # rate
-            (1.5 * vol_ub) ** 2,  # theta
-            np.inf,  # kappa
-            np.inf,  # sigma
-            0.0,  # correlation
-            np.inf,  # jump intensity
-            (0.5 * vol_ub) ** 2,  # jump variance
-        ]
-        try:
-            self.model.jumps.jumps.asymmetry()
-            lower.append(-2.0)  # jump asymmetry
-            upper.append(2.0)
-        except NotImplementedError:
-            pass
-        return Bounds(lower, upper)
-
-    def get_params(self) -> np.ndarray:
-        params = [
-            self.model.variance_process.rate,
-            self.model.variance_process.theta,
-            self.model.variance_process.kappa,
-            self.model.variance_process.sigma,
-            self.model.rho,
-            self.model.jumps.intensity,
-            self.model.jumps.jumps.variance(),
-        ]
-        try:
-            params.append(self.model.jumps.jumps.asymmetry())
-        except NotImplementedError:
-            pass
-        return np.asarray(params)
-
-    def set_params(self, params: np.ndarray) -> None:
-        self.model.variance_process.rate = params[0]
-        self.model.variance_process.theta = params[1]
-        self.model.variance_process.kappa = params[2]
-        self.model.variance_process.sigma = params[3]
-        self.model.rho = params[4]
-        self.model.jumps.intensity = params[5]
-        self.model.jumps.jumps.set_variance(params[6])
-        try:
-            self.model.jumps.jumps.set_asymmetry(params[7])
-        except IndexError:
-            pass
-
-    def penalize(self) -> float:
-        kt = 2 * self.model.variance_process.kappa * self.model.variance_process.theta
-        neg = max(0.5 * self.model.variance_process.sigma2 - kt, 0)
-        return self.feller_penalize * neg * neg
+        fig = plot.make_subplots(rows=rows, cols=cols, subplot_titles=titles)
+        fig.update_layout(height=rows * row_height, showlegend=showlegend)
+        for i, cross in enumerate(self.vol_surface.maturities):
+            row = i // cols + 1
+            col = i % cols + 1
+            options = tuple(self.vol_surface.option_prices(index=i, converged=True))
+            model = self.pricer.maturity(cross.ttm(self.ref_date))
+            if max_moneyness_ttm is not None:
+                model = model.max_moneyness_ttm(
+                    max_moneyness_ttm=max_moneyness_ttm, support=support
+                )
+            plot.plot_vol_surface(
+                pd.DataFrame([d.info_dict() for d in options]),
+                model=model.df,
+                fig=fig,
+                fig_params={"row": row, "col": col},
+                **kwargs,
+            )
+        return fig
