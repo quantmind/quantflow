@@ -30,7 +30,13 @@ applyTo: '/**'
 * Do not use em dashes (—) in documentation files or docstrings. Use colons, parentheses, or restructure the sentence instead.
 * Math in documentation and docstrings: always use `\begin{equation}...\end{equation}` for any formula or equation. Use `$...$` only for brief inline references to variables (e.g. $F$, $K$). Do not use `$$...$$`, `` `...` ``, or RST syntax (`.. math::`, `:math:`).
 * Glossary entries in `docs/glossary.md` must be kept in alphabetical order.
+* Do not repeat concept definitions inline in tutorials or docstrings — link to the glossary instead using a relative markdown link (e.g. `[moneyness](../glossary.md#moneyness)`).
 * To rebuild doc examples run `uv run ./dev/build-examples` — runs all scripts in `docs/examples/` and writes their output to `docs/examples_output/`
+
+## Pydantic models
+
+* Always document Pydantic fields with `Field(description=...)` — never use a docstring below a field assignment
+* Split long description strings across lines using implicit string concatenation rather than shortening the text
 
 ## Package structure
 

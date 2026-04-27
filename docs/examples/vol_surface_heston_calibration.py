@@ -1,13 +1,15 @@
 import json
+from pathlib import Path
 
+from docs.examples._utils import print_model
 from quantflow.options.heston_calibration import HestonCalibration
 from quantflow.options.pricer import OptionPricer
-from quantflow.options.surface import VolSurface, VolSurfaceInputs, surface_from_inputs
+from quantflow.options.surface import VolSurfaceInputs, surface_from_inputs
 from quantflow.sp.heston import Heston
 
 # Load a saved volatility surface snapshot and build the surface
 with open("docs/examples/volsurface.json") as fp:
-    surface: VolSurface = surface_from_inputs(VolSurfaceInputs(**json.load(fp)))
+    surface = surface_from_inputs(VolSurfaceInputs(**json.load(fp)))
 
 surface.bs()
 surface.disable_outliers()
@@ -15,19 +17,19 @@ surface.disable_outliers()
 # Create a Heston pricer with initial parameters
 pricer = OptionPricer(model=Heston.create(vol=0.5, kappa=1, sigma=0.8, rho=0))
 
-# Set up the calibration, dropping the first (very short) maturity and high-vol wings
-calibration = HestonCalibration(
+# Set up the calibration, dropping the first (very short) maturity
+calibration: HestonCalibration[Heston] = HestonCalibration(
     pricer=pricer,
-    vol_surface=surface.trim(len(surface.maturities) - 1),
-    moneyness_weight=1.0,
-).remove_implied_above(quantile=0.95)
+    vol_surface=surface,
+)
 
 result = calibration.fit()
 print(result.message)
-params = calibration.get_params()
-model = calibration.model
-print(f"vol:   {model.variance_process.rate**0.5:.4f}")
-print(f"theta: {model.variance_process.theta**0.5:.4f}")
-print(f"kappa: {model.variance_process.kappa:.4f}")
-print(f"sigma: {model.variance_process.sigma:.4f}")
-print(f"rho:   {model.rho:.4f}")
+print_model(calibration.model)
+
+# Plot the calibrated smile for all maturities and save as PNG
+fig = calibration.plot_maturities(max_moneyness_ttm=1.5, support=101)
+fig.update_layout(title="Heston Calibrated Smiles")
+
+out_path = Path("docs/assets/heston_calibrated_smile.png")
+fig.write_image(str(out_path), width=1200)

@@ -13,10 +13,12 @@ try:
     import plotly.express as px  # type: ignore
     import plotly.graph_objects as go
     import plotly.io as pio
+    from plotly.subplots import make_subplots
 
     pio.templates.default = PLOTLY_THEME
 except ImportError:
     px = None
+    make_subplots = None  # type: ignore[assignment]
 
 
 def check_plotly() -> None:

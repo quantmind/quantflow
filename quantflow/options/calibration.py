@@ -74,25 +74,37 @@ class VolModelCalibration(BaseModel, ABC, Generic[M]):
             " for the model"
         )
     )
-    vol_surface: VolSurface[Any] = Field(repr=False)
-    """The [VolSurface][quantflow.options.surface.VolSurface]
-    to calibrate the model with"""
-    moneyness_weight: float = Field(default=0.0, ge=0.0)
-    """Weight penalising options as moneyness moves away from 0.
-
-    Applied as `exp(-moneyness_weight * |moneyness|)`.
-    A value of 0 applies no penalisation.
-    """
-    ttm_weight: float = Field(default=0.0, ge=0.0, le=1.0)
-    """Weight penalising short-dated options as ttm approaches 0.
-
-    Applied as `1 - ttm_weight * exp(-ttm)`.
-    A value of 0 applies no penalisation.
-    """
-    options: dict[ModelCalibrationEntryKey, OptionEntry] = Field(
-        default_factory=dict, repr=False
+    vol_surface: VolSurface[Any] = Field(
+        repr=False,
+        description=(
+            "The [VolSurface][quantflow.options.surface.VolSurface]"
+            " to calibrate the model with"
+        ),
     )
-    """The options to calibrate"""
+    moneyness_weight: float = Field(
+        default=0.0,
+        ge=0.0,
+        description=(
+            "Weight penalising options as moneyness moves away from 0."
+            " Applied as `exp(-moneyness_weight * |moneyness|)`."
+            " A value of 0 applies no penalisation."
+        ),
+    )
+    ttm_weight: float = Field(
+        default=0.0,
+        ge=0.0,
+        le=1.0,
+        description=(
+            "Weight penalising short-dated options as ttm approaches 0."
+            " Applied as `1 - ttm_weight * exp(-ttm)`."
+            " A value of 0 applies no penalisation."
+        ),
+    )
+    options: dict[ModelCalibrationEntryKey, OptionEntry] = Field(
+        default_factory=dict,
+        repr=False,
+        description="The options to calibrate",
+    )
 
     def model_post_init(self, _ctx: Any) -> None:
         if not self.options:
@@ -130,14 +142,6 @@ class VolModelCalibration(BaseModel, ABC, Generic[M]):
         for entry in self.options.values():
             data.extend(option.implied_vol for option in entry.options)
         return np.asarray(data)
-
-    def remove_implied_above(self, quantile: float = 0.95) -> VolModelCalibration:
-        exclude_above = np.quantile(self.implied_vols, quantile)
-        options = {}
-        for key, entry in self.options.items():
-            if entry.implied_vol_range().ub <= exclude_above:
-                options[key] = entry
-        return self.model_copy(update=dict(options=options))
 
     def implied_vol_range(self) -> Bounds:
         """Range of implied volatilities across all calibration options"""
@@ -221,3 +225,40 @@ class VolModelCalibration(BaseModel, ABC, Generic[M]):
             model=model.df,
             **kwargs,
         )
+
+    def plot_maturities(
+        self,
+        *,
+        max_moneyness_ttm: float | None = 1.0,
+        support: int = 51,
+        cols: int = 2,
+        row_height: int = 400,
+        showlegend: bool = False,
+        **kwargs: Any,
+    ) -> Any:
+        """Plot implied volatility for all maturities as a subplot grid"""
+        plot.check_plotly()
+        n = len(self.vol_surface.maturities)
+        rows = (n + cols - 1) // cols
+        titles = [
+            cross.maturity.strftime("%Y-%m-%d") for cross in self.vol_surface.maturities
+        ]
+        fig = plot.make_subplots(rows=rows, cols=cols, subplot_titles=titles)
+        fig.update_layout(height=rows * row_height, showlegend=showlegend)
+        for i, cross in enumerate(self.vol_surface.maturities):
+            row = i // cols + 1
+            col = i % cols + 1
+            options = tuple(self.vol_surface.option_prices(index=i, converged=True))
+            model = self.pricer.maturity(cross.ttm(self.ref_date))
+            if max_moneyness_ttm is not None:
+                model = model.max_moneyness_ttm(
+                    max_moneyness_ttm=max_moneyness_ttm, support=support
+                )
+            plot.plot_vol_surface(
+                pd.DataFrame([d.info_dict() for d in options]),
+                model=model.df,
+                fig=fig,
+                fig_params={"row": row, "col": col},
+                **kwargs,
+            )
+        return fig

@@ -5,6 +5,7 @@ ISORT_ARGS="-c"
 BLACK_ARG="--check"
 RUFF_ARG=""
 TAPLO_ARG="format --check"
+PACKAGES="quantflow quantflow_tests docs/examples"
 
 if [ "$1" = "fix" ] ; then
     ISORT_ARGS=""
@@ -15,12 +16,10 @@ fi
 
 taplo ${TAPLO_ARG}
 echo isort
-uv run isort quantflow quantflow_tests ${ISORT_ARGS}
+uv run isort ${PACKAGES} ${ISORT_ARGS}
 echo black
-uv run black quantflow quantflow_tests ${BLACK_ARG}
+uv run black ${PACKAGES} ${BLACK_ARG}
 echo ruff
-uv run ruff check quantflow quantflow_tests ${RUFF_ARG}
+uv run ruff check ${PACKAGES} ${RUFF_ARG}
 echo mypy
-uv run mypy quantflow
-echo mypy tests
-uv run mypy quantflow_tests --explicit-package-bases
+uv run mypy ${PACKAGES}

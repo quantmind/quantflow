@@ -189,22 +189,17 @@ def test_calibration_setup(vol_surface: VolSurface, heston: OptionPricer[Heston]
     )
     assert cal.ref_date == vol_surface.ref_date
     assert cal.options
-    n = len(cal.options)
     vol_range = cal.implied_vol_range()
     assert vol_range.lb < vol_range.ub
     assert vol_range.lb > 0
     assert vol_range.ub < 10
-    cal2 = cal.remove_implied_above(1.0)
-    assert len(cal2.options) == n
-    cal2 = cal.remove_implied_above(0.95)
-    assert len(cal2.options) < n
 
 
 def test_calibration(vol_surface: VolSurface, heston: OptionPricer[Heston]):
     vol_surface.maturities = vol_surface.maturities[1:]
-    cal = HestonCalibration(
+    cal: HestonCalibration[Heston] = HestonCalibration(
         pricer=heston, vol_surface=vol_surface
-    ).remove_implied_above(0.95)
+    )
     cal.fit()
     if has_plotly:
         assert cal.plot(index=2) is not None

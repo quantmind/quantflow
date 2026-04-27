@@ -57,13 +57,7 @@ matches each bid and ask price and marks each option as `converged` or not.
 Raw option quotes often contain illiquid or stale prices that produce unrealistic
 implied volatilities.
 [disable_outliers()][quantflow.options.surface.VolSurface.disable_outliers] removes
-them in two passes per maturity:
-
-1. **Wide spread filter** — options whose implied-vol bid/ask spread exceeds 30% of the
-   mid vol are marked as not converged.
-2. **Polynomial smile fit** — a quadratic is fitted to the remaining smile; options
-   whose residual exceeds the 99th-percentile threshold are disabled. This is repeated
-   twice.
+them in two passes per maturity.
 
 ```python
 surface.disable_outliers()
@@ -106,24 +100,30 @@ surface2 = surface_from_inputs(inputs)    # VolSurfaceInputs -> VolSurface
 
 ## Calibrating the Heston Model
 
-[HestonCalibration][quantflow.options.calibration.HestonCalibration] wraps an
-[OptionPricer][quantflow.options.pricer.OptionPricer] and the surface, then minimises
-the squared residuals between market bid/ask call prices and model prices across all
-strikes and maturities.
+[HestonCalibration][quantflow.options.heston_calibration.HestonCalibration] fits the
+five Heston parameters ($v_0$, $\theta$, $\kappa$, $\sigma$, $\rho$) to the implied
+volatility surface using a two-stage optimisation:
+
+1. **L-BFGS-B** minimises the scalar cost function (sum of squared weighted price
+   residuals) to reach a good basin of attraction.
+2. **Trust-region reflective** (`least_squares` with `method="trf"`) refines the
+   solution on the residual vector with tight tolerances and enforces parameter bounds.
+
+Residuals are computed as `weight * (model_call_price - mid_call_price)` where
+`mid_call_price` is the average of the bid and ask call prices, and the weight is
+$e^{-w \cdot |k|}$ controlled by `moneyness_weight`. A penalty for violating the
+Feller condition ($2\kappa\theta \geq \sigma^2$) is added during stage 1 to keep the
+variance process well-behaved.
 
 ```python
 --8<-- "docs/examples/vol_surface_heston_calibration.py"
 ```
 
-```
+### Output
+
 --8<-- "docs/examples_output/vol_surface_heston_calibration.out"
-```
 
 ### Calibration Options
-
-[remove_implied_above()][quantflow.options.calibration.VolModelCalibration.remove_implied_above]
-drops options with implied vols above the given quantile before fitting — useful for
-excluding illiquid deep wings.
 
 The `moneyness_weight` parameter down-weights far-from-the-money options via
 $e^{-w \cdot |k|}$ where $k = \log(K/F)$. Setting `ttm_weight > 0` similarly
@@ -131,19 +131,54 @@ down-weights near-expiry options.
 
 ### Plotting the Calibrated Smile
 
-Use [plot()][quantflow.options.calibration.VolModelCalibration.plot] to produce a
-Plotly figure overlaying market bid/ask implied vols against the model smile:
+Use [plot_maturities()][quantflow.options.calibration.VolModelCalibration.plot_maturities]
+to produce a Plotly figure overlaying market bid/ask implied vols against the model smile
+for all maturities at once:
 
 ```python
-fig = calibration.plot(index=1, max_moneyness_ttm=1.5, support=101)
-fig.write_image("heston_calibrated_smile.png", width=900, height=500)
+fig = calibration.plot_maturities(max_moneyness_ttm=1.5, support=101)
+fig.write_image("heston_calibrated_smile.png", width=1200)
 ```
+
+The x axis is [moneyness](../glossary.md#moneyness).
 
 ![Heston calibrated smile](../assets/heston_calibrated_smile.png)
 
+### Model Limitations at Short Maturities
+
+Inspecting the calibrated smiles across all maturities reveals a systematic pattern:
+the Heston model fits long-dated options reasonably well but struggles with short-term
+maturities, where the market smile is steeper than the model can reproduce.
+
+This is a fundamental structural limitation, not a numerical issue. The Heston model
+generates an implied volatility smile through two mechanisms: the correlation $\rho$
+between spot and variance (which creates skew) and the volatility-of-variance $\sigma$
+(which inflates the wings). Both effects accumulate diffusively over time. For a maturity
+$T$, the smile roughly scales as $\sigma \sqrt{T}$, so as $T \to 0$ the distribution
+collapses toward a Gaussian and the smile flattens.
+
+More precisely, the Heston characteristic function at short maturities satisfies:
+
+\begin{equation}
+\log \phi(u, T) \approx i u \mu T - \tfrac{1}{2} u^2 v_0 T + O(T^2)
+\end{equation}
+
+which is the characteristic function of a Gaussian with variance $v_0 T$. The higher
+cumulants that produce skew and excess kurtosis are all $O(T^2)$ or smaller, so they
+vanish faster than the Gaussian term as $T \to 0$.
+
+In practice this means the Heston model essentially reduces to Black-Scholes for
+near-expiry options. The market, however, exhibits pronounced short-term skew driven by
+jump risk and the market microstructure of short-dated hedging demand. A diffusion-only
+model cannot reproduce this behaviour regardless of how its parameters are tuned.
+
+The natural extension is to add a jump component to the dynamics, which contributes
+a term of order $O(T)$ to the cumulants and restores the short-term smile. This is
+the motivation for the Heston jump-diffusion model described in the next section.
+
 ## Calibrating the Heston Jump-Diffusion Model
 
-[HestonJCalibration][quantflow.options.calibration.HestonJCalibration] extends the
+[HestonJCalibration][quantflow.options.heston_calibration.HestonJCalibration] extends the
 Heston calibration with a compound Poisson jump component via the
 [HestonJ][quantflow.sp.heston.HestonJ] model. Jumps are drawn from a
 [DoubleExponential][quantflow.utils.distributions.DoubleExponential] distribution,
@@ -153,21 +188,42 @@ which captures asymmetric jump behaviour common in equity and crypto markets.
 --8<-- "docs/examples/vol_surface_hestonj_calibration.py"
 ```
 
-```
 --8<-- "docs/examples_output/vol_surface_hestonj_calibration.out"
-```
 
 ### Plotting the Calibrated Smile
 
-Use [plot()][quantflow.options.calibration.VolModelCalibration.plot] to produce a
-Plotly figure overlaying market bid/ask implied vols against the model smile:
-
 ```python
-fig = calibration.plot(index=1, max_moneyness_ttm=1.5, support=101)
-fig.write_image("hestonj_calibrated_smile.png", width=900, height=500)
+fig = calibration.plot_maturities(max_moneyness_ttm=1.5, support=101)
+fig.write_image("hestonj_calibrated_smile.png", width=1200)
 ```
 
 ![HestonJ calibrated smile](../assets/hestonj_calibrated_smile.png)
+
+### Remaining Limitations at Short Maturities
+
+Adding jumps improves the short-term smile significantly compared to plain Heston, but
+the fit at the nearest maturities is still imperfect. Several structural reasons combine:
+
+**Jump parameters are global.** The compound Poisson component has a single intensity
+$\lambda$, jump variance, and asymmetry shared across all maturities. Increasing
+$\lambda$ to steepen the short-term smile simultaneously distorts the long-term smile,
+so the optimizer settles on a compromise.
+
+**Long maturities dominate the cost function.** They have more liquid strikes and
+therefore more data points. The optimizer minimizes total squared residuals across the
+whole surface, so short maturities — with fewer strikes — are outvoted and their fit is
+systematically sacrificed.
+
+**The jump distribution is not rich enough.** The short-term smile in crypto is driven
+by large, rare, asymmetric events. A [DoubleExponential][quantflow.utils.distributions.DoubleExponential]
+with fixed parameters cannot simultaneously match the wing curvature at short and long
+maturities.
+
+The natural next step is a rough volatility model (for example rough Heston with Hurst
+parameter $H < \tfrac{1}{2}$). Because the variance process has long memory and does not
+behave diffusively at short time scales, rough models produce a steep short-term skew
+without requiring jumps, and the skew decays as a power law $T^H$ rather than the
+$T^{1/2}$ rate of classical stochastic volatility.
 
 ### Parameter Reference
 

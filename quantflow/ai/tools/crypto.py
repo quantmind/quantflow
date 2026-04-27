@@ -1,5 +1,7 @@
 """Crypto tools for the quantflow MCP server."""
 
+from pathlib import Path
+
 from mcp.server.fastmcp import FastMCP
 
 from quantflow.data.deribit import Deribit, InstrumentKind
@@ -46,11 +48,9 @@ def register(mcp: FastMCP, tool: McpTool) -> None:
         Args:
             currency: Cryptocurrency symbol e.g. BTC, ETH
         """
-        from quantflow.options.surface import VolSurface
-
         async with Deribit() as client:
             loader = await client.volatility_surface_loader(currency)
-        vs: VolSurface = loader.surface()
+        vs = loader.surface()
         ts = vs.term_structure().round({"ttm": 4})
         return ts.to_csv(index=False)
 
@@ -62,16 +62,31 @@ def register(mcp: FastMCP, tool: McpTool) -> None:
             currency: Cryptocurrency symbol e.g. BTC, ETH
             maturity_index: Maturity index (-1 for all maturities)
         """
-        from quantflow.options.surface import VolSurface
-
         async with Deribit() as client:
             loader = await client.volatility_surface_loader(currency)
-        vs: VolSurface = loader.surface()
+        vs = loader.surface()
         index = None if maturity_index < 0 else maturity_index
         vs.bs(index=index)
         df = vs.options_df(index=index)
         df["implied_vol"] = df["implied_vol"].map("{:.2%}".format)
         return df.to_csv(index=False)
+
+    @mcp.tool()
+    async def vol_surface_snapshot(currency: str, path: str) -> str:
+        """Fetch a live volatility surface from Deribit and save it as a JSON snapshot.
+
+        Args:
+            currency: Cryptocurrency symbol e.g. BTC, ETH
+            path: File path to write the snapshot to
+        """
+        async with Deribit() as client:
+            loader = await client.volatility_surface_loader(currency)
+        vs = loader.surface()
+        vs.bs()
+        vs.disable_outliers()
+        inputs = vs.inputs(converged=True)
+        Path(path).write_text(inputs.model_dump_json(indent=2))
+        return f"Saved {len(vs.maturities)} maturities to {path}"
 
     @mcp.tool()
     async def crypto_prices(symbol: str, frequency: str = "") -> str:
