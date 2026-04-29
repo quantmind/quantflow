@@ -16,6 +16,15 @@ If $x$ is a continuous random variable, than the characteristic function is the 
 \end{equation}
 
 
+## Characteristic Exponent
+
+The characteristic exponent $\phi_{x,u}$ is defined from the
+[characteristic function](#characteristic-function) $\Phi_{x,u}$ by
+
+\begin{equation}
+    \Phi_{x,u} = e^{-\phi_{x,u}}
+\end{equation}
+
 ## Cumulative Distribution Function (CDF)
 
 The cumulative distribution function (CDF), or just distribution function,
@@ -46,7 +55,7 @@ In the [Heston model][quantflow.sp.heston.Heston] the variance process $v_t$ is 
 process, so the same condition applies with $\sigma$ being the vol of vol. The
 [CIR.is_positive][quantflow.sp.cir.CIR.is_positive] property checks whether the
 condition holds. The
-[HestonCalibration][quantflow.options.calibration.HestonCalibration] class provides a
+[HestonCalibration][quantflow.options.heston_calibration.HestonCalibration] class provides a
 `feller_enforce` flag (default `True`) that imposes this as a hard inequality constraint
 during optimisation.
 

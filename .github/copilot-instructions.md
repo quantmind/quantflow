@@ -37,6 +37,7 @@ applyTo: '/**'
 
 * Always document Pydantic fields with `Field(description=...)` — never use a docstring below a field assignment
 * Split long description strings across lines using implicit string concatenation rather than shortening the text
+* When a docstring line exceeds the line length limit, split it across multiple lines rather than shortening the text
 
 ## Package structure
 

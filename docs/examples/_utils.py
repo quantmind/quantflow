@@ -5,7 +5,8 @@ from pathlib import Path
 from pydantic import BaseModel
 
 EXAMPLE_DIR = Path(__file__).parent
-OUT_DIR = EXAMPLE_DIR.parent / "examples_output"
+OUT_DIR = EXAMPLE_DIR / "output"
+ASSET_DIR = EXAMPLE_DIR.parent / "assets" / "examples"
 
 
 def print_model(model: BaseModel) -> None:
@@ -15,9 +16,15 @@ def print_model(model: BaseModel) -> None:
     print("\n".join(text_data))
 
 
+def assets_path(filename: str) -> str:
+    """Helper function to get the path to an asset file in the docs"""
+    return f"docs/assets/examples/{filename}"
+
+
 def build_examples() -> list[Path]:
     failed = []
     OUT_DIR.mkdir(exist_ok=True)
+    ASSET_DIR.mkdir(exist_ok=True)
     for script in sorted(EXAMPLE_DIR.glob("*.py")):
         if script.stem.startswith("_"):
             continue

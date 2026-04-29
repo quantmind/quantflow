@@ -21,6 +21,7 @@ print(surface.term_structure().to_string(index=False))
 inputs = surface.inputs(converged=True)
 option_inputs = [i for i in inputs.inputs if isinstance(i, OptionInput)]
 df = pd.DataFrame([i.model_dump() for i in option_inputs])
+print("\n\n10 Converged option inputs")
 print(
     df[["maturity", "strike", "option_type", "bid", "ask", "iv_bid", "iv_ask"]]
     .head(10)

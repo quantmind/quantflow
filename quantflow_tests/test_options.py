@@ -7,7 +7,12 @@ import pytest
 
 from quantflow.options import bs
 from quantflow.options.calibration import ModelCalibrationEntryKey, OptionEntry
-from quantflow.options.heston_calibration import HestonCalibration, HestonJCalibration
+from quantflow.options.heston_calibration import (
+    DoubleHestonCalibration,
+    DoubleHestonJCalibration,
+    HestonCalibration,
+    HestonJCalibration,
+)
 from quantflow.options.inputs import OptionInput
 from quantflow.options.pricer import OptionPricer
 from quantflow.options.surface import (
@@ -16,7 +21,7 @@ from quantflow.options.surface import (
     VolSurface,
     surface_from_inputs,
 )
-from quantflow.sp.heston import Heston, HestonJ
+from quantflow.sp.heston import DoubleHeston, DoubleHestonJ, Heston, HestonJ
 from quantflow.utils.distributions import DoubleExponential
 from quantflow_tests.utils import has_plotly
 
@@ -297,3 +302,59 @@ def test_hestonj_calibration_synthetic(vol_surface: VolSurface) -> None:
     result = cal.fit()
 
     assert result.cost < 1e-6
+
+
+def test_double_heston_calibration_synthetic(vol_surface: VolSurface) -> None:
+    """DoubleHestonCalibration recovers known parameters from synthetic prices."""
+    true_model = DoubleHeston(
+        heston1=Heston.create(vol=0.3, kappa=3.0, sigma=0.5, rho=-0.3),
+        heston2=Heston.create(vol=0.4, kappa=1.0, sigma=0.5, rho=-0.5),
+    )
+    true_pricer = OptionPricer(model=true_model)
+    options = _synthetic_options(true_pricer, vol_surface.ref_date)
+    perturbed = DoubleHeston(
+        heston1=Heston.create(vol=0.35, kappa=4.0, sigma=0.6, rho=-0.2),
+        heston2=Heston.create(vol=0.38, kappa=1.5, sigma=0.6, rho=-0.4),
+    )
+    cal: DoubleHestonCalibration[DoubleHeston] = DoubleHestonCalibration(
+        pricer=OptionPricer(model=perturbed), vol_surface=vol_surface, options=options
+    )
+    result = cal.fit()
+
+    assert result.cost < 2e-5
+
+
+def test_double_heston_jumps_calibration_synthetic(vol_surface: VolSurface) -> None:
+    """DoubleHestonJCalibration recovers known parameters from synthetic prices."""
+    true_model: DoubleHestonJ[DoubleExponential] = DoubleHestonJ(
+        heston1=HestonJ.create(
+            DoubleExponential,
+            vol=0.3,
+            kappa=3.0,
+            sigma=0.5,
+            rho=-0.3,
+            jump_fraction=0.2,
+            jump_asymmetry=0.3,
+        ),
+        heston2=Heston.create(vol=0.4, kappa=1.0, sigma=0.5, rho=-0.5),
+    )
+    true_pricer = OptionPricer(model=true_model)
+    options = _synthetic_options(true_pricer, vol_surface.ref_date)
+    perturbed: DoubleHestonJ[DoubleExponential] = DoubleHestonJ(
+        heston1=HestonJ.create(
+            DoubleExponential,
+            vol=0.35,
+            kappa=4.0,
+            sigma=0.6,
+            rho=-0.2,
+            jump_fraction=0.15,
+            jump_asymmetry=0.1,
+        ),
+        heston2=Heston.create(vol=0.38, kappa=1.5, sigma=0.6, rho=-0.4),
+    )
+    cal: DoubleHestonJCalibration[DoubleExponential] = DoubleHestonJCalibration(
+        pricer=OptionPricer(model=perturbed), vol_surface=vol_surface, options=options
+    )
+    result = cal.fit()
+
+    assert result.cost < 5e-3

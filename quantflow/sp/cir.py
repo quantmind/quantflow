@@ -39,14 +39,21 @@ class CIR(IntensityProcess):
     )
 
     @property
-    def is_positive(self) -> bool:
-        """Check if the process is guaranteed to be positive."""
-        return self.kappa * self.theta >= 0.5 * self.sigma2
-
-    @property
     def sigma2(self) -> float:
         """The square of the volatility parameter, used in various calculations."""
         return self.sigma * self.sigma
+
+    @property
+    def feller_condition(self) -> float:
+        """Value of $2\\kappa\\theta - \\sigma^2$; positive means
+        the Feller condition holds."""
+        return 2.0 * self.kappa * self.theta - self.sigma2
+
+    @property
+    def is_positive(self) -> bool:
+        """True if the Feller condition holds, guaranteeing
+        the process stays strictly positive."""
+        return self.feller_condition >= 0.0
 
     def sample(
         self, paths: int, time_horizon: float = 1, time_steps: int = 100

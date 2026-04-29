@@ -4,6 +4,29 @@ version = "0.7.0"
 description = "quantitative analysis"
 authors = [ { name = "Luca Sbardella", email = "luca@quantmind.com" } ]
 license = "BSD-3-Clause"
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Financial and Insurance Industry",
+    "Intended Audience :: Science/Research",
+    "License :: OSI Approved :: BSD License",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Programming Language :: Python :: 3.14",
+    "Topic :: Office/Business :: Financial",
+    "Topic :: Scientific/Engineering :: Mathematics",
+    "Typing :: Typed",
+]
+keywords = [
+    "finance",
+    "options",
+    "pricing",
+    "quantitative",
+    "stochastic",
+    "volatility",
+]
 readme = "readme.md"
 requires-python = ">=3.11,<3.15"
 dependencies = [
@@ -18,7 +41,8 @@ dependencies = [
 [project.urls]
 Homepage = "https://github.com/quantmind/quantflow"
 Repository = "https://github.com/quantmind/quantflow"
-Documentation = "https://quantmind.github.io/quantflow/"
+Documentation = "https://quantflow.quantmind.com"
+Issues = "https://github.com/quantmind/quantflow/issues"
 
 [project.optional-dependencies]
 ai = [

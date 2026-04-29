@@ -17,7 +17,7 @@ The first example shows how to price an option using the Black-Scholes model and
 ```
 
 ```json
---8<-- "docs/examples_output/weiner_volatility_pricer.out"
+--8<-- "docs/examples/output/weiner_volatility_pricer.out"
 ```
 
 
@@ -32,5 +32,5 @@ volatility model extended with jumps drawn from a
 ```
 
 ```json
---8<-- "docs/examples_output/heston_volatility_pricer.out"
+--8<-- "docs/examples/output/heston_volatility_pricer.out"
 ```
