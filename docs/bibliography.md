@@ -4,7 +4,7 @@
 
 #### carr_madan
 
-Peter Carr, Dilip Madan, [Option Valuation Using the Fast Fourier Transform](https://doi.org/10.1002/(SICI)1097-0261(199904)2:1<61::AID-FUT4>3.0.CO;2-4), Journal of Computational Finance, 2(4):61-73, 1999
+Peter Carr, Dilip Madan, [Option Valuation Using the Fast Fourier Transform](https://doi.org/10.21314/JCF.1999.043), Journal of Computational Finance, 2(4):61-73, 1999
 
 #### carr_wu
 

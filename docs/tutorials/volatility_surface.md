@@ -78,7 +78,7 @@ option inputs table lists the bid/ask prices together with the corresponding imp
 volatilities for each strike:
 
 ```
---8<-- "docs/examples_output/vol_surface_inputs.out"
+--8<-- "docs/examples/output/vol_surface_inputs.out"
 ```
 
 ## Serialising and Restoring
