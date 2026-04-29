@@ -78,7 +78,7 @@ option inputs table lists the bid/ask prices together with the corresponding imp
 volatilities for each strike:
 
 ```
---8<-- "docs/examples_output/vol_surface_inputs.out"
+--8<-- "docs/examples/output/vol_surface_inputs.out"
 ```
 
 ## Serialising and Restoring
@@ -121,7 +121,7 @@ variance process well-behaved.
 
 ### Output
 
---8<-- "docs/examples_output/vol_surface_heston_calibration.out"
+--8<-- "docs/examples/output/vol_surface_heston_calibration.out"
 
 ### Calibration Options
 
@@ -142,7 +142,7 @@ fig.write_image("heston_calibrated_smile.png", width=1200)
 
 The x axis is [moneyness](../glossary.md#moneyness).
 
-![Heston calibrated smile](../assets/heston_calibrated_smile.png)
+![Heston calibrated smile](../assets/examples/heston_calibrated_smile.png)
 
 ### Model Limitations at Short Maturities
 
@@ -188,7 +188,7 @@ which captures asymmetric jump behaviour common in equity and crypto markets.
 --8<-- "docs/examples/vol_surface_hestonj_calibration.py"
 ```
 
---8<-- "docs/examples_output/vol_surface_hestonj_calibration.out"
+--8<-- "docs/examples/output/vol_surface_hestonj_calibration.out"
 
 ### Plotting the Calibrated Smile
 
@@ -197,7 +197,7 @@ fig = calibration.plot_maturities(max_moneyness_ttm=1.5, support=101)
 fig.write_image("hestonj_calibrated_smile.png", width=1200)
 ```
 
-![HestonJ calibrated smile](../assets/hestonj_calibrated_smile.png)
+![HestonJ calibrated smile](../assets/examples/hestonj_calibrated_smile.png)
 
 ### Remaining Limitations at Short Maturities
 

@@ -26,6 +26,7 @@ build
 dist
 .venv
 .mypy_cache
+.hypothesis
 .pytest_cache
 .ruff_cache
 .python-version
@@ -37,3 +38,5 @@ _build
 
 # builds
 app/docs
+docs/assets/examples
+docs/examples/output

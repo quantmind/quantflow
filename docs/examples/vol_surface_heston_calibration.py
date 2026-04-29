@@ -1,7 +1,6 @@
 import json
-from pathlib import Path
 
-from docs.examples._utils import print_model
+from docs.examples._utils import assets_path, print_model
 from quantflow.options.heston_calibration import HestonCalibration
 from quantflow.options.pricer import OptionPricer
 from quantflow.options.surface import VolSurfaceInputs, surface_from_inputs
@@ -30,6 +29,4 @@ print_model(calibration.model)
 # Plot the calibrated smile for all maturities and save as PNG
 fig = calibration.plot_maturities(max_moneyness_ttm=1.5, support=101)
 fig.update_layout(title="Heston Calibrated Smiles")
-
-out_path = Path("docs/assets/heston_calibrated_smile.png")
-fig.write_image(str(out_path), width=1200)
+fig.write_image(assets_path("heston_calibrated_smile.png"), width=1200)

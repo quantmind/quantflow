@@ -14,6 +14,13 @@ def cir() -> CIR:
     return CIR(kappa=1, sigma=1.2, sample_algo=SamplingAlgorithm.euler)
 
 
+def test_feller_condition(cir: CIR, cir_neg: CIR) -> None:
+    assert cir.feller_condition > 0
+    assert cir.is_positive is True
+    assert cir_neg.feller_condition < 0
+    assert cir_neg.is_positive is False
+
+
 def test_cir_neg(cir_neg: CIR) -> None:
     assert cir_neg.is_positive is False
     assert cir_neg.sigma2 == 4

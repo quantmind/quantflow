@@ -71,7 +71,7 @@ class DIVFMNetwork(nn.Module):
     $$
 
     Produces $P$ factor functions with the following structural constraints
-    (as in [gauthier](/bibliography#gauthier)):
+    (as in [gauthier](../../bibliography.md#gauthier)):
 
     - $f_1 = 1$ constant, not learned
     - $f_2(\tau, X)$ depends only on time-to-maturity and optional extra features X

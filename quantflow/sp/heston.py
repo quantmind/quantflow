@@ -107,8 +107,41 @@ class Heston(StochasticProcess1D):
             rho=rho,
         )
 
-    def characteristic_exponent(self, t: FloatArrayLike, u: Vector) -> Vector:
-        """The characteristic exponent of the Heston model has a closed form"""
+    def characteristic_exponent(
+        self,
+        t: Annotated[FloatArrayLike, Doc("Time horizon or array of evaluation times")],
+        u: Annotated[Vector, Doc("Characteristic exponent argument")],
+    ) -> Vector:
+        r"""Characteristic exponent of the Heston model in closed form.
+
+        Define the correlation-adjusted drift and the characteristic frequency:
+
+        \begin{equation}
+            \tilde{\kappa} = \kappa - i u \nu \rho, \qquad
+            \gamma = \sqrt{\tilde{\kappa}^2 + u^2 \nu^2}
+        \end{equation}
+
+        Then the exponent is
+
+        \begin{equation}
+            \phi_{x_t,u} = \frac{\kappa\theta}{\nu^2}
+                \left[2 \ln c_{t,u} + (\gamma - \tilde{\kappa})\,t\right]
+                + v_0\, b_{t,u}
+        \end{equation}
+
+        where
+
+        \begin{align*}
+            c_{t,u} &= \frac{\gamma - \tfrac{1}{2}(\gamma - \tilde{\kappa})
+                (1 - e^{-\gamma t})}{\gamma} \\
+            b_{t,u} &= \frac{u^2 (1 - e^{-\gamma t})}
+                {(\gamma + \tilde{\kappa}) + (\gamma - \tilde{\kappa})\,e^{-\gamma t}}
+        \end{align*}
+
+        and $\nu$ is the vol of vol, $\kappa$ the mean-reversion speed,
+        $\theta$ the long-term variance, $\rho$ the correlation, and $v_0$
+        the initial variance.
+        """
         eta = self.variance_process.sigma
         eta2 = eta * eta
         theta_kappa = self.variance_process.theta * self.variance_process.kappa
@@ -122,12 +155,30 @@ class Heston(StochasticProcess1D):
         a = theta_kappa * (2 * np.log(c) + (gamma - kappa) * t) / eta2
         return a + b * self.variance_process.rate
 
-    def sample(self, n: int, time_horizon: float = 1, time_steps: int = 100) -> Paths:
+    def sample(
+        self,
+        n: Annotated[int, Doc("Number of sample paths")],
+        time_horizon: Annotated[float, Doc("Time horizon")] = 1,
+        time_steps: Annotated[int, Doc("Number of discrete time steps")] = 100,
+    ) -> Paths:
         dw1 = Paths.normal_draws(n, time_horizon, time_steps)
         dw2 = Paths.normal_draws(n, time_horizon, time_steps)
         return self.sample_from_draws(dw1, dw2)
 
-    def sample_from_draws(self, path1: Paths, *args: Paths) -> Paths:
+    def sample_from_draws(
+        self,
+        path1: Annotated[
+            Paths,
+            Doc("Pre-drawn standard normal increments for the first Brownian motion"),
+        ],
+        *args: Annotated[
+            Paths,
+            Doc(
+                "Optional pre-drawn increments for the second Brownian motion; "
+                "new draws are generated if omitted"
+            ),
+        ],
+    ) -> Paths:
         if args:
             path2 = args[0]
         else:
@@ -247,9 +298,109 @@ class HestonJ(Heston, Generic[D]):
             jumps=jd.jumps,
         )
 
-    def characteristic_exponent(self, t: FloatArrayLike, u: Vector) -> Vector:
-        """The characteristic exponent is given by the sum of the exponent of the
-        classic Heston model and the exponent of the jumps"""
+    def characteristic_exponent(
+        self,
+        t: Annotated[FloatArrayLike, Doc("Time horizon or array of evaluation times")],
+        u: Annotated[
+            Vector, Doc("Characteristic exponent argument (imaginary frequency)")
+        ],
+    ) -> Vector:
+        r"""Characteristic exponent as the sum of the Heston and jump exponents.
+
+        \begin{equation}
+            \phi_{x_t,u} = \phi^{\text{Heston}}_{x_t,u} + \phi^{\text{jumps}}_{x_t,u}
+        \end{equation}
+        """
         return super().characteristic_exponent(
             t, u
         ) + self.jumps.characteristic_exponent(t, u)
+
+
+class DoubleHeston(StochasticProcess1D):
+    r"""Double Heston stochastic volatility model.
+
+    Two independent [Heston][quantflow.sp.heston.Heston] processes drive a single
+    log-price:
+
+    \begin{align}
+        d x_t &= \sqrt{v^1_t}\,d w^1_t + \sqrt{v^2_t}\,d w^3_t \\
+        d v^i_t &= \kappa_i (\theta_i - v^i_t) dt + \nu_i \sqrt{v^i_t}\,d w^{2i}_t \\
+        \rho_i\,dt &= {\tt E}[d w^{2i-1} d w^{2i}] \quad i = 1, 2
+    \end{align}
+
+    Because the two components are independent, the characteristic exponent is the sum
+    of the two individual Heston exponents.
+    """
+
+    heston1: Heston = Field(
+        default_factory=Heston, description="First Heston variance process"
+    )
+    heston2: Heston = Field(
+        default_factory=Heston, description="Second Heston variance process"
+    )
+
+    def characteristic_exponent(
+        self,
+        t: Annotated[FloatArrayLike, Doc("Time horizon or array of evaluation times")],
+        u: Annotated[
+            Vector, Doc("Characteristic exponent argument (imaginary frequency)")
+        ],
+    ) -> Vector:
+        r"""Characteristic exponent as the sum of two independent Heston exponents.
+
+        \begin{equation}
+            \phi_{x_t,u} = \phi^{(1)}_{x_t,u} + \phi^{(2)}_{x_t,u}
+        \end{equation}
+        """
+        return self.heston1.characteristic_exponent(
+            t, u
+        ) + self.heston2.characteristic_exponent(t, u)
+
+    def sample(
+        self,
+        n: Annotated[int, Doc("Number of sample paths")],
+        time_horizon: Annotated[float, Doc("Time horizon")] = 1,
+        time_steps: Annotated[int, Doc("Number of discrete time steps")] = 100,
+    ) -> Paths:
+        dw1 = Paths.normal_draws(n, time_horizon, time_steps)
+        dw2 = Paths.normal_draws(n, time_horizon, time_steps)
+        dw3 = Paths.normal_draws(n, time_horizon, time_steps)
+        dw4 = Paths.normal_draws(n, time_horizon, time_steps)
+        return self.sample_from_draws(dw1, dw2, dw3, dw4)
+
+    def sample_from_draws(
+        self,
+        path1: Annotated[Paths, Doc("First Brownian motion draws for heston1")],
+        *args: Annotated[
+            Paths,
+            Doc(
+                "args[0]: second BM draws for heston1; "
+                "args[1], args[2]: first and second BM draws for heston2"
+            ),
+        ],
+    ) -> Paths:
+        paths1 = self.heston1.sample_from_draws(path1, args[0])
+        paths2 = self.heston2.sample_from_draws(args[1], args[2])
+        return Paths(t=path1.t, data=paths1.data + paths2.data)
+
+
+class DoubleHestonJ(DoubleHeston, Generic[D]):
+    r"""Double Heston stochastic volatility model with jumps.
+
+    Extends [DoubleHeston][quantflow.sp.heston.DoubleHeston] by replacing the first
+    (short-maturity) Heston process with a
+    [HestonJ][quantflow.sp.heston.HestonJ] that carries a jump component.
+    Jumps are assigned to the short end because they fade away at longer maturities:
+
+    \begin{equation}
+        \phi_{x_t,u} = \phi^{(1)}_{x_t,u} + \phi^{\text{jumps}}_{x_t,u}
+            + \phi^{(2)}_{x_t,u}
+    \end{equation}
+
+    where $\phi^{(1)}$ and $\phi^{\text{jumps}}$ are both provided by the
+    [HestonJ][quantflow.sp.heston.HestonJ] first process.
+    """
+
+    heston1: HestonJ[D] = Field(  # type: ignore[assignment]
+        description="First (short-maturity) Heston process with jumps"
+    )
