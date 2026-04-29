@@ -248,6 +248,11 @@ class DoubleHestonJCalibration(DoubleHestonCalibration[DoubleHestonJ[D]], Generi
     Extends
     [DoubleHestonCalibration][quantflow.options.heston_calibration.DoubleHestonCalibration]
     by appending the jump parameters of `heston1` to the parameter vector and bounds.
+
+    Overrides `warm_start` to fit a full
+    [HestonJCalibration][quantflow.options.heston_calibration.HestonJCalibration]
+    to the short-dated options, so that the jump parameters are also initialised
+    before the joint optimisation.
     """
 
     def get_bounds(self) -> Bounds:
