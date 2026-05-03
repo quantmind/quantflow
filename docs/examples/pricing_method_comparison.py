@@ -9,7 +9,11 @@ from docs.examples._utils import assets_path
 from quantflow.options.bs import implied_black_volatility
 from quantflow.sp.base import StochasticProcess1D
 from quantflow.sp.heston import Heston
-from quantflow.utils.marginal import OptionPricingMethod, OptionPricingResult
+from quantflow.utils.marginal import (
+    OptionPricingCosResult,
+    OptionPricingMethod,
+    OptionPricingResult,
+)
 
 
 class ChartProps(BaseModel):
@@ -120,8 +124,13 @@ class PricingMethodComparison(BaseModel):
                         max_log_strike=max_log_strike,
                         pricing_method=method,
                     )
+                    ks = (
+                        log_strikes
+                        if isinstance(r, OptionPricingCosResult)
+                        else ms.option_support(n + 1, max_log_strike=max_log_strike)
+                    )
                     errors.append(
-                        min(self._iv_error(r, ref, log_strikes, ttm), self.max_iv_error)
+                        min(self._iv_error(r, ref, ks, ttm), self.max_iv_error)
                     )
                     if n == self.ns[-1]:
                         fig.add_trace(
@@ -153,7 +162,7 @@ class PricingMethodComparison(BaseModel):
             fig.update_yaxes(title_text="implied volatility", row=1, col=1)
             fig.update_xaxes(title_text="N (discretization points)", row=1, col=2)
             fig.update_yaxes(
-                title_text="max implied vol error", type="log", row=1, col=2
+                title_text="max implied vol error (log scale)", type="log", row=1, col=2
             )
             fig.update_layout(title=ttm_label)
             fig.write_image(

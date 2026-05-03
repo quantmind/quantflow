@@ -253,8 +253,9 @@ class Marginal1D(BaseModel, ABC, extra="forbid"):
         normalised call payoff $(e^y - 1)^+$ integrated over $[0, b]$.
         The $e^k$ factor converts from strike-normalised to forward-space pricing.
 
-        Returns an [OptionPricingCosResult][.OptionPricingCosResult] with the
-        precomputed coefficient vector. Use
+        Returns an
+        [OptionPricingCosResult][quantflow.utils.marginal.OptionPricingCosResult]
+        with the precomputed coefficient vector. Use
         [call_at][quantflow.utils.marginal.OptionPricingCosResult.call_at]
         to evaluate at arbitrary log-strikes in $O(N)$ per strike.
         """

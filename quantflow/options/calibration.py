@@ -254,6 +254,7 @@ class VolModelCalibration(BaseModel, ABC, Generic[M]):
                 model = model.max_moneyness_ttm(
                     max_moneyness=max_moneyness_ttm, support=support
                 )
+
             plot.plot_vol_surface(
                 pd.DataFrame([d.info_dict() for d in options]),
                 model=model.df,

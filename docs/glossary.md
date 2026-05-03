@@ -49,11 +49,15 @@ The Feller condition is a parameter constraint on a square-root diffusion proces
 (such as [CIR][quantflow.sp.cir.CIR]) that ensures the process remains strictly
 positive. For a process of the form
 
-$$dx_t = \kappa(\theta - x_t)\,dt + \sigma\sqrt{x_t}\,dw_t$$
+\begin{equation}
+dx_t = \kappa(\theta - x_t)\,dt + \sigma\sqrt{x_t}\,dw_t
+\end{equation}
 
 the condition is
 
-$$2\kappa\theta \geq \sigma^2$$
+\begin{equation}
+2\kappa\theta \geq \sigma^2
+\end{equation}
 
 where $\kappa$ is the mean reversion speed, $\theta$ is the long-run mean, and $\sigma$
 is the diffusion coefficient. When the condition holds, the origin is an inaccessible
