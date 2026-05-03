@@ -110,6 +110,7 @@ nav:
       - Option Pricing: tutorials/option_pricing.md
       - Pricing Method Comparison: tutorials/pricing_method_comparison.md
       - Volatility Surface: tutorials/volatility_surface.md
+      - Double Heston Calibration: tutorials/double_heston_calibration.md
   - Theory:
       - theory/index.md
       - Characteristic Function: theory/characteristic.md
