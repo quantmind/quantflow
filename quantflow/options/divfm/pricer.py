@@ -124,14 +124,14 @@ class DIVFMPricer(OptionPricerBase):
 
         iv_grid = np.clip(F @ self.betas, 1e-6, None)
 
-        # Convert from time-scaled moneyness M to log-moneyness m = log(K/F)
-        moneyness = M_grid * np.sqrt(ttm)
-        call = np.asarray(black_call(moneyness, iv_grid, ttm=ttm))
+        # Convert from time-scaled moneyness M to log-strike = log(K/F)
+        log_strike = M_grid * np.sqrt(ttm)
+        call = np.asarray(black_call(log_strike, iv_grid, ttm=ttm))
 
         return MaturityPricer(
             ttm=ttm,
             std=float(np.mean(iv_grid) * np.sqrt(ttm)),
-            moneyness=moneyness,
+            log_strike=log_strike,
             call=call,
             name="DIVFM",
         )

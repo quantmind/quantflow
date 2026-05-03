@@ -33,7 +33,7 @@ class OptionEntry(BaseModel):
     """
 
     ttm: float = Field(description="Time to maturity in years")
-    moneyness: float = Field(description="Log-moneyness: log(strike / forward)")
+    log_strike: float = Field(description="Log-strike as log(K/F)")
     options: list[OptionPrice] = Field(default_factory=list)
     """Bid and ask option prices for this entry"""
     _mid_price: float | None = PrivateAttr(default=None)
@@ -112,7 +112,7 @@ class VolModelCalibration(BaseModel, ABC, Generic[M]):
             for option in self.vol_surface.option_prices(converged=True):
                 key = ModelCalibrationEntryKey(option.maturity, option.strike)
                 if key not in self.options:
-                    entry = OptionEntry(ttm=option.ttm, moneyness=option.moneyness)
+                    entry = OptionEntry(ttm=option.ttm, log_strike=option.log_strike)
                     self.options[key] = entry
                 entry.options.append(option)
 
@@ -178,9 +178,9 @@ class VolModelCalibration(BaseModel, ABC, Generic[M]):
         self.set_params(result.x)
         return result
 
-    def cost_weight(self, ttm: float, moneyness: float) -> float:
-        """Weight for a given time to maturity and moneyness"""
-        return np.exp(-self.moneyness_weight * moneyness)
+    def cost_weight(self, ttm: float, log_strike: float) -> float:
+        """Weight for a given time to maturity and log-strike"""
+        return np.exp(-self.moneyness_weight * log_strike)
 
     def penalize(self) -> float:
         """Additional scalar penalty added to the cost function (default: 0)"""
@@ -193,8 +193,8 @@ class VolModelCalibration(BaseModel, ABC, Generic[M]):
         res = []
         with np.errstate(all="ignore"):
             for entry in self.options.values():
-                model_price = self.pricer.call_price(entry.ttm, entry.moneyness)
-                weight = self.cost_weight(entry.ttm, entry.moneyness)
+                model_price = self.pricer.call_price(entry.ttm, entry.log_strike)
+                weight = self.cost_weight(entry.ttm, entry.log_strike)
                 r = weight * (model_price - entry.mid_price())
                 res.append(r if np.isfinite(r) else 1e6)
         return np.asarray(res)
@@ -218,7 +218,7 @@ class VolModelCalibration(BaseModel, ABC, Generic[M]):
         model = self.pricer.maturity(cross.ttm(self.ref_date))
         if max_moneyness_ttm is not None:
             model = model.max_moneyness_ttm(
-                max_moneyness_ttm=max_moneyness_ttm, support=support
+                max_moneyness=max_moneyness_ttm, support=support
             )
         return plot.plot_vol_surface(
             pd.DataFrame([d.info_dict() for d in options]),
@@ -252,7 +252,7 @@ class VolModelCalibration(BaseModel, ABC, Generic[M]):
             model = self.pricer.maturity(cross.ttm(self.ref_date))
             if max_moneyness_ttm is not None:
                 model = model.max_moneyness_ttm(
-                    max_moneyness_ttm=max_moneyness_ttm, support=support
+                    max_moneyness=max_moneyness_ttm, support=support
                 )
             plot.plot_vol_surface(
                 pd.DataFrame([d.info_dict() for d in options]),

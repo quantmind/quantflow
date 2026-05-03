@@ -11,6 +11,12 @@ The characteristic function of a random variable $x$ is the Fourier (inverse) tr
  \Phi_{x,u} = {\mathbb E}\left[e^{i u x}\right] = \int e^{i u s} {\mathbb P}_x\left(ds\right)
 \end{equation}
 
+If the distribution of $x$ has a [probability density](../glossary.md#probability-density-function-pdf) $f_x$, then the characteristic function is the Fourier transform of $f_x$:
+
+\begin{equation}
+ \Phi_{x,u} = \int e^{i u s} f_x\left(s\right) ds
+\end{equation}
+
 ## Properties
 
 * $\Phi_{x, 0} = 1$

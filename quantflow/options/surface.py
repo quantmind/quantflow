@@ -315,7 +315,7 @@ class OptionPrice(BaseModel):
         open_interest: Number = ZERO,
         volume: Number = ZERO,
         inverse: bool = True,
-    ) -> OptionPrice:
+    ) -> Self:
         """Create an option price
 
         mainly used for testing
@@ -368,7 +368,8 @@ class OptionPrice(BaseModel):
         return self.meta.volume
 
     @property
-    def moneyness(self) -> float:
+    def log_strike(self) -> float:
+        """Log strike of the option, calculated as log(strike/forward)"""
         return float(np.log(float(self.strike / self.forward)))
 
     @property
@@ -433,11 +434,11 @@ class OptionPrice(BaseModel):
     def is_in_the_money(self, forward: Decimal) -> bool:
         return self.meta.is_in_the_money(forward)
 
-    def calculate_price(self) -> OptionPrice:
+    def calculate_price(self) -> Self:
         price = Decimal(
             sigfig(
                 black_price(
-                    np.asarray(self.moneyness),
+                    np.asarray(self.log_strike),
                     self.implied_vol,
                     self.ttm,
                     1 if self.option_type.is_call() else -1,
@@ -453,8 +454,8 @@ class OptionPrice(BaseModel):
             strike=float(self.strike),
             forward=float(self.forward),
             maturity=self.maturity,
-            moneyness=self.moneyness,
-            moneyness_ttm=self.moneyness / np.sqrt(self.ttm),
+            log_strike=self.log_strike,
+            moneyness=self.log_strike / np.sqrt(self.ttm),
             ttm=self.ttm,
             implied_vol=self.implied_vol,
             price=float(self.price_in_forward_space),
@@ -473,7 +474,7 @@ class OptionArrays(NamedTuple):
 
     options: list[OptionPrice]
     """List of option prices corresponding to the arrays below"""
-    moneyness: FloatArray
+    log_strike: FloatArray
     """The log strike of the options, calculated as log(strike/forward)"""
     price: FloatArray
     """The option prices"""
@@ -881,7 +882,7 @@ class VolCrossSection(BaseModel, Generic[S]):
         than 20% of the mid vol. Options with a zero mid vol are also disabled.
 
         Second pass: an [SVI][quantflow.options.svi.SVI] smile is fitted to the
-        surviving options (mid implied vol vs log-moneyness). Options whose
+        surviving options (mid implied vol vs log-strike). Options whose
         residual from the SVI fit exceeds `svi_residual_fraction` of their mid
         implied vol are disabled. This is repeated up to `repeat` times,
         refitting after each removal. The loop stops early if no outliers are
@@ -1130,7 +1131,7 @@ class VolSurface(BaseModel, Generic[S]):
         with warnings.catch_warnings():
             warnings.simplefilter("ignore")
             result = implied_black_volatility(
-                k=d.moneyness,
+                k=d.log_strike,
                 price=d.price,
                 ttm=d.ttm,
                 initial_sigma=d.implied_vol,
@@ -1159,7 +1160,7 @@ class VolSurface(BaseModel, Generic[S]):
         otherwise the price calculation won't be correct.
         """
         d = self.as_array(select=select, index=index, converged=True)
-        return black_price(k=d.moneyness, sigma=d.implied_vol, ttm=d.ttm, s=d.call_put)
+        return black_price(k=d.log_strike, sigma=d.implied_vol, ttm=d.ttm, s=d.call_put)
 
     def options_df(
         self,
@@ -1209,7 +1210,7 @@ class VolSurface(BaseModel, Generic[S]):
         and price calculation
 
         It returns an [OptionArrays][quantflow.options.surface.OptionArrays] instance,
-        which contains the option prices and their corresponding moneyness,
+        which contains the option prices and their corresponding log strikes,
         time to maturity and implied volatility in numpy arrays
         for efficient calculations.
         """
@@ -1221,20 +1222,20 @@ class VolSurface(BaseModel, Generic[S]):
                 converged=converged,
             )
         )
-        moneyness = []
+        log_strike = []
         ttm = []
         price = []
         vol = []
         call_put = []
         for option in options:
-            moneyness.append(float(option.moneyness))
+            log_strike.append(float(option.log_strike))
             price.append(float(option.price_in_forward_space))
             ttm.append(float(option.ttm))
             vol.append(float(option.implied_vol))
             call_put.append(1 if option.option_type.is_call() else -1)
         return OptionArrays(
             options=options,
-            moneyness=np.array(moneyness),
+            log_strike=np.array(log_strike),
             price=np.array(price),
             ttm=np.array(ttm),
             implied_vol=np.array(vol),

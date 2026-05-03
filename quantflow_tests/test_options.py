@@ -168,7 +168,7 @@ def test_black_vol(vol_surface: VolSurface):
 
 def test_call_put_parity():
     option = OptionPrice.create(100).calculate_price()
-    assert option.moneyness == 0
+    assert option.log_strike == 0
     assert option.price == option.call_price
     option2 = OptionPrice.create(100, option_type=OptionType.put).calculate_price()
     assert option2.price == option2.put_price
@@ -178,7 +178,7 @@ def test_call_put_parity():
 
 def test_call_put_parity_otm():
     option = OptionPrice.create(105, forward=100).calculate_price()
-    assert option.moneyness > 0
+    assert option.log_strike > 0
     assert option.price == option.call_price
     option2 = OptionPrice.create(
         105, forward=100, option_type=OptionType.put
@@ -231,7 +231,7 @@ def _synthetic_options(
                 ref_date=ref_date,
                 maturity=maturity,
             )
-            entry = OptionEntry(ttm=ttm, moneyness=float(k))
+            entry = OptionEntry(ttm=ttm, log_strike=float(k))
             entry.options.append(op)
             options[key] = entry
     return options

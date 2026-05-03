@@ -103,6 +103,7 @@ class StochasticProcess1D(StochasticProcess):
     """
 
     def marginal(self, t: FloatArrayLike) -> StochasticProcess1DMarginal:
+        """Marginal distribution of the process at time `t`"""
         return StochasticProcess1DMarginal(process=self, t=t)
 
     def domain_range(self) -> Bounds:
@@ -167,8 +168,14 @@ class StochasticProcess1DMarginal(Marginal1D, Generic[P]):
             float(self.mean()), std_mult * float(self.std()), points
         )
 
-    def option_alpha(self) -> float:
-        """Option alpha parameter for integrability of call option transform"""
+    def call_option_carr_madan_alpha(self) -> float:
+        """Option alpha parameter for integrability of call option transform
+        in the Carr-Madan formula.
+
+        The choice of alpha is crucial for the numerical stability of the Carr-Madan
+        formula. A common choice is to set alpha to a value that ensures the integrand
+        decays sufficiently fast at high frequencies.
+        """
         return max(8 * np.max(np.exp(-2 * self.t)), 0.5)
 
 
@@ -177,8 +184,12 @@ class IntensityProcess(StochasticProcess1D):
     as stochastic intensity
     """
 
-    rate: float = Field(default=1.0, gt=0, description="Instantaneous initial rate")
-    kappa: float = Field(default=1.0, gt=0, description="Mean reversion speed")
+    rate: float = Field(
+        default=1.0, gt=0, description=r"Instantaneous initial rate $x_0$"
+    )
+    kappa: float = Field(
+        default=1.0, gt=0, description=r"Mean reversion speed $\kappa$"
+    )
 
     @abstractmethod
     def integrated_log_laplace(

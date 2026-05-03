@@ -25,6 +25,14 @@ The characteristic exponent $\phi_{x,u}$ is defined from the
     \Phi_{x,u} = e^{-\phi_{x,u}}
 \end{equation}
 
+The library implements the [characteristic_exponent][quantflow.sp.base.StochasticProcess1D.characteristic_exponent] for several stochastic processes,
+including Brownian motion, Poisson and compound Poisson processes, the CIR square-root
+diffusion, Ornstein-Uhlenbeck processes, Heston and Double Heston stochastic volatility
+models, jump-diffusion models, and the Barndorff-Nielsen-Shephard (BNS) model.
+Having an analytic form of the characteristic exponent for these processes
+enables efficient option pricing via Fourier inversion methods such as the
+[Lewis (2001)](bibliography.md#lewis) and [Carr-Madan (1999)](bibliography.md#carr_madan) approaches.
+
 ## Cumulative Distribution Function (CDF)
 
 The cumulative distribution function (CDF), or just distribution function,
@@ -81,7 +89,7 @@ The log-strike is used as input for all Black-Scholes type formulas.
 Moneyness is used in the context of option pricing in order to compare options with different maturities. It is defined as
 
 \begin{equation}
-    m = \frac{1}{\sqrt{\tau}}\ln{\frac{K}{F}}
+    m = \frac{1}{\sqrt{\tau}}\ln{\frac{K}{F}} = \frac{k}{\sqrt{\tau}}
 \end{equation}
 
 where $K$ is the strike, $F$ is the Forward price, and $\tau$ is the time to maturity. It is used to compare options with different maturities by scaling the [log-strike](#log-strike) by the square root of time to maturity. This is because the price of the underlying asset is subject to random fluctuations, if these fluctuations follow a Brownian motion than the standard deviation of the price movement will increase with the square root of time.
@@ -96,6 +104,24 @@ The vol-adjusted moneyness is used in the context of option pricing in order to 
 \end{equation}
 
 where $K$ is the strike, $F$ is the Forward price, $\tau$ is the time to maturity and $\sigma$ is the implied Black volatility.
+
+## Parseval's Theorem
+
+Parseval's theorem states that for two square-integrable functions $f$ and $g$ with Fourier transforms $\hat{f}$ and $\hat{g}$
+
+\begin{equation}
+\int_{-\infty}^\infty f(s)\, g(s)\, ds = \frac{1}{2\pi} \int_{-\infty}^\infty \hat{f}(u)\, \overline{\hat{g}(u)}\, du
+\end{equation}
+
+where $\overline{\hat{g}(u)}$ denotes the complex conjugate of $\hat{g}(u)$.
+
+If $g$ is real-valued, then
+
+\begin{equation}
+\overline{\hat{g}(u)} = \hat{g}(-u)
+\end{equation}
+
+It is used in the derivation of the [Lewis option pricing formula](theory/option_pricing.md#lewis-formula).
 
 ## Probability Density Function (PDF)
 

@@ -21,11 +21,11 @@ f(x) &\approx \frac{1}{\pi}\sum_{m=0}^{N-1} h_m e^{-i u_m x} \Phi_x\left(u_m\rig
 * $N$ is the number of discretization points and must be large enough so that the characteristic function is virtually 0 for $u_{N-1}=\delta_u N$.
 * $h_m$ is given by the integration methodology, either trapezoidal or Simpson rule (the library supports both, with trapezoidal as default).
 
-For full details, see Carr and Madan (1999) and Chourdakis (2005).
+For full details, see [Carr & Madan](../bibliography.md#carr_madan) and [Chourdakis](../bibliography.md#chourdakis).
 
 One could use the inverse Fourier transform to solve the integral. However, it has $O(N^2)$ time complexity.
 One alternative, implemented in the library, is using the Fast Fourier Transform (FFT), which has $O(N \log N)$ time complexity.
-Another more flexible alternative is the Fractional FFT (FRFT), described in Chourdakis (2005). This is the methodology used by default in the library.
+Another more flexible alternative is the Fractional FFT (FRFT), described in [Chourdakis](../bibliography.md#chourdakis). This is the methodology used by default in the library.
 
 ## FFT Integration
 
