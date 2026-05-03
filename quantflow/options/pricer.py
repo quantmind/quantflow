@@ -350,7 +350,7 @@ class OptionPricer(OptionPricerBase, Generic[M]):
         description="Number of discretization points for the marginal distribution",
     )
     method: OptionPricingMethod = Field(
-        default=OptionPricingMethod.LEWIS,
+        default=OptionPricingMethod.CARR_MADAN,
         description="Method to use for option pricing",
     )
     max_moneyness_ttm: float = Field(

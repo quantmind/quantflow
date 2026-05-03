@@ -1,6 +1,4 @@
-"""Compare Carr-Madan, Lewis and COS option pricing methods for accuracy and speed."""
-
-import time
+"""Compare Carr-Madan, Lewis and COS option pricing methods for accuracy."""
 
 import numpy as np
 import plotly.graph_objects as go
@@ -11,7 +9,11 @@ from docs.examples._utils import assets_path
 from quantflow.options.bs import implied_black_volatility
 from quantflow.sp.base import StochasticProcess1D
 from quantflow.sp.heston import Heston
-from quantflow.utils.marginal import OptionPricingMethod, OptionPricingResult
+from quantflow.utils.marginal import (
+    OptionPricingCosResult,
+    OptionPricingMethod,
+    OptionPricingResult,
+)
 
 
 class ChartProps(BaseModel):
@@ -33,10 +35,6 @@ class PricingMethodComparison(BaseModel):
     ns: tuple[int, ...] = Field(
         default=(32, 64, 128, 256, 512),
         description="Discretization points to compare",
-    )
-    timing_reps: int = Field(
-        default=20,
-        description="Number of repetitions for timing measurements",
     )
     max_moneyness: float = Field(
         default=1.5,
@@ -126,8 +124,13 @@ class PricingMethodComparison(BaseModel):
                         max_log_strike=max_log_strike,
                         pricing_method=method,
                     )
+                    ks = (
+                        log_strikes
+                        if isinstance(r, OptionPricingCosResult)
+                        else ms.option_support(n + 1, max_log_strike=max_log_strike)
+                    )
                     errors.append(
-                        min(self._iv_error(r, ref, log_strikes, ttm), self.max_iv_error)
+                        min(self._iv_error(r, ref, ks, ttm), self.max_iv_error)
                     )
                     if n == self.ns[-1]:
                         fig.add_trace(
@@ -159,7 +162,7 @@ class PricingMethodComparison(BaseModel):
             fig.update_yaxes(title_text="implied volatility", row=1, col=1)
             fig.update_xaxes(title_text="N (discretization points)", row=1, col=2)
             fig.update_yaxes(
-                title_text="max implied vol error", type="log", row=1, col=2
+                title_text="max implied vol error (log scale)", type="log", row=1, col=2
             )
             fig.update_layout(title=ttm_label)
             fig.write_image(
@@ -168,81 +171,8 @@ class PricingMethodComparison(BaseModel):
                 height=800,
             )
 
-    def run_speed(self) -> None:
-        # --- Speed: wall-clock time per maturity call vs n ---
-        fig_speed = go.Figure()
-        ms = self.model.marginal(1.0)
-        for method, props in self.charts.items():
-            times = []
-            for n in self.ns:
-                t0 = time.perf_counter()
-                for _ in range(self.timing_reps):
-                    ms.call_option(n, max_log_strike=1.0, pricing_method=method)
-                times.append((time.perf_counter() - t0) / self.timing_reps * 1000)
-            fig_speed.add_trace(
-                go.Scatter(
-                    x=self.ns,
-                    y=times,
-                    name=method.value,
-                    mode="lines+markers",
-                    line=dict(color=props.color, dash=props.dash),
-                )
-            )
-        fig_speed.update_layout(
-            title=(
-                f"Wall-clock time per pricing call"
-                f" (TTM=1.0, avg over {self.timing_reps} reps)"
-            ),
-            xaxis_title="N (discretization points)",
-            yaxis_title="time (ms)",
-        )
-        fig_speed.write_image(assets_path("pricing_method_speed.png"))
-
-        # --- Accuracy vs speed trade-off ---
-        tradeoff_ttm = self.ttms[1]
-        ms = self.model.marginal(tradeoff_ttm)
-        max_log_strike = self.max_moneyness * np.sqrt(tradeoff_ttm)
-        log_strikes = ms.option_support(self.ref_n + 1, max_log_strike=max_log_strike)
-        ref = ms.call_option(self.ref_n, max_log_strike=max_log_strike)
-        fig_tradeoff = go.Figure()
-        for method, props in self.charts.items():
-            errors, times = [], []
-            for n in self.ns:
-                t0 = time.perf_counter()
-                for _ in range(self.timing_reps):
-                    r = ms.call_option(
-                        n, max_log_strike=max_log_strike, pricing_method=method
-                    )
-                elapsed = (time.perf_counter() - t0) / self.timing_reps * 1000
-                errors.append(
-                    min(
-                        self._iv_error(r, ref, log_strikes, tradeoff_ttm),
-                        self.max_iv_error,
-                    )
-                )
-                times.append(elapsed)
-            fig_tradeoff.add_trace(
-                go.Scatter(
-                    x=times,
-                    y=errors,
-                    name=method.value,
-                    mode="lines+markers",
-                    text=[str(n) for n in self.ns],
-                    textposition="top center",
-                    line=dict(color=props.color, dash=props.dash),
-                )
-            )
-        fig_tradeoff.update_layout(
-            title=f"Accuracy vs speed trade-off (TTM={tradeoff_ttm})",
-            xaxis_title="time (ms)",
-            yaxis_title="max implied vol error",
-            yaxis_type="log",
-        )
-        fig_tradeoff.write_image(assets_path("pricing_method_tradeoff.png"))
-
 
 if __name__ == "__main__":
     pr = Heston.create(vol=0.5, kappa=2, sigma=0.8, rho=-0.2)
     comparison = PricingMethodComparison(model=pr)
     comparison.run_ttm()
-    comparison.run_speed()

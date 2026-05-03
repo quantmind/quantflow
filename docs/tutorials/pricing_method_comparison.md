@@ -44,30 +44,18 @@ can struggle with the auto-selected $\alpha$, while Lewis and COS remain stable:
 
 [![Accuracy TTM=0.02](../assets/examples/pricing_method_accuracy_ttm0_02.png)](../assets/examples/pricing_method_accuracy_ttm0_02.png){target="_blank"}
 
-## Speed comparison
+## Complexity
 
 | Method | Complexity |
 |---|---|
 | Carr-Madan | $O(N \log N)$ via Fractional Fourier Transform |
 | Lewis | $O(N \log N)$ via Fractional Fourier Transform |
-| COS | $O(N^2)$ — dense $N \times N$ complex matrix-vector product |
+| COS | $O(N^2)$ |
 
-COS is slower because it evaluates $e^{-i j\pi(k+a)/(b-a)}$ for every combination of
-strike $k$ and cosine index $j$, forming an explicit $N \times N$ matrix before
-multiplying by the coefficient vector. Lewis and Carr-Madan avoid this by evaluating
-the transform on a uniform grid and applying the FrFT in $O(N \log N)$.
+Unlike the FRFT methods, COS can price a single strike at a time without computing the
+full grid, making it well suited for lazy or on-demand strike evaluation.
 
-Wall-clock time per pricing call as a function of $N$:
-
-![Speed](../assets/examples/pricing_method_speed.png)
-
-## Accuracy vs speed trade-off
-
-Each point is labelled with its $N$ value (TTM=0.25):
-
-![Trade-off](../assets/examples/pricing_method_tradeoff.png)
-
-## Example code
+## Code for the above charts
 
 ```python
 --8<-- "docs/examples/pricing_method_comparison.py"
