@@ -11,6 +11,7 @@ from typing_extensions import Annotated, Doc
 
 from quantflow.sp.base import StochasticProcess1D
 from quantflow.utils import plot
+from quantflow.utils.marginal import OptionPricingMethod
 from quantflow.utils.numbers import DecimalNumber, to_decimal
 
 from ..utils.types import FloatArray
@@ -23,8 +24,8 @@ M = TypeVar("M", bound=StochasticProcess1D)
 TTM_FACTOR = 10000
 
 
-def get_intrinsic_value(moneyness: FloatArray) -> FloatArray:
-    return 1.0 - np.exp(np.clip(moneyness, None, 0))
+def get_intrinsic_value(log_strike: FloatArray) -> FloatArray:
+    return 1.0 - np.exp(np.clip(log_strike, None, 0))
 
 
 class ModelOptionPrice(BaseModel, frozen=True):
@@ -38,7 +39,8 @@ class ModelOptionPrice(BaseModel, frozen=True):
     strike: DecimalNumber = Field(description="Strike price of the option")
     option_type: OptionType = Field(description="Type of the option, call or put")
     forward: DecimalNumber = Field(description="Forward price of the underlying")
-    moneyness: float = Field(description="Moneyness as log(Strike/Forward)")
+    log_strike: float = Field(description="Log strike over forward, i.e. log(K/F)")
+    moneyness: float = Field(description="Moneyness")
     ttm: float = Field(default=0, description="Time to maturity in years")
     price: float = Field(description=("Price in forward space"))
     delta: float = Field(description="Model delta of the option")
@@ -48,9 +50,9 @@ class ModelOptionPrice(BaseModel, frozen=True):
     @property
     def black(self) -> BlackSensitivities:
         """Calculate the Black price for the option using the price as time value and
-        moneyness as log-strike"""
+        log-strike"""
         return BlackSensitivities.calculate(
-            k=self.moneyness,
+            k=self.log_strike,
             ttm=self.ttm,
             s=self.option_type.call_put(),
             price=self.price,
@@ -70,9 +72,9 @@ class ModelOptionPrice(BaseModel, frozen=True):
         is positive, i.e. when the strike is above the forward price.
         """
         if self.option_type == OptionType.call:
-            return max(0.0, 1.0 - np.exp(self.moneyness))
+            return max(0.0, 1.0 - np.exp(self.log_strike))
         else:
-            return max(0.0, np.exp(self.moneyness) - 1.0)
+            return max(0.0, np.exp(self.log_strike) - 1.0)
 
     def as_option_type(
         self,
@@ -100,16 +102,16 @@ class MaturityPricer(BaseModel, arbitrary_types_allowed=True):
 
     ttm: float = Field(description="Time to maturity")
     std: float = Field(description="Standard deviation model of log returns")
-    moneyness: FloatArray = Field(description="Moneyness as log Strike/Forward")
+    log_strike: FloatArray = Field(description="Log strike over forward, i.e. log(K/F)")
     call: FloatArray = Field(
-        description="Call prices in forward space for the given moneyness"
+        description="Call prices in forward space for the given log strike array"
     )
     name: str = Field(default="", description="Name of the model")
 
     @property
-    def moneyness_ttm(self) -> FloatArray:
+    def moneyness(self) -> FloatArray:
         """Time adjusted moneyness array"""
-        return self.moneyness / np.sqrt(self.ttm)
+        return self.log_strike / np.sqrt(self.ttm)
 
     @property
     def time_value(self) -> FloatArray:
@@ -119,7 +121,7 @@ class MaturityPricer(BaseModel, arbitrary_types_allowed=True):
     @property
     def intrinsic_value(self) -> FloatArray:
         """Intrinsic value of the option"""
-        return get_intrinsic_value(self.moneyness)
+        return get_intrinsic_value(self.log_strike)
 
     def price(
         self,
@@ -133,26 +135,27 @@ class MaturityPricer(BaseModel, arbitrary_types_allowed=True):
         """
         strike_ = to_decimal(strike)
         forward_ = to_decimal(forward)
-        moneyness = float((strike_ / forward_).ln())
+        log_strike = float((strike_ / forward_).ln())
         return ModelOptionPrice(
             option_type=OptionType.call,
             strike=strike_,
             forward=forward_,
-            moneyness=moneyness,
+            log_strike=log_strike,
+            moneyness=log_strike / np.sqrt(self.ttm),
             ttm=self.ttm,
-            price=self.call_price(moneyness),
-            delta=self.call_delta(moneyness),
-            gamma=self.call_gamma(moneyness),
+            price=self.call_price(log_strike),
+            delta=self.call_delta(log_strike),
+            gamma=self.call_gamma(log_strike),
         ).as_option_type(option_type)
 
     @property
     def implied_vols(self) -> FloatArray:
         """Calculate the implied volatility"""
         return implied_black_volatility(
-            self.moneyness,
+            self.log_strike,
             self.call,
             ttm=self.ttm,
-            initial_sigma=0.5 * np.ones_like(self.moneyness),
+            initial_sigma=0.5 * np.ones_like(self.log_strike),
             call_put=1.0,
         ).values
 
@@ -161,53 +164,51 @@ class MaturityPricer(BaseModel, arbitrary_types_allowed=True):
         """Get a dataframe with the results"""
         return pd.DataFrame(
             {
+                "log_strike": self.log_strike,
                 "moneyness": self.moneyness,
-                "moneyness_ttm": self.moneyness_ttm,
                 "call": self.call,
                 "implied_vol": self.implied_vols,
                 "time_value": self.time_value,
             }
         )
 
-    def call_price(self, moneyness: float) -> float:
+    def call_price(self, log_strike: float) -> float:
         """Price a single call option"""
-        return float(np.interp(moneyness, self.moneyness, self.call))
+        return float(np.interp(log_strike, self.log_strike, self.call))
 
-    def call_delta(self, moneyness: float) -> float:
+    def call_delta(self, log_strike: float) -> float:
         r"""Delta of a call option as change in price per unit change in forward.
 
         Since prices are stored in forward space (c = C/F) and m = log(K/F),
         the chain rule gives: dC/dF = c - dc/dm
         """
-        dc_dm = np.gradient(self.call, self.moneyness)
-        return float(np.interp(moneyness, self.moneyness, self.call - dc_dm))
+        dc_dm = np.gradient(self.call, self.log_strike)
+        return float(np.interp(log_strike, self.log_strike, self.call - dc_dm))
 
-    def call_gamma(self, moneyness: float) -> float:
+    def call_gamma(self, log_strike: float) -> float:
         """Gamma of a call option as change in delta per unit change in forward.
 
         Since prices are stored in forward space (c = C/F) and m = log(K/F),
         the chain rule gives: d2C/dF2 = d2c/dm2 - dc/dm
         """
-        dc_dm = np.gradient(self.call, self.moneyness)
-        d2c_dm2 = np.gradient(dc_dm, self.moneyness)
-        return float(np.interp(moneyness, self.moneyness, d2c_dm2 - dc_dm))
+        dc_dm = np.gradient(self.call, self.log_strike)
+        d2c_dm2 = np.gradient(dc_dm, self.log_strike)
+        return float(np.interp(log_strike, self.log_strike, d2c_dm2 - dc_dm))
 
-    def interp(self, moneyness: FloatArray) -> Self:
+    def interp(self, log_strike: FloatArray) -> Self:
         """get interpolated prices"""
         return self.model_copy(
             update=dict(
-                moneyness=moneyness,
-                call=np.interp(moneyness, self.moneyness, self.call),
+                log_strike=log_strike,
+                call=np.interp(log_strike, self.log_strike, self.call),
             )
         )
 
-    def max_moneyness_ttm(
-        self, max_moneyness_ttm: float = 1.0, support: int = 51
-    ) -> Self:
+    def max_moneyness_ttm(self, max_moneyness: float = 1.0, support: int = 51) -> Self:
         """Calculate the implied volatility"""
-        moneyness_ttm = np.linspace(-max_moneyness_ttm, max_moneyness_ttm, support)
-        moneyness = np.asarray(moneyness_ttm) * np.sqrt(self.ttm)
-        return self.interp(moneyness)
+        moneyness = np.linspace(-max_moneyness, max_moneyness, support)
+        log_strike = np.asarray(moneyness) * np.sqrt(self.ttm)
+        return self.interp(log_strike)
 
     def black(self) -> Self:
         """Calculate the Maturity Result for the Black model with same std"""
@@ -215,7 +216,7 @@ class MaturityPricer(BaseModel, arbitrary_types_allowed=True):
             update=dict(
                 call=np.asarray(
                     black_call(
-                        self.moneyness, self.std / np.sqrt(self.ttm), ttm=self.ttm
+                        self.log_strike, self.std / np.sqrt(self.ttm), ttm=self.ttm
                     )
                 ),
                 name="Black",
@@ -230,7 +231,7 @@ class MaturityPricer(BaseModel, arbitrary_types_allowed=True):
 class OptionPricerBase(BaseModel, arbitrary_types_allowed=True):
     """Abstract base class for option pricers.
 
-    Provides caching of [MaturityPricer][quantflow.options.pricer.MaturityPricer]
+    Provides caching of [MaturityPricer][..MaturityPricer]
     results and generic pricing/plotting methods. Subclasses implement
     ``_compute_maturity`` to define how call prices are computed for a given
     time to maturity.
@@ -284,13 +285,13 @@ class OptionPricerBase(BaseModel, arbitrary_types_allowed=True):
     def call_price(
         self,
         ttm: Annotated[float, Doc("Time to maturity")],
-        moneyness: Annotated[float, Doc("Moneyness as log(Strike/Forward)")],
+        log_strike: Annotated[float, Doc("Log strike over forward, i.e. log(K/F)")],
     ) -> float:
         """Price a single call option
 
         This method will use the cache to get the maturity pricer if possible
         """
-        return self.maturity(ttm).call_price(moneyness)
+        return self.maturity(ttm).call_price(log_strike)
 
     def plot3d(
         self,
@@ -313,12 +314,12 @@ class OptionPricerBase(BaseModel, arbitrary_types_allowed=True):
             maturity = self.maturity(cast(float, t))
             implied[i, :] = maturity.interp(moneyness_ttm * np.sqrt(t)).implied_vols
         properties: dict = dict(
-            xaxis_title="moneyness_ttm",
+            xaxis_title="moneyness",
             yaxis_title="TTM",
             colorscale="viridis",
             dragmode=dragmode,
             scene=dict(
-                xaxis=dict(title="moneyness_ttm"),
+                xaxis=dict(title="moneyness"),
                 yaxis=dict(title="TTM"),
                 zaxis=dict(title="implied_vol"),
             ),
@@ -340,7 +341,7 @@ class OptionPricer(OptionPricerBase, Generic[M]):
     """Pricer for options based on a stochastic process model.
 
     Computes call prices via the inverse Fourier transform of the
-    characteristic function of the underlying stochastic process.
+    call option transform function of the underlying stochastic process.
     """
 
     model: M = Field(description="Stochastic process model for the underlying")
@@ -348,19 +349,25 @@ class OptionPricer(OptionPricerBase, Generic[M]):
         default=128,
         description="Number of discretization points for the marginal distribution",
     )
+    method: OptionPricingMethod = Field(
+        default=OptionPricingMethod.LEWIS,
+        description="Method to use for option pricing",
+    )
     max_moneyness_ttm: float = Field(
-        default=1.5, description="Max time-adjusted moneyness to calculate prices"
+        default=1.5, description="Max moneyness to calculate prices"
     )
 
     def _compute_maturity(self, ttm: float, **kwargs: Any) -> MaturityPricer:
         marginal = self.model.marginal(ttm)
+        max_log_strike = self.max_moneyness_ttm * np.sqrt(ttm)
         transform = marginal.call_option(
-            self.n, max_moneyness=self.max_moneyness_ttm * np.sqrt(ttm), **kwargs
+            self.n, pricing_method=self.method, max_log_strike=max_log_strike, **kwargs
         )
+        log_strike = marginal.option_support(self.n + 1, max_log_strike=max_log_strike)
         return MaturityPricer(
             ttm=ttm,
             std=float(np.max(marginal.std())),
-            moneyness=transform.x,
-            call=transform.y,
+            log_strike=log_strike,
+            call=transform.call_at(log_strike),
             name=type(self.model).__name__,
         )

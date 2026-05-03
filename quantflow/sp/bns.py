@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from typing import Self
+
 import numpy as np
 from pydantic import Field
 from scipy.special import xlogy
@@ -11,15 +13,42 @@ from .ou import GammaOU
 
 
 class BNS(StochasticProcess1D):
-    """Barndorff-Nielson--Shephard (BNS) stochastic volatility model"""
+    r"""Barndorff-Nielson & Shephard ([BNS](/bibliography#bns)) stochastic
+    volatility model.
+
+    This is a stochastic volatility model where the variance process is given by a
+    non-Gaussian Ornstein-Uhlenbeck process driven by a pure-jump Lévy process.
+    The BNS model is defined by the following system of SDEs:
+
+    \begin{equation}
+        \begin{aligned}
+            dx_t &= \sqrt{v_t} dw_t + \rho dz_{\kappa t} \\
+            dv_t &= -\kappa v_t dt + dz_{\kappa t}
+        \end{aligned}
+    \end{equation}
+
+    The model is flexible and can capture various stylized facts of financial markets,
+    such as volatility clustering and leverage effects.
+
+    This implementation uses a [GammaOU][quantflow.sp.ou.GammaOU] process
+    for the variance, which is a common choice in the BNS model.
+    """
 
     variance_process: GammaOU = Field(
         default_factory=GammaOU.create, description="Variance process"
     )
-    rho: float = Field(default=0, ge=-1, le=1, description="Correlation")
+    rho: float = Field(
+        default=0,
+        gt=-1,
+        lt=1,
+        description="Correlation between variance and price processes, in (-1, 1)",
+    )
 
     @classmethod
-    def create(cls, vol: float, kappa: float, decay: float, rho: float) -> BNS:
+    def create(cls, vol: float, kappa: float, decay: float, rho: float) -> Self:
+        """Convenience constructor for BNS process with parameters
+        of the variance process
+        """
         return cls(
             variance_process=GammaOU.create(rate=vol * vol, kappa=kappa, decay=decay),
             rho=rho,

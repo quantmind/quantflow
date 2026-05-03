@@ -1,6 +1,7 @@
 from __future__ import annotations
 
-from typing import Generic
+from abc import abstractmethod
+from typing import Generic, Self
 
 import numpy as np
 from pydantic import Field
@@ -23,21 +24,35 @@ class Vasicek(IntensityProcess):
     used to model any process that reverts to a mean level at a rate proportional to
     the difference between the current level and the mean level.
 
-    $$
-    dx_t = \kappa (\theta - x_t) dt + \sigma dw_t
-    $$
+    \begin{equation}
+        dx_t = \kappa (\theta - x_t) dt + \sigma dw_t
+    \end{equation}
+
+    where $\kappa$ is the mean reversion speed, $\theta$ is the mean level, and
+    $\sigma$ is the volatility of the process. The solution to the SDE is given by
+
+    \begin{equation}
+        x_t = x_0 e^{-\kappa t} + \theta (1 - e^{-\kappa t}) +
+            \sigma \int_0^t e^{-\kappa (t-s)} dw_s
+    \end{equation}
     """
 
     bdlp: WeinerProcess = Field(
         default_factory=WeinerProcess,
         description="Background driving Weiner process",
     )
-    theta: float = Field(default=1.0, gt=0, description="Mean rate")
+    theta: float = Field(default=1.0, gt=0, description=r"Mean rate $\theta$")
 
     def characteristic_exponent(self, t: FloatArrayLike, u: Vector) -> Vector:
+        r"""The characteristic exponent of the Vasicek process is given by
+
+        \begin{equation}
+            \phi_{x_t}(u) = - iu \mathbb{E}[x_t] + \frac{1}{2} u^2 \text{Var}[x_t]
+        \end{equation}
+        """
         mu = self.analytical_mean(t)
         var = self.analytical_variance(t)
-        return u * (-complex(0, 1) * mu + 0.5 * var * u)
+        return u * (-1j * mu + 0.5 * var * u)
 
     def integrated_log_laplace(self, t: FloatArrayLike, u: Vector) -> Vector:
         raise NotImplementedError
@@ -63,10 +78,28 @@ class Vasicek(IntensityProcess):
         return Bounds(-np.inf, np.inf)
 
     def analytical_mean(self, t: FloatArrayLike) -> FloatArrayLike:
+        r"""The analytical mean of the Vasicek process is given by
+
+        \begin{equation}
+            \begin{aligned}
+            \mathbb{E}[x_t] &= x_0 e^{-\kappa t} + \theta (1 - e^{-\kappa t}) \\
+            &= \theta \qquad \text{as } t \to \infty
+            \end{aligned}
+        \end{equation}
+        """
         ekt = self.ekt(t)
         return self.rate * ekt + self.theta * (1 - ekt)
 
     def analytical_variance(self, t: FloatArrayLike) -> FloatArrayLike:
+        r"""The analytical variance of the Vasicek process is given by
+
+        \begin{equation}
+            \begin{aligned}
+            \text{Var}[x_t] &= \frac{\sigma^2}{2\kappa} (1 - e^{-2\kappa t}) \\
+            &= \frac{\sigma^2}{2\kappa} \qquad \text{as } t \to \infty
+            \end{aligned}
+        \end{equation}
+        """
         ekt = self.ekt(2 * t)
         return 0.5 * self.bdlp.sigma2 * (1 - ekt) / self.kappa
 
@@ -78,26 +111,66 @@ class Vasicek(IntensityProcess):
 
 
 class NGOU(IntensityProcess, Generic[D]):
+    r"""The general definition of a non-Gaussian OU process is defined as
+    the solution to the SDE
+
+    \begin{equation}
+        dx_t = -\kappa x_t dt + dZ_{\kappa t}
+    \end{equation}
+
+    where $Z_{\kappa t}$ is a pure jump Lévy process, also known as the background
+    driving Lévy process (BDLP).
+    The process is mean-reverting with mean reversion speed $\kappa>0$.
+
+    The unusual timing $dZ_{\kappa t}$ is deliberately chosen so that it will turn
+    out that whatever the value of $\kappa$, the marginal distribution of $x_t$
+    will be unchanged.
+
+    The solution to the SDE is given by
+
+    \begin{equation}
+        x_t = x_0 e^{-\kappa t} + \int_0^t e^{-\kappa (t-s)} dZ_{\kappa s}
+    \end{equation}
+    """
+
     bdlp: CompoundPoissonProcess[D] = Field(
-        description="Background driving Levy process",
+        description=(
+            "Background driving Lévy process is a "
+            "[CompoundPoissonProcess][quantflow.sp.poisson.CompoundPoissonProcess] "
+            "with jump distribution D"
+        ),
     )
+
+    @property
+    def intensity(self) -> float:
+        """The intensity of the NGOU process is the intensity of the background
+        driving Lévy process"""
+        return self.bdlp.intensity
+
+    @abstractmethod
+    def characteristic_exponent(self, t: FloatArrayLike, u: Vector) -> Vector:
+        r"""
+        \begin{equation}
+            \phi_{x_t,u} = iu x_0 e^{-\kappa t} +
+                \int_{ue^{-\kappa t}}^{u} \frac{\psi_Z(v)}{v} , dv
+        \end{equation}
+        """
 
     def sample_from_draws(self, draws: Paths, *args: Paths) -> Paths:
         raise NotImplementedError
 
 
 class GammaOU(NGOU[Exponential]):
-    @property
-    def intensity(self) -> float:
-        return self.bdlp.intensity
+    """Gamma OU process is a non-Gaussian OU process where the background
+    driving Lévy process is a compound Poisson process with exponential jumps"""
 
     @property
     def beta(self) -> float:
-        # TODO: find a better way for this
         return self.bdlp.jumps.decay
 
     @classmethod
-    def create(cls, rate: float = 1, decay: float = 1, kappa: float = 1) -> GammaOU:
+    def create(cls, rate: float = 1, decay: float = 1, kappa: float = 1) -> Self:
+        """Convenience constructor for GammaOU process"""
         return cls(
             rate=rate,
             kappa=kappa,
@@ -107,6 +180,13 @@ class GammaOU(NGOU[Exponential]):
         )
 
     def characteristic_exponent(self, t: FloatArrayLike, u: Vector) -> Vector:
+        r"""
+        \begin{equation}
+            \phi_{x_t,u} =
+                - iu x_0 e^{-\kappa t}
+                + \lambda \log\!\left(\frac{\beta - iu}{\beta - iu e^{-\kappa t}}\right)
+        \end{equation}
+        """
         b = self.beta
         iu = Im * u
         c1 = iu * np.exp(-self.kappa * t)

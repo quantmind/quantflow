@@ -106,7 +106,7 @@ def plot_vol_surface(
     *,
     model: pd.DataFrame | None = None,
     marker_size: int = 10,
-    x_series: str = "moneyness_ttm",
+    x_series: str = "moneyness",
     series: str = "implied_vol",
     color_series: str = "side",
     fig: Any | None = None,
@@ -135,7 +135,7 @@ def plot_vol_surface(
     if model is not None:
         fig_.add_trace(
             go.Scatter(
-                x=model["moneyness_ttm"],
+                x=model["moneyness"],
                 y=model[series],
                 name="model",
                 mode="lines",
@@ -156,7 +156,7 @@ def plot_vol_surface_3d(
     **kwargs: Any,
 ) -> Any:
     check_plotly()
-    new_fig = px.scatter_3d(df, x="moneyness_ttm", y="ttm", z=series, color="side")
+    new_fig = px.scatter_3d(df, x="moneyness", y="ttm", z=series, color="side")
     if fig is None:
         fig = new_fig
         fig.update_layout(scene_dragmode=dragmode, uirevision=uirevision, **kwargs)
@@ -179,7 +179,7 @@ def plot_vol_cross(
     fig = fig or go.Figure()
     fig.add_trace(
         go.Scatter(
-            x=data["moneyness_ttm"],
+            x=data["moneyness"],
             y=data[series],
             name=name,
             mode="lines",
@@ -188,13 +188,13 @@ def plot_vol_cross(
     if data2 is not None:
         fig.add_trace(
             go.Scatter(
-                x=data2["moneyness_ttm"],
+                x=data2["moneyness"],
                 y=data2[series],
                 name="model",
                 mode="lines",
             )
         )
-    return fig.update_layout(xaxis_title="moneyness_ttm", yaxis_title=series)
+    return fig.update_layout(xaxis_title="moneyness", yaxis_title=series)
 
 
 def plot3d(

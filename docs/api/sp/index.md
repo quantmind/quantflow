@@ -48,3 +48,5 @@ This page gives an overview of all stochastic processes available in the library
 ::: quantflow.sp.base.StochasticProcess1D
 
 ::: quantflow.sp.base.IntensityProcess
+
+::: quantflow.sp.base.StochasticProcess1DMarginal

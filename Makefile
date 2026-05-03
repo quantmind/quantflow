@@ -11,6 +11,10 @@ docs:				## build documentation
 	@uv run ./dev/build-examples
 	@uv run mkdocs build
 
+.PHONY: docs-bib
+docs-bib:			## Regenerate docs bibliography
+	@uv run ./docs/bib2md.py
+
 .PHONY: docs-examples
 docs-examples:			## Regenerate docs examples
 	@uv run ./dev/build-examples

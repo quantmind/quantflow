@@ -10,4 +10,6 @@ These are the classes that implement gaussian and non-gaussian
 
 ## Non-Gaussian OU process
 
+::: quantflow.sp.ou.NGOU
+
 ::: quantflow.sp.ou.GammaOU
