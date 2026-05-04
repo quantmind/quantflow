@@ -30,8 +30,9 @@ theme:
     - navigation.indexes
     - navigation.path
     - content.code.copy
-  logo: assets/quantflow-logo.png
-  favicon: img/favicon.png
+  logo: assets/logos/quantflow-mark-dark.svg
+hooks:
+  - app/utils/paths.py
 plugins:
   - search
   - mkdocstrings:
@@ -126,6 +127,7 @@ nav:
       - Hurst: examples/hurst
       - Supersmoother: examples/supersmoother
       - Volatility Surface: examples/volatility-surface
+  - MCP Server: mcp.md
   - Glossary: glossary.md
   - Contributing: contributing.md
   - Bibliography: bibliography.md

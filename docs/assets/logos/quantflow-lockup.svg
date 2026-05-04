@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 380 110" width="760" height="220">
+  <title>Quantflow lockup</title>
+  <circle cx="30.000" cy="35.000" r="8.800" fill="#A39410"></circle>
+  <circle cx="50.000" cy="35.000" r="7.370" fill="#3B82F6"></circle>
+  <circle cx="70.000" cy="35.000" r="5.940" fill="#3B82F6"></circle>
+  <circle cx="30.000" cy="55.000" r="7.370" fill="#3B82F6"></circle>
+  <circle cx="50.000" cy="55.000" r="5.940" fill="#3B82F6"></circle>
+  <circle cx="70.000" cy="55.000" r="4.510" fill="#3B82F6"></circle>
+  <circle cx="30.000" cy="75.000" r="5.940" fill="#3B82F6"></circle>
+  <circle cx="50.000" cy="75.000" r="4.510" fill="#3B82F6"></circle>
+  <circle cx="70.000" cy="75.000" r="3.080" fill="#3B82F6"></circle>
+  <text x="110" y="74" font-family="Inter, system-ui, -apple-system, &#39;Helvetica Neue&#39;, sans-serif" font-size="58" font-weight="400" letter-spacing="-1.7" fill="#A39410">Quantflow</text>
+</svg>

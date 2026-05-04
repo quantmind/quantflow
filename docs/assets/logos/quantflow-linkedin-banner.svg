@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1584 396" width="1584" height="396">
+  <title>Quantflow LinkedIn banner</title>
+  <rect width="1584" height="396" fill="#0B0E14"></rect>
+  <g transform="translate(420 130)">
+  <circle cx="35.000" cy="35.000" r="15.400" fill="#A39410"></circle>
+  <circle cx="70.000" cy="35.000" r="12.898" fill="#3B82F6"></circle>
+  <circle cx="105.000" cy="35.000" r="10.395" fill="#3B82F6"></circle>
+  <circle cx="35.000" cy="70.000" r="12.898" fill="#3B82F6"></circle>
+  <circle cx="70.000" cy="70.000" r="10.395" fill="#3B82F6"></circle>
+  <circle cx="105.000" cy="70.000" r="7.892" fill="#3B82F6"></circle>
+  <circle cx="35.000" cy="105.000" r="10.395" fill="#3B82F6"></circle>
+  <circle cx="70.000" cy="105.000" r="7.892" fill="#3B82F6"></circle>
+  <circle cx="105.000" cy="105.000" r="5.390" fill="#3B82F6"></circle>
+  </g>
+  <text x="610" y="200" font-family="Inter, system-ui, sans-serif" font-size="110" font-weight="400" letter-spacing="-3.5" fill="#A39410">Quantflow</text>
+  <text x="610" y="245" font-family="Inter, system-ui, sans-serif" font-size="26" font-weight="400" letter-spacing="0.2" fill="#3B82F6">A modern Python library for quantitative finance</text>
+</svg>
