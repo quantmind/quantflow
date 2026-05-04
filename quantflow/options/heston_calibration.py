@@ -156,7 +156,7 @@ class DoubleHestonCalibration(VolModelCalibration[DH], Generic[DH]):
         v2u = vol_ub**2
         return Bounds(
             [v2, v2, 1e-4, 0.0, -0.9, v2, v2, 0.0, 0.0, -0.9],
-            [v2u, v2u, np.inf, np.inf, 0.0, v2u, v2u, np.inf, np.inf, 0.0],
+            [v2u, v2u, np.inf, np.inf, 0.0, v2u, v2u, 5.0, np.inf, 0.0],
         )
 
     def get_params(self) -> np.ndarray:
@@ -192,11 +192,25 @@ class DoubleHestonCalibration(VolModelCalibration[DH], Generic[DH]):
         self.model.heston2.rho = params[9]
         vp1.kappa = vp2.kappa + params[2]  # kappa2 + kappa_delta
 
+    def feller_residuals(self) -> list[float]:
+        """Extra residual terms penalising Feller violations for both processes.
+
+        Appended to the main residual vector so the TRF stage also sees the
+        constraint, not just the L-BFGS-B stage.
+        """
+        w = self.feller_penalize**0.5
+        neg1 = min(self.model.heston1.variance_process.feller_condition, 0.0)
+        neg2 = min(self.model.heston2.variance_process.feller_condition, 0.0)
+        return [w * neg1, w * neg2]
+
     def penalize(self) -> float:
         """Feller penalty applied independently to both variance processes"""
         neg1 = min(self.model.heston1.variance_process.feller_condition, 0.0)
         neg2 = min(self.model.heston2.variance_process.feller_condition, 0.0)
         return self.feller_penalize * (neg1 * neg1 + neg2 * neg2)
+
+    def residuals(self, params: np.ndarray) -> np.ndarray:
+        return np.append(super().residuals(params), self.feller_residuals())
 
     def warm_start(self) -> None:
         """Sequential single-Heston fits to initialise the joint optimisation.

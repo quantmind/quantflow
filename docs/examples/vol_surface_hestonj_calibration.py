@@ -39,6 +39,6 @@ print(result.message)
 print_model(calibration.model)
 
 # Plot the calibrated smile for all maturities and save as PNG
-fig = calibration.plot_maturities(max_moneyness_ttm=1.5, support=101)
+fig = calibration.plot_maturities(max_moneyness=1.5, support=101)
 fig.update_layout(title="HestonJ Calibrated Smiles")
 fig.write_image(assets_path("hestonj_calibrated_smile.png"), width=1200)

@@ -53,10 +53,10 @@ class StochasticProcess(BaseModel, ABC, extra="forbid"):
         probability density function
 
         \begin{equation}
-            \phi = {\mathbb E} \left[e^{i u x_t}\right] = e^{-\psi(t, u)}
+            \Phi = {\mathbb E} \left[e^{i u x_t}\right] = e^{-\phi(t, u)}
         \end{equation}
 
-        where $\psi$ is the characteristic exponent, which can be more easily
+        where $\phi$ is the characteristic exponent, which can be more easily
         computed for many processes.
         """
         return np.exp(-self.characteristic_exponent(t, u))
@@ -66,6 +66,10 @@ class StochasticProcess(BaseModel, ABC, extra="forbid"):
         return -self.characteristic_exponent(t, complex(0, -1)).real
 
     def analytical_std(self, t: FloatArrayLike) -> FloatArrayLike:
+        """Analytical standard deviation of the process at time `t`
+
+        This has a closed form solution if the process has an analytical variance
+        """
         return np.sqrt(self.analytical_variance(t))
 
     def analytical_mean(self, t: FloatArrayLike) -> FloatArrayLike:

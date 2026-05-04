@@ -8,7 +8,7 @@ from scipy.optimize import Bounds
 from quantflow.utils.types import FloatArrayLike, Vector
 
 from ..ta.paths import Paths
-from .base import Im, IntensityProcess
+from .base import IntensityProcess
 
 
 class SamplingAlgorithm(str, enum.Enum):
@@ -18,18 +18,19 @@ class SamplingAlgorithm(str, enum.Enum):
 
 
 class CIR(IntensityProcess):
-    r"""The Cox–Ingersoll–Ross (CIR) model is a mean-reverting square-root diffusion
+    r"""The Cox-Ingersoll-Ross (CIR) model is a mean-reverting square-root diffusion
     process.
 
-    $$
-    dx_t = \kappa (\theta - x_t) dt + \sigma \sqrt{x_t}dw_t
-    $$
+    \begin{equation}
+        dx_t = \kappa (\theta - x_t) dt + \sigma \sqrt{x_t}\, dw_t
+    \end{equation}
 
-    Where $w_t$ is a Wiener process. This process is guaranteed to be positive if
+    where $w_t$ is a standard Wiener process. The process stays strictly positive
+    (Feller condition) when
 
-    $$
-    2 \kappa \theta >= \sigma^2
-    $$
+    \begin{equation}
+        2\kappa\theta \geq \sigma^2
+    \end{equation}
     """
 
     sigma: float = Field(default=1.0, gt=0, description=r"Volatility $\sigma$")
@@ -105,7 +106,20 @@ class CIR(IntensityProcess):
         return Paths(t=draws.t, data=paths)
 
     def characteristic_exponent(self, t: Vector, u: Vector) -> Vector:
-        iu = Im * u
+        r"""Characteristic exponent of the CIR process.
+
+        \begin{equation}
+        \begin{aligned}
+            \phi(t, u) &= -\frac{2\kappa\theta}{\sigma^2}
+            \!\left(\kappa t + \log\frac{2\kappa}{c}\right)
+            - \frac{2\kappa\, iu}{c}\, x_0 \\
+            c &= iu\sigma^2 + (2\kappa - iu\sigma^2)\,e^{\kappa t}
+        \end{aligned}
+        \end{equation}
+
+        where $x_0$ is the initial rate.
+        """
+        iu = 1j * u
         sigma = self.sigma
         kappa = self.kappa
         kt = kappa * t
@@ -118,10 +132,18 @@ class CIR(IntensityProcess):
         return -a - b * self.rate
 
     def integrated_log_laplace(self, t: Vector, u: Vector) -> Vector:
-        """Integrated log Laplace transform of the process
+        r"""Log-Laplace transform of the time-integrated CIR process.
 
-        This is the log of the Laplace transform of the process integrated
-        over time.
+        \begin{equation}
+            \phi(t, u) = \log E\!\left[e^{-u \int_0^t x_s\, ds}\right]
+            = \frac{2\kappa\theta}{\sigma^2}
+              \log\!\left(\frac{2\gamma\, e^{(\gamma+\kappa)t/2}}{D}\right)
+            - \frac{2u(e^{\gamma t}-1)}{D}\, x_0
+        \end{equation}
+
+        where $\gamma = \sqrt{\kappa^2 + 2u\sigma^2}$,
+        $D = 2\gamma + (\gamma+\kappa)(e^{\gamma t}-1)$, and $x_0$ is
+        the initial rate.
         """
         kappa = self.kappa
         sigma2 = self.sigma2
@@ -138,14 +160,23 @@ class CIR(IntensityProcess):
         return Bounds(0, np.inf)
 
     def analytical_mean(self, t: FloatArrayLike) -> FloatArrayLike:
-        """Analytical mean of the process at time `t`
+        r"""Analytical mean of the CIR process at time $t$.
 
-        This has a closed form solution.
+        \begin{equation}
+            E[x_t] = x_0\, e^{-\kappa t} + \theta\bigl(1 - e^{-\kappa t}\bigr)
+        \end{equation}
         """
         ekt = self.ekt(t)
         return self.rate * ekt + self.theta * (1 - ekt)
 
     def analytical_variance(self, t: FloatArrayLike) -> FloatArrayLike:
+        r"""Analytical variance of the CIR process at time $t$.
+
+        \begin{equation}
+            \mathrm{Var}(x_t) = \frac{\sigma^2(1 - e^{-\kappa t})}{\kappa}
+            \left(x_0\, e^{-\kappa t} + \frac{\theta}{2}(1 - e^{-\kappa t})\right)
+        \end{equation}
+        """
         kappa = self.kappa
         ekt = self.ekt(t)
         return (
@@ -156,6 +187,21 @@ class CIR(IntensityProcess):
         )
 
     def analytical_pdf(self, t: FloatArrayLike, x: FloatArrayLike) -> FloatArrayLike:
+        r"""The marginal pdf of the CIR process is the scaled non-central chi-squared.
+
+        \begin{equation}
+        \begin{aligned}
+            p(x_t = x \mid x_0) &= c\, e^{-(u+v)}
+                \left(\frac{v}{u}\right)^{q/2} I_q\!\left(2\sqrt{uv}\right) \\
+            c &= \frac{2\kappa}{\sigma^2(1 - e^{-\kappa t})} \\
+            u &= c\, x_0\, e^{-\kappa t} \\
+            v &= c\, x \\
+            q &= \frac{2\kappa\theta}{\sigma^2} - 1
+        \end{aligned}
+        \end{equation}
+
+        $I_q$ is the modified Bessel function of the first kind of order $q$.
+        """
         k = self.kappa
         s2 = self.sigma2
         ekt = self.ekt(t)

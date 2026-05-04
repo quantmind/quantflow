@@ -90,16 +90,6 @@ class VolModelCalibration(BaseModel, ABC, Generic[M]):
             " A value of 0 applies no penalisation."
         ),
     )
-    ttm_weight: float = Field(
-        default=0.0,
-        ge=0.0,
-        le=1.0,
-        description=(
-            "Weight penalising short-dated options as ttm approaches 0."
-            " Applied as `1 - ttm_weight * exp(-ttm)`."
-            " A value of 0 applies no penalisation."
-        ),
-    )
     options: dict[ModelCalibrationEntryKey, OptionEntry] = Field(
         default_factory=dict,
         repr=False,
@@ -174,13 +164,15 @@ class VolModelCalibration(BaseModel, ABC, Generic[M]):
             ftol=1e-10,
             xtol=1e-10,
             gtol=1e-10,
+            max_nfev=10000,
         )
         self.set_params(result.x)
         return result
 
     def cost_weight(self, ttm: float, log_strike: float) -> float:
         """Weight for a given time to maturity and log-strike"""
-        return np.exp(-self.moneyness_weight * log_strike)
+        moneyness = log_strike / np.sqrt(ttm)
+        return np.exp(-self.moneyness_weight * abs(moneyness))
 
     def penalize(self) -> float:
         """Additional scalar penalty added to the cost function (default: 0)"""
@@ -208,7 +200,7 @@ class VolModelCalibration(BaseModel, ABC, Generic[M]):
         self,
         index: int = 0,
         *,
-        max_moneyness_ttm: float | None = 1.0,
+        max_moneyness: float | None = 1.0,
         support: int = 51,
         **kwargs: Any,
     ) -> Any:
@@ -216,10 +208,8 @@ class VolModelCalibration(BaseModel, ABC, Generic[M]):
         cross = self.vol_surface.maturities[index]
         options = tuple(self.vol_surface.option_prices(index=index, converged=True))
         model = self.pricer.maturity(cross.ttm(self.ref_date))
-        if max_moneyness_ttm is not None:
-            model = model.max_moneyness_ttm(
-                max_moneyness=max_moneyness_ttm, support=support
-            )
+        if max_moneyness is not None:
+            model = model.max_moneyness(max_moneyness=max_moneyness, support=support)
         return plot.plot_vol_surface(
             pd.DataFrame([d.info_dict() for d in options]),
             model=model.df,
@@ -229,7 +219,7 @@ class VolModelCalibration(BaseModel, ABC, Generic[M]):
     def plot_maturities(
         self,
         *,
-        max_moneyness_ttm: float | None = 1.0,
+        max_moneyness: float | None = 1.0,
         support: int = 51,
         cols: int = 2,
         row_height: int = 400,
@@ -250,9 +240,9 @@ class VolModelCalibration(BaseModel, ABC, Generic[M]):
             col = i % cols + 1
             options = tuple(self.vol_surface.option_prices(index=i, converged=True))
             model = self.pricer.maturity(cross.ttm(self.ref_date))
-            if max_moneyness_ttm is not None:
-                model = model.max_moneyness_ttm(
-                    max_moneyness=max_moneyness_ttm, support=support
+            if max_moneyness is not None:
+                model = model.max_moneyness(
+                    max_moneyness=max_moneyness, support=support
                 )
 
             plot.plot_vol_surface(

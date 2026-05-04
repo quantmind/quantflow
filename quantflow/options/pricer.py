@@ -204,7 +204,7 @@ class MaturityPricer(BaseModel, arbitrary_types_allowed=True):
             )
         )
 
-    def max_moneyness_ttm(self, max_moneyness: float = 1.0, support: int = 51) -> Self:
+    def max_moneyness(self, max_moneyness: float = 1.0, support: int = 51) -> Self:
         """Calculate the implied volatility"""
         moneyness = np.linspace(-max_moneyness, max_moneyness, support)
         log_strike = np.asarray(moneyness) * np.sqrt(self.ttm)
@@ -295,7 +295,7 @@ class OptionPricerBase(BaseModel, arbitrary_types_allowed=True):
 
     def plot3d(
         self,
-        max_moneyness_ttm: float = 1.0,
+        max_moneyness: float = 1.0,
         support: int = 51,
         ttm: FloatArray | None = None,
         dragmode: str = "turntable",
@@ -308,11 +308,11 @@ class OptionPricerBase(BaseModel, arbitrary_types_allowed=True):
         """
         if ttm is None:
             ttm = np.arange(0.05, 1.0, 0.05)
-        moneyness_ttm = np.linspace(-max_moneyness_ttm, max_moneyness_ttm, support)
-        implied = np.zeros((len(ttm), len(moneyness_ttm)))
+        moneyness = np.linspace(-max_moneyness, max_moneyness, support)
+        implied = np.zeros((len(ttm), len(moneyness)))
         for i, t in enumerate(ttm):
             maturity = self.maturity(cast(float, t))
-            implied[i, :] = maturity.interp(moneyness_ttm * np.sqrt(t)).implied_vols
+            implied[i, :] = maturity.interp(moneyness * np.sqrt(t)).implied_vols
         properties: dict = dict(
             xaxis_title="moneyness",
             yaxis_title="TTM",
@@ -330,7 +330,7 @@ class OptionPricerBase(BaseModel, arbitrary_types_allowed=True):
         )
         properties.update(kwargs)
         return plot.plot3d(
-            x=moneyness_ttm,
+            x=moneyness,
             y=ttm,
             z=implied,
             **properties,
@@ -353,13 +353,13 @@ class OptionPricer(OptionPricerBase, Generic[M]):
         default=OptionPricingMethod.CARR_MADAN,
         description="Method to use for option pricing",
     )
-    max_moneyness_ttm: float = Field(
+    max_moneyness: float = Field(
         default=1.5, description="Max moneyness to calculate prices"
     )
 
     def _compute_maturity(self, ttm: float, **kwargs: Any) -> MaturityPricer:
         marginal = self.model.marginal(ttm)
-        max_log_strike = self.max_moneyness_ttm * np.sqrt(ttm)
+        max_log_strike = self.max_moneyness * np.sqrt(ttm)
         transform = marginal.call_option(
             self.n, pricing_method=self.method, max_log_strike=max_log_strike, **kwargs
         )

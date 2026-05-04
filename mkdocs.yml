@@ -107,6 +107,7 @@ nav:
           - Types: api/utils/types.md
   - Tutorials:
       - tutorials/index.md
+      - CIR Process: tutorials/cir.md
       - Option Pricing: tutorials/option_pricing.md
       - Pricing Method Comparison: tutorials/pricing_method_comparison.md
       - Volatility Surface: tutorials/volatility_surface.md
