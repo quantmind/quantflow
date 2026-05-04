@@ -127,6 +127,7 @@ nav:
       - Hurst: examples/hurst
       - Supersmoother: examples/supersmoother
       - Volatility Surface: examples/volatility-surface
+  - MCP Server: mcp.md
   - Glossary: glossary.md
   - Contributing: contributing.md
   - Bibliography: bibliography.md
