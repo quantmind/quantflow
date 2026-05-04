@@ -34,8 +34,10 @@ class DSP(PoissonBase):
         return np.linspace(0, points, points + 1)
 
     def characteristic_exponent(self, t: FloatArrayLike, u: Vector) -> Vector:
-        phi = self.poisson.characteristic_exponent(t, u)
-        return -self.intensity.integrated_log_laplace(t, phi)
+        # phi_x is the per-unit-time Lévy exponent of the inner Poisson;
+        # the integrated log-Laplace already absorbs the time horizon
+        phi_x = self.poisson.characteristic_exponent(1, u)
+        return -self.intensity.integrated_log_laplace(t, phi_x)
 
     def arrivals(self, t: float = 1) -> FloatArray:
         paths = self.intensity.sample(1, t, math.ceil(100 * t)).integrate()

@@ -87,6 +87,13 @@ def test_dsp_pdf(dsp: DSP):
     np.testing.assert_almost_equal(pdf2[:32], pdf1)
 
 
+def test_dsp_mean_scales_with_horizon(dsp: DSP):
+    # default CIR is stationary at rate=theta=1, so E[N_t] = t
+    for t in (0.5, 1.0, 2.0):
+        m = dsp.marginal(t)
+        assert m.mean_from_characteristic() == pytest.approx(t, rel=1e-4)
+
+
 def test_compound_create_double_exponential():
     poi = CompoundPoissonProcess.create(DoubleExponential, jump_intensity=20, vol=0.5)
     assert poi.intensity == 20

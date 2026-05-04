@@ -101,18 +101,29 @@ class BNS(StochasticProcess1D):
         return self.sample_from_draws(Paths.normal_draws(n, time_horizon, time_steps))
 
     def sample_from_draws(self, path_dw: Paths, *args: Paths) -> Paths:
+        kappa = self.variance_process.kappa
+        time_steps = path_dw.time_steps
+        time_horizon = path_dw.t
+        dt = path_dw.dt
+
         if args:
             path_dz = args[0]
         else:
-            # generate the background driving process samples if not provided
+            # BDLP runs at kappa-rescaled time, so sample over [0, kappa*T]
             path_dz = self.variance_process.bdlp.sample(
-                path_dw.samples, path_dw.t, path_dw.time_steps
+                path_dw.samples, kappa * time_horizon, time_steps
             )
-        dt = path_dw.dt
-        # sample the activity rate process
-        v = self.variance_process.sample_from_draws(path_dz)
-        # create the time-changed Brownian motion
-        dw = path_dw.data * np.sqrt(v.data * dt)
-        paths = np.zeros(dw.shape)
-        paths[1:] = np.cumsum(dw[:-1], axis=0) + path_dz.data
-        return Paths(t=path_dw.t, data=paths)
+
+        # Variance via the OU recursion v_{i+1} = v_i * e^{-kappa dt} + Delta z_{i+1}
+        decay = np.exp(-kappa * dt)
+        dz = np.diff(path_dz.data, axis=0)
+        v = np.zeros_like(path_dz.data)
+        v[0] = self.variance_process.rate
+        for i in range(time_steps):
+            v[i + 1] = v[i] * decay + dz[i]
+
+        # Price: x_t = integral sqrt(v) dW + rho * z_{kappa t}
+        diffusion = np.sqrt(v[:-1] * dt) * path_dw.data[:-1]
+        paths = np.zeros_like(path_dw.data)
+        paths[1:] = np.cumsum(diffusion, axis=0) + self.rho * path_dz.data[1:]
+        return Paths(t=time_horizon, data=paths)

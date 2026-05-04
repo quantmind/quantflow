@@ -41,7 +41,9 @@ While $\tau_t$ is always continuous, $\lambda$ can exhibit jumps. Since the time
  \Phi_{y_t, u} = {\mathbb E}\left[e^{i u x_{\tau_t}}\right] = {\mathbb E}\left[{\mathbb E}\left[\left.e^{i u x_s}\right|\tau_t=s\right]\right]
 \end{equation}
 
-where the inside expectation is taken on $x_{\tau_t}$ conditional on a fixed value of $\tau_t = s$ and the outside expectation is on all possible values of $\tau_t$. If the random time $\tau_t$ is independent of $x_t$, the randomness due to the Lévy process can be integrated out using the characteristic function of $x_t$:
+where the inside expectation is taken on $x_{\tau_t}$ conditional on a fixed value of $\tau_t = s$ and the outside expectation is on all possible values of $\tau_t$.
+
+If the random time $\tau_t$ is independent of $x_t$, the randomness due to the Lévy process can be integrated out using the characteristic function of $x_t$:
 
 \begin{equation}
 \Phi_{y_t, u} = {\mathbb E}\left[e^{-\tau_t \phi_{x,u}}\right] = {\mathbb L}_{\tau_t}\left(\phi_{x_1,u}\right)
