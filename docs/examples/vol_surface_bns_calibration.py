@@ -1,11 +1,10 @@
 import json
 
 from docs.examples._utils import assets_path, print_model
-from quantflow.options.calibration import HestonJCalibration
+from quantflow.options.calibration import BNSCalibration
 from quantflow.options.pricer import OptionPricer
 from quantflow.options.surface import VolSurface, VolSurfaceInputs, surface_from_inputs
-from quantflow.sp.heston import HestonJ
-from quantflow.utils.distributions import DoubleExponential
+from quantflow.sp.bns import BNS
 
 # Load a saved volatility surface snapshot and build the surface
 with open("docs/examples/volsurface.json") as fp:
@@ -14,21 +13,12 @@ with open("docs/examples/volsurface.json") as fp:
 surface.bs()
 surface.disable_outliers()
 
-# Create a HestonJ pricer with initial parameters
+# Create a BNS pricer with initial parameters
 pricer = OptionPricer(
-    model=HestonJ.create(
-        DoubleExponential,
-        vol=0.5,
-        kappa=2,
-        rho=-0.2,
-        sigma=0.8,
-        jump_fraction=0.3,
-        jump_asymmetry=0.2,
-    )
+    model=BNS.create(vol=0.5, kappa=1.0, decay=10.0, rho=-0.2),
 )
 
-# Set up the calibration, dropping the first (very short) maturity
-calibration: HestonJCalibration[DoubleExponential] = HestonJCalibration(
+calibration: BNSCalibration[BNS] = BNSCalibration(
     pricer=pricer,
     vol_surface=surface,
     moneyness_weight=0.5,
@@ -40,5 +30,5 @@ print_model(calibration.model)
 
 # Plot the calibrated smile for all maturities and save as PNG
 fig = calibration.plot_maturities(max_moneyness=1.5, support=101)
-fig.update_layout(title="HestonJ Calibrated Smiles")
-fig.write_image(assets_path("hestonj_calibrated_smile.png"), width=1200)
+fig.update_layout(title="BNS Calibrated Smiles")
+fig.write_image(assets_path("bns_calibrated_smile.png"), width=1200)

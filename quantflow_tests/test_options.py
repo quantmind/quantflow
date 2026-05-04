@@ -6,12 +6,13 @@ import numpy as np
 import pytest
 
 from quantflow.options import bs
-from quantflow.options.calibration import ModelCalibrationEntryKey, OptionEntry
-from quantflow.options.heston_calibration import (
+from quantflow.options.calibration import (
     DoubleHestonCalibration,
     DoubleHestonJCalibration,
     HestonCalibration,
     HestonJCalibration,
+    ModelCalibrationEntryKey,
+    OptionEntry,
 )
 from quantflow.options.inputs import OptionInput
 from quantflow.options.pricer import OptionPricer

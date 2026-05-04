@@ -1,7 +1,7 @@
 import json
 
 from docs.examples._utils import assets_path, print_model
-from quantflow.options.heston_calibration import HestonCalibration
+from quantflow.options.calibration import HestonCalibration
 from quantflow.options.pricer import OptionPricer, OptionPricingMethod
 from quantflow.options.surface import VolSurfaceInputs, surface_from_inputs
 from quantflow.sp.heston import Heston

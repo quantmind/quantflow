@@ -9,8 +9,8 @@ from scipy.optimize import Bounds, OptimizeResult
 from quantflow.sp.heston import DoubleHeston, DoubleHestonJ, Heston, HestonJ
 from quantflow.sp.jump_diffusion import D
 
-from .calibration import VolModelCalibration
-from .pricer import OptionPricer
+from ..pricer import OptionPricer
+from .base import VolModelCalibration
 
 H = TypeVar("H", bound=Heston)
 
@@ -67,7 +67,7 @@ class HestonCalibration(VolModelCalibration[H], Generic[H]):
 class HestonJCalibration(HestonCalibration[HestonJ[D]], Generic[D]):
     """Calibration of the [HestonJ][quantflow.sp.heston.HestonJ] model with jumps.
 
-    Extends [HestonCalibration][quantflow.options.heston_calibration.HestonCalibration]
+    Extends [HestonCalibration][quantflow.options.calibration.heston.HestonCalibration]
     by appending jump parameters to the parameter vector and bounds.
     """
 
@@ -260,11 +260,11 @@ class DoubleHestonJCalibration(DoubleHestonCalibration[DoubleHestonJ[D]], Generi
     """Calibration of the [DoubleHestonJ][quantflow.sp.heston.DoubleHestonJ] model.
 
     Extends
-    [DoubleHestonCalibration][quantflow.options.heston_calibration.DoubleHestonCalibration]
+    [DoubleHestonCalibration][quantflow.options.calibration.heston.DoubleHestonCalibration]
     by appending the jump parameters of `heston1` to the parameter vector and bounds.
 
     Overrides `warm_start` to fit a full
-    [HestonJCalibration][quantflow.options.heston_calibration.HestonJCalibration]
+    [HestonJCalibration][quantflow.options.calibration.heston.HestonJCalibration]
     to the short-dated options, so that the jump parameters are also initialised
     before the joint optimisation.
     """

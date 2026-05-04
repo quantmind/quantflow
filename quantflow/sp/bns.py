@@ -4,11 +4,10 @@ from typing import Self
 
 import numpy as np
 from pydantic import Field
-from scipy.special import xlogy
 
 from ..ta.paths import Paths
 from ..utils.types import FloatArrayLike, Vector
-from .base import Im, StochasticProcess1D
+from .base import StochasticProcess1D
 from .ou import GammaOU
 
 
@@ -55,7 +54,48 @@ class BNS(StochasticProcess1D):
         )
 
     def characteristic_exponent(self, t: FloatArrayLike, u: Vector) -> Vector:
-        return -self._zeta(t, 0.5 * Im * u * u, self.rho * u)
+        r"""Characteristic exponent of the BNS process with Gamma-OU variance.
+
+        \begin{equation}
+            \phi(t, u) = B v_0
+                - \lambda \left[
+                    \frac{\kappa t \, A}{\beta - A}
+                    + \frac{\beta}{\beta - A}
+                    \log\frac{\beta - i u \rho + B}{\beta - i u \rho}
+                \right]
+        \end{equation}
+
+        with
+
+        \begin{equation}
+            \begin{aligned}
+                A &= i u \rho - \frac{u^2}{2 \kappa}, \\
+                B &= \frac{u^2 (1 - e^{-\kappa t})}{2 \kappa}.
+            \end{aligned}
+        \end{equation}
+
+        where $v_0$ is the initial variance, $\kappa$ is the mean-reversion speed,
+        $\rho$ is the leverage parameter, and $(\lambda, \beta)$ are the intensity
+        and exponential-jump rate of the background driving Lévy process.
+        """
+        v = self.variance_process
+        k = v.kappa
+        beta = v.beta
+        intensity = v.intensity
+        v0 = v.rate
+        rho = self.rho
+
+        iur = 1j * u * rho
+        u2 = u * u
+        a = iur - 0.5 * u2 / k
+        b = 0.5 * u2 * (1 - np.exp(-k * t)) / k
+
+        diffusion = b * v0
+        bdlp = intensity * (
+            k * t * a / (beta - a)
+            + beta / (beta - a) * np.log((beta - iur + b) / (beta - iur))
+        )
+        return diffusion - bdlp
 
     def sample(self, n: int, time_horizon: float = 1, time_steps: int = 100) -> Paths:
         return self.sample_from_draws(Paths.normal_draws(n, time_horizon, time_steps))
@@ -76,20 +116,3 @@ class BNS(StochasticProcess1D):
         paths = np.zeros(dw.shape)
         paths[1:] = np.cumsum(dw[:-1], axis=0) + path_dz.data
         return Paths(t=path_dw.t, data=paths)
-
-    # Internal characteristics function methods (see docs)
-
-    def _zeta(self, t: Vector, a: Vector, b: Vector) -> Vector:
-        k = self.variance_process.kappa
-        c = a * (1 - np.exp(-k * t)) / k
-        g = (a + b) / self.variance_process.beta
-        return Im * c * self.variance_process.rate - self.variance_process.intensity * (
-            self._i(b + c, g) - self._i(b, g)
-        )
-
-    def _i(self, x: Vector, g: Vector) -> Vector:
-        k = self.variance_process.kappa
-        beta = self.variance_process.beta
-        l1 = xlogy(k - Im * g, x + Im * beta)
-        l2 = xlogy(g / (g + Im * k) / k, beta * g / k - x)
-        return l1 + l2

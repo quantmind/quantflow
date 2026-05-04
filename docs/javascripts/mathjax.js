@@ -9,11 +9,18 @@ window.MathJax = {
   options: {
     ignoreHtmlClass: ".*|",
     processHtmlClass: "arithmatex"
+  },
+  startup: {
+    typeset: false
   }
 };
 
 document$.subscribe(() => {
-  MathJax.startup.promise.then(() => {
-    MathJax.typesetPromise();
+  if (typeof MathJax === "undefined" || !MathJax.startup) return;
+  MathJax.startup.promise = MathJax.startup.promise.then(() => {
+    MathJax.startup.output.clearCache();
+    MathJax.typesetClear();
+    MathJax.texReset();
+    return MathJax.typesetPromise();
   });
 });
