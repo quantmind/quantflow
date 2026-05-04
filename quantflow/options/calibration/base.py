@@ -85,9 +85,22 @@ class VolModelCalibration(BaseModel, ABC, Generic[M]):
         default=0.0,
         ge=0.0,
         description=(
-            "Weight penalising options as moneyness moves away from 0."
-            " Applied as `exp(-moneyness_weight * |moneyness|)`."
-            " A value of 0 applies no penalisation."
+            "Coefficient that up-weights wing options in the cost function."
+            " Applied as `min(exp(moneyness_weight * moneyness**2),"
+            " max_cost_weight)`, with `moneyness = log(K/F) / sqrt(ttm)`."
+            " The quadratic form mimics the gaussian shape of `1/vega` and"
+            " puts wing residuals on the same footing as ATM ones. A value"
+            " of 0 applies no moneyness weighting; typical values are in"
+            " `[0.1, 0.5]`."
+        ),
+    )
+    max_cost_weight: float = Field(
+        default=10.0,
+        gt=0.0,
+        description=(
+            "Hard cap on the per-option cost weight, to prevent a single"
+            " deep-wing option from dominating the loss when"
+            " `moneyness_weight` is large."
         ),
     )
     options: dict[ModelCalibrationEntryKey, OptionEntry] = Field(
@@ -170,9 +183,14 @@ class VolModelCalibration(BaseModel, ABC, Generic[M]):
         return result
 
     def cost_weight(self, ttm: float, log_strike: float) -> float:
-        """Weight for a given time to maturity and log-strike"""
+        """Weight for a given time to maturity and log-strike.
+
+        Up-weights wing options via `exp(moneyness_weight * moneyness**2)`,
+        capped at `max_cost_weight`. The quadratic form mimics `1/vega`.
+        """
         moneyness = log_strike / np.sqrt(ttm)
-        return np.exp(-self.moneyness_weight * abs(moneyness))
+        weight = np.exp(self.moneyness_weight * moneyness * moneyness)
+        return float(min(weight, self.max_cost_weight))
 
     def penalize(self) -> float:
         """Additional scalar penalty added to the cost function (default: 0)"""

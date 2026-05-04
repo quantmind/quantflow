@@ -25,9 +25,11 @@ parameters to the surface:
 
 The BDLP intensity is set as $\lambda = \theta \beta$ so that the stationary
 mean of the Gamma-OU variance process equals $\theta$. This gives the same
-$(v_0, \theta)$ parameterisation as Heston. Because the variance is built from
-positive jumps and exponential mean reversion, it stays positive by
-construction; no Feller-style penalty is needed.
+$(v_0, \theta)$ parameterisation as Heston.
+
+Because the variance is built from positive jumps and exponential mean
+reversion, it stays positive by construction. No Feller-style penalty is
+needed.
 
 ### How BNS fits the surface
 
@@ -43,10 +45,12 @@ A consequence of this structural difference is that the calibrator often
 settles at a small $\kappa$ together with a large $\theta$. The time scale of
 mean reversion is $1/\kappa$, so when $\kappa$ is small the variance process
 barely relaxes towards $\theta$ over the calibration horizon and stays close
-to $v_0$ throughout. In that regime $\theta$ is only weakly identified by the
-surface and the optimizer can move it freely as long as the jump-driven smile
-dynamics are preserved. The headline number to read in the output is $v_0$,
-which sets the at-the-money level.
+to $v_0$ throughout.
+
+In that regime $\theta$ is only weakly identified by the surface and the
+optimizer can move it freely as long as the jump-driven smile dynamics are
+preserved. The headline number to read in the output is $v_0$, which sets
+the at-the-money level.
 
 ### Calibrated parameters
 
@@ -96,16 +100,26 @@ short-maturity skew from the long-maturity level, in the same spirit as the
 [DoubleHeston][quantflow.sp.heston.DoubleHeston] extension of Heston.
 
 [BNS2Calibration][quantflow.options.calibration.bns.BNS2Calibration] fits
-eleven parameters:
+nine parameters:
 
-`[v01, theta1, kappa_delta, beta1, rho1, v02, theta2, kappa2, beta2, rho2, w]`
+`[v01, v02, theta, beta, kappa2, kappa_delta, rho1, rho2, w]`
 
 with `kappa1 = kappa2 + kappa_delta` enforcing that the first factor
-mean-reverts faster than the second. Both leverage parameters are free in
-$[-0.9, 0.9]$: a positive $\rho_i$ produces up-jumps in the log-price that
-lift the OTM call wing, while a negative one produces equity-style downside
-skew. There is no warm start, so the optimiser starts from the user-supplied
-initial parameters; pick distinct timescales for `bns1` and `bns2` (and
+mean-reverts faster than the second.
+
+Following the BNS superposition-of-OU construction, both factors share the
+same Gamma stationary marginal: the intensity and decay of the BDLP are tied
+across factors so that $v^1$ and $v^2$ have the same long-run distribution.
+Only the timescales and the leverages differ between the two factors.
+
+Tying $(\theta, \beta)$ removes a well-known degeneracy between the
+marginal-distribution parameters and the timescales, and shrinks the search
+space without losing skew flexibility. The leverages $\rho_1, \rho_2$ stay
+independent because the empirical equity skew flattens with maturity, which a
+single shared leverage cannot reproduce.
+
+There is no warm start, so the optimiser begins from the user-supplied
+initial parameters. Pick distinct timescales for `bns1` and `bns2` (and
 consider opposite-sign leverages) to seed a meaningful two-factor fit.
 
 ### Calibrated parameters
@@ -115,10 +129,12 @@ consider opposite-sign leverages) to seed a meaningful two-factor fit.
 [![BNS2 calibrated smile](../assets/examples/bns2_calibrated_smile.png)](../assets/examples/bns2_calibrated_smile.png){target="_blank"}
 
 The two-factor variant adds flexibility on the term structure: the fast factor
-absorbs short-dated skew while the slow factor anchors the long end. The
-remaining short-maturity gap is structural in the same way as the single-factor
-case: BNS2 still injects jumps only through the variance process, so the
-log-price wings are bounded by the jump sizes scaled by $|\rho_i|$.
+absorbs short-dated skew while the slow factor anchors the long end.
+
+The remaining short-maturity gap is structural in the same way as the
+single-factor case. BNS2 still injects jumps only through the variance
+process, so the log-price wings are bounded by the jump sizes scaled by
+$|\rho_i|$.
 
 ### Code
 

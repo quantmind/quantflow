@@ -1,4 +1,4 @@
-# <a href="https://quantmind.github.io/quantflow"><img src="https://raw.githubusercontent.com/quantmind/quantflow/main/docs/assets/quantflow-light.svg" width=300 /></a>
+# <a href="https://quantmind.github.io/quantflow"><img src="https://raw.githubusercontent.com/quantmind/quantflow/main/docs/assets/logos/quantflow-lockup.svg" width=300 /></a>
 
 [![PyPI version](https://badge.fury.io/py/quantflow.svg)](https://badge.fury.io/py/quantflow)
 [![Python versions](https://img.shields.io/pypi/pyversions/quantflow.svg)](https://pypi.org/project/quantflow)
@@ -33,7 +33,8 @@ pip install quantflow
 
 ## MCP Server
 
-Quantflow exposes its data tools as an [MCP](https://modelcontextprotocol.io) server for AI clients. See [MCP Server](mcp.md) for setup and available tools.
+Quantflow exposes its data tools as an [MCP](https://modelcontextprotocol.io) server for AI clients.
+See [MCP Server](https://quantflow.quantmind.com/mcp/) for setup and available tools.
 
 ## License
 
