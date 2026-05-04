@@ -110,10 +110,18 @@ volatility surface using a two-stage optimisation:
    solution on the residual vector with tight tolerances and enforces parameter bounds.
 
 Residuals are computed as `weight * (model_call_price - mid_call_price)` where
-`mid_call_price` is the average of the bid and ask call prices, and the weight is
-$e^{-w \cdot |k|}$ controlled by `moneyness_weight`. A penalty for violating the
-Feller condition ($2\kappa\theta \geq \sigma^2$) is added during stage 1 to keep the
-variance process well-behaved.
+`mid_call_price` is the average of the bid and ask call prices.
+
+The weight is $\min(e^{w \cdot m^2}, w_\text{max})$ controlled by
+`moneyness_weight` (the coefficient $w$) and `max_cost_weight` (the cap
+$w_\text{max}$), with $m = \log(K/F)/\sqrt{T}$ the standardised moneyness.
+The quadratic exponent matches the gaussian shape of $1/\nu$ (inverse vega),
+so a positive `moneyness_weight` puts wing residuals on the same footing as
+ATM ones. The cap prevents a single deep-wing option from dominating the
+loss.
+
+A penalty for violating the Feller condition ($2\kappa\theta \geq \sigma^2$)
+is added during stage 1 to keep the variance process well-behaved.
 
 ```python
 --8<-- "docs/examples/vol_surface_heston_calibration.py"
@@ -125,9 +133,10 @@ variance process well-behaved.
 
 ### Calibration Options
 
-The `moneyness_weight` parameter down-weights far-from-the-money options via
-$e^{-w \cdot |k|}$ where $k = \log(K/F)$. Setting `ttm_weight > 0` similarly
-down-weights near-expiry options.
+The `moneyness_weight` parameter up-weights far-from-the-money options via
+$e^{w \cdot m^2}$ where $m = \log(K/F)/\sqrt{T}$ is the standardised
+moneyness. The result is capped at `max_cost_weight` (default 10) so a
+single deep-wing option cannot dominate the loss.
 
 ### Plotting the Calibrated Smile
 

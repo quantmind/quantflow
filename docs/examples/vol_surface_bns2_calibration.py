@@ -14,12 +14,15 @@ surface.bs()
 surface.disable_outliers()
 
 # Two-factor BNS: a fast factor for short maturities and a slow one for long.
-# Opposite-sign leverages lets one factor lift the OTM-call wing (rho>0) while
-# the other carries the equity-style downside skew (rho<0).
+# Both factors share the same Gamma stationary marginal (vol, decay) following
+# the BNS superposition-of-OU construction; only the timescale (kappa) and
+# leverage (rho) differ. Opposite-sign leverages lets one factor lift the
+# OTM-call wing (rho>0) while the other carries the equity-style downside
+# skew (rho<0).
 pricer = OptionPricer(
     model=BNS2(
-        bns1=BNS.create(vol=0.4, kappa=20.0, decay=20.0, rho=-0.6),
-        bns2=BNS.create(vol=0.5, kappa=0.3, decay=5.0, rho=0.3),
+        bns1=BNS.create(vol=0.45, kappa=20.0, decay=10.0, rho=-0.6),
+        bns2=BNS.create(vol=0.45, kappa=0.3, decay=10.0, rho=0.3),
         weight=0.3,
     )
 )
@@ -27,7 +30,7 @@ pricer = OptionPricer(
 calibration: BNS2Calibration[BNS2] = BNS2Calibration(
     pricer=pricer,
     vol_surface=surface,
-    moneyness_weight=0.5,
+    moneyness_weight=0.2,
 )
 
 result = calibration.fit()

@@ -34,7 +34,7 @@ pip install quantflow
 ## MCP Server
 
 Quantflow exposes its data tools as an [MCP](https://modelcontextprotocol.io) server for AI clients.
-See [MCP Server](https://quanflow.quantmind.com/mcp) for setup and available tools.
+See [MCP Server](https://quantflow.quantmind.com/mcp/) for setup and available tools.
 
 ## License
 

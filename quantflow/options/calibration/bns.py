@@ -61,31 +61,35 @@ B2 = TypeVar("B2", bound=BNS2)
 class BNS2Calibration(VolModelCalibration[B2], Generic[B2]):
     r"""Calibration of the [BNS2][quantflow.sp.bns.BNS2] two-factor BNS model.
 
-    The parameter vector is
+    Following the BNS superposition-of-OU construction, both factors share
+    the same Gamma stationary marginal: only the mean-reversion timescales
+    and the leverage parameters differ between the fast and slow factors.
+    The parameter vector has nine entries:
 
-    `[v01, theta1, kappa_delta, beta1, rho1, v02, theta2, kappa2, beta2, rho2, w]`
+    `[v01, v02, theta, beta, kappa2, kappa_delta, rho1, rho2, w]`
 
-    where `kappa1 = kappa2 + kappa_delta` with `kappa_delta > 0`, enforcing that
-    the first (short-maturity) factor mean-reverts faster than the second, and
-    `w` is the convex-combination weight of the first variance factor. The same
-    $(v_0, \theta)$ parameterisation as
-    [BNSCalibration][quantflow.options.calibration.bns.BNSCalibration] is used
-    for each factor: the BDLP intensity is set as $\lambda_i = \theta_i \beta_i$
-    so the stationary mean of $v^i$ equals $\theta_i$.
+    | Symbol | Description |
+    |---|---|
+    | `v01`, `v02` | Initial variances of the two factors |
+    | `theta` | Long-run variance shared by both factors ($\theta = \lambda / \beta$) |
+    | `beta` | Exponential decay of the BDLP jump-size distribution (shared) |
+    | `kappa2` | Mean-reversion speed of the slow factor |
+    | `kappa_delta` | Excess speed of the fast factor ($\kappa_1 - \kappa_2$) |
+    | `rho1`, `rho2` | Leverage of the two factors, free in $[-0.9, 0.9]$ |
+    | `w` | Weight of the first variance factor in the convex combination |
 
-    Both leverage parameters are free in $[-0.9, 0.9]$: a positive $\rho_i$
-    produces up-jumps in the log-price that lift the OTM call wing, while a
-    negative one produces equity-style downside skew. The joint fit relies on
-    the user-supplied initial parameters: pick distinct timescales for `bns1`
-    and `bns2` (and consider opposite-sign leverages) to give the optimiser a
-    meaningful two-factor starting point.
+    Tying $(\theta, \beta)$ removes the degeneracy between the two
+    marginal-distribution parameters and the timescales: the long-dated smile
+    pins down a single stationary variance distribution, while the term
+    structure of vol identifies the two relaxation speeds. The leverages
+    $\rho_1, \rho_2$ stay independent because the empirical equity skew
+    flattens with maturity, which a single shared leverage cannot reproduce.
 
-    TODO: improve this calibration. The 11-parameter fit is slow (finite-diff
-    Jacobian dominates) and tends to collapse the two timescales into a near
-    single-factor solution unless the initial conditions force them apart.
-    Candidate improvements: analytic Jacobian of the characteristic exponent,
-    a smarter warm start that does not bias the kappas to merge, and tighter
-    bounds on `kappa1` and `beta_i`.
+    The user-supplied initial model still seeds the fit: pick distinct
+    timescales for `bns1` and `bns2` (and consider opposite-sign leverages) so
+    the optimiser starts away from the single-factor collapse. Any difference
+    in `(theta, beta)` between the two seed factors is averaged when building
+    the starting parameter vector.
     """
 
     def get_bounds(self) -> Bounds:
@@ -95,43 +99,46 @@ class BNS2Calibration(VolModelCalibration[B2], Generic[B2]):
         v2 = vol_lb**2
         v2u = vol_ub**2
         return Bounds(
-            [v2, v2, 1e-4, 1.0, -0.9, v2, v2, 1e-3, 1.0, -0.9, 0.0],
-            [v2u, v2u, np.inf, np.inf, 0.9, v2u, v2u, 5.0, np.inf, 0.9, 1.0],
+            #  v01, v02, theta, beta, kappa2, kappa_delta, rho1, rho2, w
+            [v2, v2, v2, 1.0, 1e-3, 1e-4, -0.9, -0.9, 0.0],
+            [v2u, v2u, v2u, np.inf, 5.0, np.inf, 0.9, 0.9, 1.0],
         )
 
     def get_params(self) -> np.ndarray:
         vp1 = self.model.bns1.variance_process
         vp2 = self.model.bns2.variance_process
-        kappa_delta = max(vp1.kappa - vp2.kappa, 1e-4)
         theta1 = vp1.intensity / vp1.beta
         theta2 = vp2.intensity / vp2.beta
+        theta = 0.5 * (theta1 + theta2)
+        beta = 0.5 * (vp1.beta + vp2.beta)
+        kappa_delta = max(vp1.kappa - vp2.kappa, 1e-4)
         return np.asarray(
             [
                 vp1.rate,
-                theta1,
-                kappa_delta,
-                vp1.beta,
-                self.model.bns1.rho,
                 vp2.rate,
-                theta2,
+                theta,
+                beta,
                 vp2.kappa,
-                vp2.beta,
+                kappa_delta,
+                self.model.bns1.rho,
                 self.model.bns2.rho,
                 self.model.weight,
             ]
         )
 
     def set_params(self, params: np.ndarray) -> None:
+        v01, v02, theta, beta, kappa2, kappa_delta, rho1, rho2, w = params
         vp1 = self.model.bns1.variance_process
-        vp1.rate = params[0]
-        vp1.bdlp.jumps.decay = params[3]
-        vp1.bdlp.intensity = params[1] * params[3]
-        self.model.bns1.rho = params[4]
         vp2 = self.model.bns2.variance_process
-        vp2.rate = params[5]
-        vp2.kappa = params[7]
-        vp2.bdlp.jumps.decay = params[8]
-        vp2.bdlp.intensity = params[6] * params[8]
-        self.model.bns2.rho = params[9]
-        vp1.kappa = vp2.kappa + params[2]  # kappa2 + kappa_delta
-        self.model.weight = params[10]
+        vp1.rate = v01
+        vp2.rate = v02
+        vp1.bdlp.jumps.decay = beta
+        vp2.bdlp.jumps.decay = beta
+        intensity = theta * beta
+        vp1.bdlp.intensity = intensity
+        vp2.bdlp.intensity = intensity
+        vp2.kappa = kappa2
+        vp1.kappa = kappa2 + kappa_delta
+        self.model.bns1.rho = rho1
+        self.model.bns2.rho = rho2
+        self.model.weight = w
