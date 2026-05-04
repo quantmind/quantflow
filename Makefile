@@ -48,6 +48,17 @@ publish:			## Release to pypi
 	@uv build
 	@uv publish --token $(PYPI_TOKEN)
 
+.PHONY: release
+release:			## Tag current version (from pyproject.toml) and push
+	$(eval VERSION := $(shell grep '^version' pyproject.toml | head -1 | sed 's/version = "\(.*\)"/\1/'))
+	@read -p "Tagging with v$(VERSION), are you sure? [Y/n] " ans; \
+	ans=$${ans:-Y}; \
+	if [ "$$ans" = "Y" ] || [ "$$ans" = "y" ]; then \
+		git tag -a v$(VERSION) -m "v$(VERSION)" && git push origin v$(VERSION); \
+	else \
+		echo "Aborted."; \
+	fi
+
 .PHONY: tests
 tests:				## Unit tests
 	@./dev/test
