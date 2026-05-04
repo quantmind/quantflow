@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="512" height="512">
+  <title>Quantflow mark · dark</title>
+  <rect width="100" height="100" fill="#0B0E14"></rect>
+  <circle cx="25" cy="25" r="11" fill="#A39410"></circle>
+  <circle cx="50" cy="25" r="9.213" fill="#3B82F6"></circle>
+  <circle cx="75" cy="25" r="7.425" fill="#3B82F6"></circle>
+  <circle cx="25" cy="50" r="9.213" fill="#3B82F6"></circle>
+  <circle cx="50" cy="50" r="7.425" fill="#3B82F6"></circle>
+  <circle cx="75" cy="50" r="5.637" fill="#3B82F6"></circle>
+  <circle cx="25" cy="75" r="7.425" fill="#3B82F6"></circle>
+  <circle cx="50" cy="75" r="5.637" fill="#3B82F6"></circle>
+  <circle cx="75" cy="75" r="3.85" fill="#3B82F6"></circle>
+</svg>

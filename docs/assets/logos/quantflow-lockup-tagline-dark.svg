@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 180" width="1440" height="360">
+  <title>Quantflow lockup with tagline · dark</title>
+  <rect width="720" height="180" fill="#0B0E14"></rect>
+  <circle cx="61.250" cy="61.250" r="9.350" fill="#A39410"></circle>
+  <circle cx="82.500" cy="61.250" r="7.831" fill="#3B82F6"></circle>
+  <circle cx="103.750" cy="61.250" r="6.311" fill="#3B82F6"></circle>
+  <circle cx="61.250" cy="82.500" r="7.831" fill="#3B82F6"></circle>
+  <circle cx="82.500" cy="82.500" r="6.311" fill="#3B82F6"></circle>
+  <circle cx="103.750" cy="82.500" r="4.791" fill="#3B82F6"></circle>
+  <circle cx="61.250" cy="103.750" r="6.311" fill="#3B82F6"></circle>
+  <circle cx="82.500" cy="103.750" r="4.791" fill="#3B82F6"></circle>
+  <circle cx="103.750" cy="103.750" r="3.272" fill="#3B82F6"></circle>
+  <text x="150" y="92" font-family="Inter, system-ui, -apple-system, &#39;Helvetica Neue&#39;, sans-serif" font-size="58" font-weight="400" letter-spacing="-1.7" fill="#A39410">Quantflow</text>
+  <text x="150" y="125" font-family="Inter, system-ui, -apple-system, &#39;Helvetica Neue&#39;, sans-serif" font-size="18" font-weight="400" letter-spacing="0.2" fill="#3B82F6">A modern Python library for quantitative finance</text>
+</svg>

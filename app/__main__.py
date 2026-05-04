@@ -2,17 +2,19 @@ import os
 from pathlib import Path
 
 import marimo
-from fastapi import FastAPI, APIRouter
+from fastapi import APIRouter, FastAPI
 from fastapi.staticfiles import StaticFiles
 
-APP_PATH = Path(__file__).parent
+from app.utils.paths import APP_PATH, head_snippet
+
 PORT = int(os.environ.get("MICRO_SERVICE_PORT", "8001"))
 status_router = APIRouter()
 
 
 def crate_app() -> FastAPI:
     # Create a marimo asgi app
-    server = marimo.create_asgi_app(include_code=True)
+    html_head = head_snippet()
+    server = marimo.create_asgi_app(include_code=True, html_head=html_head)
     for path in APP_PATH.glob("*.py"):
         if path.name.startswith("_"):
             continue
@@ -24,6 +26,7 @@ def crate_app() -> FastAPI:
     app.mount("/examples", server.build())
     app.mount("/", StaticFiles(directory=APP_PATH / "docs", html=True), name="static")
     return app
+
 
 @status_router.get("/status")
 async def service_status() -> dict:

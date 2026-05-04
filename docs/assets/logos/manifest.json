@@ -1,0 +1,42 @@
+{
+  "name": "Quantflow",
+  "short_name": "Quantflow",
+  "description": "A modern Python library for quantitative finance",
+  "icons": [
+    {
+      "src": "/assets/logos/quantflow-mark-dark.svg",
+      "sizes": "any",
+      "type": "image/svg+xml"
+    },
+    {
+      "src": "/assets/logos/png/quantflow-mark-dark-128.png",
+      "sizes": "128x128",
+      "type": "image/png"
+    },
+    {
+      "src": "/assets/logos/png/quantflow-mark-dark-256.png",
+      "sizes": "256x256",
+      "type": "image/png"
+    },
+    {
+      "src": "/assets/logos/png/quantflow-mark-dark-512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    },
+    {
+      "src": "/assets/logos/png/quantflow-app-icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    },
+    {
+      "src": "/assets/logos/png/quantflow-app-icon-1024.png",
+      "sizes": "1024x1024",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ],
+  "theme_color": "#0B0E14",
+  "background_color": "#0B0E14",
+  "display": "standalone"
+}
