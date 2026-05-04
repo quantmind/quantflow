@@ -11,3 +11,9 @@ window.MathJax = {
     processHtmlClass: "arithmatex"
   }
 };
+
+document$.subscribe(() => {
+  MathJax.startup.promise.then(() => {
+    MathJax.typesetPromise();
+  });
+});

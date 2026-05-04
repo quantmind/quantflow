@@ -156,7 +156,7 @@ class DoubleHestonCalibration(VolModelCalibration[DH], Generic[DH]):
         v2u = vol_ub**2
         return Bounds(
             [v2, v2, 1e-4, 0.0, -0.9, v2, v2, 0.0, 0.0, -0.9],
-            [v2u, v2u, np.inf, np.inf, 0.0, v2u, v2u, np.inf, np.inf, 0.0],
+            [v2u, v2u, np.inf, np.inf, 0.0, v2u, v2u, 5.0, np.inf, 0.0],
         )
 
     def get_params(self) -> np.ndarray:

@@ -164,6 +164,7 @@ class VolModelCalibration(BaseModel, ABC, Generic[M]):
             ftol=1e-10,
             xtol=1e-10,
             gtol=1e-10,
+            max_nfev=10000,
         )
         self.set_params(result.x)
         return result

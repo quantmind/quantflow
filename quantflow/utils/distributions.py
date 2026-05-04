@@ -66,7 +66,7 @@ class Exponential(Distribution1D):
         r"""The characteristic function of the exponential distribution is given by
 
         $$
-        \phi_u = \frac{\lambda}{\lambda - i u}
+        \Phi_u = \frac{\lambda}{\lambda - i u}
         $$
         """
         return self.decay / (self.decay - 1j * u)
@@ -210,7 +210,7 @@ class DoubleExponential(Exponential):
         r"""Characteristic function of the double exponential distribution
 
         \begin{equation}
-        \phi(u) = \frac{e^{i u m}}{\left(1 + \frac{i u \kappa}{\lambda}\right)
+        \Phi(u) = \frac{e^{i u m}}{\left(1 + \frac{i u \kappa}{\lambda}\right)
             \left(1 - \frac{i u}{\lambda \kappa}\right)}
         \end{equation}
         """
