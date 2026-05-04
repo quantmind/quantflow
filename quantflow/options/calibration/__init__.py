@@ -3,7 +3,7 @@ from .base import (
     OptionEntry,
     VolModelCalibration,
 )
-from .bns import BNSCalibration
+from .bns import BNS2Calibration, BNSCalibration
 from .heston import (
     DoubleHestonCalibration,
     DoubleHestonJCalibration,
@@ -12,6 +12,7 @@ from .heston import (
 )
 
 __all__ = [
+    "BNS2Calibration",
     "BNSCalibration",
     "DoubleHestonCalibration",
     "DoubleHestonJCalibration",

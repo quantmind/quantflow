@@ -13,3 +13,5 @@
 ::: quantflow.options.calibration.heston.DoubleHestonJCalibration
 
 ::: quantflow.options.calibration.bns.BNSCalibration
+
+::: quantflow.options.calibration.bns.BNS2Calibration
