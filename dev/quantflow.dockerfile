@@ -20,6 +20,7 @@ COPY mkdocs.yml ./
 COPY dev/ ./dev/
 COPY docs/ ./docs/
 COPY quantflow/ ./quantflow/
+COPY app/ ./app/
 RUN uv run ./dev/build-examples
 RUN uv run mkdocs build
 
@@ -31,13 +32,10 @@ WORKDIR /app
 # Copy virtualenv from builder
 COPY --from=builder /build/.venv /app/.venv
 
-# Copy application code
+# Copy application code (app/ from builder includes built docs)
 COPY quantflow/ ./quantflow/
-COPY app/ ./app/
+COPY --from=builder /build/app ./app
 COPY pyproject.toml ./
-
-# Copy built documentation
-COPY --from=builder /build/app/docs ./app/docs
 
 ENV PYTHONPATH=/app
 ENV PYTHONUNBUFFERED=1
