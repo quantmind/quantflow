@@ -100,7 +100,7 @@ surface2 = surface_from_inputs(inputs)    # VolSurfaceInputs -> VolSurface
 
 ## Calibrating the Heston Model
 
-[HestonCalibration][quantflow.options.heston_calibration.HestonCalibration] fits the
+[HestonCalibration][quantflow.options.calibration.heston.HestonCalibration] fits the
 five Heston parameters ($v_0$, $\theta$, $\kappa$, $\sigma$, $\rho$) to the implied
 volatility surface using a two-stage optimisation:
 
@@ -131,7 +131,7 @@ down-weights near-expiry options.
 
 ### Plotting the Calibrated Smile
 
-Use [plot_maturities()][quantflow.options.calibration.VolModelCalibration.plot_maturities]
+Use [plot_maturities()][quantflow.options.calibration.base.VolModelCalibration.plot_maturities]
 to produce a Plotly figure overlaying market bid/ask implied vols against the model smile
 for all maturities at once:
 
@@ -178,7 +178,7 @@ the motivation for the Heston jump-diffusion model described in the next section
 
 ## Calibrating the Heston Jump-Diffusion Model
 
-[HestonJCalibration][quantflow.options.heston_calibration.HestonJCalibration] extends the
+[HestonJCalibration][quantflow.options.calibration.heston.HestonJCalibration] extends the
 Heston calibration with a compound Poisson jump component via the
 [HestonJ][quantflow.sp.heston.HestonJ] model. Jumps are drawn from a
 [DoubleExponential][quantflow.utils.distributions.DoubleExponential] distribution,
@@ -239,3 +239,4 @@ The calibrated parameter vector for the jump-diffusion model is:
 | `jump intensity` | Jump arrival rate (jumps per year) |
 | `jump variance` | Variance of a single jump |
 | `jump asymmetry` | Asymmetry of the jump distribution ([DoubleExponential][quantflow.utils.distributions.DoubleExponential]) |
+

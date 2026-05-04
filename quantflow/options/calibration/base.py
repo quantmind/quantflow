@@ -13,8 +13,8 @@ from scipy.optimize import Bounds, OptimizeResult, least_squares, minimize
 from quantflow.sp.base import StochasticProcess1D
 from quantflow.utils import plot
 
-from .pricer import OptionPricerBase
-from .surface import OptionPrice, VolSurface
+from ..pricer import OptionPricerBase
+from ..surface import OptionPrice, VolSurface
 
 M = TypeVar("M", bound=StochasticProcess1D)
 

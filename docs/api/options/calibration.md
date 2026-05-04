@@ -1,9 +1,15 @@
 # Vol Model Calibration
 
-::: quantflow.options.calibration.OptionEntry
+::: quantflow.options.calibration.base.OptionEntry
 
-::: quantflow.options.calibration.VolModelCalibration
+::: quantflow.options.calibration.base.VolModelCalibration
 
-::: quantflow.options.heston_calibration.HestonCalibration
+::: quantflow.options.calibration.heston.HestonCalibration
 
-::: quantflow.options.heston_calibration.HestonJCalibration
+::: quantflow.options.calibration.heston.HestonJCalibration
+
+::: quantflow.options.calibration.heston.DoubleHestonCalibration
+
+::: quantflow.options.calibration.heston.DoubleHestonJCalibration
+
+::: quantflow.options.calibration.bns.BNSCalibration

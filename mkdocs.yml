@@ -107,6 +107,7 @@ nav:
           - Types: api/utils/types.md
   - Tutorials:
       - tutorials/index.md
+      - BNS Volatility Model: tutorials/bns_calibration.md
       - CIR Process: tutorials/cir.md
       - Option Pricing: tutorials/option_pricing.md
       - Pricing Method Comparison: tutorials/pricing_method_comparison.md
@@ -145,5 +146,4 @@ markdown_extensions:
 
 extra_javascript:
   - javascripts/mathjax.js
-  - https://polyfill.io/v3/polyfill.min.js?features=es6
   - https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js

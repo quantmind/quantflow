@@ -67,7 +67,7 @@ In the [Heston model][quantflow.sp.heston.Heston] the variance process $v_t$ is 
 process, so the same condition applies with $\sigma$ being the vol of vol. The
 [CIR.is_positive][quantflow.sp.cir.CIR.is_positive] property checks whether the
 condition holds. The
-[HestonCalibration][quantflow.options.heston_calibration.HestonCalibration] class provides a
+[HestonCalibration][quantflow.options.calibration.heston.HestonCalibration] class provides a
 `feller_enforce` flag (default `True`) that imposes this as a hard inequality constraint
 during optimisation.
 
