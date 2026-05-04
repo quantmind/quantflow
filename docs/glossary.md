@@ -2,7 +2,7 @@
 
 ## Characteristic Function
 
-The [characteristic function](../theory/characteristic) of a random variable $x$ is the Fourier transform of ${\mathbb P}_x$,
+The [characteristic function](theory/characteristic.md) of a random variable $x$ is the Fourier transform of ${\mathbb P}_x$,
 where ${\mathbb P}_x$ is the distrubution measure of $x$.
 
 \begin{equation}
