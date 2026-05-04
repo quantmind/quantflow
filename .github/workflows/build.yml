@@ -49,9 +49,6 @@ jobs:
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
           files: ./build/coverage.xml
-      - name: publish
-        if: ${{ matrix.python-version == '3.14' && github.event.head_commit.message == 'release' }}
-        run: make publish
 
   image:
     if: github.ref == 'refs/heads/main'

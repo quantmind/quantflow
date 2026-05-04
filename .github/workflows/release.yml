@@ -1,0 +1,78 @@
+name: release
+
+# Triggered by `v*` tags. Builds and publishes the package to PyPI, then
+# extracts the matching section from docs/release-notes.md and publishes it
+# as the GitHub Release body. Re-runs idempotently update an existing
+# release rather than failing.
+
+on:
+  push:
+    tags:
+      - "v*"
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    env:
+      PYTHON_ENV: ci
+      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      PYPI_TOKEN: ${{ secrets.PYPI_TOKEN }}
+      FMP_API_KEY: ${{ secrets.FMP_API_KEY }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: install rops
+        uses: quantmind/rops/.github/actions/setup-rops@main
+        env:
+          GITHUB_TOKEN: ${{ secrets.TOKEN_DEPLOYMENT }}
+
+      - name: install taplo
+        run: rops tools update taplo
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.14"
+
+      - name: Install uv
+        run: pip install -U pip uv
+
+      - name: Install dependencies
+        run: make install-dev
+
+      - name: run lint
+        run: make lint-check
+
+      - name: run tests
+        run: make tests
+
+      - name: publish to PyPI
+        run: make publish
+
+      - name: Extract release notes
+        run: |
+          TAG="${GITHUB_REF_NAME}"
+          awk -v tag="## ${TAG}" '
+            $0 == tag { in_section = 1; next }
+            /^## / && in_section { exit }
+            in_section { print }
+          ' docs/release-notes.md > /tmp/notes.md
+          if [ ! -s /tmp/notes.md ]; then
+            echo "No section '## ${TAG}' found in docs/release-notes.md" >&2
+            exit 1
+          fi
+          echo "--- extracted notes for ${TAG} ---"
+          cat /tmp/notes.md
+
+      - name: Publish GitHub Release
+        run: |
+          TAG="${GITHUB_REF_NAME}"
+          if gh release view "$TAG" >/dev/null 2>&1; then
+            gh release edit "$TAG" --notes-file /tmp/notes.md
+          else
+            gh release create "$TAG" --title "$TAG" --notes-file /tmp/notes.md
+          fi

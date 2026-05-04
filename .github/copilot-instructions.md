@@ -45,3 +45,15 @@ applyTo: '/**'
 
 * Strategy runtime markdown descriptions (read by `load_description()` at runtime) live inside the package at `quantflow/options/strategies/docs/` — they must be inside the package to be accessible when the library is installed
 * mkdocs documentation pages live in `docs/api/options/` — do not mix these two locations
+
+## Releasing
+
+The release procedure is fully driven by `make release` and the `release.yml` workflow:
+
+1. Bump `version` in `pyproject.toml` to the new release version.
+2. Add a `## vX.Y.Z` section to `docs/release-notes.md` with the notes for the release. The header text is matched verbatim by the workflow's `awk` extractor, so it must be `## vX.Y.Z` exactly (no trailing dash, no title after the version).
+3. Commit and merge to `main`.
+4. From `main`, run `make release` — it reads the version from `pyproject.toml`, prompts for confirmation, then creates an annotated `vX.Y.Z` tag and pushes it.
+5. The tag push triggers `.github/workflows/release.yml`, which runs lint and tests, publishes the package to PyPI (`make publish`), and posts the extracted `## vX.Y.Z` section as the GitHub Release body.
+
+Do not publish to PyPI manually or via the old `head_commit.message == 'release'` flow — the tag-triggered workflow is the only supported path.
