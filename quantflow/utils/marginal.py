@@ -215,8 +215,11 @@ class Marginal1D(BaseModel, ABC, extra="forbid"):
 
     def call_option_carr_madan_alpha(self) -> float:
         """Option alpha to use for Carr & Madan transform to ensure integrability
-        of the call option transform"""
-        return 2.0
+        of the call option transform.
+
+        Defaults to 1.5, the value suggested in the original Carr & Madan paper.
+        """
+        return 1.5
 
     def call_option_cos(
         self,

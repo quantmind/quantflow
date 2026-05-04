@@ -40,9 +40,9 @@ def _(mo):
 
     We want to construct a mechanism to estimate the Hurst exponent via OHLC data because it is widely available from data providers and easily constructed as an online signal during trading.
 
-    In order to evaluate results against known solutions, we consider the Weiner process as generator of timeseries.
+    In order to evaluate results against known solutions, we consider the Wiener process as generator of timeseries.
 
-    We use the **WeinerProcess** from the stochastic process library and sample one path over a time horizon of 1 (day) with a time step every second.
+    We use the **WienerProcess** from the stochastic process library and sample one path over a time horizon of 1 (day) with a time step every second.
     """)
     return
 
@@ -56,24 +56,24 @@ def _(mo):
 
 @app.cell
 def _(regenerate_btn):
-    from quantflow.sp.weiner import WeinerProcess
+    from quantflow.sp.wiener import WienerProcess
     from quantflow.utils import plot
     from quantflow.utils.dates import start_of_day
 
     regenerate_btn
 
-    weiner = WeinerProcess(sigma=2.0)
-    weiner_paths = weiner.sample(n=1, time_horizon=1, time_steps=24*60*60)
-    weiner_df = weiner_paths.as_datetime_df(start=start_of_day(), unit="d").reset_index()
+    wiener = WienerProcess(sigma=2.0)
+    wiener_paths = wiener.sample(n=1, time_horizon=1, time_steps=24*60*60)
+    wiener_df = wiener_paths.as_datetime_df(start=start_of_day(), unit="d").reset_index()
 
     plot.plot_lines(
-        weiner_df,
-        x=weiner_df.columns[0],
-        y=weiner_df.columns[1],
-        title="Weiner Process Path",
-        labels={"value": "Value", "variable": "Path", weiner_df.columns[0]: "Date"},
+        wiener_df,
+        x=wiener_df.columns[0],
+        y=wiener_df.columns[1],
+        title="Wiener Process Path",
+        labels={"value": "Value", "variable": "Path", wiener_df.columns[0]: "Date"},
     )
-    return plot, start_of_day, weiner_df, weiner_paths
+    return plot, start_of_day, wiener_df, wiener_paths
 
 
 @app.cell
@@ -90,14 +90,14 @@ def _(mo):
     ### Realized Variance
 
     At this point we estimate the standard deviation using the **realized variance** along the path (we use the **scaled** flag so that the standard deviation is scaled by the square-root of time step, in this way it removes the dependency on the time step size).
-    The value should be close to the **sigma** of the WeinerProcess defined above.
+    The value should be close to the **sigma** of the WienerProcess defined above.
     """)
     return
 
 
 @app.cell
-def _(weiner_paths):
-    float(weiner_paths.paths_std(scaled=True)[0])
+def _(wiener_paths):
+    float(wiener_paths.paths_std(scaled=True)[0])
     return
 
 
@@ -110,15 +110,15 @@ def _(mo):
 
 
 @app.cell
-def _(weiner_paths):
-    weiner_paths.hurst_exponent()
+def _(wiener_paths):
+    wiener_paths.hurst_exponent()
     return
 
 
 @app.cell
 def _(mo):
     mo.md(r"""
-    As expected, the Hurst exponent should be close to 0.5, since we have calculated the exponent from the paths of a Weiner process.
+    As expected, the Hurst exponent should be close to 0.5, since we have calculated the exponent from the paths of a Wiener process.
     """)
     return
 
@@ -143,7 +143,7 @@ def _(mo):
 
 
 @app.cell
-def _(weiner_df):
+def _(wiener_df):
     import pandas as pd
     import polars as pl
     import math
@@ -167,7 +167,7 @@ def _(weiner_df):
     results = []
     for period in ("10s", "20s", "30s", "1m", "2m", "3m", "5m", "10m", "30m"):
         ohlc = template.model_copy(update=dict(period=period))
-        rf = ohlc(weiner_df)
+        rf = ohlc(wiener_df)
         ts = pd.to_timedelta(period).to_pytimedelta().total_seconds()
         data = dict(period=period)
         for name in ("pk", "gk", "rs"):
@@ -255,15 +255,15 @@ def _(OHLC, pd):
 
 
 @app.cell
-def _(ohlc_hurst_exponent, weiner_df):
-    ohlc_hurst_exponent(weiner_df, series=["0"])
+def _(ohlc_hurst_exponent, wiener_df):
+    ohlc_hurst_exponent(wiener_df, series=["0"])
     return
 
 
 @app.cell
 def _(mo):
     mo.md(r"""
-    The Hurst exponent should be close to 0.5, since we have calculated the exponent from the paths of a Weiner process. But it is not exactly 0.5 because the range-based estimators are not the same as the realized variance. Interestingly, the Parkinson estimator gives a Hurst exponent closer to 0.5 than the Garman-Klass and Rogers-Satchell estimators.
+    The Hurst exponent should be close to 0.5, since we have calculated the exponent from the paths of a Wiener process. But it is not exactly 0.5 because the range-based estimators are not the same as the realized variance. Interestingly, the Parkinson estimator gives a Hurst exponent closer to 0.5 than the Garman-Klass and Rogers-Satchell estimators.
 
     ## Mean Reverting Time Series
 

@@ -178,7 +178,10 @@ class StochasticProcess1DMarginal(Marginal1D, Generic[P]):
 
         The choice of alpha is crucial for the numerical stability of the Carr-Madan
         formula. A common choice is to set alpha to a value that ensures the integrand
-        decays sufficiently fast at high frequencies.
+        decays sufficiently fast at high frequencies. The maturity-dependent heuristic
+        below (high alpha for short maturities, decaying to a 0.5 floor for long ones)
+        has been found to work well in practice across the processes in this library;
+        override on a per-process basis if needed.
         """
         return max(8 * np.max(np.exp(-2 * self.t)), 0.5)
 

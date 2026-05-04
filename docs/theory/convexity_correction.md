@@ -94,8 +94,8 @@ with time, reflecting the fact that geometric Brownian motion drifts upward on a
 (the asset price is log-normally distributed with positive variance).
 
 ```python
-from quantflow.sp.weiner import WeinerProcess
-pr = WeinerProcess(sigma=0.5)
+from quantflow.sp.wiener import WienerProcess
+pr = WienerProcess(sigma=0.5)
 -pr.characteristic_exponent(1, complex(0,-1))  # c_t at t=1
 ```
 

@@ -8,7 +8,7 @@ This page gives an overview of all stochastic processes available in the library
 
 | Process | Description |
 |---|---|
-| [WeinerProcess][quantflow.sp.weiner.WeinerProcess] | Standard Brownian motion |
+| [WienerProcess][quantflow.sp.wiener.WienerProcess] | Standard Brownian motion |
 
 ### Mean-reverting (intensity)
 

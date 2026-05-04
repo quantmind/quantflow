@@ -1,4 +1,4 @@
-from quantflow.sp.weiner import WeinerProcess
+from quantflow.sp.wiener import WienerProcess
 from quantflow.ta.ohlc import OHLC
 
 
@@ -18,7 +18,7 @@ def test_ohlc() -> None:
     assert ohlc.rogers_satchell_variance is True
     assert ohlc.percent_variance is False
     # create a dataframe
-    path = WeinerProcess(sigma=0.5).sample(1, 1, 1000)
+    path = WienerProcess(sigma=0.5).sample(1, 1, 1000)
     df = path.as_datetime_df().reset_index()
     result = ohlc(df)
     assert result.shape == (145, 9)

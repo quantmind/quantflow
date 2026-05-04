@@ -10,7 +10,7 @@ from ..ta.paths import Paths
 from ..utils.types import FloatArrayLike, Vector
 from .base import StochasticProcess1D
 from .poisson import CompoundPoissonProcess, D
-from .weiner import WeinerProcess
+from .wiener import WienerProcess
 
 
 class JumpDiffusion(StochasticProcess1D, Generic[D]):
@@ -20,14 +20,14 @@ class JumpDiffusion(StochasticProcess1D, Generic[D]):
         dx_t = \sigma d w_t + d N_t
     \end{equation}
 
-    where $w_t$ is a [WeinerProcess][quantflow.sp.weiner.WeinerProcess] process
+    where $w_t$ is a [WienerProcess][quantflow.sp.wiener.WienerProcess] process
     with standard deviation $\sigma$ and $N_t$ is a
     [CompoundPoissonProcess][quantflow.sp.poisson.CompoundPoissonProcess]
     with intensity $\lambda$ and generic jump distribution $D$
     """
 
-    diffusion: WeinerProcess = Field(
-        default_factory=WeinerProcess, description="diffusion process"
+    diffusion: WienerProcess = Field(
+        default_factory=WienerProcess, description="diffusion process"
     )
     jumps: CompoundPoissonProcess[D] = Field(description="The jump process")
 
@@ -97,6 +97,6 @@ class JumpDiffusion(StochasticProcess1D, Generic[D]):
                 jump_distribution_variance, jump_asymmetry
             )
             return cls(
-                diffusion=WeinerProcess(sigma=np.sqrt(variance * (1 - jump_fraction))),
+                diffusion=WienerProcess(sigma=np.sqrt(variance * (1 - jump_fraction))),
                 jumps=CompoundPoissonProcess(intensity=jump_intensity, jumps=jumps),
             )

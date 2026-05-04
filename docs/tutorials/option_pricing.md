@@ -13,11 +13,11 @@ Model sensitivities such as delta and gamma are calculated using the model dynam
 The first example shows how to price an option using the Black-Scholes model and validate the results against the analytical Black formula. The implied volatility should be the same as the model volatility, and the deltas and gammas should be the same as well (within numerical precision).
 
 ```python
---8<-- "docs/examples/weiner_volatility_pricer.py"
+--8<-- "docs/examples/wiener_volatility_pricer.py"
 ```
 
 ```json
---8<-- "docs/examples/output/weiner_volatility_pricer.out"
+--8<-- "docs/examples/output/wiener_volatility_pricer.out"
 ```
 
 
