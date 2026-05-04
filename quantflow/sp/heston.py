@@ -315,6 +315,13 @@ class HestonJ(Heston, Generic[D]):
             t, u
         ) + self.jumps.characteristic_exponent(t, u)
 
+    def sample_from_draws(self, path1: Paths, *args: Paths) -> Paths:
+        diffusion = super().sample_from_draws(path1, *args)
+        jump_path = self.jumps.sample(
+            diffusion.samples, diffusion.t, diffusion.time_steps
+        )
+        return Paths(t=diffusion.t, data=diffusion.data + jump_path.data)
+
 
 class DoubleHeston(StochasticProcess1D):
     r"""Double Heston stochastic volatility model.

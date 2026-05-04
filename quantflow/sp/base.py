@@ -204,7 +204,7 @@ class IntensityProcess(StochasticProcess1D):
         r"""The log-Laplace transform of the cumulative process:
 
         \begin{equation}
-            e^{\phi_{t, u}} = {\mathbb E} \left[e^{i u \int_0^t x_s ds}\right]
+            \phi_{t, u} = \log {\mathbb E} \left[e^{-u \int_0^t x_s ds}\right]
         \end{equation}
         """
 

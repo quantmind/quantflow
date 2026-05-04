@@ -1,3 +1,4 @@
+import numpy as np
 import pytest
 
 from quantflow.sp.heston import DoubleHeston, DoubleHestonJ, Heston, HestonJ
@@ -83,3 +84,21 @@ def test_double_heston_jumps_characteristic(
     characteristic_tests(m)
     assert m.mean() == pytest.approx(0.0, abs=1e-6)
     assert m.std() == pytest.approx(0.5, rel=0.05)
+
+
+def test_heston_jumps_sample_includes_jumps(
+    heston_jumps: HestonJ[DoubleExponential],
+) -> None:
+    np.random.seed(42)
+    paths = heston_jumps.sample(5000, time_horizon=1.0, time_steps=200)
+    # If jumps were dropped, std would collapse to sqrt(1 - jump_fraction) * 0.5
+    # ~ 0.418, well below 0.5
+    assert paths.data[-1].std() == pytest.approx(0.5, abs=0.03)
+
+
+def test_double_heston_jumps_sample_includes_jumps(
+    double_heston_jumps: DoubleHestonJ[DoubleExponential],
+) -> None:
+    np.random.seed(42)
+    paths = double_heston_jumps.sample(5000, time_horizon=1.0, time_steps=200)
+    assert paths.data[-1].std() == pytest.approx(0.5, abs=0.03)
