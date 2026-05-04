@@ -1,6 +1,6 @@
 # Bibliography
 
-The raw BibTeX source for all entries is available in [references.bib](/references.bib).
+The raw BibTeX source for all entries is available in [references.bib](references.bib).
 
 ---
 

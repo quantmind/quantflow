@@ -13,7 +13,7 @@ status_router = APIRouter()
 
 def crate_app() -> FastAPI:
     # Create a marimo asgi app
-    html_head = head_snippet()
+    html_head = head_snippet(APP_PATH / "docs")
     server = marimo.create_asgi_app(include_code=True, html_head=html_head)
     for path in APP_PATH.glob("*.py"):
         if path.name.startswith("_"):

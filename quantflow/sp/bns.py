@@ -13,7 +13,7 @@ from .ou import GammaOU
 
 
 class BNS(StochasticProcess1D):
-    r"""Barndorff-Nielson & Shephard ([BNS](/bibliography#bns)) stochastic
+    r"""Barndorff-Nielson & Shephard ([BNS](../../bibliography.md#bns)) stochastic
     volatility model.
 
     This is a stochastic volatility model where the variance process is given by a
