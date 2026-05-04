@@ -1,5 +1,6 @@
 import numpy as np
 import pytest
+from scipy.integrate import cumulative_trapezoid
 
 from quantflow.sp.ou import GammaOU, Vasicek
 from quantflow.sp.poisson import CompoundPoissonProcess
@@ -97,3 +98,13 @@ def test_vasicek_negative() -> None:
     expected_mean = -0.5 * np.exp(-2.0) + (-0.2) * (1 - np.exp(-2.0))
     assert m.mean() == pytest.approx(expected_mean)
     assert process.domain_range().lb == -np.inf
+
+
+def test_vasicek_pdf_cdf_parity(vasicek: Vasicek) -> None:
+    m = vasicek.marginal(1.0)
+    pdf = m.pdf_from_characteristic(128)
+    np.testing.assert_array_almost_equal(pdf.y, m.pdf(pdf.x), decimal=2)
+    # analytical CDF is consistent with analytical PDF via numerical integration
+    x = np.linspace(m.mean() - 6 * m.std(), m.mean() + 6 * m.std(), 4096)
+    cdf_from_pdf = cumulative_trapezoid(m.pdf(x), x, initial=0) + m.cdf(x[0])
+    np.testing.assert_array_almost_equal(m.cdf(x), cdf_from_pdf, decimal=4)

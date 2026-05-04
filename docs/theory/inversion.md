@@ -56,17 +56,17 @@ which means $\delta_u$ and $\delta_x$ cannot be chosen independently — they ar
 \delta_x = \frac{2\pi}{N \delta_u}
 \end{equation}
 
-As an example, let us invert the characteristic function of the Weiner process, which yields the standard normal distribution.
+As an example, let us invert the characteristic function of the Wiener process, which yields the standard normal distribution.
 
 ```python
 --8<-- "docs/examples/fft.py"
 ```
 
-![Weiner Characteristic Function](../assets/examples/weiner_characteristic.png)
+![Wiener Characteristic Function](../assets/examples/wiener_characteristic.png)
 
-![Weiner FFT 128](../assets/examples/weiner_fft_128.png)
+![Wiener FFT 128](../assets/examples/wiener_fft_128.png)
 
-![Weiner FFT 1024](../assets/examples/weiner_fft_1024.png)
+![Wiener FFT 1024](../assets/examples/wiener_fft_1024.png)
 
 
 **Note** the amount of unnecessary discretization points in the frequency domain (the characteristic function is zero after 15 or so). However the space domain is poorly represented because of the FFT constraints (we have a relatively small number of points where it matters, around zero).
@@ -83,7 +83,7 @@ z &= \left(\left[e^{i j^2 \zeta/2}\right]_{j=0}^{N-1}, \left[e^{i\left(N-j\right
 
 We can now reduce the number of points needed for the discretization and achieve higher accuracy by properly selecting the domain discretization independently.
 
-![Weiner FRFT 64](../assets/examples/weiner_64.png)
+![Wiener FRFT 64](../assets/examples/wiener_64.png)
 
 Since one N-point FRFT will invoke three 2N-point FFT procedures, the number of operations will be approximately $6N\log{N}$ compared to $N\log{N}$ for the FFT. However, we can use fewer points as demonstrated and be more robust in delivering results.
 

@@ -270,7 +270,7 @@ class MarginalDiscrete1D(StochasticProcess1DMarginal):
         c = self.characteristic(frequency)
         a = 1 / np.pi
         result = []
-        x = np.arange(n or 10)
+        x = np.arange(n)
         for m in x:
             d = np.sin(0.5 * frequency)
             d[0] = 1.0

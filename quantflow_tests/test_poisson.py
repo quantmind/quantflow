@@ -4,6 +4,7 @@ import numpy as np
 import pytest
 
 from quantflow.sp.dsp import DSP
+from quantflow.sp.ou import GammaOU
 from quantflow.sp.poisson import CompoundPoissonProcess, PoissonProcess
 from quantflow.utils.distributions import DoubleExponential, Exponential, Normal
 from quantflow_tests.utils import analytical_tests, characteristic_tests
@@ -92,6 +93,15 @@ def test_dsp_mean_scales_with_horizon(dsp: DSP):
     for t in (0.5, 1.0, 2.0):
         m = dsp.marginal(t)
         assert m.mean_from_characteristic() == pytest.approx(t, rel=1e-4)
+
+
+def test_dsp_with_gamma_ou_intensity():
+    # GammaOU stationary mean = intensity * E[jump] = (rate * decay) / decay = rate
+    intensity = GammaOU.create(rate=1.0, decay=2.0, kappa=1.5)
+    dsp = DSP(intensity=intensity)
+    for t in (0.5, 1.0, 2.0):
+        m = dsp.marginal(t)
+        assert m.mean_from_characteristic() == pytest.approx(t, rel=1e-3)
 
 
 def test_compound_create_double_exponential():

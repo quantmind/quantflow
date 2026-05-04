@@ -9,7 +9,7 @@ from ..utils.types import FloatArrayLike, Vector
 from .base import StochasticProcess1D
 
 
-class WeinerProcess(StochasticProcess1D):
+class WienerProcess(StochasticProcess1D):
     sigma: float = Field(default=1, ge=0, description="volatility")
 
     @property

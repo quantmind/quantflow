@@ -85,7 +85,7 @@ nav:
           - Jump Diffusion: api/sp/jump_diffusion.md
           - Ornstein-Uhlenbeck: api/sp/ou.md
           - Poisson Process: api/sp/poisson.md
-          - Weiner Process: api/sp/weiner.md
+          - Wiener Process: api/sp/wiener.md
           - Copulas: api/sp/copula.md
       - Technical Analysis:
           - api/ta/index.md

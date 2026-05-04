@@ -10,7 +10,7 @@ from quantflow.options.strategies import (
     Straddle,
     Strangle,
 )
-from quantflow.sp.weiner import WeinerProcess
+from quantflow.sp.wiener import WienerProcess
 
 REF_DATE = datetime(2024, 1, 1, tzinfo=timezone.utc)
 MATURITY = datetime(2025, 1, 1, tzinfo=timezone.utc)
@@ -20,7 +20,7 @@ FORWARD = 100.0
 
 @pytest.fixture
 def pricer() -> OptionPricer:
-    return OptionPricer(model=WeinerProcess(sigma=0.3))
+    return OptionPricer(model=WienerProcess(sigma=0.3))
 
 
 def test_straddle_from_strike(pricer: OptionPricer) -> None:

@@ -11,10 +11,10 @@ from ..ta.paths import Paths
 from .base import IntensityProcess
 
 
-class SamplingAlgorithm(str, enum.Enum):
-    euler = "euler"
-    milstein = "milstein"
-    implicit = "implicit"
+class SamplingAlgorithm(enum.StrEnum):
+    EULER = enum.auto()
+    MILSTEIN = enum.auto()
+    IMPLICIT = enum.auto()
 
 
 class CIR(IntensityProcess):
@@ -36,7 +36,7 @@ class CIR(IntensityProcess):
     sigma: float = Field(default=1.0, gt=0, description=r"Volatility $\sigma$")
     theta: float = Field(default=1.0, gt=0, description=r"Mean rate $\theta$")
     sample_algo: SamplingAlgorithm = Field(
-        default=SamplingAlgorithm.implicit, description="Sampling algorithm"
+        default=SamplingAlgorithm.IMPLICIT, description="Sampling algorithm"
     )
 
     @property
@@ -64,14 +64,14 @@ class CIR(IntensityProcess):
 
     def sample_from_draws(self, paths: Paths, *args: Paths) -> Paths:
         match self.sample_algo:
-            case SamplingAlgorithm.euler:
+            case SamplingAlgorithm.EULER:
                 return self.sample_euler(paths)
-            case SamplingAlgorithm.milstein:
+            case SamplingAlgorithm.MILSTEIN:
                 return self.sample_euler(paths, 0.25)
-            case SamplingAlgorithm.implicit:
+            case SamplingAlgorithm.IMPLICIT:
                 return self.sample_implicit(paths)
 
-    def sample_euler(self, draws: Paths, ic: float = 0.0) -> Paths:
+    def sample_euler(self, draws: Paths, milstein_coef: float = 0.0) -> Paths:
         kappa = self.kappa
         theta = self.theta
         dt = draws.dt
@@ -83,7 +83,11 @@ class CIR(IntensityProcess):
             w = sdt * draws.data[t, :]
             x = paths[t, :]
             xplus = np.clip(x, 0, None)
-            dx = kappa * (theta - xplus) * dt + np.sqrt(xplus) * w + ic * (w * w - sdt2)
+            dx = (
+                kappa * (theta - xplus) * dt
+                + np.sqrt(xplus) * w
+                + milstein_coef * (w * w - sdt2)
+            )
             paths[t + 1, :] = x + dx
         return Paths(t=draws.t, data=paths)
 

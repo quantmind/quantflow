@@ -11,9 +11,9 @@ kernelspec:
   name: python3
 ---
 
-# Weiner Process
+# Wiener Process
 
-In this document, we use the term Weiner process $w_t$ to indicate a Brownian motion with standard deviation given by the parameter $\sigma$; that is to say, the one-dimensional Weiner process is defined as:
+In this document, we use the term Wiener process $w_t$ to indicate a Brownian motion with standard deviation given by the parameter $\sigma$; that is to say, the one-dimensional Wiener process is defined as:
 
 1. $w_t$ is Lévy process
 2. $d w_t = w_{t+dt}-w_t \sim N\left(0, \sigma dt\right)$ where $N$ is the normal distribution
@@ -24,9 +24,9 @@ The [](characteristic-exponent) of $w$ is
 \end{equation}
 
 ```{code-cell}
-from quantflow.sp.weiner import WeinerProcess
+from quantflow.sp.wiener import WienerProcess
 
-pr = WeinerProcess(sigma=0.5)
+pr = WienerProcess(sigma=0.5)
 pr
 ```
 
@@ -47,8 +47,8 @@ plot.plot_marginal_pdf(m, 128)
 
 ```{code-cell}
 from quantflow.options.pricer import OptionPricer
-from quantflow.sp.weiner import WeinerProcess
-pricer = OptionPricer(WeinerProcess(sigma=0.2))
+from quantflow.sp.wiener import WienerProcess
+pricer = OptionPricer(WienerProcess(sigma=0.2))
 pricer
 ```
 

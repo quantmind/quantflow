@@ -23,7 +23,7 @@ The independence and stationarity of the increments of the Lévy process imply t
 where the characteristic exponent $\phi_{x_1,u}$ is given by the [Lévy-Khintchine formula](https://en.wikipedia.org/wiki/L%C3%A9vy_process).
 
 There are several Lévy processes in the literature, including the [Poisson process](../api/sp/poisson.md),
-the compound Poisson process, and the [Brownian motion](../api/sp/weiner.md).
+the compound Poisson process, and the [Brownian motion](../api/sp/wiener.md).
 
 ## Time-Changed Lévy Processes
 

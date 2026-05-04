@@ -6,12 +6,12 @@ from quantflow.sp.cir import CIR, SamplingAlgorithm
 
 @pytest.fixture
 def cir_neg() -> CIR:
-    return CIR(kappa=1, sigma=2, sample_algo=SamplingAlgorithm.euler)
+    return CIR(kappa=1, sigma=2, sample_algo=SamplingAlgorithm.EULER)
 
 
 @pytest.fixture
 def cir() -> CIR:
-    return CIR(kappa=1, sigma=1.2, sample_algo=SamplingAlgorithm.euler)
+    return CIR(kappa=1, sigma=1.2, sample_algo=SamplingAlgorithm.EULER)
 
 
 def test_feller_condition(cir: CIR, cir_neg: CIR) -> None:
@@ -43,3 +43,15 @@ def test_cir_pdf(cir: CIR):
     m = cir.marginal(1)
     pdf = m.pdf_from_characteristic(128, max_frequency=20)
     np.testing.assert_array_almost_equal(pdf.y, m.pdf(pdf.x), 1e-1)
+
+
+def test_cir_pdf_neg(cir_neg: CIR):
+    # q = 2 kappa theta / sigma^2 - 1 = -0.5 < 0 (Feller violated)
+    assert cir_neg.is_positive is False
+    q = 2 * cir_neg.kappa * cir_neg.theta / cir_neg.sigma2 - 1
+    assert q < 0
+    m = cir_neg.marginal(1)
+    pdf = m.pdf_from_characteristic(128, max_frequency=20)
+    # skip x=0 where the analytical pdf diverges for q<0
+    mask = pdf.x > 0
+    np.testing.assert_array_almost_equal(pdf.y[mask], m.pdf(pdf.x[mask]), 1e-1)

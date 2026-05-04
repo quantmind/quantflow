@@ -12,7 +12,7 @@ from ..utils.distributions import Exponential
 from ..utils.types import Float, FloatArrayLike, Vector
 from .base import IntensityProcess, StochasticProcess1D
 from .poisson import CompoundPoissonProcess, D
-from .weiner import WeinerProcess
+from .wiener import WienerProcess
 
 
 class Vasicek(StochasticProcess1D):
@@ -43,8 +43,8 @@ class Vasicek(StochasticProcess1D):
         default=1.0, gt=0, description=r"Mean reversion speed $\kappa$"
     )
     theta: float = Field(default=1.0, description=r"Mean level $\theta$")
-    bdlp: WeinerProcess = Field(
-        default_factory=WeinerProcess,
+    bdlp: WienerProcess = Field(
+        default_factory=WienerProcess,
         description="Background driving Wiener process",
     )
 

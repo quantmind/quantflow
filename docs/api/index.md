@@ -37,7 +37,7 @@ Continuous-time stochastic processes used as underlying models for option pricin
 
 | Module | Description |
 |---|---|
-| [Weiner Process](sp/weiner.md) | Geometric Brownian motion (constant volatility) |
+| [Wiener Process](sp/wiener.md) | Geometric Brownian motion (constant volatility) |
 | [Heston Model](sp/heston.md) | Stochastic volatility with optional jump component (HestonJ) |
 | [Jump Diffusion](sp/jump_diffusion.md) | Compound Poisson jump processes |
 | [CIR Process](sp/cir.md) | Cox-Ingersoll-Ross mean-reverting process |
