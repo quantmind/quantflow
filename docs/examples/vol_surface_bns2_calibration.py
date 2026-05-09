@@ -2,7 +2,8 @@ import json
 
 from docs.examples._utils import assets_path, print_model
 from quantflow.options.calibration import BNS2Calibration
-from quantflow.options.pricer import OptionPricer
+from quantflow.options.calibration.base import ResidualKind
+from quantflow.options.pricer import OptionPricer, OptionPricingMethod
 from quantflow.options.surface import VolSurface, VolSurfaceInputs, surface_from_inputs
 from quantflow.sp.bns import BNS, BNS2
 
@@ -23,14 +24,16 @@ pricer = OptionPricer(
     model=BNS2(
         bns1=BNS.create(vol=0.45, kappa=20.0, decay=10.0, rho=-0.6),
         bns2=BNS.create(vol=0.45, kappa=0.3, decay=10.0, rho=0.3),
-        weight=0.3,
-    )
+        weight=0.5,
+    ),
+    method=OptionPricingMethod.COS,
 )
 
 calibration: BNS2Calibration[BNS2] = BNS2Calibration(
     pricer=pricer,
     vol_surface=surface,
-    moneyness_weight=0.2,
+    moneyness_weight=0.3,
+    residual_kind=ResidualKind.IV,
 )
 
 result = calibration.fit()

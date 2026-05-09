@@ -1,18 +1,55 @@
 from __future__ import annotations
 
-from typing import Any
-
 import numpy as np
 from pydantic import Field
 
-from quantflow.utils.types import FloatArray
+from quantflow.utils.marginal import Greeks, OptionPricingResult
+from quantflow.utils.types import FloatArray, FloatArrayLike
 
 from ..bs import black_call
 from ..pricer import MaturityPricer, OptionPricerBase
 from .weights import DIVFMWeights
 
 
-class DIVFMPricer(OptionPricerBase):
+class OptionPricingResultDIVFM(OptionPricingResult, arbitrary_types_allowed=True):
+    """Lazy DIVFM call-pricing result.
+
+    Evaluates the fitted IV surface on demand at any log-strike via the
+    network weights and OLS factor loadings, then applies Black-Scholes.
+    """
+
+    weights: DIVFMWeights = Field(description="Trained DIVFM network weights")
+    betas: FloatArray = Field(description="Daily OLS factor loadings")
+    ttm: float = Field(description="Time to maturity in years")
+    extra: FloatArray | None = Field(
+        default=None,
+        description="Day-level extra features, shape (1, extra_features)",
+    )
+
+    def call_price(self, log_strikes: FloatArrayLike) -> FloatArray:
+        """Evaluate call prices at arbitrary log-strikes."""
+        ks = np.asarray(log_strikes, dtype=np.float32).reshape(-1)
+        moneyness_ttm = ks / np.float32(np.sqrt(self.ttm))
+        ttm_arr = np.full(ks.shape, self.ttm, dtype=np.float32)
+        extra_arr = (
+            np.repeat(self.extra, len(ks), axis=0) if self.extra is not None else None
+        )
+        F = self.weights.forward(moneyness_ttm, ttm_arr, extra_arr)
+        iv = np.clip(F @ self.betas, 1e-6, None)
+        return np.asarray(black_call(ks, iv, ttm=self.ttm), dtype=float)
+
+    def call_greeks(self, log_strike: float) -> Greeks:
+        """Call price and Greeks at a given log-strike via finite differences"""
+        eps = 1e-4
+        ks = np.array([log_strike - eps, log_strike, log_strike + eps])
+        prices = self.call_price(ks)
+        price = float(prices[1])
+        dc_dk = float((prices[2] - prices[0]) / (2 * eps))
+        d2c_dk2 = float((prices[2] - 2 * prices[1] + prices[0]) / (eps * eps))
+        return Greeks(price=price, delta=price - dc_dk, gamma=d2c_dk2 - dc_dk)
+
+
+class DIVFMPricer(OptionPricerBase, arbitrary_types_allowed=True):
     r"""Option pricer based on the Deep Implied Volatility Factor Model (DIVFM).
 
     The IV surface on a given day is modelled as a linear combination of p
@@ -58,15 +95,6 @@ class DIVFMPricer(OptionPricerBase):
             " Set automatically by calibrate() when extra is provided"
         ),
     )
-    max_moneyness_ttm: float = Field(
-        default=3.0,
-        description="Max time-scaled moneyness |M| used to build the pricing grid",
-    )
-    n: int = Field(
-        default=100, description="Number of grid points along the moneyness axis"
-    )
-
-    model_config = {"arbitrary_types_allowed": True}
 
     def calibrate(
         self,
@@ -110,28 +138,15 @@ class DIVFMPricer(OptionPricerBase):
         )
         self.reset()
 
-    def _compute_maturity(self, ttm: float, **kwargs: Any) -> MaturityPricer:
+    def _compute_maturity(self, ttm: float) -> MaturityPricer:
         """Compute a MaturityPricer for the given TTM using the fitted IV surface."""
-        M_grid = np.linspace(
-            -self.max_moneyness_ttm, self.max_moneyness_ttm, self.n, dtype=np.float32
-        )
-        ttm_arr = np.full_like(M_grid, ttm)
-        # Broadcast day-level X across all grid points
-        extra_grid = (
-            np.repeat(self.extra, self.n, axis=0) if self.extra is not None else None
-        )
-        F = self.weights.forward(M_grid, ttm_arr, extra_grid)
-
-        iv_grid = np.clip(F @ self.betas, 1e-6, None)
-
-        # Convert from time-scaled moneyness M to log-strike = log(K/F)
-        log_strike = M_grid * np.sqrt(ttm)
-        call = np.asarray(black_call(log_strike, iv_grid, ttm=ttm))
-
         return MaturityPricer(
             ttm=ttm,
-            std=float(np.mean(iv_grid) * np.sqrt(ttm)),
-            log_strike=log_strike,
-            call=call,
+            pricing=OptionPricingResultDIVFM(
+                weights=self.weights,
+                betas=self.betas,
+                ttm=ttm,
+                extra=self.extra,
+            ),
             name="DIVFM",
         )

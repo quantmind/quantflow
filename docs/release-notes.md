@@ -24,7 +24,7 @@ and signature changes were made along the way: see **Breaking changes** below.
   re-exports. Code reaching into the old `quantflow.options.heston_calibration`
   must switch to `quantflow.options.calibration.heston`.
 
-**`ModelOptionPrice` field rename.** (#47)
+**`ModelOptionPrice` field rename.** ([#47](https://github.com/quantmind/quantflow/pull/47))
 
 - `ModelOptionPrice.moneyness` previously meant `log(K/F)`. It now means
   standardised moneyness `log(K/F) / sqrt(ttm)`, and the raw log-strike is
@@ -37,31 +37,40 @@ and signature changes were made along the way: see **Breaking changes** below.
 - **`BNS2`**: two-factor Barndorff-Nielsen & Shephard stochastic-volatility
   model with a single Brownian motion driving a convex combination of
   independent Gamma-OU variances and per-factor leverage. New section in the
-  BNS calibration tutorial. (#54)
+  BNS calibration tutorial. ([#54](https://github.com/quantmind/quantflow/pull/54))
 - **`DoubleHeston` and `DoubleHestonJ`**: two-factor Heston (with optional
   log-price jumps) and matching `DoubleHestonCalibration` /
-  `DoubleHestonJCalibration`. (#46)
+  `DoubleHestonJCalibration`. ([#46](https://github.com/quantmind/quantflow/pull/46))
 - **Lewis and COS option-pricing methods**: selectable via
-  `OptionPricingMethod`, alongside the existing Carr-Madan / FFT path. (#47)
-- **CIR tutorial** with PDF comparison example. (#49)
+  `OptionPricingMethod`, alongside the existing Carr-Madan / FFT path.
+  ([#47](https://github.com/quantmind/quantflow/pull/47))
+- **CIR tutorial** with PDF comparison example.
+  ([#49](https://github.com/quantmind/quantflow/pull/49))
 
 ### Improvements and fixes
 
-- Heston calibration convergence fixes. (#45, #49)
+- Heston calibration convergence fixes.
+  ([#45](https://github.com/quantmind/quantflow/pull/45),
+  [#49](https://github.com/quantmind/quantflow/pull/49))
 - BNS calibration: dedicated `BNSCalibration` class extracted, characteristic
-  exponent derivation cleaned up, broader test coverage. (#50, #51)
+  exponent derivation cleaned up, broader test coverage.
+  ([#50](https://github.com/quantmind/quantflow/pull/50),
+  [#51](https://github.com/quantmind/quantflow/pull/51))
 - OU module reworked: clearer Gamma-OU API, stronger tests for moments and
-  the integrated Laplace transform. (#51)
+  the integrated Laplace transform.
+  ([#51](https://github.com/quantmind/quantflow/pull/51))
 - `pricing_method_comparison` example simplified; redundant time-comparison
-  code removed. (#48)
+  code removed. ([#48](https://github.com/quantmind/quantflow/pull/48))
 
 ### Documentation and assets
 
 - New logo set (favicon, lockup, marks, social banners) under
-  `docs/assets/logos/`. (#53)
+  `docs/assets/logos/`. ([#53](https://github.com/quantmind/quantflow/pull/53))
 - New `docs/mcp.md` page covering the MCP server.
 - Bibliography rebuilt from BibTeX via `docs/bib2md.py`; glossary expanded;
-  mathjax tweaks for inline rendering. (#47, #49)
+  mathjax tweaks for inline rendering.
+  ([#47](https://github.com/quantmind/quantflow/pull/47),
+  [#49](https://github.com/quantmind/quantflow/pull/49))
 - Tutorial-writing instructions added at
   `.github/instructions/tutorial.instructions.md`.
 

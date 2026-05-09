@@ -2,10 +2,12 @@ import json
 
 from docs.examples._utils import assets_path, print_model
 from quantflow.options.calibration import HestonJCalibration
+from quantflow.options.calibration.base import ResidualKind
 from quantflow.options.pricer import OptionPricer
 from quantflow.options.surface import VolSurface, VolSurfaceInputs, surface_from_inputs
 from quantflow.sp.heston import HestonJ
 from quantflow.utils.distributions import DoubleExponential
+from quantflow.utils.marginal import OptionPricingMethod
 
 # Load a saved volatility surface snapshot and build the surface
 with open("docs/examples/volsurface.json") as fp:
@@ -24,14 +26,15 @@ pricer = OptionPricer(
         sigma=0.8,
         jump_fraction=0.3,
         jump_asymmetry=0.2,
-    )
+    ),
+    method=OptionPricingMethod.COS,
 )
 
 # Set up the calibration, dropping the first (very short) maturity
 calibration: HestonJCalibration[DoubleExponential] = HestonJCalibration(
     pricer=pricer,
     vol_surface=surface,
-    moneyness_weight=0.5,
+    residual_kind=ResidualKind.IV,
 )
 
 result = calibration.fit()

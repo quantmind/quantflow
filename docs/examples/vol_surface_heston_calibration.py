@@ -23,6 +23,7 @@ pricer = OptionPricer(
 calibration: HestonCalibration[Heston] = HestonCalibration(
     pricer=pricer,
     vol_surface=surface,
+    moneyness_weight=0.3,
 )
 
 result = calibration.fit()
