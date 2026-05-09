@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import enum
 from abc import ABC, abstractmethod
 from datetime import datetime
 from decimal import Decimal
@@ -13,10 +14,24 @@ from scipy.optimize import Bounds, OptimizeResult, least_squares, minimize
 from quantflow.sp.base import StochasticProcess1D
 from quantflow.utils import plot
 
+from ..bs import implied_black_volatility
 from ..pricer import OptionPricerBase
 from ..surface import OptionPrice, VolSurface
 
 M = TypeVar("M", bound=StochasticProcess1D)
+
+
+class ResidualKind(enum.StrEnum):
+    """How calibration residuals are measured against the market"""
+
+    PRICE = enum.auto()
+    """Residual on forward-space option prices: `weight * (model_price - mid_price)`"""
+
+    IV = enum.auto()
+    """Residual on Black implied volatilities: `weight * (model_iv - mid_iv)`,
+    where `model_iv` is recovered from the model price by Black-Scholes
+    inversion. Naturally well-scaled across moneyness, so `moneyness_weight`
+    is usually unnecessary."""
 
 
 class ModelCalibrationEntryKey(NamedTuple):
@@ -36,7 +51,6 @@ class OptionEntry(BaseModel):
     log_strike: float = Field(description="Log-strike as log(K/F)")
     options: list[OptionPrice] = Field(default_factory=list)
     """Bid and ask option prices for this entry"""
-    _mid_price: float | None = PrivateAttr(default=None)
 
     def implied_vol_range(self) -> Bounds:
         """Get the range of implied volatilities across bid and ask"""
@@ -45,10 +59,8 @@ class OptionEntry(BaseModel):
 
     def mid_price(self) -> float:
         """Mid price as the average of bid and ask call prices"""
-        if self._mid_price is None:
-            prices = tuple(float(option.call_price) for option in self.options)
-            self._mid_price = sum(prices) / len(prices)
-        return self._mid_price
+        prices = tuple(float(option.call_price) for option in self.options)
+        return sum(prices) / len(prices)
 
     def mid_iv(self) -> float:
         """Mid implied volatility as the average of bid and ask"""
@@ -81,6 +93,18 @@ class VolModelCalibration(BaseModel, ABC, Generic[M]):
             " to calibrate the model with"
         ),
     )
+    residual_kind: ResidualKind = Field(
+        default=ResidualKind.PRICE,
+        description=(
+            "Kind of residual used by the calibration cost function."
+            " `price` (default) measures the residual on forward-space"
+            " option prices and applies the `moneyness_weight` cost weights;"
+            " `iv` measures it on Black implied volatilities by inverting"
+            " the model price. The `iv` residual is already in vol units"
+            " and is naturally well-scaled across moneyness, so the"
+            " `moneyness_weight` cost weights are not applied in that mode."
+        ),
+    )
     moneyness_weight: float = Field(
         default=0.0,
         ge=0.0,
@@ -108,6 +132,11 @@ class VolModelCalibration(BaseModel, ABC, Generic[M]):
         repr=False,
         description="The options to calibrate",
     )
+    _log_strikes: np.ndarray = PrivateAttr(default_factory=lambda: np.empty(0))
+    _ttms: np.ndarray = PrivateAttr(default_factory=lambda: np.empty(0))
+    _moneyness: np.ndarray = PrivateAttr(default_factory=lambda: np.empty(0))
+    _mid_prices: np.ndarray = PrivateAttr(default_factory=lambda: np.empty(0))
+    _mid_ivs: np.ndarray = PrivateAttr(default_factory=lambda: np.empty(0))
 
     def model_post_init(self, _ctx: Any) -> None:
         if not self.options:
@@ -118,6 +147,12 @@ class VolModelCalibration(BaseModel, ABC, Generic[M]):
                     entry = OptionEntry(ttm=option.ttm, log_strike=option.log_strike)
                     self.options[key] = entry
                 entry.options.append(option)
+        entries = tuple(self.options.values())
+        self._log_strikes = np.asarray([e.log_strike for e in entries])
+        self._ttms = np.asarray([e.ttm for e in entries])
+        self._moneyness = self._log_strikes / np.sqrt(self._ttms)
+        self._mid_prices = np.asarray([e.mid_price() for e in entries])
+        self._mid_ivs = np.asarray([e.mid_iv() for e in entries])
 
     @abstractmethod
     def get_params(self) -> np.ndarray:
@@ -192,52 +227,84 @@ class VolModelCalibration(BaseModel, ABC, Generic[M]):
         weight = np.exp(self.moneyness_weight * moneyness * moneyness)
         return float(min(weight, self.max_cost_weight))
 
+    def cost_weights(self) -> np.ndarray:
+        """Vector of cost weights for all calibration options"""
+        weights = np.exp(self.moneyness_weight * self._moneyness * self._moneyness)
+        return np.minimum(weights, self.max_cost_weight)
+
     def penalize(self) -> float:
         """Additional scalar penalty added to the cost function (default: 0)"""
         return 0.0
 
     def residuals(self, params: np.ndarray) -> np.ndarray:
-        """Weighted price residuals: `weight * (model_price - mid_price)` per option"""
+        """Weighted residuals per option, in price or implied-vol space.
+
+        Controlled by `residual_kind`:
+
+        - `price`: `weight * (model_price - mid_price)`
+        - `iv`: `weight * (model_iv - mid_iv)`, where `model_iv` is the
+          Black implied volatility of the model price.
+        """
         self.set_params(params)
         self.pricer.reset()
-        res = []
         with np.errstate(all="ignore"):
-            for entry in self.options.values():
-                model_price = self.pricer.call_price(entry.ttm, entry.log_strike)
-                weight = self.cost_weight(entry.ttm, entry.log_strike)
-                r = weight * (model_price - entry.mid_price())
-                res.append(r if np.isfinite(r) else 1e6)
-        return np.asarray(res)
+            try:
+                model_prices = self.pricer.call_prices(self._ttms, self._log_strikes)
+            except ValueError:
+                return np.full(self._log_strikes.shape, 1e6)
+            if self.residual_kind is ResidualKind.IV:
+                implied = implied_black_volatility(
+                    self._log_strikes,
+                    model_prices,
+                    self._ttms,
+                    initial_sigma=self._mid_ivs,
+                    call_put=1,
+                )
+                # Fourier pricers can return prices outside the no-arb band
+                # for deep-wing strikes, where Newton fails to invert. Mask
+                # those points out (zero residual). If fewer than half of the
+                # options invert successfully the parameter set is treated as
+                # invalid and a large penalty is returned.
+                ok = implied.converged
+                if 2 * int(ok.sum()) < ok.size:
+                    return np.full(self._log_strikes.shape, 1e6)
+                r = np.where(ok, implied.values - self._mid_ivs, 0.0)
+            else:
+                r = self.cost_weights() * (model_prices - self._mid_prices)
+        return np.where(np.isfinite(r), r, 1e6)
 
     def cost_function(self, params: np.ndarray) -> float:
         """Scalar cost: sum of squared residuals plus any penalty"""
         r = self.residuals(params)
         return float(np.dot(r, r)) + self.penalize()
 
+    def _model_grid(
+        self, ttm: float, max_moneyness: float, support: int
+    ) -> pd.DataFrame:
+        log_strikes = np.linspace(-max_moneyness, max_moneyness, support) * np.sqrt(ttm)
+        return self.pricer.maturity(ttm).prices(log_strikes)
+
     def plot(
         self,
         index: int = 0,
         *,
-        max_moneyness: float | None = 1.0,
+        max_moneyness: float = 1.0,
         support: int = 51,
         **kwargs: Any,
     ) -> Any:
         """Plot implied volatility for market and model prices"""
         cross = self.vol_surface.maturities[index]
         options = tuple(self.vol_surface.option_prices(index=index, converged=True))
-        model = self.pricer.maturity(cross.ttm(self.ref_date))
-        if max_moneyness is not None:
-            model = model.max_moneyness(max_moneyness=max_moneyness, support=support)
         return plot.plot_vol_surface(
             pd.DataFrame([d.info_dict() for d in options]),
-            model=model.df,
+            model=self._model_grid(cross.ttm(self.ref_date), max_moneyness, support),
             **kwargs,
         )
 
     def plot_maturities(
         self,
         *,
-        max_moneyness: float | None = 1.0,
+        max_moneyness: float = 1.0,
         support: int = 51,
         cols: int = 2,
         row_height: int = 400,
@@ -257,15 +324,11 @@ class VolModelCalibration(BaseModel, ABC, Generic[M]):
             row = i // cols + 1
             col = i % cols + 1
             options = tuple(self.vol_surface.option_prices(index=i, converged=True))
-            model = self.pricer.maturity(cross.ttm(self.ref_date))
-            if max_moneyness is not None:
-                model = model.max_moneyness(
-                    max_moneyness=max_moneyness, support=support
-                )
-
             plot.plot_vol_surface(
                 pd.DataFrame([d.info_dict() for d in options]),
-                model=model.df,
+                model=self._model_grid(
+                    cross.ttm(self.ref_date), max_moneyness, support
+                ),
                 fig=fig,
                 fig_params={"row": row, "col": col},
                 **kwargs,

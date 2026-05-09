@@ -8,7 +8,7 @@ import numpy as np
 import pandas as pd
 from pydantic import BaseModel, Field
 from scipy.optimize import Bounds
-from typing_extensions import Annotated, Doc
+from typing_extensions import Annotated, Doc, NamedTuple
 
 from .transforms import Transform, TransformResult, default_bounds
 from .types import FloatArray, FloatArrayLike, Vector
@@ -23,23 +23,58 @@ class OptionPricingMethod(enum.StrEnum):
     COS = enum.auto()
 
 
-class OptionPricingResult(BaseModel, ABC):
-    method: OptionPricingMethod
+class Greeks(NamedTuple):
+    price: float
+    delta: float
+    gamma: float
+
+
+class OptionPricingResult(BaseModel, ABC, arbitrary_types_allowed=True):
 
     @abstractmethod
-    def call_at(self, log_strikes: FloatArrayLike) -> FloatArray:
+    def call_price(self, log_strikes: FloatArrayLike) -> FloatArray:
         """Evaluate call prices at arbitrary log-strikes."""
+
+    @abstractmethod
+    def call_greeks(self, log_strike: float) -> Greeks:
+        """Evaluate option price, delta & gamma at a given log-strike."""
 
 
 class OptionPricingTransformResult(OptionPricingResult, arbitrary_types_allowed=True):
     log_strikes: FloatArray
     call_prices: FloatArray
 
-    def call_at(self, log_strikes: FloatArrayLike) -> FloatArray:
+    def call_price(self, log_strikes: FloatArrayLike) -> FloatArray:
         return cast(
             FloatArray,
             np.interp(log_strikes, self.log_strikes, self.call_prices),
         )
+
+    def call_greeks(self, log_strike: float) -> Greeks:
+        return Greeks(
+            price=float(self.call_price(log_strike)),
+            delta=self.call_delta(log_strike),
+            gamma=self.call_gamma(log_strike),
+        )
+
+    def call_delta(self, log_strike: float) -> float:
+        r"""Delta of a call option as change in price per unit change in forward.
+
+        Since prices are stored in forward space (c = C/F) and m = log(K/F),
+        the chain rule gives: dC/dF = c - dc/dm
+        """
+        dc_dm = np.gradient(self.call_prices, self.log_strikes)
+        return float(np.interp(log_strike, self.log_strikes, self.call_prices - dc_dm))
+
+    def call_gamma(self, log_strike: float) -> float:
+        """Gamma of a call option as change in delta per unit change in forward.
+
+        Since prices are stored in forward space (c = C/F) and m = log(K/F),
+        the chain rule gives: d2C/dF2 = d2c/dm2 - dc/dm
+        """
+        dc_dm = np.gradient(self.call_prices, self.log_strikes)
+        d2c_dm2 = np.gradient(dc_dm, self.log_strikes)
+        return float(np.interp(log_strike, self.log_strikes, d2c_dm2 - dc_dm))
 
 
 class OptionPricingCosResult(OptionPricingResult, arbitrary_types_allowed=True):
@@ -55,7 +90,7 @@ class OptionPricingCosResult(OptionPricingResult, arbitrary_types_allowed=True):
         description="Complex coefficient vector w_j * phi(nu_j) * V_j"
     )
 
-    def call_at(
+    def call_price(
         self,
         log_strikes: Annotated[
             FloatArrayLike, Doc("Log-strikes at which to evaluate the call price")
@@ -67,6 +102,27 @@ class OptionPricingCosResult(OptionPricingResult, arbitrary_types_allowed=True):
             np.exp(-1j * np.outer(k + self.a, self.nu)) @ self.coeff
         ) * np.exp(k)
 
+    def call_greeks(self, log_strike: float) -> Greeks:
+        r"""Analytical price, delta and gamma at a single log-strike.
+
+        The COS expansion in $k$ admits closed-form $k$-derivatives:
+        each cosine term picks up an extra factor of $-i\nu_j$ per
+        derivative. In forward space ($F=1$, $k=\log(K/F)$), the
+        forward-delta and forward-gamma are
+        $c-c_k$ and $c_{kk}-c_k$ respectively.
+        """
+        k = float(log_strike)
+        z = np.exp(-1j * self.nu * (k + self.a)) * self.coeff
+        s0 = np.real(z.sum())
+        s1 = np.real((-1j * self.nu * z).sum())
+        s2 = np.real((-(self.nu * self.nu) * z).sum())
+        ek = np.exp(k)
+        return Greeks(
+            price=float(ek * s0),
+            delta=float(-ek * s1),
+            gamma=float(ek * (s1 + s2)),
+        )
+
 
 class Marginal1D(BaseModel, ABC, extra="forbid"):
     r"""Abstract 1D marginal distribution with Fourier-based option pricing.
@@ -77,20 +133,21 @@ class Marginal1D(BaseModel, ABC, extra="forbid"):
     their Jacobians with respect to the parameters of the process.
 
     Option prices are computed via Fourier inversion of the
-    [characteristic function](/glossary#characteristic-function),
+    [characteristic function](../../glossary.md#characteristic-function),
     using two supported formulas:
 
-    * [Carr & Madan](/bibliography#carr_madan): uses a damping parameter $\alpha$
-      to ensure integrability.
+    * [Carr & Madan](../../bibliography.md#carr_madan): uses a damping
+      parameter $\alpha$ to ensure integrability.
       The integrand is evaluated along a contour shifted by $\alpha$ in the
       imaginary direction. See [call_option_carr_madan][.call_option_carr_madan].
-    * [Lewis](/bibliography#lewis): no damping parameter required.
+    * [Lewis](../../bibliography.md#lewis): no damping parameter required.
       The contour is fixed at
       imaginary part $1/2$, giving an integrand that is naturally bounded for
       all real $u$. See [call_option_lewis][.call_option_lewis].
-    * [COS method](/bibliography#cos): uses a Fourier-cosine expansion of the
-      option payoff, with coefficients that depend on the characteristic function
-      evaluated at a cosine frequency grid. See [call_option_cos][.call_option_cos].
+    * [COS method](../../bibliography.md#cos): uses a Fourier-cosine expansion of
+      the option payoff, with coefficients that depend on the characteristic
+      function evaluated at a cosine frequency grid.
+      See [call_option_cos][.call_option_cos].
 
     It is the base class for the
     [StochasticProcess1DMarginal][quantflow.sp.base.StochasticProcess1DMarginal].
@@ -110,6 +167,21 @@ class Marginal1D(BaseModel, ABC, extra="forbid"):
                 "call option price. Defaults to Lewis."
             ),
         ] = OptionPricingMethod.CARR_MADAN,
+        cos_moneyness_std_precision: Annotated[
+            float,
+            Doc(
+                "Truncation parameter for COS: the integration interval is set to "
+                "[-cos_moneyness_std_precision*std, cos_moneyness_std_precision*std]."
+            ),
+        ] = 12,
+        max_moneyness: Annotated[
+            float,
+            Doc(
+                "Maximum moneyness to calculate prices. The log-strike grid is set to "
+                "[-max_moneyness*std, max_moneyness*std]. "
+                "Used by Lewis and Carr & Madan methods only."
+            ),
+        ] = 1.5,
         max_frequency: Annotated[
             float | None,
             Doc(
@@ -117,9 +189,6 @@ class Marginal1D(BaseModel, ABC, extra="forbid"):
                 "Defaults to frequency_range()."
             ),
         ] = None,
-        max_log_strike: Annotated[
-            float, Doc("Maximum absolute log-strike for the output grid.")
-        ] = 1,
         alpha: Annotated[
             float | None,
             Doc(
@@ -141,13 +210,13 @@ class Marginal1D(BaseModel, ABC, extra="forbid"):
             case OptionPricingMethod.COS:
                 return self.call_option_cos(
                     n,
-                    max_log_strike=max_log_strike,
+                    moneyness_std_precision=cos_moneyness_std_precision,
                 )
             case OptionPricingMethod.CARR_MADAN:
                 return self.call_option_carr_madan(
                     n,
                     max_frequency=max_frequency,
-                    max_log_strike=max_log_strike,
+                    max_moneyness=max_moneyness,
                     alpha=alpha,
                     simpson_rule=simpson_rule,
                     use_fft=use_fft,
@@ -156,7 +225,7 @@ class Marginal1D(BaseModel, ABC, extra="forbid"):
                 return self.call_option_lewis(
                     n,
                     max_frequency=max_frequency,
-                    max_log_strike=max_log_strike,
+                    max_moneyness=max_moneyness,
                     simpson_rule=simpson_rule,
                     use_fft=use_fft,
                 )
@@ -168,6 +237,13 @@ class Marginal1D(BaseModel, ABC, extra="forbid"):
             Doc("Number of discretization points for the transform. Defaults to 128."),
         ] = None,
         *,
+        max_moneyness: Annotated[
+            float,
+            Doc(
+                "Maximum moneyness to calculate prices. The log-strike grid is set to "
+                "[-max_moneyness*std, max_moneyness*std]. "
+            ),
+        ] = 1.5,
         max_frequency: Annotated[
             float | None,
             Doc(
@@ -175,9 +251,6 @@ class Marginal1D(BaseModel, ABC, extra="forbid"):
                 "Defaults to frequency_range()."
             ),
         ] = None,
-        max_log_strike: Annotated[
-            float, Doc("Maximum absolute log-strike for the output grid.")
-        ] = 1,
         alpha: Annotated[
             float | None,
             Doc(
@@ -194,6 +267,7 @@ class Marginal1D(BaseModel, ABC, extra="forbid"):
         ] = False,
     ) -> OptionPricingTransformResult:
         """Call option price via Carr & Madan method"""
+        max_log_strike = max_moneyness * self.std_validated()
         transform = self.get_transform(
             n,
             lambda m: self.option_support(m + 1, max_log_strike=max_log_strike),
@@ -208,7 +282,6 @@ class Marginal1D(BaseModel, ABC, extra="forbid"):
         )
         result = transform(phi, use_fft=use_fft)
         return OptionPricingTransformResult(
-            method=OptionPricingMethod.CARR_MADAN,
             log_strikes=result.x,
             call_prices=result.y * np.exp(-alpha * result.x),
         )
@@ -228,16 +301,13 @@ class Marginal1D(BaseModel, ABC, extra="forbid"):
             Doc("Number of cosine series terms. Defaults to 128."),
         ] = None,
         *,
-        max_log_strike: Annotated[
-            float, Doc("Maximum absolute log-strike for the output grid.")
-        ] = 1,
-        L: Annotated[
+        moneyness_std_precision: Annotated[
             float,
             Doc(
                 "Truncation parameter: the integration interval is set to "
-                "[-L*std, L*std]."
+                "[-moneyness_std_precision*std, moneyness_std_precision*std]."
             ),
-        ] = 12.0,
+        ] = 12,
     ) -> OptionPricingCosResult:
         r"""Call option price via the COS method (Fang & Oosterlee 2008).
 
@@ -259,13 +329,13 @@ class Marginal1D(BaseModel, ABC, extra="forbid"):
         Returns an
         [OptionPricingCosResult][quantflow.utils.marginal.OptionPricingCosResult]
         with the precomputed coefficient vector. Use
-        [call_at][quantflow.utils.marginal.OptionPricingCosResult.call_at]
+        [call_price][quantflow.utils.marginal.OptionPricingCosResult.call_price]
         to evaluate at arbitrary log-strikes in $O(N)$ per strike.
         """
         n = n or 128
-        std = float(self.std())
-        a = -L * std
-        b = L * std
+        std = self.std_validated()
+        a = -moneyness_std_precision * std
+        b = moneyness_std_precision * std
         bma = b - a
 
         j = np.arange(n)
@@ -285,7 +355,6 @@ class Marginal1D(BaseModel, ABC, extra="forbid"):
         weights = np.ones(n)
         weights[0] = 0.5
         return OptionPricingCosResult(
-            method=OptionPricingMethod.COS,
             a=a,
             nu=nu,
             coeff=weights * phi * V,
@@ -298,6 +367,13 @@ class Marginal1D(BaseModel, ABC, extra="forbid"):
             Doc("Number of discretization points for the transform. Defaults to 128."),
         ] = None,
         *,
+        max_moneyness: Annotated[
+            float,
+            Doc(
+                "Maximum moneyness to calculate prices. The log-strike grid is set to "
+                "[-max_moneyness*std, max_moneyness*std]. "
+            ),
+        ] = 1.5,
         max_frequency: Annotated[
             float | None,
             Doc(
@@ -305,9 +381,6 @@ class Marginal1D(BaseModel, ABC, extra="forbid"):
                 "Defaults to frequency_range()."
             ),
         ] = None,
-        max_log_strike: Annotated[
-            float, Doc("Maximum absolute log-strike for the output grid.")
-        ] = 1,
         simpson_rule: Annotated[
             bool, Doc("Use Simpson's rule for integration. Default is False.")
         ] = False,
@@ -316,6 +389,7 @@ class Marginal1D(BaseModel, ABC, extra="forbid"):
         ] = False,
     ) -> OptionPricingTransformResult:
         """Call option price via the Lewis (2001) formula"""
+        max_log_strike = max_moneyness * self.std_validated()
         transform = self.get_transform(
             n,
             lambda m: self.option_support(m + 1, max_log_strike=max_log_strike),
@@ -329,7 +403,6 @@ class Marginal1D(BaseModel, ABC, extra="forbid"):
         return OptionPricingTransformResult(
             log_strikes=k,
             call_prices=1.0 - np.exp(0.5 * k) * result.y,
-            method=OptionPricingMethod.LEWIS,
         )
 
     def call_option_transform(
@@ -686,6 +759,22 @@ class Marginal1D(BaseModel, ABC, extra="forbid"):
     def std(self) -> FloatArrayLike:
         """Standard deviation at a time horizon"""
         return np.sqrt(self.variance())
+
+    def std_validated(self) -> float:
+        """Float standard deviation, raising if it is not finite or non-positive.
+
+        Used by the Fourier-based pricing methods to set the log-strike grid
+        range; degenerate parameter samples (e.g. during calibration) can
+        produce a non-finite std and would otherwise crash deep in the
+        transform with a confusing error.
+        """
+        std = float(self.std())
+        if not np.isfinite(std) or std <= 0:
+            raise ValueError(
+                f"Marginal std is not finite or non-positive: {std!r}; "
+                "model parameters are likely invalid"
+            )
+        return std
 
     def std_from_characteristic(self) -> FloatArrayLike:
         """Calculate standard deviation as square root of variance"""

@@ -2,7 +2,7 @@ import json
 
 from docs.examples._utils import assets_path, print_model
 from quantflow.options.calibration import BNSCalibration
-from quantflow.options.pricer import OptionPricer
+from quantflow.options.pricer import OptionPricer, OptionPricingMethod
 from quantflow.options.surface import VolSurface, VolSurfaceInputs, surface_from_inputs
 from quantflow.sp.bns import BNS
 
@@ -16,6 +16,7 @@ surface.disable_outliers()
 # Create a BNS pricer with initial parameters
 pricer = OptionPricer(
     model=BNS.create(vol=0.5, kappa=1.0, decay=10.0, rho=-0.2),
+    method=OptionPricingMethod.COS,
 )
 
 calibration: BNSCalibration[BNS] = BNSCalibration(

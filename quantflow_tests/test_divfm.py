@@ -117,19 +117,20 @@ def test_calibrate_constant_iv(pricer: DIVFMPricer) -> None:
 
 def test_maturity_after_calibrate(weights: DIVFMWeights) -> None:
     # Use a tighter moneyness range so Black-Scholes IV inversion is reliable
-    pricer = DIVFMPricer(weights=weights, max_moneyness_ttm=1.5, n=50)
+    pricer = DIVFMPricer(weights=weights)
     moneyness_ttm, ttm, implied_vols = _synthetic_options(iv=0.3)
     pricer.calibrate(moneyness_ttm, ttm, implied_vols)
 
     mp = pricer.maturity(0.5)
     assert mp.ttm == pytest.approx(0.5, rel=1e-3)
-    assert len(mp.moneyness) == pricer.n
-    assert len(mp.call) == pricer.n
+    log_strikes = np.linspace(-1.5, 1.5, 50) * np.sqrt(mp.ttm)
+    df = mp.prices(log_strikes)
+    assert len(df) == 50
     # call prices must be non-negative
-    assert np.all(mp.call >= 0.0)
+    assert np.all(df["call"] >= 0.0)
     # implied vols should be close to the calibrated constant in the central region
-    central = np.abs(mp.moneyness) < 0.5
-    assert np.allclose(mp.implied_vols[central], 0.3, atol=1e-3)
+    central = np.abs(df["moneyness"]) < 0.5
+    assert np.allclose(df.loc[central, "implied_vol"], 0.3, atol=1e-3)
 
 
 def test_maturity_cache(pricer: DIVFMPricer) -> None:
@@ -153,7 +154,7 @@ def test_calibrate_with_extra(weights: DIVFMWeights) -> None:
         num_factors=NUM_FACTORS,
         extra_features=extra_features,
     )
-    pricer = DIVFMPricer(weights=w, max_moneyness_ttm=1.5, n=20)
+    pricer = DIVFMPricer(weights=w)
     moneyness_ttm, ttm, implied_vols = _synthetic_options()
     extra = np.zeros((N, extra_features), dtype=np.float32)
 
@@ -164,7 +165,8 @@ def test_calibrate_with_extra(weights: DIVFMWeights) -> None:
 
     # Maturity must compute without error when extra is set
     mp = pricer.maturity(0.5)
-    assert len(mp.call) == pricer.n
+    df = mp.prices(np.linspace(-1.5, 1.5, 20) * np.sqrt(mp.ttm))
+    assert len(df) == 20
 
 
 def test_reset_clears_cache(pricer: DIVFMPricer) -> None:
@@ -304,8 +306,9 @@ def test_trainer_to_weights_produces_pricer() -> None:
     weights = trainer.to_weights()
     assert isinstance(weights, DIVFMWeights)
 
-    pricer = DIVFMPricer(weights=weights, max_moneyness_ttm=1.5, n=20)
+    pricer = DIVFMPricer(weights=weights)
     day = days[0]
     pricer.calibrate(day.moneyness_ttm, day.ttm, day.implied_vols)
     mp = pricer.maturity(0.5)
-    assert len(mp.call) == pricer.n
+    df = mp.prices(np.linspace(-1.5, 1.5, 20) * np.sqrt(mp.ttm))
+    assert len(df) == 20

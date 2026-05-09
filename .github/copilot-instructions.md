@@ -57,3 +57,13 @@ The release procedure is fully driven by `make release` and the `release.yml` wo
 5. The tag push triggers `.github/workflows/release.yml`, which runs lint and tests, publishes the package to PyPI (`make publish`), and posts the extracted `## vX.Y.Z` section as the GitHub Release body.
 
 Do not publish to PyPI manually or via the old `head_commit.message == 'release'` flow — the tag-triggered workflow is the only supported path.
+
+### Release-notes conventions
+
+The `## vX.Y.Z` section in `docs/release-notes.md` must follow these conventions, since the same content is rendered both on the docs site and as the GitHub Release body:
+
+* Open with a one-paragraph summary describing the theme of the release. If the release contains breaking changes, point readers to the **Breaking changes** section in that paragraph.
+* Group entries under H3 subsections in this order: `### Breaking changes`, `### New features`, `### Improvements and fixes`, `### Documentation and assets`. Omit any subsection that has no entries.
+* Every PR reference must be a markdown link of the form `[#NN](https://github.com/quantmind/quantflow/pull/NN)`. Never write a bare `(#NN)` — both readers (docs and GitHub) benefit from the explicit URL, and GitHub's auto-linking only works in some contexts. When a single entry references multiple PRs, list them comma-separated inside one set of parentheses, each as its own markdown link.
+* Build the PR list by running `git log vPREV..HEAD --oneline` against the previous release tag and following each squashed-merge commit back to its PR. Cross-check with `gh pr list --state merged --base main` for any PRs merged since the previous tag.
+* End the section with a `[Full changelog](https://github.com/quantmind/quantflow/compare/vPREV...vX.Y.Z)` link comparing the new tag against the previous one.

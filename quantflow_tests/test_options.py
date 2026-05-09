@@ -219,8 +219,9 @@ def _synthetic_options(
     options: dict[ModelCalibrationEntryKey, OptionEntry] = {}
     for ttm in ttms:
         maturity = ref_date + timedelta(days=round(ttm * 365))
-        for k in moneynesses:
-            price = pricer.call_price(ttm, float(k))
+        log_strikes = moneynesses * np.sqrt(ttm)
+        for k in log_strikes:
+            price = float(pricer.maturity(ttm).pricing.call_price(np.asarray([k]))[0])
             strike = round(np.exp(k), 6)
             key = ModelCalibrationEntryKey(
                 maturity=maturity, strike=Decimal(str(strike))

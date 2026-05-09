@@ -62,7 +62,7 @@ class PricingMethodComparison(BaseModel):
     def _implied_vols(
         self, r: OptionPricingResult, log_strikes: np.ndarray, ttm: float
     ) -> np.ndarray:
-        call = np.asarray(r.call_at(log_strikes))
+        call = np.asarray(r.call_price(log_strikes))
         intrinsic = np.maximum(0.0, 1.0 - np.exp(log_strikes))
         call = np.clip(call, intrinsic, 1.0)
         return implied_black_volatility(log_strikes, call, ttm, 0.5, 1.0).values
@@ -75,10 +75,10 @@ class PricingMethodComparison(BaseModel):
         ttm: float,
     ) -> float:
         iv = implied_black_volatility(
-            log_strikes, np.asarray(r.call_at(log_strikes)), ttm, 0.5, 1.0
+            log_strikes, np.asarray(r.call_price(log_strikes)), ttm, 0.5, 1.0
         ).values
         iv_ref = implied_black_volatility(
-            log_strikes, np.asarray(ref.call_at(log_strikes)), ttm, 0.5, 1.0
+            log_strikes, np.asarray(ref.call_price(log_strikes)), ttm, 0.5, 1.0
         ).values
         finite = np.isfinite(iv) & np.isfinite(iv_ref)
         return float(np.max(np.abs(iv[finite] - iv_ref[finite])))
@@ -90,7 +90,7 @@ class PricingMethodComparison(BaseModel):
             log_strikes = ms.option_support(
                 self.ref_n + 1, max_log_strike=max_log_strike
             )
-            ref = ms.call_option(self.ref_n, max_log_strike=max_log_strike)
+            ref = ms.call_option(self.ref_n, max_moneyness=self.max_moneyness)
             iv_ref = self._implied_vols(ref, log_strikes, ttm)
             moneyness_ref = log_strikes / np.sqrt(ttm)
             ttm_label = f"TTM={ttm}"
@@ -121,7 +121,7 @@ class PricingMethodComparison(BaseModel):
                 for n in self.ns:
                     r = ms.call_option(
                         n,
-                        max_log_strike=max_log_strike,
+                        max_moneyness=self.max_moneyness,
                         pricing_method=method,
                     )
                     ks = (
