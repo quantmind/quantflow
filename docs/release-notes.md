@@ -6,6 +6,94 @@ below maps to a tagged release on
 pushed, the matching section is extracted by
 `.github/workflows/release.yml` and published as the GitHub Release body.
 
+## v0.9.0
+
+Pricing-engine and calibration overhaul. `MaturityPricer` now evaluates call
+prices and Greeks lazily at arbitrary log-strikes instead of carrying a
+precomputed grid, Fourier pricers take a moneyness-based truncation parameter,
+and the volatility-surface calibration can fit Black implied vols directly.
+This release contains several API changes: see **Breaking changes** below.
+
+### Breaking changes
+
+**`MaturityPricer` reworked.** ([#59](https://github.com/quantmind/quantflow/pull/59))
+
+- The precomputed `std`, `log_strike` and `call` arrays are gone. A
+  `MaturityPricer` now holds a single `pricing` field (an
+  `OptionPricingResult`) that evaluates call prices and Greeks on demand at
+  any log-strike.
+- `moneyness` is now a method, `moneyness(log_strikes)`, not a cached array
+  property. The `time_value` and `intrinsic_value` array properties and the
+  `interp(...)` helper were removed; use `prices(log_strikes)` to get a
+  DataFrame of prices and implied vols on a chosen log-strike grid.
+
+**Fourier pricing truncation: `max_log_strike` → moneyness parameters.**
+([#59](https://github.com/quantmind/quantflow/pull/59))
+
+- `Marginal1D.call_option`, `call_option_carr_madan` and `call_option_lewis`
+  take `max_moneyness` (a multiple of the marginal standard deviation)
+  instead of `max_log_strike`. The COS path takes
+  `cos_moneyness_std_precision` instead.
+- `OptionPricingResult.call_at(...)` is renamed `call_price(...)`, the
+  `method` field is removed, and a new abstract `call_greeks(log_strike)`
+  returns a `Greeks` namedtuple `(price, delta, gamma)`.
+
+**`OptionPricerBase.call_price` → `call_prices`.**
+([#59](https://github.com/quantmind/quantflow/pull/59)) The method is now
+vectorised: it takes arrays of times-to-maturity and log-strikes and prices
+them in a single maturity-grouped call.
+
+**`DIVFMPricer` no longer builds a fixed moneyness grid.**
+([#59](https://github.com/quantmind/quantflow/pull/59)) The
+`max_moneyness_ttm` and `n` fields are removed; the fitted IV surface is
+evaluated on demand through `OptionPricingResultDIVFM`.
+
+### New features
+
+- **Implied-vol calibration residuals.** New `ResidualKind` enum and a
+  `residual_kind` field on `VolModelCalibration`: set it to `ResidualKind.IV`
+  to fit the model to Black implied vols (recovered by inverting the model
+  price) rather than to forward-space prices. The IV residual is naturally
+  well-scaled across moneyness, so `moneyness_weight` is not applied in that
+  mode. ([#59](https://github.com/quantmind/quantflow/pull/59))
+- **Greeks from the pricing result.** `OptionPricingCosResult.call_greeks`
+  returns closed-form price, delta and gamma from the COS expansion; the
+  transform-based result derives delta and gamma by differentiating the call
+  grid; DIVFM uses finite differences on the fitted surface.
+  ([#59](https://github.com/quantmind/quantflow/pull/59))
+- **COS truncation control on `OptionPricer`.** New
+  `cos_moneyness_std_precision` field (default 12) sets the width of the COS
+  integration interval in standard deviations.
+  ([#59](https://github.com/quantmind/quantflow/pull/59))
+
+### Improvements and fixes
+
+- Calibration residuals are now computed in a single vectorised pricing call.
+  Deep-wing strikes where the model price falls outside the no-arbitrage band
+  (so Newton fails to invert it) are masked out instead of poisoning the fit,
+  and a parameter set that fails to invert on more than half the options is
+  rejected with a large penalty.
+  ([#59](https://github.com/quantmind/quantflow/pull/59))
+- Calibration plots now evaluate the model on a fresh moneyness grid;
+  `plot(max_moneyness=...)` no longer accepts `None`.
+  ([#59](https://github.com/quantmind/quantflow/pull/59))
+- `OptionEntry.mid_price()` no longer caches through a private attribute.
+  ([#59](https://github.com/quantmind/quantflow/pull/59))
+- Stale Jupytext notebook mirrors under `notebooks/` removed.
+  ([#59](https://github.com/quantmind/quantflow/pull/59))
+
+### Documentation and assets
+
+- New GitHub social-preview banner under `docs/assets/logos/png/`.
+  ([#59](https://github.com/quantmind/quantflow/pull/59))
+- `docs/api/options/black.md` and the volatility-surface calibration examples
+  updated for the new pricer API.
+  ([#59](https://github.com/quantmind/quantflow/pull/59))
+- The release procedure moved out of `.github/copilot-instructions.md` into
+  its own `.github/instructions/release.instructions.md`.
+
+[Full changelog](https://github.com/quantmind/quantflow/compare/v0.8.0...v0.9.0)
+
 ## v0.8.0
 
 Volatility-surface calibration overhaul. This release adds a two-factor BNS
