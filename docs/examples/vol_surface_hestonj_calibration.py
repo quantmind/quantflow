@@ -1,6 +1,6 @@
 import json
 
-from docs.examples._utils import assets_path, print_model
+from docs.examples._utils import FIXTURES, assets_path, print_model
 from quantflow.options.calibration import HestonJCalibration
 from quantflow.options.calibration.base import ResidualKind
 from quantflow.options.pricer import OptionPricer
@@ -10,7 +10,7 @@ from quantflow.utils.distributions import DoubleExponential
 from quantflow.utils.marginal import OptionPricingMethod
 
 # Load a saved volatility surface snapshot and build the surface
-with open("docs/examples/volsurface.json") as fp:
+with open(FIXTURES / "volsurface_btc.json") as fp:
     surface: VolSurface = surface_from_inputs(VolSurfaceInputs(**json.load(fp)))
 
 surface.bs()

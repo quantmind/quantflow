@@ -11,13 +11,12 @@ from unittest.mock import AsyncMock, patch
 import pytest
 
 from quantflow.data.yahoo import Yahoo
-
-FIXTURES = Path(__file__).parent / "fixtures"
+from quantflow_tests.utils import load_fixture_dict
 
 
 @pytest.fixture
 def spx_chain() -> dict:
-    return json.loads(gzip.decompress((FIXTURES / "yahoo_spx.json.gz").read_bytes()))
+    return load_fixture_dict("yahoo_spx.json.gz")
 
 
 @pytest.fixture

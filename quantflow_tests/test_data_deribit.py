@@ -2,9 +2,7 @@
 
 from __future__ import annotations
 
-import json
 from datetime import date, datetime
-from pathlib import Path
 from typing import Any, AsyncIterator
 from unittest.mock import AsyncMock, patch
 
@@ -12,12 +10,7 @@ import pytest
 
 from quantflow.data.deribit import Deribit
 from quantflow.utils.dates import as_utc
-
-FIXTURES = Path(__file__).parent / "fixtures"
-
-
-def load_fixture(name: str) -> list[dict]:
-    return json.loads((FIXTURES / name).read_text())
+from quantflow_tests.utils import load_fixture
 
 
 @pytest.fixture
