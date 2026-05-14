@@ -24,10 +24,6 @@ M = TypeVar("M", bound=StochasticProcess1D)
 TTM_FACTOR = 10000
 
 
-def get_intrinsic_value(log_strike: FloatArray) -> FloatArray:
-    return 1.0 - np.exp(np.clip(log_strike, None, 0))
-
-
 class ModelOptionPrice(BaseModel, frozen=True):
     r"""Model price and sensitivities of an option for a given strike,
     forward and time to maturity.

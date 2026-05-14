@@ -72,6 +72,30 @@ def test_put_call_parity_across_strikes(strike: int, forward: int) -> None:
     assert call.gamma == pytest.approx(put.gamma, abs=1e-9)
 
 
+@pytest.mark.parametrize(
+    "option_type,strike,forward,expected",
+    [
+        # calls: payoff max(F - K, 0) / F = max(0, 1 - K/F)
+        (OptionType.call, 80, 100, 0.2),  # ITM
+        (OptionType.call, 100, 100, 0.0),  # ATM
+        (OptionType.call, 120, 100, 0.0),  # OTM
+        # puts: payoff max(K - F, 0) / F = max(0, K/F - 1)
+        (OptionType.put, 80, 100, 0.0),  # OTM
+        (OptionType.put, 100, 100, 0.0),  # ATM
+        (OptionType.put, 120, 100, 0.2),  # ITM
+    ],
+)
+def test_intrinsic_value(
+    option_type: OptionType, strike: int, forward: int, expected: float
+) -> None:
+    """`intrinsic_value` is the forward-space payoff if exercised immediately."""
+    pricer = OptionPricer(model=Heston.create(vol=0.2, kappa=2.0, sigma=0.5, rho=-0.5))
+    price = pricer.price(
+        option_type=option_type, strike=strike, forward=forward, ttm=0.5
+    )
+    assert price.intrinsic_value == pytest.approx(expected, abs=1e-12)
+
+
 def test_price_in_quote_scales_with_forward() -> None:
     """`price_in_quote` is the forward-space price multiplied by the forward."""
     pricer = OptionPricer(model=Heston.create(vol=0.2, kappa=2.0, sigma=0.5, rho=-0.5))
