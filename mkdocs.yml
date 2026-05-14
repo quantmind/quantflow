@@ -68,6 +68,7 @@ nav:
           - Federal Reserve: api/data/fed.md
           - Financial Modeling Prep: api/data/fmp.md
           - FRED: api/data/fred.md
+          - Yahoo: api/data/yahoo.md
       - Options:
           - api/options/index.md
           - Black-Scholes: api/options/black.md
@@ -112,6 +113,7 @@ nav:
       - CIR Process: tutorials/cir.md
       - Option Pricing: tutorials/option_pricing.md
       - Pricing Method Comparison: tutorials/pricing_method_comparison.md
+      - SPX Volatility Surface: tutorials/spx_vol_surface.md
       - Volatility Surface: tutorials/volatility_surface.md
   - Theory:
       - theory/index.md

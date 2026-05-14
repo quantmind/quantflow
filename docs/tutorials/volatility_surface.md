@@ -248,4 +248,3 @@ The calibrated parameter vector for the jump-diffusion model is:
 | `jump intensity` | Jump arrival rate (jumps per year) |
 | `jump variance` | Variance of a single jump |
 | `jump asymmetry` | Asymmetry of the jump distribution ([DoubleExponential][quantflow.utils.distributions.DoubleExponential]) |
-
