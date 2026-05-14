@@ -2,11 +2,12 @@ import json
 
 import pandas as pd
 
+from docs.examples._utils import FIXTURES
 from quantflow.options.inputs import OptionInput
 from quantflow.options.surface import VolSurface, VolSurfaceInputs, surface_from_inputs
 
 # Load a saved volatility surface snapshot from JSON
-with open("docs/examples/volsurface.json") as fp:
+with open(FIXTURES / "volsurface_btc.json") as fp:
     surface_inputs = VolSurfaceInputs(**json.load(fp))
 
 # Build the VolSurface from the inputs and calculate implied volatilities

@@ -10,7 +10,7 @@ from quantflow_tests.utils import load_fixture_dict
 
 @pytest.fixture
 def vol_surface() -> VolSurface:
-    inputs = load_fixture_dict("volsurface.json")
+    inputs = load_fixture_dict("volsurface_eth.json")
     return surface_from_inputs(VolSurfaceInputs(**inputs))
 
 

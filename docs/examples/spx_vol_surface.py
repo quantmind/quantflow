@@ -1,22 +1,14 @@
 import gzip
 import json
-from pathlib import Path
 
-from docs.examples._utils import assets_path, print_model
+from docs.examples._utils import FIXTURES, assets_path, print_model
 from quantflow.data.yahoo import Yahoo
 from quantflow.options.calibration import BNS2Calibration
 from quantflow.options.calibration.base import ResidualKind
 from quantflow.options.pricer import OptionPricer, OptionPricingMethod
 from quantflow.sp.bns import BNS, BNS2
 
-FIXTURE = (
-    Path(__file__).resolve().parents[2]
-    / "quantflow_tests"
-    / "fixtures"
-    / "yahoo_spx.json.gz"
-)
-
-chain = json.loads(gzip.decompress(FIXTURE.read_bytes()))
+chain = json.loads(gzip.decompress((FIXTURES / "yahoo_spx.json.gz").read_bytes()))
 loader = Yahoo.loader_from_chain(chain, exclude_volume=1)
 surface = loader.surface()
 surface.bs()

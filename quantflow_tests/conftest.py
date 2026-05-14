@@ -9,5 +9,5 @@ dotenv.load_dotenv()
 
 @pytest.fixture
 def vol_surface():
-    inputs = load_fixture_dict("volsurface.json")
+    inputs = load_fixture_dict("volsurface_eth.json")
     return surface_from_inputs(VolSurfaceInputs(**inputs))

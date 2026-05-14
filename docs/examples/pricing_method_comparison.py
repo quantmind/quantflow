@@ -86,7 +86,7 @@ class PricingMethodComparison(BaseModel):
     def run_ttm(self) -> None:
         for ttm in self.ttms:
             ms = self.model.marginal(ttm)
-            max_log_strike = self.max_moneyness * np.sqrt(ttm)
+            max_log_strike = self.max_moneyness * ms.std_validated()
             log_strikes = ms.option_support(
                 self.ref_n + 1, max_log_strike=max_log_strike
             )

@@ -1,11 +1,12 @@
+import gzip
 import json
-from pathlib import Path
 from typing import cast
 
 import numpy as np
 import pytest
 from aiohttp.client_exceptions import ClientError
 
+from docs.examples._utils import FIXTURES
 from quantflow.sp.base import StochasticProcess1D
 from quantflow.utils.marginal import Marginal1D
 from quantflow.utils.plot import check_plotly
@@ -16,14 +17,14 @@ try:
 except ImportError:
     has_plotly = False
 
-FIXTURES = Path(__file__).parent / "fixtures"
-
 
 def load_fixture(name: str) -> list[dict]:
     return json.loads((FIXTURES / name).read_text())
 
 
 def load_fixture_dict(name: str) -> dict:
+    if name.endswith(".gz"):
+        return json.loads(gzip.decompress((FIXTURES / name).read_bytes()))
     return json.loads((FIXTURES / name).read_text())
 
 

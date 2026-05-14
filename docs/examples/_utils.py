@@ -5,6 +5,7 @@ from pathlib import Path
 from pydantic import BaseModel
 
 EXAMPLE_DIR = Path(__file__).parent
+FIXTURES = EXAMPLE_DIR / "fixtures"
 OUT_DIR = EXAMPLE_DIR / "output"
 ASSET_DIR = EXAMPLE_DIR.parent / "assets" / "examples"
 
