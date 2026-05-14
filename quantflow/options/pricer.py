@@ -24,16 +24,23 @@ M = TypeVar("M", bound=StochasticProcess1D)
 TTM_FACTOR = 10000
 
 
-def get_intrinsic_value(log_strike: FloatArray) -> FloatArray:
-    return 1.0 - np.exp(np.clip(log_strike, None, 0))
-
-
 class ModelOptionPrice(BaseModel, frozen=True):
-    """Represents the model price and sensitivities of an option for a given strike,
+    r"""Model price and sensitivities of an option for a given strike,
     forward and time to maturity.
 
-    It provides black price and sensitivies too for comparison and analysis
-    of the model price.
+    The [price][.price] field is always in
+    [forward space](../../glossary.md#forward-space), regardless of whether
+    the underlying market quotes options in the quote currency (e.g. SPX,
+    USD) or in the underlying (inverse options, e.g. BTC).
+
+    \begin{equation}
+        c = \frac{C}{F}
+    \end{equation}
+
+    Use [price_in_quote][.price_in_quote] to recover the quote-currency
+    premium $C = c\,F$.
+
+    Also exposes Black price and sensitivities for comparison.
     """
 
     strike: DecimalNumber = Field(description="Strike price of the option")
@@ -42,9 +49,33 @@ class ModelOptionPrice(BaseModel, frozen=True):
     log_strike: float = Field(description="Log strike over forward, i.e. log(K/F)")
     moneyness: float = Field(description="Moneyness")
     ttm: float = Field(default=0, description="Time to maturity in years")
-    price: float = Field(description=("Price in forward space"))
+    price: float = Field(
+        description=(
+            "Option price in"
+            " [forward space](../../glossary.md#forward-space)."
+            " Multiply by [forward][.forward]"
+            " (or read [price_in_quote][.price_in_quote])"
+            " to obtain the quote-currency premium."
+        )
+    )
     delta: float = Field(description="Model delta of the option")
     gamma: float = Field(description="Model gamma of the option")
+
+    @property
+    def price_in_quote(self) -> float:
+        """Premium in the quote currency: forward-space price times forward.
+
+        For inverse markets (BTC) the conventional premium is in the
+        underlying and equals [price][.price] directly; callers should pick
+        the convention that matches their downstream consumer.
+        """
+        return self.price * float(self.forward)
+
+    @property
+    def parity(self) -> float:
+        """Put call parity value for the option, i.e. the difference between call
+        and put price for the same strike and maturity"""
+        return 1.0 - float(np.exp(self.log_strike))
 
     @computed_field  # type: ignore [prop-decorator]
     @property
@@ -72,9 +103,9 @@ class ModelOptionPrice(BaseModel, frozen=True):
         is positive, i.e. when the strike is above the forward price.
         """
         if self.option_type == OptionType.call:
-            return max(0.0, 1.0 - np.exp(self.log_strike))
+            return max(0.0, self.parity)
         else:
-            return max(0.0, np.exp(self.log_strike) - 1.0)
+            return max(0.0, -self.parity)
 
     def as_option_type(
         self,
@@ -83,18 +114,22 @@ class ModelOptionPrice(BaseModel, frozen=True):
             Doc("Type of the option, call or put"),
         ],
     ) -> Self:
-        """Convert the option price to the given option type"""
+        """Convert the option price to the given option type via put-call parity."""
         if self.option_type == option_type:
             return self
+        if self.option_type == OptionType.call:
+            new_price = self.price - self.parity
+            new_delta = self.delta - 1.0
         else:
-            return self.model_copy(
-                update=dict(
-                    option_type=option_type,
-                    price=self.price - self.intrinsic_value,
-                    delta=self.delta - 1.0,
-                    gamma=self.gamma,
-                )
+            new_price = self.price + self.parity
+            new_delta = self.delta + 1.0
+        return self.model_copy(
+            update=dict(
+                option_type=option_type,
+                price=new_price,
+                delta=new_delta,
             )
+        )
 
 
 class MaturityPricer(BaseModel, arbitrary_types_allowed=True):

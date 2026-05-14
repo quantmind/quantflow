@@ -19,6 +19,7 @@ pip install quantflow[data]
 | [Financial Modeling Prep](fmp.md) | Equity prices, company profiles, and sector data |
 | [FRED](fred.md) | US macroeconomic time series from the St. Louis Fed |
 | [Federal Reserve](fed.md) | Federal Reserve H.15 selected interest rate data |
+| [Yahoo](yahoo.md) | Equity option chains from Yahoo Finance |
 
 ## Usage
 

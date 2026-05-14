@@ -657,12 +657,9 @@ class Strike(BaseModel, Generic[S]):
         """
         match select:
             case OptionSelection.best:
-                if self.call:
-                    if self.call.is_in_the_money(forward) and self.put:
-                        yield self.put
-                    else:
-                        yield self.call
-                elif self.put:
+                if self.call and not self.call.is_in_the_money(forward):
+                    yield self.call
+                elif self.put and not self.put.is_in_the_money(forward):
                     yield self.put
             case OptionSelection.call:
                 if self.call:
