@@ -3,7 +3,7 @@ from decimal import Decimal
 import pytest
 
 from quantflow.options.pricer import OptionPricer, OptionType
-from quantflow.sp.heston import HestonJ
+from quantflow.sp.heston import Heston, HestonJ
 from quantflow.sp.wiener import WienerProcess
 from quantflow.utils.distributions import DoubleExponential
 from quantflow_tests.utils import has_plotly
@@ -51,3 +51,44 @@ def test_wiener_matches_black(strike: int, forward: int) -> None:
     assert float(black.iv) == pytest.approx(sigma, rel=1e-3)
     assert price.delta == pytest.approx(float(black.delta), rel=1e-3)
     assert price.gamma == pytest.approx(float(black.gamma), rel=5e-3)
+
+
+@pytest.mark.parametrize("strike,forward", [(80, 100), (100, 100), (120, 100)])
+def test_put_call_parity_across_strikes(strike: int, forward: int) -> None:
+    """`c - p = 1 - K/F` in forward space, on both sides of the forward.
+
+    Regression for `as_option_type` previously using the clipped intrinsic,
+    which collapsed the put price onto the call whenever the call was OTM.
+    """
+    pricer = OptionPricer(model=Heston.create(vol=0.2, kappa=2.0, sigma=0.5, rho=-0.5))
+    call = pricer.price(
+        option_type=OptionType.call, strike=strike, forward=forward, ttm=0.5
+    )
+    put = pricer.price(
+        option_type=OptionType.put, strike=strike, forward=forward, ttm=0.5
+    )
+    assert call.price - put.price == pytest.approx(1.0 - strike / forward, abs=1e-9)
+    assert call.delta - put.delta == pytest.approx(1.0, abs=1e-9)
+    assert call.gamma == pytest.approx(put.gamma, abs=1e-9)
+
+
+def test_price_in_quote_scales_with_forward() -> None:
+    """`price_in_quote` is the forward-space price multiplied by the forward."""
+    pricer = OptionPricer(model=Heston.create(vol=0.2, kappa=2.0, sigma=0.5, rho=-0.5))
+    price = pricer.price(
+        option_type=OptionType.call, strike=5500, forward=5000, ttm=0.5
+    )
+    assert price.price_in_quote == pytest.approx(price.price * 5000.0, abs=1e-9)
+
+
+@pytest.mark.parametrize("strike,forward", [(80, 100), (100, 100), (120, 100)])
+def test_as_option_type_roundtrip(strike: int, forward: int) -> None:
+    """`call.as_option_type(put).as_option_type(call)` recovers the original."""
+    pricer = OptionPricer(model=Heston.create(vol=0.2, kappa=2.0, sigma=0.5, rho=-0.5))
+    call = pricer.price(
+        option_type=OptionType.call, strike=strike, forward=forward, ttm=0.5
+    )
+    roundtrip = call.as_option_type(OptionType.put).as_option_type(OptionType.call)
+    assert roundtrip.price == pytest.approx(call.price, abs=1e-12)
+    assert roundtrip.delta == pytest.approx(call.delta, abs=1e-12)
+    assert roundtrip.gamma == pytest.approx(call.gamma, abs=1e-12)

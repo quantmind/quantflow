@@ -33,6 +33,7 @@ applyTo: '/**'
 * Math notation convention: use $\Phi$ for the characteristic function and $\phi$ for the characteristic exponent, where $\Phi = e^{-\phi}$.
 * Glossary entries in `docs/glossary.md` must be kept in alphabetical order.
 * Do not repeat concept definitions inline in tutorials or docstrings — link to the glossary instead using a relative markdown link (e.g. `[moneyness](../glossary.md#moneyness)`).
+* Prefer mkdocstrings relative cross-references whenever the target is visible from the current scope: write `[label][.member]` (same class) or `[label][..Sibling]` (same module) instead of repeating the fully-qualified path. Use the full path only when the target lives in a different module than the current docstring.
 * To rebuild doc examples run `uv run ./dev/build-examples` — runs all scripts in `docs/examples/` and writes their output to `docs/examples_output/`
 
 ## Pydantic models

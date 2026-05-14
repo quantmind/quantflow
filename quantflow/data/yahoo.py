@@ -32,7 +32,7 @@ class Yahoo(HttpxClient):
     ```
     """
 
-    url: str = "https://query2.finance.yahoo.com/v7/finance/options"
+    url: str = "https://query2.finance.yahoo.com/v7/finance"
     content_type: str = (
         "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,"
         "image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7"
@@ -53,7 +53,7 @@ class Yahoo(HttpxClient):
     ) -> dict:  # pragma: no cover
         """Return the full option chain for `symbol`"""
         params = dict(getAllData="true", crumb=await self._get_crumb())
-        data = await self.get(f"{self.url}/{symbol}", params=params)
+        data = await self.get(f"{self.url}/options/{symbol}", params=params)
         return data["optionChain"]["result"][0]
 
     async def volatility_surface_loader(
@@ -186,7 +186,7 @@ class Yahoo(HttpxClient):
             out.write_bytes(payload)
         return out
 
-    async def _get_crumb(self) -> str:
+    async def _get_crumb(self) -> str:  # pragma: no cover
         if self._crumb is not None:
             return self._crumb
         text = await self.get("https://query2.finance.yahoo.com/v1/test/getcrumb")
@@ -194,7 +194,9 @@ class Yahoo(HttpxClient):
         return self._crumb
 
     @classmethod
-    async def response_data(cls, response: HttpResponse) -> ResponseType:
+    async def response_data(
+        cls, response: HttpResponse
+    ) -> ResponseType:  # pragma: no cover
         if (
             "text/plain" in response.headers["content-type"]
             or "text/html" in response.headers["content-type"]

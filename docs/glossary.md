@@ -71,6 +71,39 @@ condition holds. The
 `feller_enforce` flag (default `True`) that imposes this as a hard inequality constraint
 during optimisation.
 
+## Forward Space
+
+Forward space is the unit-free convention in which option prices are
+normalised by the forward price.
+
+For a call $C$ and put $P$ with strike $K$, maturity $T$, and forward $F$,
+the forward-space prices are
+
+\begin{equation}
+    c = \frac{C}{F}, \qquad p = \frac{P}{F}
+\end{equation}
+
+Forward-space prices are dimensionless and depend only on the
+[log-strike](#log-strike) $k = \log(K/F)$, the implied volatility,
+and the time to maturity. They are the natural output of Fourier-based
+pricers and of [Black pricing](api/options/black.md).
+
+The conversion to quote-currency prices is a single multiplication by $F$:
+
+\begin{equation}
+    C = c\, F, \qquad P = p\, F
+\end{equation}
+
+Quantflow uses forward space everywhere downstream of the input layer.
+The `inverse` flag on [OptionPrice][quantflow.options.surface.OptionPrice]
+only controls how the *input* `price` field is stored: for inverse
+options (option premium paid in the underlying) it already is in forward
+space; for non-inverse options (premium paid in the quote currency) it
+is the absolute quote-currency price and must be divided by $F$ to enter
+forward space. The
+[price_in_forward_space][quantflow.options.surface.OptionPrice.price_in_forward_space]
+property handles both cases uniformly.
+
 ## Hurst Exponent
 
 The Hurst exponent is a measure of the long-term memory of time series. The Hurst exponent is a measure of the relative tendency of a time series either to regress strongly to the mean or to cluster in a direction.
