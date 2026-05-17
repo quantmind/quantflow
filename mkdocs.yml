@@ -127,6 +127,7 @@ nav:
       - Lévy Process: theory/levy.md
       - Option Pricing: theory/option_pricing.md
   - Examples:
+      - examples/index.md
       - Gaussian Sampling: examples/gaussian-sampling
       - Poisson Sampling: examples/poisson-sampling
       - Double Exponential Sampling: examples/double-exponential-sampling
@@ -139,6 +140,7 @@ nav:
   - Bibliography: bibliography.md
   - Release Notes: release-notes.md
 markdown_extensions:
+  - admonition
   - attr_list
   - tables
   - pymdownx.arithmatex:
