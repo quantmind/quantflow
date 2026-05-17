@@ -6,7 +6,7 @@ import numpy as np
 from numpy.typing import ArrayLike
 from pydantic import Field
 from scipy.optimize import minimize_scalar
-from typing_extensions import Annotated, Doc
+from typing_extensions import Annotated, Doc, Self
 
 from quantflow.utils.numbers import ONE, Number, to_decimal
 
@@ -68,21 +68,21 @@ class NelsonSiegel(YieldCurve):
             return (-zero_coupon_rate * ttmd).exp()
 
     @classmethod
-    def fit(
+    def calibrate(
         cls,
         ttm: Annotated[
             ArrayLike,
             Doc("times to maturity in years (1-D, length >= 3)"),
         ],
         rates: Annotated[
-            ArrayLike, Doc("observed zero-coupon rates, same length as ttm")
+            ArrayLike, Doc("observed continuously compounded rates, same length as ttm")
         ],
         lambda_bounds: Annotated[
             tuple[float, float],
             Doc("search bounds for the decay parameter $\\lambda$"),
         ] = (0.01, 10.0),
-    ) -> NelsonSiegel:
-        r"""Fit a Nelson-Siegel curve to observed zero-coupon rates.
+    ) -> Self:
+        r"""Fit a Nelson-Siegel curve to observed continuously compounded rates.
 
         Uses a profile OLS approach: for each candidate $\lambda$ the betas are
         solved exactly via least squares, so only a 1-D scalar minimisation over

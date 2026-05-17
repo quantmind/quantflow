@@ -3,7 +3,8 @@ from __future__ import annotations
 import gzip
 import json
 from dataclasses import dataclass, field
-from datetime import timezone
+from datetime import date, timezone
+from enum import StrEnum
 from pathlib import Path
 
 import pandas as pd
@@ -12,6 +13,7 @@ from typing_extensions import Annotated, Doc
 
 from quantflow.options.inputs import DefaultVolSecurity, OptionType
 from quantflow.options.surface import VolSurfaceLoader
+from quantflow.utils.dates import as_utc
 from quantflow.utils.numbers import to_decimal
 
 
@@ -19,13 +21,22 @@ from quantflow.utils.numbers import to_decimal
 class Yahoo(HttpxClient):
     """Yahoo Finance API client
 
-    Minimal client for fetching option chains used to build volatility surfaces.
+    Minimal client for fetching historical prices and option chains.
 
-    ## Example
+    ## Examples
+
+    Fetch daily prices for a symbol:
 
     ```python
     from quantflow.data.yahoo import Yahoo
 
+    async with Yahoo() as yahoo:
+        df = await yahoo.prices("AAPL", range="1y")
+    ```
+
+    Build a volatility surface from the option chain:
+
+    ```python
     async with Yahoo() as yahoo:
         loader = await yahoo.volatility_surface_loader("AAPL")
         surface = loader.surface()
@@ -46,6 +57,21 @@ class Yahoo(HttpxClient):
         }
     )
     _crumb: str | None = None
+
+    class freq(StrEnum):
+        """Yahoo Finance chart intervals"""
+
+        one_min = "1m"
+        two_min = "2m"
+        five_min = "5m"
+        fifteen_min = "15m"
+        thirty_min = "30m"
+        one_hour = "1h"
+        one_day = "1d"
+        five_day = "5d"
+        one_week = "1wk"
+        one_month = "1mo"
+        three_month = "3mo"
 
     async def option_chain(
         self,
@@ -141,6 +167,60 @@ class Yahoo(HttpxClient):
                         inverse=False,
                     )
         return loader
+
+    async def prices(
+        self,
+        symbol: Annotated[str, Doc("Ticker symbol")],
+        *,
+        interval: Annotated[
+            str | freq, Doc("Bar interval — use Yahoo.freq members or a raw string")
+        ] = freq.one_day,
+        from_date: Annotated[date | None, Doc("Start date (inclusive)")] = None,
+        to_date: Annotated[date | None, Doc("End date (inclusive)")] = None,
+        range: Annotated[
+            str | None,
+            Doc(
+                "Shorthand period when dates are omitted: '1mo', '3mo', '6mo', "
+                "'1y', '2y', '5y', 'ytd', 'max', etc."
+            ),
+        ] = None,
+    ) -> pd.DataFrame:
+        """Historical OHLCV prices for `symbol`.
+
+        Returns a DataFrame with columns `timestamp`, `open`, `high`, `low`,
+        `close`, `volume`, and `adj_close` (when available).
+
+        Pass `from_date` / `to_date` for a specific window, or `range` for a
+        shorthand period. When neither is given Yahoo defaults to one month.
+        """
+        params: dict = {"interval": str(interval)}
+        if from_date:
+            params["period1"] = int(as_utc(from_date).timestamp())
+        if to_date:
+            params["period2"] = int(as_utc(to_date).timestamp())
+        if range and not from_date and not to_date:
+            params["range"] = range
+        data = await self.get(
+            f"https://query2.finance.yahoo.com/v8/finance/chart/{symbol}",
+            params=params,
+        )
+        result = data["chart"]["result"][0]
+        timestamps = result.get("timestamps") or result.get("timestamp", [])
+        quote = result["indicators"]["quote"][0]
+        adj = result["indicators"].get("adjclose", [{}])[0]
+        df = pd.DataFrame(
+            {
+                "timestamp": pd.to_datetime(timestamps, unit="s", utc=True),
+                "open": quote.get("open"),
+                "high": quote.get("high"),
+                "low": quote.get("low"),
+                "close": quote.get("close"),
+                "volume": quote.get("volume"),
+            }
+        )
+        if "adjclose" in adj:
+            df["adj_close"] = adj["adjclose"]
+        return df
 
     async def save_fixture(
         self,

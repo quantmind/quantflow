@@ -1,6 +1,6 @@
 import marimo
 
-__generated_with = "0.22.0"
+__generated_with = "0.23.5"
 app = marimo.App(width="medium")
 
 
@@ -28,6 +28,8 @@ def _(mo):
     async with Deribit() as cli:
         loader = await cli.volatility_surface_loader("eth", exclude_open_interest=0)
 
+    # calibrate discount curve for the quoting asset (usd)
+    loader.calibrate_curves(quote_curve=NelsonSiegel)
     # build the volatility surface
     surface = loader.surface()
     # calculate black implied volatilities
@@ -54,6 +56,7 @@ def _(mo):
 async def _(asset, inverse, mo):
     import pandas as pd
     from quantflow.data.deribit import Deribit
+    from quantflow.rates.nelson_siegel import NelsonSiegel 
 
     async with Deribit() as cli:
         loader = await cli.volatility_surface_loader(
@@ -62,6 +65,7 @@ async def _(asset, inverse, mo):
             use_perp=not inverse.value
         )
 
+    loader.calibrate_curves(quote_curve=NelsonSiegel, asset_curve=NelsonSiegel)
     # build the volatility surface
     surface = loader.surface()
     # calculate black implied volatilities
@@ -81,7 +85,7 @@ async def _(asset, inverse, mo):
         label="Maturity"
     )
     maturity_dropdown
-    return int_or_none, maturity_dropdown, pd, surface
+    return int_or_none, loader, maturity_dropdown, pd, surface
 
 
 @app.cell
@@ -111,6 +115,43 @@ def _(ts):
     from quantflow.utils import plot
 
     plot.plot_lines(ts, x="ttm", y="rate_percent")
+    return
+
+
+@app.cell
+def _(loader):
+    loader.quote_curve.plot(ttm_max=2)
+    return
+
+
+@app.cell
+def _(loader):
+    loader.asset_curve.plot(ttm_max=2)
+    return
+
+
+@app.cell
+def _(loader):
+    cross = loader.maturities[sorted(loader.maturities)[-2]]
+    p = cross.put_call_parities(loader.spot.mid, max_pairs=100)
+    da=None
+    return da, p
+
+
+@app.cell
+def _(da, p):
+    p.fit_discounts(da=da)
+    return
+
+
+@app.cell
+def _(da, p):
+    p.plot(da=da)
+    return
+
+
+@app.cell
+def _():
     return
 
 

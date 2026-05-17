@@ -24,6 +24,15 @@ class Rate(BaseModel, arbitrary_types_allowed=True):
         default=DayCounter.ACTACT,
         description="Day count convention to use when calculating time to maturity",
     )
+    ttm: float = Field(
+        default=0.0,
+        ge=0.0,
+        description=(
+            "Time to maturity for the rate, used to calculate discount factors. "
+            "Expressed in years. when 0 it is a spot rate, when > 0 "
+            "it is a forward rate."
+        ),
+    )
     frequency: Period | None = Field(
         default=None,
         description=(

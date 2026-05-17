@@ -186,7 +186,7 @@ def test_nelson_siegel_fit_recovers_parameters() -> None:
     rates = np.array([float(ns_true.discount_factor(t)) for t in ttm])
     # convert discount factors back to zero rates for fitting
     zero_rates = -np.log(rates) / ttm
-    ns_fit = NelsonSiegel.fit(ttm, zero_rates)
+    ns_fit = NelsonSiegel.calibrate(ttm, zero_rates)
     for t in [1.0, 2.0, 5.0]:
         assert float(ns_fit.discount_factor(t)) == pytest.approx(
             float(ns_true.discount_factor(t)), rel=1e-4
@@ -196,7 +196,7 @@ def test_nelson_siegel_fit_recovers_parameters() -> None:
 def test_nelson_siegel_fit_flat_curve() -> None:
     ttm = np.array([0.5, 1.0, 2.0, 5.0, 10.0])
     rates = np.full_like(ttm, 0.05)
-    ns = NelsonSiegel.fit(ttm, rates)
+    ns = NelsonSiegel.calibrate(ttm, rates)
     for t in ttm:
         assert float(ns.discount_factor(t)) == pytest.approx(
             math.exp(-0.05 * t), rel=1e-4
