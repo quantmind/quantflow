@@ -219,7 +219,7 @@ def plot3d(
 
 
 def plot_yield_curve(
-    curve: YieldCurve,
+    curve: "YieldCurve",
     ttm_max: float = 10.0,
     n: int = 200,
     **kwargs: Any,

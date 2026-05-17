@@ -151,6 +151,12 @@ def _(da, p):
 
 
 @app.cell
+def _(loader):
+    loader.collect_rates()
+    return
+
+
+@app.cell
 def _():
     return
 

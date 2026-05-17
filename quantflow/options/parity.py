@@ -6,6 +6,7 @@ from typing import Any, Self
 import numpy as np
 from pydantic import BaseModel, Field
 
+from quantflow.utils.numbers import ZERO, Number, to_decimal
 from quantflow.utils.price import Price
 from quantflow.utils.types import FloatArray
 
@@ -51,13 +52,21 @@ class PutCallParities(BaseModel, frozen=True):
     """A collection of put-call parities for a given maturity"""
 
     parities: list[PutCallParity] = Field(description="List of put-call parities")
-    spot: Decimal = Field(description="Spot price of the underlying asset")
+    spot: Decimal = Field(ge=ZERO, description="Spot price of the underlying asset")
+    ttm: Decimal = Field(gt=ZERO, description="Time to maturity in years")
     inverse: bool = Field(default=False, description="Whether the options are inverse")
 
     @classmethod
-    def from_parities(cls, parities: list[PutCallParity], spot: Decimal) -> Self:
+    def from_parities(
+        cls, parities: list[PutCallParity], spot: Number, ttm: Number
+    ) -> Self:
         inverse = any(p.inverse for p in parities)
-        return cls(parities=parities, spot=spot, inverse=inverse)
+        return cls(
+            parities=parities,
+            spot=to_decimal(spot),
+            ttm=to_decimal(ttm),
+            inverse=inverse,
+        )
 
     def regressand(self) -> FloatArray:
         """Calculate the regressand for put-call parity regression.
@@ -78,39 +87,40 @@ class PutCallParities(BaseModel, frozen=True):
         self,
         dq: float | None = None,
         da: float | None = None,
-        constrained: bool = False,
+        min_rate_q: float = 0.0,
+        min_rate_a: float = 0.0,
     ) -> DiscountPair | None:
         """Return the fitted discount factors, or None if the result is invalid.
 
         Both direct and inverse options satisfy the same normalized equation
         y = Da - (Dq/S) * K, where y = mid/S for direct and y = mid for inverse.
 
-        When both known values are None a full OLS is run.
+        When both known values are None a full OLS is run via constrained least squares.
         When one is provided the other is solved analytically as the mean over pairs.
-        When constrained is True, discount factors are bounded to (0, 1].
+        Discount factors are bounded by D <= exp(-min_rate * ttm), so min_rate=0
+        enforces D <= 1 (non-negative rates).
         """
         if not self.parities:
             return None
         ys = self.regressand()
         xs = self.regressor()
+        ttm = float(self.ttm)
+        max_dq = float(np.exp(-min_rate_q * ttm))
+        max_da = float(np.exp(-min_rate_a * ttm))
         if dq is not None:
             if da is not None:
                 return DiscountPair(asset_discount=da, quote_discount=dq)
             da = float(np.mean(ys + dq * xs))
         elif da is not None:
             dq = float(np.mean((da - ys) / xs))
-        elif constrained:
+        else:
             from scipy.optimize import lsq_linear
 
             A = np.column_stack([np.ones(len(xs)), xs])
-            # alpha = Da in (0, 1], beta = -Dq in [-1, 0)
-            result = lsq_linear(A, ys, bounds=([0, -1], [1, 0]))
+            # alpha = Da in (0, max_da], beta = -Dq in [-max_dq, 0)
+            result = lsq_linear(A, ys, bounds=([0, -max_dq], [max_da, 0]))
             da, dq = float(result.x[0]), -float(result.x[1])
-        else:
-            beta, alpha = np.polyfit(xs, ys, 1)
-            da, dq = float(alpha), -float(beta)
-        upper = 1.0 if constrained else float("inf")
-        if not (0 < dq <= upper and 0 < da <= upper):
+        if not (0 < dq <= max_dq and 0 < da <= max_da):
             return None
         return DiscountPair(asset_discount=da, quote_discount=dq)
 
@@ -118,7 +128,8 @@ class PutCallParities(BaseModel, frozen=True):
         self,
         dq: float | None = None,
         da: float | None = None,
-        constrained: bool = False,
+        min_rate_q: float = 0.0,
+        min_rate_a: float = 0.0,
     ) -> Any:
         """Plot the normalized put-call parity data and the fitted regression line."""
         from quantflow.utils.plot import check_plotly
@@ -128,7 +139,9 @@ class PutCallParities(BaseModel, frozen=True):
 
         xs = self.regressor()
         ys = self.regressand()
-        discounts = self.fit_discounts(dq=dq, da=da, constrained=constrained)
+        discounts = self.fit_discounts(
+            dq=dq, da=da, min_rate_q=min_rate_q, min_rate_a=min_rate_a
+        )
         fig = go.Figure()
         fig.add_trace(
             go.Scatter(x=xs, y=ys, mode="markers", name="market", marker_size=10)

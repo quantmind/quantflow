@@ -1439,6 +1439,9 @@ class VolCrossSectionLoader(BaseModel, Generic[S]):
         self,
         spot: Annotated[Decimal, Doc("Spot price of the underlying asset")],
         *,
+        ref_date: Annotated[
+            datetime | None, Doc("Reference date for time to maturity calculation")
+        ] = None,
         max_pairs: Annotated[
             int, Doc("Maximum number of put-call pairs to consider")
         ] = 10,
@@ -1449,6 +1452,7 @@ class VolCrossSectionLoader(BaseModel, Generic[S]):
 
         Liquidity is determined by the bid-ask spread of the put-call parity price.
         """
+        ttm = self.day_counter.dcf(ref_date or utcnow(), self.maturity)
         parities = sorted(
             (
                 p
@@ -1457,7 +1461,7 @@ class VolCrossSectionLoader(BaseModel, Generic[S]):
             ),
             key=lambda p: p.spread,
         )[:max_pairs]
-        return PutCallParities.from_parities(parities, spot)
+        return PutCallParities.from_parities(parities, spot, ttm)
 
 
 class GenericVolSurfaceLoader(BaseModel, Generic[S], arbitrary_types_allowed=True):
@@ -1719,7 +1723,9 @@ class GenericVolSurfaceLoader(BaseModel, Generic[S], arbitrary_types_allowed=Tru
             ttm = self.day_counter.dcf(ref_date, maturity)
             if ttm <= 0:
                 continue
-            parities = section.put_call_parities(spot, max_pairs=max_pairs)
+            parities = section.put_call_parities(
+                spot, ref_date=ref_date, max_pairs=max_pairs
+            )
             dq = (
                 None
                 if fit_quote_curve
