@@ -5,6 +5,7 @@ from typing import Any, Self
 
 import numpy as np
 from pydantic import BaseModel, Field
+from scipy.optimize import lsq_linear
 
 from quantflow.utils.numbers import ZERO, Number, to_decimal
 from quantflow.utils.price import Price
@@ -114,12 +115,9 @@ class PutCallParities(BaseModel, frozen=True):
         elif da is not None:
             dq = float(np.mean((da - ys) / xs))
         else:
-            from scipy.optimize import lsq_linear
-
-            A = np.column_stack([np.ones(len(xs)), xs])
-            # alpha = Da in (0, max_da], beta = -Dq in [-max_dq, 0)
-            result = lsq_linear(A, ys, bounds=([0, -max_dq], [max_da, 0]))
-            da, dq = float(result.x[0]), -float(result.x[1])
+            A = np.column_stack([np.ones(len(xs)), -xs])
+            result = lsq_linear(A, ys, bounds=([0, 0], [max_da, max_dq]))
+            da, dq = float(result.x[0]), float(result.x[1])
         if not (0 < dq <= max_dq and 0 < da <= max_da):
             return None
         return DiscountPair(asset_discount=da, quote_discount=dq)

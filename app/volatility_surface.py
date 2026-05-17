@@ -65,7 +65,7 @@ async def _(asset, inverse, mo):
             use_perp=not inverse.value
         )
 
-    loader.calibrate_curves(quote_curve=NelsonSiegel, asset_curve=NelsonSiegel)
+    loader.calibrate_curves(quote_curve=NelsonSiegel)
     # build the volatility surface
     surface = loader.surface()
     # calculate black implied volatilities
@@ -132,9 +132,9 @@ def _(loader):
 
 @app.cell
 def _(loader):
-    cross = loader.maturities[sorted(loader.maturities)[-2]]
+    cross = loader.maturities[sorted(loader.maturities)[6]]
     p = cross.put_call_parities(loader.spot.mid, max_pairs=100)
-    da=None
+    da=1
     return da, p
 
 
@@ -152,7 +152,7 @@ def _(da, p):
 
 @app.cell
 def _(loader):
-    loader.collect_rates()
+    loader.collect_rates(fit_asset_curve=False).model_dump()
     return
 
 

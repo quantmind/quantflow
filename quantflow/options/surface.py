@@ -1464,6 +1464,14 @@ class VolCrossSectionLoader(BaseModel, Generic[S]):
         return PutCallParities.from_parities(parities, spot, ttm)
 
 
+class VolRates(BaseModel, frozen=True):
+    """Per-maturity continuously compounded rates fitted from put-call parity."""
+
+    ttms: list[float] = Field(description="Times to maturity in years")
+    quote_rates: list[float] = Field(description="Quote continuously compounded rates")
+    asset_rates: list[float] = Field(description="Asset continuously compounded rates")
+
+
 class GenericVolSurfaceLoader(BaseModel, Generic[S], arbitrary_types_allowed=True):
     """Helper class to build a volatility surface from a list of securities
 
@@ -1664,6 +1672,20 @@ class GenericVolSurfaceLoader(BaseModel, Generic[S], arbitrary_types_allowed=Tru
                 "from option prices. When None the current asset_curve is unchanged."
             ),
         ] = None,
+        min_rate_q: Annotated[
+            float,
+            Doc(
+                "Minimum continuously compounded quote rate."
+                " Default 0 enforces non-negative quote rates."
+            ),
+        ] = 0.0,
+        min_rate_a: Annotated[
+            float,
+            Doc(
+                "Minimum continuously compounded asset rate."
+                " Set negative to allow positive asset carry."
+            ),
+        ] = 0.0,
         ref_date: Annotated[
             datetime | None, Doc("Reference date for time to maturity calculations")
         ] = None,
@@ -1684,16 +1706,22 @@ class GenericVolSurfaceLoader(BaseModel, Generic[S], arbitrary_types_allowed=Tru
         Quote only: pass a type for `quote_curve`, leave `asset_curve` as None.
         The existing `asset_curve` is treated as known and $D_q$ is solved analytically.
         """
-        ttms, rates_q, rates_a = self.collect_rates(
+        vol_rates = self.collect_rates(
             fit_quote_curve=quote_curve is not None,
             fit_asset_curve=asset_curve is not None,
+            min_rate_q=min_rate_q,
+            min_rate_a=min_rate_a,
             ref_date=ref_date,
             max_pairs=max_pairs,
         )
         if quote_curve is not None:
-            self.quote_curve = quote_curve.calibrate(ttms, rates_q)
+            self.quote_curve = quote_curve.calibrate(
+                vol_rates.ttms, vol_rates.quote_rates
+            )
         if asset_curve is not None:
-            self.asset_curve = asset_curve.calibrate(ttms, rates_a)
+            self.asset_curve = asset_curve.calibrate(
+                vol_rates.ttms, vol_rates.asset_rates
+            )
 
     def collect_rates(
         self,
@@ -1704,27 +1732,43 @@ class GenericVolSurfaceLoader(BaseModel, Generic[S], arbitrary_types_allowed=Tru
         fit_asset_curve: Annotated[
             bool, Doc("Whether to fit the asset discount curve $D_a$")
         ] = True,
+        min_rate_q: Annotated[
+            float,
+            Doc(
+                "Minimum continuously compounded quote rate."
+                " Default 0 enforces non-negative quote rates."
+            ),
+        ] = 0.0,
+        min_rate_a: Annotated[
+            float,
+            Doc(
+                "Minimum continuously compounded asset rate."
+                " Set negative to allow positive asset carry."
+            ),
+        ] = 0.0,
         ref_date: Annotated[
             datetime | None, Doc("Reference date for time to maturity calculations")
         ] = None,
         max_pairs: Annotated[
             int, Doc("Maximum number of put-call pairs to use per maturity")
         ] = 10,
-    ) -> tuple[list[float], list[float], list[float]]:
+    ) -> VolRates:
         """Collect per-maturity continuously compounded rates from put-call parity."""
         if not self.spot or self.spot.mid == ZERO:
             raise ValueError("No spot price provided")
         spot = self.spot.mid
         ttms: list[float] = []
-        rates_q: list[float] = []
-        rates_a: list[float] = []
+        quote_rates: list[float] = []
+        asset_rates: list[float] = []
         ref_date = self.ref_date(ref_date=ref_date)
         for maturity, section in sorted(self.maturities.items()):
             ttm = self.day_counter.dcf(ref_date, maturity)
             if ttm <= 0:
                 continue
             parities = section.put_call_parities(
-                spot, ref_date=ref_date, max_pairs=max_pairs
+                spot,
+                ref_date=ref_date,
+                max_pairs=max_pairs,
             )
             dq = (
                 None
@@ -1736,13 +1780,18 @@ class GenericVolSurfaceLoader(BaseModel, Generic[S], arbitrary_types_allowed=Tru
                 if fit_asset_curve
                 else float(self.asset_curve.discount_factor(ttm))
             )
-            d = parities.fit_discounts(dq=dq, da=da)
+            d = parities.fit_discounts(
+                dq=dq,
+                da=da,
+                min_rate_q=min_rate_q,
+                min_rate_a=min_rate_a,
+            )
             if d is None:
                 continue
             ttms.append(ttm)
-            rates_q.append(-math.log(d.quote_discount) / ttm)
-            rates_a.append(-math.log(d.asset_discount) / ttm)
-        return ttms, rates_q, rates_a
+            quote_rates.append(-math.log(d.quote_discount) / ttm)
+            asset_rates.append(-math.log(d.asset_discount) / ttm)
+        return VolRates(ttms=ttms, quote_rates=quote_rates, asset_rates=asset_rates)
 
 
 class VolSurfaceLoader(GenericVolSurfaceLoader[DefaultVolSecurity]):
