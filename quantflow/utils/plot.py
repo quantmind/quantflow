@@ -225,7 +225,7 @@ def plot_yield_curve(
     **kwargs: Any,
 ) -> Any:
     check_plotly()
-    ttms = np.linspace(0.01, ttm_max, n)
+    ttms = np.linspace(0.0, ttm_max, n)
     rates = [float(curve.continuously_compounded_rate(t)) for t in ttms]
     df = pd.DataFrame({"ttm": ttms, "rate": rates})
     return px.line(

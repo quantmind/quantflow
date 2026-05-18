@@ -1,19 +1,26 @@
 from __future__ import annotations
 
 from abc import ABC, abstractmethod
+from datetime import datetime
 from decimal import Decimal
-from typing import Any
+from typing import Any, Literal
 
 from numpy.typing import ArrayLike
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 from typing_extensions import Annotated, Doc, Self
 
 from quantflow.utils import plot
+from quantflow.utils.dates import utcnow
 from quantflow.utils.numbers import ONE, ZERO
 
 
 class YieldCurve(BaseModel, ABC, extra="forbid"):
     """Abstract base class for yield curves"""
+
+    ref_date: datetime = Field(
+        default_factory=utcnow,
+        description="Reference date for the yield curve",
+    )
 
     @abstractmethod
     def instanteous_forward_rate(self, ttm: float) -> Decimal:
@@ -89,6 +96,8 @@ class YieldCurve(BaseModel, ABC, extra="forbid"):
 
 class NoDiscount(YieldCurve):
     """Flat yield curve with zero rates (discount factor is always 1)."""
+
+    curve_type: Literal["no_discount"] = "no_discount"
 
     def instanteous_forward_rate(self, ttm: float) -> Decimal:
         return ZERO

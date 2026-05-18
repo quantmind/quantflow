@@ -5,7 +5,7 @@ import math
 import warnings
 from datetime import datetime, timedelta
 from decimal import Decimal
-from typing import Any, Generic, Iterator, NamedTuple, Self, TypeVar
+from typing import Any, Generic, Iterator, NamedTuple, Self, TypeVar, cast
 
 import numpy as np
 import pandas as pd
@@ -13,16 +13,13 @@ from ccy.core.daycounter import DayCounter
 from pydantic import BaseModel, Field
 from typing_extensions import Annotated, Doc
 
-from quantflow.rates.interest_rate import Rate
-from quantflow.rates.yield_curve import NoDiscount, YieldCurve
+from quantflow.rates import AnyYieldCurve, NoDiscount, Rate, YieldCurve
 from quantflow.utils import plot
 from quantflow.utils.dates import utcnow
 from quantflow.utils.numbers import (
-    ONE,
     ZERO,
     DecimalNumber,
     Number,
-    Rounding,
     normalize_decimal,
     round_to_step,
     sigfig,
@@ -103,6 +100,14 @@ class SpotPrice(SecurityPrice[S]):
             volume=self.volume,
         )
 
+    def _implied_forward(self, maturity: datetime, price: Decimal) -> FwdPrice[S]:
+        return FwdPrice(
+            security=self.security.forward(),
+            maturity=maturity,
+            bid=price,
+            ask=price,
+        )
+
 
 class FwdPrice(SecurityPrice[S]):
     """Represents the forward bid/ask price of an underlying asset
@@ -117,113 +122,6 @@ class FwdPrice(SecurityPrice[S]):
             maturity=self.maturity,
             open_interest=self.open_interest,
             volume=self.volume,
-        )
-
-
-class ImpliedFwdPrice(FwdPrice[S]):
-    """Represents the implied forward price of an underlying asset at a specific
-    maturity, extracted from option prices via put-call parity"""
-
-    strike: DecimalNumber = Field(
-        description="Strike price of the options used to extract the forward price"
-    )
-
-    def moneyness(self, ttm: float) -> float:
-        """Moneyness of the implied forward"""
-        return math.log(float(self.strike / self.mid)) / math.sqrt(ttm)
-
-    @classmethod
-    def aggregate(
-        cls,
-        implied_forwards: Annotated[
-            list[Self], Doc("Implied forward prices from put-call parity")
-        ],
-        ttm: Annotated[float, Doc("Time to maturity in years")],
-        default: Annotated[
-            FwdPrice[S] | None,
-            Doc("Market forward (e.g. from futures) used as fallback or for blending"),
-        ] = None,
-        previous_forward: Annotated[
-            Decimal | None,
-            Doc(
-                "Anchor forward for proximity weighting, "
-                "typically the previous maturity"
-            ),
-        ] = None,
-        tick_size: Annotated[
-            Decimal | None, Doc("Tick size for rounding the implied forward bid/ask")
-        ] = None,
-    ) -> FwdPrice[S] | None:
-        r"""Aggregate implied forward prices extracted from put-call parity into a
-        single best-estimate forward price.
-
-        **Selection**: valid implied forwards are sorted by bid-ask spread in basis
-        points and the tightest 5 are retained as candidates. Let $c$ denote the
-        tightest bp spread among the candidates.
-
-        **Default priority**: if a default forward is provided and its bp spread is
-        tighter than $c$, it is returned immediately as the most reliable price.
-
-        **Default inclusion**: if the default's bp spread is wider than $c$ but
-        narrower than the worst candidate, it is appended to the candidate pool
-        and weighted on equal footing with the implied forwards.
-
-        **Weighting**: each candidate $i$ receives weight
-
-        \begin{equation}
-            w_i = w^{\text{spread}}_i \cdot w^{\text{proximity}}_i
-        \end{equation}
-
-        where the spread weight is a Gaussian on the normalised distance from the
-        best spread $c$ and the proximity weight, applied only when
-        `previous_forward` is provided.
-        The result is the weighted average of the candidate mid prices, with the
-        bid/ask spread computed as the weighted average of candidate spreads.
-        When `tick_size` is provided the output bid is rounded down and the ask
-        is rounded up to the nearest tick.
-        """
-        forwards: list[FwdPrice[S]] = [f for f in implied_forwards if f.is_valid()]
-        if not forwards:
-            return default
-        forwards = sorted(forwards, key=lambda f: f.bp_spread)[:5]
-        best_bp_spread = forwards[0].bp_spread
-        if (
-            default is not None
-            and default.is_valid()
-            and default.bp_spread < best_bp_spread
-        ):
-            return default
-        weights = 0.0
-        values = 0.0
-        spreads = 0.0
-        worse_bp_spread = forwards[-1].bp_spread
-        if (
-            default is not None
-            and default.is_valid()
-            and default.bp_spread < worse_bp_spread
-        ):
-            forwards.append(default)
-        for forward in forwards:
-            s = (forward.bp_spread - best_bp_spread) / best_bp_spread
-            weight = math.exp(-s * s)
-            if previous_forward is not None:
-                d = (forward.mid - previous_forward) / previous_forward
-                weight *= math.exp(-d * d)
-            weights += weight
-            values += weight * float(forward.mid)
-            spreads += weight * float(forward.spread)
-        mid = to_decimal(values / weights)
-        spread = to_decimal(spreads / weights)
-        bid = mid - spread / 2
-        ask = mid + spread / 2
-        if tick_size is not None:
-            bid = round_to_step(bid, tick_size, Rounding.DOWN)
-            ask = round_to_step(ask, tick_size, Rounding.UP)
-        return FwdPrice(
-            security=forwards[0].security.forward(),
-            bid=bid,
-            ask=ask,
-            maturity=forwards[0].maturity,
         )
 
 
@@ -576,73 +474,6 @@ class Strike(BaseModel, Generic[S]):
             inverse=self.call.meta.inverse,
         )
 
-    def implied_forward(
-        self,
-        tick_size: Annotated[
-            Decimal | None, Doc("Tick size for rounding the implied forward bid/ask")
-        ] = None,
-        df: Annotated[
-            Decimal,
-            Doc(
-                "Discount factor at this maturity. "
-                "Defaults to 1 (no discounting). When set, option prices are "
-                "deflated by $D$ before applying put-call parity."
-            ),
-        ] = ONE,
-    ) -> ImpliedFwdPrice[S] | None:
-        r"""Extract the implied forward price from put-call parity.
-
-        Requires both a call and a put at this strike. Uses bid/ask prices
-        to construct the bid/ask of the implied forward. When `tick_size` is
-        provided, bid is rounded down and ask is rounded up to the nearest tick.
-
-        For inverse options (prices quoted in the underlying currency)
-        put-call parity reads
-
-        \begin{equation}
-            F = \frac{K}{1 - (c - p) / D}
-        \end{equation}
-
-        For non-inverse options (prices quoted in the quote currency)
-
-        \begin{equation}
-            F = K + \frac{C - P}{D}
-        \end{equation}
-
-        where $D$ is the discount factor (default 1, i.e. no discounting).
-
-        Returns None when the strike does not have both a call and a put,
-        or when the denominator is non-positive (arbitrage condition violated).
-        """
-        if self.call is None or self.put is None:
-            return None
-        cp_bid = self.call.bid.price - self.put.ask.price
-        cp_ask = self.call.ask.price - self.put.bid.price
-        if self.call.meta.inverse:
-            d_bid = ONE - cp_bid / df
-            d_ask = ONE - cp_ask / df
-            if d_bid <= ZERO or d_ask <= ZERO:
-                return None
-            bid = self.strike / d_bid
-            ask = self.strike / d_ask
-        else:
-            bid = self.strike + cp_bid / df
-            ask = self.strike + cp_ask / df
-            if bid <= ZERO or ask <= ZERO:
-                return None
-        if bid > ask:
-            return None
-        if tick_size is not None:
-            bid = round_to_step(bid, tick_size, Rounding.DOWN)
-            ask = round_to_step(ask, tick_size, Rounding.UP)
-        return ImpliedFwdPrice(
-            security=self.call.security.forward(),
-            strike=self.strike,
-            maturity=self.call.meta.maturity,
-            bid=bid,
-            ask=ask,
-        )
-
     def options_iter(
         self,
         forward: Annotated[Decimal, Doc("Forward price of the underlying asset")],
@@ -748,33 +579,23 @@ class VolCrossSection(BaseModel, Generic[S]):
         """Time to maturity in years"""
         return self.day_counter.dcf(ref_date, self.maturity)
 
-    def forward_rate(self, ref_date: datetime, spot: SpotPrice[S]) -> Rate:
-        """Compute the implied continuous rate from spot and forward mid"""
-        return Rate.from_spot_and_forward(
-            spot.mid,
-            self.forward.mid,
-            ref_date,
-            self.maturity,
-            day_counter=self.day_counter,
-        )
-
-    def forward_spread_fraction(self) -> Decimal:
-        """Bid-ask spread of the forward as a fraction of its mid price"""
-        mid = self.forward.mid
-        if mid <= ZERO:
-            return Decimal("Inf")
-        return (self.forward.ask - self.forward.bid) / mid
-
-    def info_dict(self, ref_date: datetime, spot: SpotPrice[S]) -> dict:
+    def info_dict(
+        self,
+        ref_date: datetime,
+        spot: Decimal,
+        implied_forward: Decimal,
+    ) -> dict:
         """Return a dictionary with information about the cross section"""
+        ttm = self.ttm(ref_date)
         return dict(
             maturity=self.maturity,
-            ttm=self.ttm(ref_date),
+            ttm=ttm,
             forward=self.forward.mid,
+            implied_forward=implied_forward,
+            forward_basis=implied_forward - self.forward.mid,
+            rate=Rate.from_number(float((implied_forward / spot).ln()) / ttm).rate,
             bid_ask_spread=self.forward.spread,
-            basis=self.forward.mid - spot.mid,
-            rate_percent=self.forward_rate(ref_date, spot).percent,
-            fwd_spread_pct=round(100 * self.forward_spread_fraction(), 4),
+            basis=implied_forward - spot,
             open_interest=self.forward.open_interest,
             volume=self.forward.volume,
         )
@@ -784,6 +605,7 @@ class VolCrossSection(BaseModel, Generic[S]):
         ref_date: Annotated[
             datetime, Doc("Reference date for time to maturity calculation")
         ],
+        forward: Annotated[Decimal, Doc("Forward price of the underlying asset")],
         *,
         select: Annotated[
             OptionSelection, Doc("Option selection method")
@@ -798,7 +620,7 @@ class VolCrossSection(BaseModel, Generic[S]):
         """Iterator over option prices in the cross section"""
         for s in self.strikes:
             yield from s.option_prices(
-                self.forward.mid,
+                forward,
                 self.ttm(ref_date),
                 select=select,
                 initial_vol=initial_vol,
@@ -921,7 +743,66 @@ class VolCrossSection(BaseModel, Generic[S]):
                 break
 
 
-class VolSurface(BaseModel, Generic[S]):
+class ForwardPricer(BaseModel, Generic[S]):
+    """Base class for forward/discount factor pricers"""
+
+    asset: str = Field(
+        default="",
+        description="Name of the underlying asset",
+    )
+    spot: SpotPrice[S] | None = Field(
+        default=None,
+        description="Spot price of the underlying asset",
+    )
+    quote_curve: AnyYieldCurve = Field(
+        default_factory=NoDiscount,
+        description="Discount curve for the quote",
+    )
+    asset_curve: AnyYieldCurve = Field(
+        default_factory=NoDiscount,
+        description="Discount curve for the asset",
+    )
+    tick_size_forwards: DecimalNumber | None = Field(
+        default=None,
+        description="Tick size for rounding forward and spot prices - optional",
+    )
+    tick_size_options: DecimalNumber | None = Field(
+        default=None, description="Tick size for rounding option prices - optional"
+    )
+    day_counter: DayCounter = Field(
+        default=default_day_counter,
+        description=(
+            "Day counter for time to maturity calculations, "
+            "by default it uses Act/Act"
+        ),
+    )
+
+    @property
+    def ref_date(self) -> datetime:
+        """Reference date for the volatility surface, taken as the earliest maturity
+        or the provided ref_date if it's earlier"""
+        return min(self.quote_curve.ref_date, self.asset_curve.ref_date)
+
+    def spot_price(self) -> Decimal:
+        """Get the spot price if it exists"""
+        if self.spot is None:
+            raise ValueError("No spot price provided")
+        return self.spot.mid
+
+    def forward(self, maturity: datetime) -> Decimal:
+        """Calculate the implied forward for a given maturity"""
+        ttm = self.day_counter.dcf(self.ref_date, maturity)
+        df_quote = self.quote_curve.discount_factor(ttm)
+        df_asset = self.asset_curve.discount_factor(ttm)
+        forward_rate = self.spot_price() * df_asset / df_quote
+        return (
+            round_to_step(forward_rate, self.tick_size_forwards)
+            if self.tick_size_forwards
+            else forward_rate
+        )
+
+
+class VolSurface(ForwardPricer[S]):
     """Represents a volatility surface, which captures the implied volatility of an
     option for different strikes and maturities.
 
@@ -947,30 +828,13 @@ class VolSurface(BaseModel, Generic[S]):
         future volatility.
     """
 
-    ref_date: datetime = Field(description="Reference date for the volatility surface")
-    asset: str = Field(description="Underlying asset of the volatility surface")
-    spot: SpotPrice[S] = Field(description="Spot price of the underlying asset")
     maturities: tuple[VolCrossSection[S], ...] = Field(
+        default=(),
         description=(
             "Sorted tuple of "
             "[VolCrossSection][quantflow.options.surface.VolCrossSection], "
             "each containing the forward price and option prices for that maturity"
-        )
-    )
-    day_counter: DayCounter = Field(
-        default=default_day_counter,
-        description=(
-            "Day counter for time to maturity calculations, "
-            "by default it uses Act/Act"
         ),
-    )
-    tick_size_forwards: DecimalNumber | None = Field(
-        default=None,
-        description="Tick size for rounding forward and spot prices - optional",
-    )
-    tick_size_options: DecimalNumber | None = Field(
-        default=None,
-        description="Tick size for rounding option prices - optional",
     )
 
     def securities(
@@ -992,7 +856,8 @@ class VolSurface(BaseModel, Generic[S]):
         ] = False,
     ) -> Iterator[SpotPrice[S] | FwdPrice[S] | OptionPrices[S]]:
         """Iterator over securities in the volatility surface"""
-        yield self.spot
+        if self.spot is not None:
+            yield self.spot
         if index is not None:
             yield from self.maturities[index].securities(
                 select=select, converged=converged
@@ -1023,7 +888,8 @@ class VolSurface(BaseModel, Generic[S]):
         [VolSurfaceInputs][quantflow.options.inputs.VolSurfaceInputs] instance"""
         return VolSurfaceInputs(
             asset=self.asset,
-            ref_date=self.ref_date,
+            asset_curve=self.asset_curve,
+            quote_curve=self.quote_curve,
             inputs=list(
                 s.inputs()
                 for s in self.securities(
@@ -1034,8 +900,10 @@ class VolSurface(BaseModel, Generic[S]):
 
     def term_structure(self) -> pd.DataFrame:
         """Return the term structure of the volatility surface as a DataFrame"""
+        spot = self.spot_price()
         return pd.DataFrame(
-            cross.info_dict(self.ref_date, self.spot) for cross in self.maturities
+            cross.info_dict(self.ref_date, spot, self.forward(cross.maturity))
+            for cross in self.maturities
         )
 
     def trim(self, num_maturities: int) -> Self:
@@ -1067,16 +935,19 @@ class VolSurface(BaseModel, Generic[S]):
     ) -> Iterator[OptionPrice]:
         """Iterator over selected option prices in the surface"""
         if index is not None:
-            yield from self.maturities[index].option_prices(
+            cross = self.maturities[index]
+            yield from cross.option_prices(
                 self.ref_date,
+                self.forward(cross.maturity),
                 select=select,
                 initial_vol=initial_vol,
                 converged=converged,
             )
         else:
-            for maturity in self.maturities:
-                yield from maturity.option_prices(
+            for cross in self.maturities:
+                yield from cross.option_prices(
                     self.ref_date,
+                    self.forward(cross.maturity),
                     select=select,
                     initial_vol=initial_vol,
                     converged=converged,
@@ -1374,56 +1245,13 @@ class VolCrossSectionLoader(BaseModel, Generic[S]):
         else:
             self.strikes[strike].put = option
 
-    def cross_section(
-        self,
-        ref_date: Annotated[
-            datetime | None, Doc("Reference date for the volatility surface")
-        ] = None,
-        previous_forward: Annotated[
-            Decimal | None,
-            Doc(
-                "Previous forward price for the volatility surface "
-                "Usaed by the implied forward calculation to replace missing "
-                "or unreliable forwards"
-            ),
-        ] = None,
-        tick_size: Annotated[
-            Decimal | None,
-            Doc("Tick size for rounding implied forward bid/ask prices"),
-        ] = None,
-        yield_curve: Annotated[
-            YieldCurve | None,
-            Doc(
-                "Yield curve used to compute the per-maturity discount factor "
-                "applied in put-call parity. When None, no discounting is applied."
-            ),
-        ] = None,
-    ) -> VolCrossSection[S] | None:
+    def _cross_section(self, forward: FwdPrice[S]) -> VolCrossSection[S] | None:
         strikes = []
-        implied_forwards = []
-        ref = ref_date or utcnow()
-        ttm = self.day_counter.dcf(ref, self.maturity)
-        yield_curve = yield_curve or NoDiscount()
-        df = yield_curve.discount_factor(ttm)
         for strike in sorted(self.strikes):
             sk = self.strikes[strike]
             if sk.call is None and sk.put is None:
                 continue
-            if implied_forward := sk.implied_forward(tick_size=tick_size, df=df):
-                implied_forwards.append(implied_forward)
             strikes.append(sk)
-        forward = self.forward
-        if implied_forwards:
-            ttm = self.day_counter.dcf(ref_date or utcnow(), self.maturity)
-            forward = ImpliedFwdPrice.aggregate(
-                implied_forwards,
-                ttm,
-                default=self.forward,
-                previous_forward=previous_forward,
-                tick_size=tick_size,
-            )
-        if forward is None or not forward.is_valid():
-            return None
         return (
             VolCrossSection(
                 maturity=self.maturity,
@@ -1472,7 +1300,7 @@ class VolRates(BaseModel, frozen=True):
     asset_rates: list[float] = Field(description="Asset continuously compounded rates")
 
 
-class GenericVolSurfaceLoader(BaseModel, Generic[S], arbitrary_types_allowed=True):
+class GenericVolSurfaceLoader(ForwardPricer[S], arbitrary_types_allowed=True):
     """Helper class to build a volatility surface from a list of securities
 
     Use this class to add spot, forward and option securities with their prices
@@ -1480,29 +1308,11 @@ class GenericVolSurfaceLoader(BaseModel, Generic[S], arbitrary_types_allowed=Tru
     from the provided data.
     """
 
-    asset: str = Field(default="", description="Name of the underlying asset")
-    spot: SpotPrice[S] | None = Field(
-        default=None, description="Spot price of the underlying asset"
-    )
     maturities: dict[datetime, VolCrossSectionLoader[S]] = Field(
         default_factory=dict,
         description=(
             "Dictionary of maturities and their corresponding cross section loaders"
         ),
-    )
-    day_counter: DayCounter = Field(
-        default=default_day_counter,
-        description=(
-            "Day counter for time to maturity calculations "
-            "by default it uses Act/Act"
-        ),
-    )
-    tick_size_forwards: DecimalNumber | None = Field(
-        default=None,
-        description="Tick size for rounding forward and spot prices - optional",
-    )
-    tick_size_options: DecimalNumber | None = Field(
-        default=None, description="Tick size for rounding option prices - optional"
     )
     exclude_open_interest: DecimalNumber | None = Field(
         default=None,
@@ -1511,31 +1321,6 @@ class GenericVolSurfaceLoader(BaseModel, Generic[S], arbitrary_types_allowed=Tru
     exclude_volume: DecimalNumber | None = Field(
         default=None, description="Exclude options with volume at or below this value"
     )
-    quote_curve: YieldCurve = Field(
-        default_factory=NoDiscount,
-        description=(
-            "Discount curve for the quote currency $D_q$. "
-            "Set by calling calibrate_curves()."
-        ),
-    )
-    asset_curve: YieldCurve = Field(
-        default_factory=NoDiscount,
-        description=(
-            "Discount curve for the asset $D_a$. " "Set by calling calibrate_curves()."
-        ),
-    )
-
-    def ref_date(
-        self,
-        ref_date: Annotated[
-            datetime | None, Doc("Reference date for the volatility surface")
-        ] = None,
-    ) -> datetime:
-        """Reference date for the volatility surface, taken as the earliest maturity
-        or the provided ref_date if it's earlier"""
-        if ref_date is not None:
-            return ref_date
-        return utcnow()
 
     def get_or_create_maturity(
         self,
@@ -1624,33 +1409,27 @@ class GenericVolSurfaceLoader(BaseModel, Generic[S], arbitrary_types_allowed=Tru
             inverse=inverse,
         )
 
-    def surface(
-        self,
-        ref_date: Annotated[
-            datetime | None, Doc("Reference date for the volatility surface")
-        ] = None,
-    ) -> VolSurface[S]:
+    def surface(self) -> VolSurface[S]:
         """Build a volatility surface from the provided data"""
-        if not self.spot or self.spot.mid == ZERO:
-            raise ValueError("No spot price provided")
         maturities = []
-        ref_date = ref_date or utcnow()
-        previous_forward = self.spot.mid
+        spot = self.spot
+        if spot is None:
+            raise ValueError("No spot price provided")
         for maturity in sorted(self.maturities):
-            if section := self.maturities[maturity].cross_section(
-                ref_date=ref_date,
-                previous_forward=previous_forward,
-                tick_size=self.tick_size_forwards,
-                yield_curve=self.quote_curve,
-            ):
-                previous_forward = section.forward.mid
+            loader = self.maturities[maturity]
+            forward = loader.forward
+            if forward is None:
+                implied_forward_price = self.forward(maturity)
+                forward = spot._implied_forward(maturity, implied_forward_price)
+            if section := loader._cross_section(forward):
                 maturities.append(section)
         return VolSurface(
             asset=self.asset,
-            ref_date=ref_date,
             spot=self.spot,
             maturities=tuple(maturities),
             day_counter=self.day_counter,
+            quote_curve=self.quote_curve.model_copy(),
+            asset_curve=self.asset_curve.model_copy(),
             tick_size_forwards=self.tick_size_forwards,
             tick_size_options=self.tick_size_options,
         )
@@ -1686,9 +1465,6 @@ class GenericVolSurfaceLoader(BaseModel, Generic[S], arbitrary_types_allowed=Tru
                 " Set negative to allow positive asset carry."
             ),
         ] = 0.0,
-        ref_date: Annotated[
-            datetime | None, Doc("Reference date for time to maturity calculations")
-        ] = None,
         max_pairs: Annotated[
             int, Doc("Maximum number of put-call pairs to use per maturity")
         ] = 10,
@@ -1711,16 +1487,17 @@ class GenericVolSurfaceLoader(BaseModel, Generic[S], arbitrary_types_allowed=Tru
             fit_asset_curve=asset_curve is not None,
             min_rate_q=min_rate_q,
             min_rate_a=min_rate_a,
-            ref_date=ref_date,
             max_pairs=max_pairs,
         )
         if quote_curve is not None:
-            self.quote_curve = quote_curve.calibrate(
-                vol_rates.ttms, vol_rates.quote_rates
+            self.quote_curve = cast(
+                AnyYieldCurve,
+                quote_curve.calibrate(vol_rates.ttms, vol_rates.quote_rates),
             )
         if asset_curve is not None:
-            self.asset_curve = asset_curve.calibrate(
-                vol_rates.ttms, vol_rates.asset_rates
+            self.asset_curve = cast(
+                AnyYieldCurve,
+                asset_curve.calibrate(vol_rates.ttms, vol_rates.asset_rates),
             )
 
     def collect_rates(
@@ -1746,9 +1523,6 @@ class GenericVolSurfaceLoader(BaseModel, Generic[S], arbitrary_types_allowed=Tru
                 " Set negative to allow positive asset carry."
             ),
         ] = 0.0,
-        ref_date: Annotated[
-            datetime | None, Doc("Reference date for time to maturity calculations")
-        ] = None,
         max_pairs: Annotated[
             int, Doc("Maximum number of put-call pairs to use per maturity")
         ] = 10,
@@ -1760,7 +1534,7 @@ class GenericVolSurfaceLoader(BaseModel, Generic[S], arbitrary_types_allowed=Tru
         ttms: list[float] = []
         quote_rates: list[float] = []
         asset_rates: list[float] = []
-        ref_date = self.ref_date(ref_date=ref_date)
+        ref_date = self.ref_date
         for maturity, section in sorted(self.maturities.items()):
             ttm = self.day_counter.dcf(ref_date, maturity)
             if ttm <= 0:
@@ -1848,4 +1622,4 @@ def surface_from_inputs(
     loader = VolSurfaceLoader()
     for input in inputs.inputs:
         loader.add(input)
-    return loader.surface(ref_date=inputs.ref_date)
+    return loader.surface()

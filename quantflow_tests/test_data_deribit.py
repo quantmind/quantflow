@@ -54,8 +54,8 @@ async def test_loader_loads_known_options(
     deribit_cli: Deribit, ref_date: datetime
 ) -> None:
     """Options present in both book summary and instruments are loaded."""
-    loader = await deribit_cli.volatility_surface_loader("btc")
-    surface = loader.surface(ref_date=ref_date)
+    loader = await deribit_cli.volatility_surface_loader("btc", ref_date=ref_date)
+    surface = loader.surface()
     # fixture has 2 strikes (70000 C+P, 75000 C) all on one maturity
     total_strikes = sum(len(m.strikes) for m in surface.maturities)
     assert total_strikes == 2
@@ -68,8 +68,8 @@ async def test_loader_skips_option_missing_from_instruments(
     ghost = "BTC-10APR26-67500-P"
     assert any(o["instrument_name"] == ghost for o in options)
 
-    loader = await deribit_cli.volatility_surface_loader("btc")
-    surface = loader.surface(ref_date=ref_date)
+    loader = await deribit_cli.volatility_surface_loader("btc", ref_date=ref_date)
+    surface = loader.surface()
     all_strikes = {
         strike.strike for mat in surface.maturities for strike in mat.strikes
     }
@@ -82,6 +82,6 @@ async def test_loader_skips_future_missing_from_instruments(
     """Futures absent from the instruments list are silently skipped."""
     assert any(f["instrument_name"] == "BTC-GHOST-26" for f in futures)
 
-    loader = await deribit_cli.volatility_surface_loader("btc")
-    surface = loader.surface(ref_date=ref_date)
+    loader = await deribit_cli.volatility_surface_loader("btc", ref_date=ref_date)
+    surface = loader.surface()
     assert surface is not None

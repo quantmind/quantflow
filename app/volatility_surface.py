@@ -85,21 +85,13 @@ async def _(asset, inverse, mo):
         label="Maturity"
     )
     maturity_dropdown
-    return int_or_none, loader, maturity_dropdown, pd, surface
+    return int_or_none, maturity_dropdown, surface
 
 
 @app.cell
 def _(int_or_none, maturity_dropdown, surface):
     index = int_or_none(maturity_dropdown.value)
     surface.plot3d(index=index)
-    return (index,)
-
-
-@app.cell
-def _(index, pd, surface):
-    # display inputs - only options with converged implied volatility
-    surface_inputs = surface.inputs(converged=True, index=index)
-    pd.DataFrame([i.model_dump() for i in surface_inputs.inputs])
     return
 
 
@@ -111,48 +103,18 @@ def _(surface):
 
 
 @app.cell
-def _(ts):
-    from quantflow.utils import plot
-
-    plot.plot_lines(ts, x="ttm", y="rate_percent")
+def _(surface, ts):
+    import math
+    ttm_max = 0.1*math.ceil(10*surface.maturities[-1].ttm(surface.ref_date))
+    fig = surface.quote_curve.plot(ttm_max=ttm_max)
+    fig.add_scatter(x=ts["ttm"], y=ts["rate"], mode="markers", name="Cross Sections", marker=dict(size=8, color="orange"))
+    fig
     return
 
 
 @app.cell
-def _(loader):
-    loader.quote_curve.plot(ttm_max=2)
-    return
-
-
-@app.cell
-def _(loader):
-    loader.asset_curve.plot(ttm_max=2)
-    return
-
-
-@app.cell
-def _(loader):
-    cross = loader.maturities[sorted(loader.maturities)[6]]
-    p = cross.put_call_parities(loader.spot.mid, max_pairs=100)
-    da=1
-    return da, p
-
-
-@app.cell
-def _(da, p):
-    p.fit_discounts(da=da)
-    return
-
-
-@app.cell
-def _(da, p):
-    p.plot(da=da)
-    return
-
-
-@app.cell
-def _(loader):
-    loader.collect_rates(fit_asset_curve=False).model_dump()
+def _(surface):
+    surface.asset_curve.plot(ttm_max=2)
     return
 
 

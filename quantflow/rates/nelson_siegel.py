@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from decimal import Decimal
+from typing import Literal
 
 import numpy as np
 from numpy.typing import ArrayLike
@@ -34,6 +35,7 @@ class NelsonSiegel(YieldCurve):
     beta2: Decimal = Field(..., description="Slope parameter")
     beta3: Decimal = Field(..., description="Curvature parameter")
     lambda_: Decimal = Field(..., description="Decay factor")
+    curve_type: Literal["nelson_siegel"] = "nelson_siegel"
 
     def instanteous_forward_rate(self, ttm: Number) -> Decimal:
         ttmd = to_decimal(ttm)

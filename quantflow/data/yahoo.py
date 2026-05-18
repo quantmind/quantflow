@@ -3,7 +3,7 @@ from __future__ import annotations
 import gzip
 import json
 from dataclasses import dataclass, field
-from datetime import date, timezone
+from datetime import date, datetime, timezone
 from enum import StrEnum
 from pathlib import Path
 
@@ -13,7 +13,8 @@ from typing_extensions import Annotated, Doc
 
 from quantflow.options.inputs import DefaultVolSecurity, OptionType
 from quantflow.options.surface import VolSurfaceLoader
-from quantflow.utils.dates import as_utc
+from quantflow.rates.yield_curve import NoDiscount
+from quantflow.utils.dates import as_utc, utcnow
 from quantflow.utils.numbers import to_decimal
 
 
@@ -86,6 +87,10 @@ class Yahoo(HttpxClient):
         self,
         symbol: Annotated[str, Doc("Underlying ticker symbol")],
         *,
+        ref_date: Annotated[
+            datetime | None,
+            Doc("Reference date for the yield curves; defaults to now"),
+        ] = None,
         exclude_volume: Annotated[
             int | None, Doc("Drop contracts with volume at or below this threshold")
         ] = None,
@@ -99,6 +104,7 @@ class Yahoo(HttpxClient):
         [loader_from_chain][quantflow.data.yahoo.Yahoo.loader_from_chain]."""
         return self.loader_from_chain(
             await self.option_chain(symbol),
+            ref_date=ref_date,
             exclude_volume=exclude_volume,
             exclude_open_interest=exclude_open_interest,
         )
@@ -108,6 +114,10 @@ class Yahoo(HttpxClient):
         cls,
         chain: Annotated[dict, Doc("Yahoo option chain payload")],
         *,
+        ref_date: Annotated[
+            datetime | None,
+            Doc("Reference date for the yield curves; defaults to now"),
+        ] = None,
         exclude_volume: Annotated[
             int | None, Doc("Drop contracts with volume at or below this threshold")
         ] = None,
@@ -124,12 +134,15 @@ class Yahoo(HttpxClient):
         by Yahoo, so they are recovered from put-call parity by the loader.
         """
         symbol = chain.get("underlyingSymbol", "")
+        ref = ref_date or utcnow()
         loader = VolSurfaceLoader(
             asset=symbol,
             exclude_volume=to_decimal(exclude_volume) if exclude_volume else None,
             exclude_open_interest=(
                 to_decimal(exclude_open_interest) if exclude_open_interest else None
             ),
+            quote_curve=NoDiscount(ref_date=ref),
+            asset_curve=NoDiscount(ref_date=ref),
         )
         quote = chain.get("quote") or {}
         bid = quote.get("bid") or quote.get("regularMarketPrice")

@@ -14,6 +14,8 @@ from typing_extensions import Annotated, Doc
 
 from quantflow.options.inputs import DefaultVolSecurity, OptionType
 from quantflow.options.surface import VolSurfaceLoader
+from quantflow.rates.yield_curve import NoDiscount
+from quantflow.utils.dates import utcnow
 from quantflow.utils.numbers import (
     Number,
     round_to_step,
@@ -125,6 +127,10 @@ class Deribit(AioHttpClient):
         self,
         currency: Annotated[str, Doc("Currency")],
         *,
+        ref_date: Annotated[
+            datetime | None,
+            Doc("Reference date for the yield curves; defaults to now"),
+        ] = None,
         inverse: Annotated[
             bool,
             Doc(
@@ -145,10 +151,13 @@ class Deribit(AioHttpClient):
     ) -> VolSurfaceLoader:
         """Create a [VolSurfaceLoader][quantflow.options.surface.VolSurfaceLoader]
         for a given crypto-currency"""
+        ref = ref_date or utcnow()
         loader = VolSurfaceLoader(
             asset=currency,
             exclude_open_interest=to_decimal_or_none(exclude_open_interest),
             exclude_volume=to_decimal_or_none(exclude_volume),
+            quote_curve=NoDiscount(ref_date=ref),
+            asset_curve=NoDiscount(ref_date=ref),
         )
         if inverse:
             futures = await self.get_book_summary_by_currency(
