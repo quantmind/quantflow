@@ -77,7 +77,7 @@ class ModelOptionPrice(BaseModel, frozen=True):
         and put price for the same strike and maturity"""
         return 1.0 - float(np.exp(self.log_strike))
 
-    @computed_field  # type: ignore [prop-decorator]
+    @computed_field
     @property
     def black(self) -> BlackSensitivities:
         """Calculate the Black price for the option using the price as time value and

@@ -122,8 +122,13 @@ exclude_also = [
 
 [tool.isort]
 profile = "black"
+skip_glob = [ "app/frontend/*" ]
+
+[tool.black]
+extend-exclude = "/app/frontend/"
 
 [tool.ruff]
+exclude = [ "app/frontend" ]
 lint.select = [ "E", "F" ]
 line-length = 88
 
@@ -134,7 +139,9 @@ path = "quantflow/__init__.py"
 # strict = true
 disallow_untyped_calls = true
 disallow_untyped_defs = true
+exclude = [ "^app/frontend/" ]
 warn_no_return = true
+disable_error_code = [ "prop-decorator" ]
 
 [[tool.mypy.overrides]]
 module = [

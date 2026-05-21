@@ -101,6 +101,7 @@ nav:
           - api/rates/index.md
           - Interest Rate: api/rates/interest_rate.md
           - Nelson Siegel Curve: api/rates/nelson_siegel.md
+          - Options Discounting: api/rates/options.md
           - Yield Curve: api/rates/yield_curve.md
       - Utilities:
           - api/utils/index.md

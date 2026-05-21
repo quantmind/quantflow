@@ -95,10 +95,11 @@ def test_term_structure(vol_surface: VolSurface) -> None:
         "maturity",
         "ttm",
         "forward",
+        "implied_forward",
+        "forward_basis",
+        "rate",
         "bid_ask_spread",
         "basis",
-        "rate_percent",
-        "fwd_spread_pct",
         "open_interest",
         "volume",
     ]

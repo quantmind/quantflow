@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import enum
-import math
 import warnings
 from datetime import datetime, timedelta
 from decimal import Decimal
@@ -13,7 +12,14 @@ from ccy.core.daycounter import DayCounter
 from pydantic import BaseModel, Field
 from typing_extensions import Annotated, Doc
 
-from quantflow.rates import AnyYieldCurve, NoDiscount, Rate, YieldCurve
+from quantflow.rates import (
+    AnyYieldCurve,
+    NoDiscount,
+    Rate,
+    YieldCurve,
+    YieldCurveCalibration,
+)
+from quantflow.rates.options import OptionsDiscountingCalibration
 from quantflow.utils import plot
 from quantflow.utils.dates import utcnow
 from quantflow.utils.numbers import (
@@ -341,6 +347,53 @@ class OptionPrice(BaseModel):
             open_interest=float(self.open_interest),
             volume=float(self.volume),
         )
+
+    def info(self) -> OptionInfo:
+        """Return a structured [OptionInfo][quantflow.options.surface.OptionInfo]
+        representation of this option price"""
+        return OptionInfo(
+            strike=self.strike,
+            forward=self.forward,
+            maturity=self.maturity,
+            log_strike=to_decimal(self.log_strike),
+            moneyness=to_decimal(self.log_strike / np.sqrt(self.ttm)),
+            ttm=to_decimal(self.ttm),
+            implied_vol=to_decimal(self.implied_vol),
+            price=self.price_in_forward_space,
+            price_bp=self.price_bp,
+            price_quote=self.price_in_quote,
+            option_type=self.option_type,
+            side=self.side,
+            open_interest=self.open_interest,
+            volume=self.volume,
+        )
+
+
+class OptionInfo(BaseModel):
+    """Structured representation of an option price with all computed fields"""
+
+    strike: DecimalNumber = Field(description="Strike price of the option")
+    forward: DecimalNumber = Field(
+        description="Forward price of the underlying at maturity"
+    )
+    maturity: datetime = Field(description="Maturity date of the option")
+    log_strike: DecimalNumber = Field(
+        description="Log strike, calculated as log(strike/forward)"
+    )
+    moneyness: DecimalNumber = Field(
+        description="Standardised moneyness, log(K/F) / sqrt(T)"
+    )
+    ttm: DecimalNumber = Field(description="Time to maturity in years")
+    implied_vol: DecimalNumber = Field(description="Black implied volatility")
+    price: DecimalNumber = Field(
+        description="Option price as a fraction of the forward price"
+    )
+    price_bp: DecimalNumber = Field(description="Option price in basis points")
+    price_quote: DecimalNumber = Field(description="Option price in quote currency")
+    option_type: OptionType = Field(description="Option type (call or put)")
+    side: Side = Field(description="Market side (bid or ask)")
+    open_interest: DecimalNumber = Field(description="Open interest")
+    volume: DecimalNumber = Field(description="Volume traded")
 
 
 class OptionArrays(NamedTuple):
@@ -792,8 +845,8 @@ class ForwardPricer(BaseModel, Generic[S]):
     def forward(self, maturity: datetime) -> Decimal:
         """Calculate the implied forward for a given maturity"""
         ttm = self.day_counter.dcf(self.ref_date, maturity)
-        df_quote = self.quote_curve.discount_factor(ttm)
-        df_asset = self.asset_curve.discount_factor(ttm)
+        df_quote = to_decimal(float(self.quote_curve.discount_factor(ttm)))
+        df_asset = to_decimal(float(self.asset_curve.discount_factor(ttm)))
         forward_rate = self.spot_price() * df_asset / df_quote
         return (
             round_to_step(forward_rate, self.tick_size_forwards)
@@ -1292,14 +1345,6 @@ class VolCrossSectionLoader(BaseModel, Generic[S]):
         return PutCallParities.from_parities(parities, spot, ttm)
 
 
-class VolRates(BaseModel, frozen=True):
-    """Per-maturity continuously compounded rates fitted from put-call parity."""
-
-    ttms: list[float] = Field(description="Times to maturity in years")
-    quote_rates: list[float] = Field(description="Quote continuously compounded rates")
-    asset_rates: list[float] = Field(description="Asset continuously compounded rates")
-
-
 class GenericVolSurfaceLoader(ForwardPricer[S], arbitrary_types_allowed=True):
     """Helper class to build a volatility surface from a list of securities
 
@@ -1438,17 +1483,19 @@ class GenericVolSurfaceLoader(ForwardPricer[S], arbitrary_types_allowed=True):
         self,
         *,
         quote_curve: Annotated[
-            type[YieldCurve] | None,
+            type[YieldCurve] | YieldCurve | None,
             Doc(
-                "YieldCurve type to fit the quote currency discount curve $D_q$ "
-                "from option prices. When None the current quote_curve is unchanged."
+                "YieldCurve type or instance to fit the quote currency discount "
+                "curve $D_q$ from option prices. "
+                "When None the current quote_curve is unchanged."
             ),
         ] = None,
         asset_curve: Annotated[
-            type[YieldCurve] | None,
+            type[YieldCurve] | YieldCurve | None,
             Doc(
-                "YieldCurve type to fit the asset discount curve $D_a$ "
-                "from option prices. When None the current asset_curve is unchanged."
+                "YieldCurve type or instance to fit the asset discount curve $D_a$ "
+                "from option prices. "
+                "When None the current asset_curve is unchanged."
             ),
         ] = None,
         min_rate_q: Annotated[
@@ -1473,67 +1520,63 @@ class GenericVolSurfaceLoader(ForwardPricer[S], arbitrary_types_allowed=True):
 
         Three modes are supported:
 
-        Both curves: pass a type for both `quote_curve` and `asset_curve`.
+        Both curves: pass a curve type or instance for both curves.
         A single OLS regression per maturity identifies $D_q$ and $D_a$ simultaneously.
 
-        Asset only: pass a type for `asset_curve`, leave `quote_curve` as None.
+        Asset only: pass a curve type or instance for `asset_curve`, leave
+        `quote_curve` as None.
         The existing `quote_curve` is treated as known and $D_a$ is solved analytically.
 
-        Quote only: pass a type for `quote_curve`, leave `asset_curve` as None.
+        Quote only: pass a curve type or instance for `quote_curve`, leave
+        `asset_curve` as None.
         The existing `asset_curve` is treated as known and $D_q$ is solved analytically.
         """
-        vol_rates = self.collect_rates(
-            fit_quote_curve=quote_curve is not None,
-            fit_asset_curve=asset_curve is not None,
-            min_rate_q=min_rate_q,
-            min_rate_a=min_rate_a,
-            max_pairs=max_pairs,
+        ttm, cp, strikes = self.collect_put_call_parities(max_pairs=max_pairs)
+        asset_curve_input = (
+            self._curve_calibrator(asset_curve) if asset_curve else self.asset_curve
         )
-        if quote_curve is not None:
-            self.quote_curve = cast(
-                AnyYieldCurve,
-                quote_curve.calibrate(vol_rates.ttms, vol_rates.quote_rates),
-            )
-        if asset_curve is not None:
-            self.asset_curve = cast(
-                AnyYieldCurve,
-                asset_curve.calibrate(vol_rates.ttms, vol_rates.asset_rates),
-            )
+        quote_curve_input = (
+            self._curve_calibrator(quote_curve) if quote_curve else self.quote_curve
+        )
+        calibration = OptionsDiscountingCalibration(
+            asset_curve=asset_curve_input,
+            quote_curve=quote_curve_input,
+            ttm=ttm,
+            cp=cp,
+            strikes=strikes,
+        )
+        calibrated_asset_curve, calibrated_quote_curve = calibration.calibrate()
+        self.asset_curve = cast(AnyYieldCurve, calibrated_asset_curve)
+        self.quote_curve = cast(AnyYieldCurve, calibrated_quote_curve)
 
-    def collect_rates(
+    def _curve_calibrator(
+        self,
+        curve_type: type[YieldCurve] | YieldCurve,
+    ) -> YieldCurveCalibration:
+        curve = (
+            curve_type(ref_date=self.ref_date)
+            if isinstance(curve_type, type)
+            else curve_type
+        )
+        calibrator = curve.calibrator()
+        if calibrator is None:
+            raise ValueError(f"{type(curve).__name__} does not support calibration")
+        return calibrator
+
+    def collect_put_call_parities(
         self,
         *,
-        fit_quote_curve: Annotated[
-            bool, Doc("Whether to fit the quote discount curve $D_q$")
-        ] = True,
-        fit_asset_curve: Annotated[
-            bool, Doc("Whether to fit the asset discount curve $D_a$")
-        ] = True,
-        min_rate_q: Annotated[
-            float,
-            Doc(
-                "Minimum continuously compounded quote rate."
-                " Default 0 enforces non-negative quote rates."
-            ),
-        ] = 0.0,
-        min_rate_a: Annotated[
-            float,
-            Doc(
-                "Minimum continuously compounded asset rate."
-                " Set negative to allow positive asset carry."
-            ),
-        ] = 0.0,
         max_pairs: Annotated[
             int, Doc("Maximum number of put-call pairs to use per maturity")
         ] = 10,
-    ) -> VolRates:
+    ) -> tuple[FloatArray, FloatArray, FloatArray]:
         """Collect per-maturity continuously compounded rates from put-call parity."""
         if not self.spot or self.spot.mid == ZERO:
             raise ValueError("No spot price provided")
         spot = self.spot.mid
-        ttms: list[float] = []
-        quote_rates: list[float] = []
-        asset_rates: list[float] = []
+        ttms: list[FloatArray] = []
+        cp: list[FloatArray] = []
+        strikes: list[FloatArray] = []
         ref_date = self.ref_date
         for maturity, section in sorted(self.maturities.items()):
             ttm = self.day_counter.dcf(ref_date, maturity)
@@ -1544,28 +1587,19 @@ class GenericVolSurfaceLoader(ForwardPricer[S], arbitrary_types_allowed=True):
                 ref_date=ref_date,
                 max_pairs=max_pairs,
             )
-            dq = (
-                None
-                if fit_quote_curve
-                else float(self.quote_curve.discount_factor(ttm))
-            )
-            da = (
-                None
-                if fit_asset_curve
-                else float(self.asset_curve.discount_factor(ttm))
-            )
-            d = parities.fit_discounts(
-                dq=dq,
-                da=da,
-                min_rate_q=min_rate_q,
-                min_rate_a=min_rate_a,
-            )
-            if d is None:
+            regressand = parities.regressand()
+            if not regressand.size:
                 continue
-            ttms.append(ttm)
-            quote_rates.append(-math.log(d.quote_discount) / ttm)
-            asset_rates.append(-math.log(d.asset_discount) / ttm)
-        return VolRates(ttms=ttms, quote_rates=quote_rates, asset_rates=asset_rates)
+            ttms.append(np.full(regressand.shape, ttm, dtype=float))
+            cp.append(regressand)
+            strikes.append(parities.regressor())
+        if not cp:
+            raise ValueError("No put-call parity pairs available")
+        return (
+            np.concatenate(ttms),
+            np.concatenate(cp),
+            np.concatenate(strikes),
+        )
 
 
 class VolSurfaceLoader(GenericVolSurfaceLoader[DefaultVolSecurity]):
@@ -1619,7 +1653,11 @@ def surface_from_inputs(
     """Helper function to build a volatility surface from a
     [VolSurfaceInputs][quantflow.options.inputs.VolSurfaceInputs] instance
     """
-    loader = VolSurfaceLoader()
+    loader = VolSurfaceLoader(
+        asset=inputs.asset,
+        quote_curve=inputs.quote_curve,
+        asset_curve=inputs.asset_curve,
+    )
     for input in inputs.inputs:
         loader.add(input)
     return loader.surface()

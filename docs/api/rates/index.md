@@ -13,3 +13,5 @@ The central concept is the [discount factor](../../glossary.md#discount-factor) 
 \end{equation}
 
 **[NelsonSiegel](nelson_siegel.md)** is a concrete `YieldCurve` implementation that fits a smooth parametric curve to observed zero-coupon rates using the Nelson-Siegel functional form.
+
+**[Options Discounting](options.md)** provides `YieldCurveCalibration`, the base class for fitting a yield curve to discount factors, and `OptionsDiscountingCalibration`, which bootstraps asset and quote curves from put-call parity observations.

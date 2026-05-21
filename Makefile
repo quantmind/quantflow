@@ -20,8 +20,16 @@ docs-examples:			## Regenerate docs examples
 	@uv run ./dev/build-examples
 
 .PHONY: docs-serve
-docs-serve:			## serve documentation
-	@uv run mkdocs serve --livereload --watch quantflow --watch docs
+docs-serve:			## serve docs, examples, and API with auto-reload
+	@bash ./dev/docs-serve
+
+.PHONY: frontend-build
+frontend-build:			## build Observable frontend examples
+	@npm --prefix app/frontend run build
+
+.PHONY: frontend-serve
+frontend-serve:			## serve Observable frontend with auto-reload
+	@bash ./dev/frontend-serve
 
 .PHONY: install-dev
 install-dev:			## Install development dependencies
