@@ -1,6 +1,9 @@
+from typing import cast
+
+import numpy as np
 from fastapi import APIRouter, Query
 from pydantic import BaseModel, Field
-import numpy as np
+
 from quantflow.rates import AnyYieldCurve, YieldCurve
 
 rates_router = APIRouter()
@@ -47,8 +50,8 @@ async def yield_curve(
     curve_class = YieldCurve.get_curve_class(curve_type)
     if curve_class is None:
         raise ValueError(f"Unsupported curve type: {curve_type}")
-    curve = curve_class.calibrate(ttm, rates)
+    curve = cast(AnyYieldCurve, curve_class.calibrate(ttm, rates))
     if max_ttm is not None:
         ttm = list(np.geomspace(1 / 365, max_ttm, num_points))
-    rates = list(curve.continuously_compounded_rate(ttm))
+    rates = [float(r) for r in np.atleast_1d(curve.continuously_compounded_rate(ttm))]
     return YieldCurveResponse(curve=curve, ttm=ttm, rates=rates)

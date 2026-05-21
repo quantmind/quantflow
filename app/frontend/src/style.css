@@ -13,6 +13,7 @@
 
 #observablehq-header {
   background: var(--qf-primary);
+  color: #fff;
   padding: 0;
   margin: 0;
   left: 0 !important;
@@ -24,6 +25,7 @@
   display: flex;
   align-items: center;
   padding: 0.4rem 0.8rem;
+  width: 100%;
 }
 
 .qf-header-logo {
@@ -31,7 +33,7 @@
   align-items: center;
   gap: 0.5rem;
   text-decoration: none;
-  color: #fff;
+  color: #fff !important;
 }
 
 .qf-header-logo img {
@@ -50,13 +52,13 @@
 }
 
 .qf-header-link {
-  color: #ffffffcc;
+  color: #ffffffcc !important;
   font-size: 0.8rem;
   text-decoration: none;
 }
 
 .qf-header-link:hover {
-  color: #fff;
+  color: #fff !important;
 }
 
 .card {

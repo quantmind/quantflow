@@ -127,14 +127,7 @@ nav:
       - Inversion: theory/inversion.md
       - Lévy Process: theory/levy.md
       - Option Pricing: theory/option_pricing.md
-  - Examples:
-      - examples/index.md
-      - Gaussian Sampling: examples/gaussian-sampling
-      - Poisson Sampling: examples/poisson-sampling
-      - Double Exponential Sampling: examples/double-exponential-sampling
-      - Hurst: examples/hurst
-      - Supersmoother: examples/supersmoother
-      - Volatility Surface: examples/volatility-surface
+  - Live Examples: https://quantflow.quantmind.com/examples/
   - MCP Server: mcp.md
   - Glossary: glossary.md
   - Contributing: contributing.md

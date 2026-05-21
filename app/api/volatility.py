@@ -1,18 +1,24 @@
 from functools import partial
+from typing import Any
 
 import numpy as np
 from fastapi import APIRouter, Query
 from pydantic import BaseModel, Field
 
 from quantflow.data.deribit import Deribit
+from quantflow.data.yahoo import Yahoo
 from quantflow.options.inputs import VolSurfaceInputs
-from quantflow.options.surface import OptionInfo
+from quantflow.options.surface import OptionInfo, VolSurfaceLoader
 from quantflow.rates.nelson_siegel import NelsonSiegel
 
 from .deps import RedisCache, RedisDep
 from .rates import YieldCurveResponse
 
 volatility_router = APIRouter()
+
+DERIBIT_ASSETS = {"BTC", "ETH"}
+YAHOO_ASSETS = {"SPY", "AAPL", "NVDA"}
+ALL_ASSETS = sorted(DERIBIT_ASSETS) + sorted(YAHOO_ASSETS)
 
 
 class VolSurfaceResponse(BaseModel):
@@ -32,9 +38,9 @@ class VolSurfaceResponse(BaseModel):
 async def volatility_surface(
     redis: RedisDep,
     asset: str = Query(
-        "btc",
-        description="Crypto asset",
-        enum=["btc", "eth"],
+        "BTC",
+        description="Asset symbol",
+        enum=ALL_ASSETS,
     ),
 ) -> VolSurfaceResponse:
     cache = RedisCache(
@@ -45,18 +51,27 @@ async def volatility_surface(
     return await cache.from_cache(partial(_volatility_surface, asset))
 
 
-def _curve_response(curve, max_ttm: float) -> YieldCurveResponse:
+def _curve_response(curve: Any, max_ttm: float) -> YieldCurveResponse:
     ttm = list(np.linspace(1 / 365, max_ttm, 50))
-    rates = list(curve.continuously_compounded_rate(ttm))
-    return YieldCurveResponse(curve=curve, ttm=ttm, rates=rates)
+    rates = [float(r) for r in np.atleast_1d(curve.continuously_compounded_rate(ttm))]
+    return YieldCurveResponse(curve=curve, ttm=ttm, rates=rates)  # type: ignore[arg-type]
+
+
+async def _load_surface(asset: str) -> VolSurfaceLoader:
+    if asset in DERIBIT_ASSETS:
+        async with Deribit() as cli:
+            loader = await cli.volatility_surface_loader(asset.lower(), inverse=True)
+        loader.calibrate_curves(quote_curve=NelsonSiegel)
+        return loader
+    else:
+        async with Yahoo() as cli:
+            loader = await cli.volatility_surface_loader(asset)
+        loader.calibrate_curves(quote_curve=NelsonSiegel)
+        return loader
 
 
 async def _volatility_surface(asset: str) -> VolSurfaceResponse:
-    inverse = asset != "sol"
-    async with Deribit() as cli:
-        loader = await cli.volatility_surface_loader(asset, inverse=inverse)
-
-    loader.calibrate_curves(quote_curve=NelsonSiegel)
+    loader = await _load_surface(asset)
     surface = loader.surface()
     surface.bs()
     surface.disable_outliers()

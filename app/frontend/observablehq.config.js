@@ -7,7 +7,7 @@ export default {
   base: "/examples",
   head: `<meta name="quantflow-api-origin" content="${apiOrigin}">`,
   style: "style.css",
-  pages: [{name: "Volatility Surface", path: "/volatility-surface"}, {name: "Yield Curve", path: "/yield-curve"}],
+  pages: [{name: "Volatility Surface", path: "/volatility-surface"}, {name: "Yield Curve", path: "/yield-curve"}, {name: "Sampling", path: "/sampling"}, {name: "SuperSmoother", path: "/supersmoother"}, {name: "Cointegration", path: "/cointegration"}, {name: "Hurst Exponent", path: "/hurst"}, {name: "Heston Vol Surface", path: "/heston-vol-surface"}],
   header: `
     <nav class="qf-header-inner">
       <a href="https://quantflow.quantmind.com" class="qf-header-logo" title="QuantFlow">

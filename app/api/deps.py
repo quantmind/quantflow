@@ -2,8 +2,9 @@ import json
 from collections.abc import Awaitable, Callable
 from dataclasses import dataclass
 from typing import Annotated, Generic, TypeVar, cast
-from fluid.utils import log
+
 from fastapi import Depends, FastAPI, Request
+from fluid.utils import log
 from fluid.utils.redis import FluidRedis
 from pydantic import BaseModel
 from redis import Redis

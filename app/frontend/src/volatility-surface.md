@@ -4,7 +4,7 @@ title: Volatility Surface
 
 # Volatility Surface
 
-Live implied volatility surface from [Deribit](https://www.deribit.com/) options market data. Select an asset to load the current vol surface.
+Live implied volatility surface from market options data. Crypto assets (BTC, ETH) use [Deribit](https://www.deribit.com/); equities (SPY, AAPL, NVDA) use [Yahoo Finance](https://finance.yahoo.com/).
 
 ```js
 import {fetchJson} from "./lib/api.js";
@@ -13,7 +13,7 @@ import * as d3 from "npm:d3";
 ```
 
 ```js
-const assetInput = Inputs.select(["btc", "eth"], {label: "Asset", value: "btc"});
+const assetInput = Inputs.select(["BTC", "ETH", "SPY", "AAPL", "NVDA"], {label: "Asset", value: "BTC"});
 const asset = Generators.input(assetInput);
 ```
 

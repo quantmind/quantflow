@@ -1,18 +1,23 @@
 import os
 
-import marimo
+from dotenv import load_dotenv
 from fastapi import APIRouter, FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.openapi.docs import get_redoc_html
 from fastapi.responses import HTMLResponse
 from fastapi.staticfiles import StaticFiles
-
 from fluid.utils import log
-from app.utils.paths import APP_PATH, head_snippet
+
+from app.utils.paths import APP_PATH
 from quantflow import __version__
 
+from .api.cointegration import cointegration_router
 from .api.deps import instrument_app
+from .api.heston import heston_router
+from .api.hurst import hurst_router
 from .api.rates import rates_router
+from .api.sampling import sampling_router
+from .api.smoother import smoother_router
 from .api.status import status_router
 from .api.volatility import volatility_router
 
@@ -20,14 +25,8 @@ PORT = int(os.environ.get("MICRO_SERVICE_PORT", "8001"))
 
 
 def crate_app() -> FastAPI:
-    # Create a marimo asgi app
-    html_head = head_snippet(APP_PATH / "docs")
-    server = marimo.create_asgi_app(include_code=True, html_head=html_head)
-    for path in APP_PATH.glob("*.py"):
-        if path.name.startswith("_"):
-            continue
-        dashed = path.stem.replace("_", "-")
-        server = server.with_app(path=f"/{dashed}", root=f"./app/{path.name}")
+    load_dotenv()
+    log.config()
     app = FastAPI(
         version=__version__,
         title="Quantflow API",
@@ -57,11 +56,15 @@ def crate_app() -> FastAPI:
             title="Quantflow API",
         )
 
+    api.include_router(cointegration_router)
+    api.include_router(heston_router)
+    api.include_router(hurst_router)
     api.include_router(rates_router)
+    api.include_router(sampling_router)
+    api.include_router(smoother_router)
     api.include_router(volatility_router)
     app.include_router(api)
     app.include_router(status_router, include_in_schema=False)
-    app.mount("/examples", server.build())
     app.mount("/", StaticFiles(directory=APP_PATH / "docs", html=True), name="static")
     return app
 
@@ -69,5 +72,5 @@ def crate_app() -> FastAPI:
 # Run the server
 if __name__ == "__main__":
     import uvicorn
-    log.config()
+
     uvicorn.run(crate_app(), host="0.0.0.0", port=PORT)

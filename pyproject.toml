@@ -152,6 +152,7 @@ module = [
     "pandas.*",
     "plotly.*",
     "scipy.*",
+    "statsmodels.*",
 ]
 ignore_missing_imports = true
 disallow_untyped_defs = false
