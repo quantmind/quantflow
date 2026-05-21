@@ -32,6 +32,7 @@ async def test_loader_builds_surface(yahoo_cli: Yahoo, spx_chain: dict) -> None:
     surface = loader.surface()
     assert surface.asset == "^SPX"
     assert len(surface.maturities) == len(spx_chain["options"])
+    assert surface.spot is not None
     assert surface.spot.mid > 0
 
 

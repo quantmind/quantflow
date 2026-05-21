@@ -58,7 +58,6 @@ book = [
     "altair>=6.0.0",
     "autodocsumm>=0.2.14",
     "duckdb>=1.4.4",
-    "fastapi>=0.129.0",
     "marimo>=0.19.7",
     "plotly>=6.2.0",
     "sympy>=1.12",
@@ -75,6 +74,7 @@ dev = [
     "types-python-dateutil>=2.9.0.20251115",
 ]
 docs = [
+    "fastapi>=0.129.0",
     "griffe-pydantic>=1.1.0",
     "griffe-typingdoc>=0.2.7",
     "kaleido>=1.2.0",
@@ -122,8 +122,13 @@ exclude_also = [
 
 [tool.isort]
 profile = "black"
+skip_glob = [ "app/frontend/*" ]
+
+[tool.black]
+extend-exclude = "/app/frontend/"
 
 [tool.ruff]
+exclude = [ "app/frontend" ]
 lint.select = [ "E", "F" ]
 line-length = 88
 
@@ -134,7 +139,9 @@ path = "quantflow/__init__.py"
 # strict = true
 disallow_untyped_calls = true
 disallow_untyped_defs = true
+exclude = [ "^app/frontend/" ]
 warn_no_return = true
+disable_error_code = [ "prop-decorator" ]
 
 [[tool.mypy.overrides]]
 module = [
@@ -145,6 +152,7 @@ module = [
     "pandas.*",
     "plotly.*",
     "scipy.*",
+    "statsmodels.*",
 ]
 ignore_missing_imports = true
 disallow_untyped_defs = false

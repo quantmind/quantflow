@@ -32,6 +32,10 @@ def as_float(num: NumberType | None = None) -> float:
     return float(0 if num is None else num)
 
 
+def maybe_float(array: FloatArray) -> FloatArrayLike:
+    return array if array.ndim > 0 else float(array)
+
+
 def as_array(n: Vector) -> np.ndarray:
     """Convert an input into an array"""
     if isinstance(n, int):

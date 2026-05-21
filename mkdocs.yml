@@ -74,6 +74,7 @@ nav:
           - Black-Scholes: api/options/black.md
           - Calibration: api/options/calibration.md
           - Deep IV Factor Model: api/options/divfm.md
+          - Put-Call Parity: api/options/parity.md
           - Pricer: api/options/pricer.md
           - SVI Smile: api/options/svi.md
           - Volatility Surface: api/options/vol_surface.md
@@ -99,6 +100,8 @@ nav:
       - Rates:
           - api/rates/index.md
           - Interest Rate: api/rates/interest_rate.md
+          - Nelson Siegel Curve: api/rates/nelson_siegel.md
+          - Options Discounting: api/rates/options.md
           - Yield Curve: api/rates/yield_curve.md
       - Utilities:
           - api/utils/index.md
@@ -111,6 +114,7 @@ nav:
       - tutorials/index.md
       - BNS Volatility Model: tutorials/bns_calibration.md
       - CIR Process: tutorials/cir.md
+      - Heston Volatility Model: tutorials/heston_calibration.md
       - Option Pricing: tutorials/option_pricing.md
       - Pricing Method Comparison: tutorials/pricing_method_comparison.md
       - SPX Volatility Surface: tutorials/spx_vol_surface.md
@@ -119,22 +123,18 @@ nav:
       - theory/index.md
       - Characteristic Function: theory/characteristic.md
       - Convexity Correction: theory/convexity_correction.md
+      - Forwards and Discount Factors: theory/forwards.md
       - Inversion: theory/inversion.md
       - Lévy Process: theory/levy.md
       - Option Pricing: theory/option_pricing.md
-  - Examples:
-      - Gaussian Sampling: examples/gaussian-sampling
-      - Poisson Sampling: examples/poisson-sampling
-      - Double Exponential Sampling: examples/double-exponential-sampling
-      - Hurst: examples/hurst
-      - Supersmoother: examples/supersmoother
-      - Volatility Surface: examples/volatility-surface
+  - Live Examples: https://quantflow.quantmind.com/examples/
   - MCP Server: mcp.md
   - Glossary: glossary.md
   - Contributing: contributing.md
   - Bibliography: bibliography.md
   - Release Notes: release-notes.md
 markdown_extensions:
+  - admonition
   - attr_list
   - tables
   - pymdownx.arithmatex:

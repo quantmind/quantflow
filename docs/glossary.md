@@ -43,6 +43,19 @@ of a real-valued random variable $x$ is the function given by
 
 where ${\mathbb P}_x$ is the distrubution measure of $x$.
 
+## Discount Factor
+
+The discount factor $D\left(\tau\right)$ is the present value of one unit of currency paid at [time to maturity](#time-to-maturity-ttm) $\tau$.
+It is equal to the price of a zero-coupon bond maturing at $\tau$: a contract that pays exactly 1 at maturity with no intermediate cashflows.
+
+\begin{equation}
+    D\left(\tau\right) = e^{-r \tau}
+\end{equation}
+
+where $r$ is the continuously compounded risk-free rate.
+
+Under a zero interest rate assumption, $D\left(\tau\right) = 1\ \ \ \forall\ \tau$.
+
 ## Feller Condition
 
 The Feller condition is a parameter constraint on a square-root diffusion process
@@ -70,6 +83,16 @@ condition holds. The
 [HestonCalibration][quantflow.options.calibration.heston.HestonCalibration] class provides a
 `feller_enforce` flag (default `True`) that imposes this as a hard inequality constraint
 during optimisation.
+
+## Forwards
+
+The forward price $F$ of an asset at maturity $\tau$ is the price agreed upon today for delivery of the asset at time $\tau$. It is given by the ratio of two discount factors: one for the asset $D_a(\tau)$ and one for the quote $D_q(\tau)$.
+
+\begin{equation}
+F(\tau) = S \cdot \frac{D_a(\tau)}{D_q(\tau)}
+\end{equation}
+
+See [Forwards and Discount Factors](theory/forwards.md) for more details.
 
 ## Forward Space
 
@@ -172,8 +195,18 @@ The [probability density function](https://en.wikipedia.org/wiki/Probability_den
 ## Put-Call Parity
 
 Put-call parity is a no-arbitrage relationship between the prices of European call
-and put options with the same strike $K$ and maturity. Denoting forward-space prices
-$c = C/F$ and $p = P/F$ (see [Black Pricing](api/options/black.md)), the relationship
+and put options with the same strike $K$ and time to maturity.
+
+\begin{equation}
+    C - P = D_q \left(F - K\right)
+\end{equation}
+
+where $D_q$ is the [discount factor](#discount-factor) of the quoting asset (generally a currency)
+at maturity and $F$ is the forward price
+of the underlying asset at maturity.
+
+Denoting forward-space prices
+$c = C/(D_q\ F)$ and $p = P/(D_q\ F)$ (see [Black Pricing](api/options/black.md)), the relationship
 reads:
 
 \begin{equation}
@@ -181,11 +214,6 @@ reads:
 \end{equation}
 
 where $k$ is the [log-strike](#log-strike).
-In quoting currency terms, multiplying through by $F$:
-
-\begin{equation}
-    C - P = F - K
-\end{equation}
 
 ## Time To Maturity (TTM)
 

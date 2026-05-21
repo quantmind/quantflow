@@ -19,8 +19,6 @@
 
 ::: quantflow.options.surface.FwdPrice
 
-::: quantflow.options.surface.ImpliedFwdPrice
-
 ::: quantflow.options.surface.Strike
 
 ::: quantflow.options.surface.OptionArrays

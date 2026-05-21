@@ -1,5 +1,7 @@
 # Vol Model Calibration
 
+::: quantflow.options.calibration.base.ResidualKind
+
 ::: quantflow.options.calibration.base.OptionEntry
 
 ::: quantflow.options.calibration.base.VolModelCalibration

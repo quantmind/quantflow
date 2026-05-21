@@ -1,0 +1,8 @@
+#!/usr/bin/env bash
+set -e
+
+OBSERVABLE_PORT=${OBSERVABLE_PORT:-3001}
+
+echo "Examples: http://127.0.0.1:${OBSERVABLE_PORT}"
+
+npm --prefix app/frontend run dev -- --host 127.0.0.1 --port ${OBSERVABLE_PORT}

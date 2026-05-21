@@ -1,0 +1,12 @@
+#!/usr/bin/env bash
+set -e
+
+DOCS_PORT=${DOCS_PORT:-8000}
+
+echo "Documentation: http://127.0.0.1:${DOCS_PORT}"
+
+uv run mkdocs serve \
+    --dev-addr 127.0.0.1:${DOCS_PORT} \
+    --livereload \
+    --watch quantflow \
+    --watch docs

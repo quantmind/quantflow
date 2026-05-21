@@ -17,6 +17,7 @@ import pytest
 from quantflow.options.bs import black_price
 from quantflow.options.inputs import DefaultVolSecurity, OptionType
 from quantflow.options.surface import VolSurfaceLoader
+from quantflow.rates.yield_curve import NoDiscount
 
 REF_DATE = datetime(2026, 1, 1, tzinfo=timezone.utc)
 MATURITY = datetime(2026, 7, 2, tzinfo=timezone.utc)  # roughly 0.5y
@@ -34,7 +35,11 @@ def _black_mid_usd(strike: float, call_put: int, ttm: float) -> Decimal:
 
 
 def _build_loader(ttm: float) -> VolSurfaceLoader:
-    loader = VolSurfaceLoader(asset="TEST")
+    loader = VolSurfaceLoader(
+        asset="TEST",
+        quote_curve=NoDiscount(ref_date=REF_DATE),
+        asset_curve=NoDiscount(ref_date=REF_DATE),
+    )
     loader.add_spot(
         DefaultVolSecurity.spot(),
         bid=Decimal(str(FORWARD)),
@@ -61,7 +66,7 @@ def _build_loader(ttm: float) -> VolSurfaceLoader:
 def test_loader_recovers_forward_via_parity() -> None:
     """With matched call/put prices the implied forward equals the true forward."""
     loader = _build_loader(ttm=0.5)
-    surface = loader.surface(ref_date=REF_DATE)
+    surface = loader.surface()
     cross = surface.maturities[0]
     assert float(cross.forward.mid) == pytest.approx(FORWARD, rel=1e-6)
 
@@ -69,12 +74,12 @@ def test_loader_recovers_forward_via_parity() -> None:
 def test_bs_recovers_input_volatility() -> None:
     """`bs()` inverts the synthetic non-inverse prices back to the input sigma."""
     loader = _build_loader(ttm=0.5)
-    surface = loader.surface(ref_date=REF_DATE)
+    surface = loader.surface()
     ttm = surface.maturities[0].ttm(surface.ref_date)
     # rebuild prices at the actual ttm so the inversion is not biased by the
     # slight day-count drift from our nominal 0.5y target.
     loader = _build_loader(ttm=ttm)
-    surface = loader.surface(ref_date=REF_DATE)
+    surface = loader.surface()
     surface.bs()
     options = list(surface.option_prices(converged=True))
     assert options, "expected converged options on the synthetic surface"
@@ -85,10 +90,10 @@ def test_bs_recovers_input_volatility() -> None:
 def test_non_inverse_price_in_forward_space_matches_black() -> None:
     """`price_in_forward_space` is the Black forward-space price."""
     loader = _build_loader(ttm=0.5)
-    surface = loader.surface(ref_date=REF_DATE)
+    surface = loader.surface()
     ttm = surface.maturities[0].ttm(surface.ref_date)
     loader = _build_loader(ttm=ttm)
-    surface = loader.surface(ref_date=REF_DATE)
+    surface = loader.surface()
     for option in surface.option_prices():
         log_strike = float(option.log_strike)
         call_put = 1 if option.option_type.is_call() else -1

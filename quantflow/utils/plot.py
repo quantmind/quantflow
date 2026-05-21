@@ -1,11 +1,15 @@
 import os
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
+import numpy as np
 import pandas as pd
 from scipy.stats import norm
 
 from .marginal import Marginal1D
 from .types import FloatArray
+
+if TYPE_CHECKING:
+    from quantflow.rates.yield_curve import YieldCurve
 
 PLOTLY_THEME = os.environ.get("PLOTLY_THEME", "plotly_dark")
 
@@ -212,6 +216,28 @@ def plot3d(
     if kwargs:
         fig.update_layout(**kwargs)
     return fig
+
+
+def plot_yield_curve(
+    curve: "YieldCurve",
+    ttm_max: float = 10.0,
+    n: int = 200,
+    **kwargs: Any,
+) -> Any:
+    check_plotly()
+    ttms = np.linspace(0.0, ttm_max, n)
+    rates = [float(curve.continuously_compounded_rate(t)) for t in ttms]
+    df = pd.DataFrame({"ttm": ttms, "rate": rates})
+    return px.line(
+        df,
+        x="ttm",
+        y="rate",
+        labels={
+            "ttm": "time to maturity (years)",
+            "rate": "continuously compounded rate",
+        },
+        **kwargs,
+    )
 
 
 def candlestick_plot(df: pd.DataFrame, slider: bool = True) -> Any:

@@ -6,6 +6,7 @@ from typing import Self, TypeVar
 
 from pydantic import BaseModel, Field
 
+from quantflow.rates import AnyYieldCurve
 from quantflow.utils.numbers import ZERO, DecimalNumber
 
 P = TypeVar("P")
@@ -44,11 +45,14 @@ class VolSecurityType(enum.StrEnum):
 
 
 class VolSurfaceSecurity(BaseModel):
+    """Base class for Volatility Surface Securities"""
+
     def vol_surface_type(self) -> VolSecurityType:
         raise NotImplementedError("vol_surface_type must be implemented by subclasses")
 
     @classmethod
     def forward(cls) -> Self:
+        """Create a forward security for the volatility surface"""
         raise NotImplementedError("forward_input must be implemented by subclasses")
 
 
@@ -141,7 +145,8 @@ class VolSurfaceInputs(BaseModel):
     """Class representing the inputs for a volatility surface"""
 
     asset: str = Field(description="Underlying asset of the volatility surface")
-    ref_date: datetime = Field(description="Reference date for the volatility surface")
+    asset_curve: AnyYieldCurve = Field(description="Asset yield curve")
+    quote_curve: AnyYieldCurve = Field(description="Quote yield curve")
     inputs: list[ForwardInput | SpotInput | OptionInput] = Field(
         description="List of inputs for the volatility surface"
     )

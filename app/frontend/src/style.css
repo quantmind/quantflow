@@ -1,0 +1,76 @@
+@import url("observablehq:default.css");
+@import url("observablehq:theme-slate.css");
+
+:root {
+  --observablehq-header-height: 3rem;
+  --theme-background-b: #1E2129;
+  --theme-foreground: #ffffffd1;
+  --theme-foreground-focus: #00ccb8;
+  --qf-primary: #009688;
+  --qf-accent: #ffc107;
+  font-family: Roboto, Helvetica, Arial, sans-serif;
+}
+
+#observablehq-header {
+  background: var(--qf-primary);
+  color: #fff;
+  padding: 0;
+  margin: 0;
+  left: 0 !important;
+  right: 0 !important;
+  border-bottom: none;
+}
+
+.qf-header-inner {
+  display: flex;
+  align-items: center;
+  padding: 0.4rem 0.8rem;
+  width: 100%;
+}
+
+.qf-header-logo {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  text-decoration: none;
+  color: #fff !important;
+}
+
+.qf-header-logo img {
+  height: 1.5rem;
+  width: auto;
+}
+
+.qf-header-title {
+  font-size: 0.9rem;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.qf-header-spacer {
+  flex: 1;
+}
+
+.qf-header-link {
+  color: #ffffffcc !important;
+  font-size: 0.8rem;
+  text-decoration: none;
+}
+
+.qf-header-link:hover {
+  color: #fff !important;
+}
+
+.card {
+  border: 1px solid var(--theme-foreground-faintest);
+  border-radius: 0.4rem;
+  color: var(--theme-foreground);
+  display: block;
+  font-weight: 600;
+  padding: 1rem;
+  text-decoration: none;
+}
+
+.card:hover {
+  border-color: var(--qf-primary);
+}

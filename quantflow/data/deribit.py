@@ -14,6 +14,8 @@ from typing_extensions import Annotated, Doc
 
 from quantflow.options.inputs import DefaultVolSecurity, OptionType
 from quantflow.options.surface import VolSurfaceLoader
+from quantflow.rates.yield_curve import NoDiscount
+from quantflow.utils.dates import utcnow
 from quantflow.utils.numbers import (
     Number,
     round_to_step,
@@ -125,6 +127,10 @@ class Deribit(AioHttpClient):
         self,
         currency: Annotated[str, Doc("Currency")],
         *,
+        ref_date: Annotated[
+            datetime | None,
+            Doc("Reference date for the yield curves; defaults to now"),
+        ] = None,
         inverse: Annotated[
             bool,
             Doc(
@@ -139,16 +145,16 @@ class Deribit(AioHttpClient):
         exclude_volume: Annotated[
             Number | None, Doc("Exclude options with volume below this threshold")
         ] = None,
-        use_perp: Annotated[
-            bool, Doc("Whether to use perpetual as futures proxies")
-        ] = False,
     ) -> VolSurfaceLoader:
         """Create a [VolSurfaceLoader][quantflow.options.surface.VolSurfaceLoader]
         for a given crypto-currency"""
+        ref = ref_date or utcnow()
         loader = VolSurfaceLoader(
             asset=currency,
             exclude_open_interest=to_decimal_or_none(exclude_open_interest),
             exclude_volume=to_decimal_or_none(exclude_volume),
+            quote_curve=NoDiscount(ref_date=ref),
+            asset_curve=NoDiscount(ref_date=ref),
         )
         if inverse:
             futures = await self.get_book_summary_by_currency(
@@ -168,24 +174,9 @@ class Deribit(AioHttpClient):
             instruments = await self.get_instruments(currency="usdc", base=currency)
         instrument_map = {i["instrument_name"]: i for i in instruments}
         min_tick_size = Decimal("inf")
-        perp_bid_ask: tuple[Any, Any] | None = None
-        for entry in futures:
-            name = entry["instrument_name"]
-            if (meta := instrument_map.get(name)) is None:
-                continue
-            if (
-                meta["settlement_period"] == "perpetual"
-                and (bid_ := entry["bid_price"])
-                and (ask_ := entry["ask_price"])
-            ):
-                perp_bid_ask = (bid_, ask_)
-                break
-
         for entry in futures:
             bid_ = entry["bid_price"]
             ask_ = entry["ask_price"]
-            if not (bid_ and ask_) and use_perp and perp_bid_ask is not None:
-                bid_, ask_ = perp_bid_ask
             if bid_ and ask_:
                 name = entry["instrument_name"]
                 if (meta := instrument_map.get(name)) is None:
