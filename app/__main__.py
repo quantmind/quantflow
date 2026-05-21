@@ -20,8 +20,7 @@ from .api.sampling import sampling_router
 from .api.smoother import smoother_router
 from .api.status import status_router
 from .api.volatility import volatility_router
-
-PORT = int(os.environ.get("MICRO_SERVICE_PORT", "8001"))
+from .utils.static import HtmlFallbackStaticFiles
 
 
 def crate_app() -> FastAPI:
@@ -65,6 +64,11 @@ def crate_app() -> FastAPI:
     api.include_router(volatility_router)
     app.include_router(api)
     app.include_router(status_router, include_in_schema=False)
+    app.mount(
+        "/examples",
+        HtmlFallbackStaticFiles(directory=APP_PATH / "examples", html=True),
+        name="examples",
+    )
     app.mount("/", StaticFiles(directory=APP_PATH / "docs", html=True), name="static")
     return app
 
@@ -73,4 +77,6 @@ def crate_app() -> FastAPI:
 if __name__ == "__main__":
     import uvicorn
 
-    uvicorn.run(crate_app(), host="0.0.0.0", port=PORT)
+    PORT = int(os.environ.get("MICRO_SERVICE_PORT", "8001"))
+    HOST = os.environ.get("MICRO_SERVICE_HOST", "0.0.0.0")
+    uvicorn.run(crate_app(), host=HOST, port=PORT)

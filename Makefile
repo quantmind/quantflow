@@ -5,6 +5,10 @@ help:
 	@fgrep -h "##" $(MAKEFILE_LIST) | fgrep -v fgrep | sed -e 's/\\$$//' | sed -e 's/##//'
 	@echo ================================================================================
 
+.PHONY: app-serve
+app-serve:			## serve app
+	@MICRO_SERVICE_HOST=127.0.0.1 uv run python -m app
+
 .PHONY: docs
 docs:				## build documentation
 	@cp docs/index.md readme.md
@@ -25,6 +29,7 @@ docs-serve:			## serve docs, examples, and API with auto-reload
 
 .PHONY: frontend-build
 frontend-build:			## build Observable frontend examples
+	@rm -rf app/examples
 	@npm --prefix app/frontend run build
 
 .PHONY: frontend-serve

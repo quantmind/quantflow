@@ -58,7 +58,6 @@ book = [
     "altair>=6.0.0",
     "autodocsumm>=0.2.14",
     "duckdb>=1.4.4",
-    "fastapi>=0.129.0",
     "marimo>=0.19.7",
     "plotly>=6.2.0",
     "sympy>=1.12",
@@ -75,6 +74,7 @@ dev = [
     "types-python-dateutil>=2.9.0.20251115",
 ]
 docs = [
+    "fastapi>=0.129.0",
     "griffe-pydantic>=1.1.0",
     "griffe-typingdoc>=0.2.7",
     "kaleido>=1.2.0",

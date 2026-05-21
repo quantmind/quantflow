@@ -1,11 +1,19 @@
+import {readFileSync} from "node:fs";
+import {resolve, dirname} from "node:path";
+import {fileURLToPath} from "node:url";
+
+const __dirname = dirname(fileURLToPath(import.meta.url));
 const apiOrigin = process.env.QUANTFLOW_API_ORIGIN || "";
+const headSnippet = readFileSync(resolve(__dirname, "../../docs/assets/logos/head-snippet.html"), "utf-8")
+  .trim()
+  .replace(/href="\//g, 'href="https://quantflow.quantmind.com/');
 
 export default {
   title: "Quantflow Examples",
   root: "src",
   output: "../examples",
   base: "/examples",
-  head: `<meta name="quantflow-api-origin" content="${apiOrigin}">`,
+  head: `<meta name="quantflow-api-origin" content="${apiOrigin}">\n${headSnippet}`,
   style: "style.css",
   pages: [{name: "Volatility Surface", path: "/volatility-surface"}, {name: "Yield Curve", path: "/yield-curve"}, {name: "Sampling", path: "/sampling"}, {name: "SuperSmoother", path: "/supersmoother"}, {name: "Cointegration", path: "/cointegration"}, {name: "Hurst Exponent", path: "/hurst"}, {name: "Heston Vol Surface", path: "/heston-vol-surface"}],
   header: `
