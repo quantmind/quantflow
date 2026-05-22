@@ -58,7 +58,7 @@ book = [
     "altair>=6.0.0",
     "autodocsumm>=0.2.14",
     "duckdb>=1.4.4",
-    "marimo>=0.19.7",
+    "marimo>=0.23.7",
     "plotly>=6.2.0",
     "sympy>=1.12",
 ]
@@ -82,6 +82,7 @@ docs = [
     "mkdocs-material>=9.7.0",
     "mkdocs-redirects>=1.2.1",
     "mkdocstrings[python]==1.0.0",
+    "plotly>=6.2.0",
 ]
 ml = [
     "torch>=2.10.0",
