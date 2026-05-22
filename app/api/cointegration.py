@@ -1,7 +1,13 @@
+from functools import partial
+
+import numpy as np
 from fastapi import APIRouter, Query
 from pydantic import BaseModel, Field
+from statsmodels.tsa.vector_ar.vecm import coint_johansen
 
 from quantflow.data.fmp import FMP
+
+from .deps import FMPDep, RedisCache, RedisDep
 
 cointegration_router = APIRouter()
 
@@ -16,22 +22,25 @@ class CointegrationResponse(BaseModel):
 
 @cointegration_router.get("/cointegration")
 async def cointegration(
-    frequency: str = Query(
-        "daily",
+    fmp: FMPDep,
+    redis: RedisDep,
+    frequency: FMP.freq = Query(
+        FMP.freq.daily,
         description="Price frequency",
-        enum=["1min", "5min", "15min", "30min", "1hour", "4hour", "daily"],
     ),
 ) -> CointegrationResponse:
-    import numpy as np
-    from statsmodels.tsa.vector_ar.vecm import coint_johansen
+    cache = RedisCache(
+        redis=redis,
+        Model=CointegrationResponse,
+        key=f"cointegration:{frequency}",
+    )
+    return await cache.from_cache(partial(_cointegration, fmp, frequency))
 
-    # daily uses the EOD endpoint (frequency=None)
-    freq = None if frequency == "daily" else frequency
 
-    async with FMP() as cli:
-        btc = await cli.prices("BTCUSD", convert_to_date=True, frequency=freq)
-        eth = await cli.prices("ETHUSD", convert_to_date=True, frequency=freq)
-        sol = await cli.prices("SOLUSD", convert_to_date=True, frequency=freq)
+async def _cointegration(fmp: FMP, frequency: FMP.freq) -> CointegrationResponse:
+    btc = await fmp.prices("BTCUSD", convert_to_date=True, frequency=frequency)
+    eth = await fmp.prices("ETHUSD", convert_to_date=True, frequency=frequency)
+    sol = await fmp.prices("SOLUSD", convert_to_date=True, frequency=frequency)
 
     btc = btc.set_index("date")
     eth = eth.set_index("date")

@@ -66,6 +66,7 @@ async def _load_surface(asset: str) -> VolSurfaceLoader:
     else:
         async with Yahoo() as cli:
             loader = await cli.volatility_surface_loader(asset)
+        loader.calibrate_spot()
         loader.calibrate_curves(quote_curve=NelsonSiegel)
         return loader
 

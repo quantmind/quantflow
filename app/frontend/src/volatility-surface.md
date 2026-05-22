@@ -8,6 +8,7 @@ Live implied volatility surface from market options data. Crypto assets (BTC, ET
 
 ```js
 import {fetchJson} from "./lib/api.js";
+import {observeScheme, palette1} from "./lib/palette.js";
 import * as Plot from "npm:@observablehq/plot";
 import * as d3 from "npm:d3";
 ```
@@ -86,6 +87,10 @@ const xAxis = Generators.input(xAxisInput);
 ```
 
 ```js
+const scheme = Generators.observe(observeScheme(palette1));
+```
+
+```js
 display(html`<div style="display: flex; gap: 1rem; align-items: end; flex-wrap: wrap">${maturityInput}${xAxisInput}</div>`);
 ```
 
@@ -109,11 +114,12 @@ display(Plot.plot({
   color: {
     type: "ordinal",
     domain: maturities,
-    scheme: "turbo",
+    scheme: scheme,
     legend: selectedMaturity === null,
     label: "Maturity",
     tickFormat: d => d.slice(5, 10)
   },
+  grid: true,
   marks: [
     Plot.dot(smileData, {
       x: xAxis,

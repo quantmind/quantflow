@@ -3,7 +3,7 @@ from dataclasses import dataclass, field
 from datetime import date
 from decimal import Decimal
 from enum import StrEnum
-from typing import Any, Iterator, cast
+from typing import Any, Iterator, Self, cast
 
 import inflection
 import pandas as pd
@@ -31,7 +31,16 @@ class FMP(AioHttpClient):
         thirty_min = "30min"
         one_hour = "1hour"
         four_hour = "4hour"
-        daily = ""
+        daily = "daily"
+
+        @classmethod
+        def crate(cls, s: str | None) -> Self:
+            if s is None:
+                return cls.daily
+            try:
+                return cls(s)
+            except ValueError:
+                return cls.daily
 
     async def market_risk_premium(self) -> list[dict]:
         """Market risk premium"""
@@ -192,10 +201,11 @@ class FMP(AioHttpClient):
         ] = False,
     ) -> pd.DataFrame:
         """Historical prices, daily if frequency is not provided"""
+        freq = self.freq.crate(frequency)
         path = (
             "historical-price-eod/full"
-            if not frequency
-            else f"historical-chart/{frequency}"
+            if freq is self.freq.daily
+            else f"historical-chart/{freq}"
         )
         data = await self.get_path(
             path,

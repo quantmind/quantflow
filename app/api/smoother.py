@@ -1,11 +1,13 @@
-from datetime import date
+from datetime import date, timedelta
+from functools import partial
 
 from fastapi import APIRouter, Query
 from pydantic import BaseModel, Field
 
-from quantflow.data.fmp import FMP
 from quantflow.ta.ewma import EWMA
 from quantflow.ta.supersmoother import SuperSmoother
+
+from .deps import FMPDep, RedisDataframe, RedisDep
 
 smoother_router = APIRouter()
 
@@ -23,11 +25,17 @@ class SmootherResponse(BaseModel):
 
 @smoother_router.get("/supersmoother")
 async def supersmoother(
+    redis: RedisDep,
+    fmp: FMPDep,
     period: int = Query(10, description="Filter period", ge=2, le=100),
     symbol: str = Query("BTCUSD", description="Ticker symbol"),
 ) -> SmootherResponse:
-    async with FMP() as fmp:
-        prices = await fmp.prices(symbol, from_date=date(2024, 1, 1))
+    cache = RedisDataframe(
+        redis=redis,
+        key=f"smoother:{symbol}",
+    )
+    start = date.today() - timedelta(days=365 * 2)
+    prices = await cache.from_cache(partial(fmp.prices, symbol, from_date=start))
     sm = (
         prices[["date", "close"]]
         .copy()

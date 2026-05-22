@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import enum
 import warnings
-from datetime import datetime, timedelta
+from datetime import datetime
 from decimal import Decimal
 from typing import Any, Generic, Iterator, NamedTuple, Self, TypeVar, cast
 
@@ -23,9 +23,10 @@ from quantflow.rates.options import OptionsDiscountingCalibration
 from quantflow.utils import plot
 from quantflow.utils.dates import utcnow
 from quantflow.utils.numbers import (
+    ONE,
     ZERO,
     DecimalNumber,
-    Number,
+    Rounding,
     normalize_decimal,
     round_to_step,
     sigfig,
@@ -66,9 +67,11 @@ class OptionSelection(enum.Enum):
     """
 
     best = enum.auto()
-    """Select the best bid/ask options.
-
-    These are the options which are Out of the Money, where their
+    """Select the OTM option but blend call and put implied volatilities
+    near the money. The blending weight transitions linearly from 50/50
+    at moneyness 0 to pure OTM at the moneyness threshold."""
+    otm = enum.auto()
+    """Select Out of the Money options only, where their
     intrinsic value is zero"""
     call = enum.auto()
     """Select the call options only"""
@@ -138,14 +141,6 @@ class OptionMetadata(BaseModel):
     strike: DecimalNumber = Field(description="Strike price of the option")
     option_type: OptionType = Field(description="Type of the option, call or put")
     maturity: datetime = Field(description="Maturity date of the option")
-    forward: DecimalNumber = Field(
-        default=ZERO, description="Forward price of the underlying"
-    )
-    ttm: float = Field(default=0, description="Time to maturity in years")
-    open_interest: DecimalNumber = Field(
-        default=ZERO, description="Open interest of the option"
-    )
-    volume: DecimalNumber = Field(default=ZERO, description="Total volume traded")
     inverse: bool = Field(
         default=True,
         description=(
@@ -170,6 +165,10 @@ class OptionPrice(BaseModel):
         description="Price of the option as a percentage of the forward price"
     )
     meta: OptionMetadata = Field(description="Metadata of the option price")
+    forward: DecimalNumber = Field(
+        default=ZERO, description="Forward price of the underlying"
+    )
+    ttm: float = Field(default=0, description="Time to maturity in years")
     implied_vol: float = Field(
         default=0, description="Implied volatility of the option"
     )
@@ -181,72 +180,17 @@ class OptionPrice(BaseModel):
         description="Flag indicating if implied vol calculation converged",
     )
 
-    @classmethod
-    def create(
-        cls,
-        strike: Number,
-        *,
-        price: Number = ZERO,
-        implied_vol: float = INITIAL_VOL,
-        forward: Number | None = None,
-        ref_date: datetime | None = None,
-        maturity: datetime | None = None,
-        day_counter: DayCounter | None = None,
-        option_type: OptionType = OptionType.call,
-        open_interest: Number = ZERO,
-        volume: Number = ZERO,
-        inverse: bool = True,
-    ) -> Self:
-        """Create an option price
-
-        mainly used for testing
-        """
-        ref_date = ref_date or utcnow()
-        maturity = maturity or ref_date + timedelta(days=365)
-        day_counter = day_counter or default_day_counter
-        return cls(
-            price=to_decimal(price),
-            implied_vol=implied_vol,
-            meta=OptionMetadata(
-                strike=to_decimal(strike),
-                forward=to_decimal(forward or strike),
-                option_type=option_type,
-                maturity=maturity,
-                ttm=day_counter.dcf(ref_date, maturity),
-                open_interest=to_decimal(open_interest),
-                volume=to_decimal(volume),
-                inverse=inverse,
-            ),
-        )
-
     @property
     def strike(self) -> Decimal:
         return self.meta.strike
-
-    @property
-    def forward(self) -> Decimal:
-        """Forward price of the underlying asset at the time of the option price"""
-        return self.meta.forward
 
     @property
     def maturity(self) -> datetime:
         return self.meta.maturity
 
     @property
-    def ttm(self) -> float:
-        return self.meta.ttm
-
-    @property
     def option_type(self) -> OptionType:
         return self.meta.option_type
-
-    @property
-    def open_interest(self) -> Decimal:
-        return self.meta.open_interest
-
-    @property
-    def volume(self) -> Decimal:
-        return self.meta.volume
 
     @property
     def log_strike(self) -> float:
@@ -330,7 +274,11 @@ class OptionPrice(BaseModel):
         self.price = price if self.meta.inverse else price * self.forward
         return self
 
-    def info_dict(self) -> dict[str, Any]:
+    def info_dict(
+        self,
+        open_interest: Decimal = ZERO,
+        volume: Decimal = ZERO,
+    ) -> dict[str, Any]:
         return dict(
             strike=float(self.strike),
             forward=float(self.forward),
@@ -344,11 +292,15 @@ class OptionPrice(BaseModel):
             price_quote=float(self.price_in_quote),
             type=str(self.option_type),
             side=str(self.side),
-            open_interest=float(self.open_interest),
-            volume=float(self.volume),
+            open_interest=float(open_interest),
+            volume=float(volume),
         )
 
-    def info(self) -> OptionInfo:
+    def info(
+        self,
+        open_interest: Decimal = ZERO,
+        volume: Decimal = ZERO,
+    ) -> OptionInfo:
         """Return a structured [OptionInfo][quantflow.options.surface.OptionInfo]
         representation of this option price"""
         return OptionInfo(
@@ -364,8 +316,8 @@ class OptionPrice(BaseModel):
             price_quote=self.price_in_quote,
             option_type=self.option_type,
             side=self.side,
-            open_interest=self.open_interest,
-            volume=self.volume,
+            open_interest=open_interest,
+            volume=volume,
         )
 
 
@@ -420,10 +372,14 @@ class OptionPrices(BaseModel, Generic[S]):
     [OptionPrice][quantflow.options.surface.OptionPrice] objects.
     """
 
-    security: S = Field(description="The underlying security of the option prices")
+    security: S = Field(description="The underlying security of the price")
     meta: OptionMetadata = Field(description="Metadata for the option prices")
     bid: OptionPrice = Field(description="Bid option price")
     ask: OptionPrice = Field(description="Ask option price")
+    open_interest: DecimalNumber = Field(
+        default=ZERO, description="Open interest of the spot price"
+    )
+    volume: DecimalNumber = Field(default=ZERO, description="Total volume traded")
 
     @property
     def converged(self) -> bool:
@@ -472,11 +428,9 @@ class OptionPrices(BaseModel, Generic[S]):
         ] = INITIAL_VOL,
     ) -> Iterator[OptionPrice]:
         """Iterator over bid/ask option prices"""
-        self.meta.forward = forward
-        self.meta.ttm = ttm
         for o in (self.bid, self.ask):
-            o.meta.forward = forward
-            o.meta.ttm = ttm
+            o.forward = forward
+            o.ttm = ttm
             if not o.implied_vol:
                 o.implied_vol = initial_vol
             yield o
@@ -486,8 +440,8 @@ class OptionPrices(BaseModel, Generic[S]):
         return OptionInput(
             bid=self.bid.price,
             ask=self.ask.price,
-            open_interest=self.meta.open_interest,
-            volume=self.meta.volume,
+            open_interest=self.open_interest,
+            volume=self.volume,
             strike=self.meta.strike,
             maturity=self.meta.maturity,
             option_type=self.meta.option_type,
@@ -530,6 +484,7 @@ class Strike(BaseModel, Generic[S]):
     def options_iter(
         self,
         forward: Annotated[Decimal, Doc("Forward price of the underlying asset")],
+        ttm: Annotated[float, Doc("Time to maturity in years")],
         *,
         select: Annotated[
             OptionSelection, Doc("Option selection method")
@@ -539,10 +494,15 @@ class Strike(BaseModel, Generic[S]):
 
         It uses the `select` parameter to determine which options to include in
         the iteration. The forward price is used to determine the moneyness of
-        the options when the `best` selection method is used, in which
+        the options when the `best` or `otm` selection method is used, in which
         case only the Out of the Money options are included in the iteration.
         """
         match select:
+            case OptionSelection.otm:
+                if self.call and not self.call.is_in_the_money(forward):
+                    yield self.call
+                elif self.put and not self.put.is_in_the_money(forward):
+                    yield self.put
             case OptionSelection.best:
                 if self.call and not self.call.is_in_the_money(forward):
                     yield self.call
@@ -563,6 +523,7 @@ class Strike(BaseModel, Generic[S]):
     def securities(
         self,
         forward: Annotated[Decimal, Doc("Forward price of the underlying asset")],
+        ttm: Annotated[float, Doc("Time to maturity in years")] = 0.0,
         *,
         select: Annotated[
             OptionSelection, Doc("Option selection method")
@@ -576,7 +537,7 @@ class Strike(BaseModel, Generic[S]):
         ] = False,
     ) -> Iterator[OptionPrices[S]]:
         """Iterator over option prices for the strike"""
-        for option in self.options_iter(forward, select=select):
+        for option in self.options_iter(forward, ttm, select=select):
             if not converged or option.converged:
                 yield option
 
@@ -599,7 +560,7 @@ class Strike(BaseModel, Generic[S]):
             ),
         ] = False,
     ) -> Iterator[OptionPrice]:
-        for option in self.options_iter(forward, select=select):
+        for option in self.options_iter(forward, ttm, select=select):
             if not converged or option.converged:
                 yield from option.prices(
                     forward,
@@ -848,11 +809,18 @@ class ForwardPricer(BaseModel, Generic[S]):
         df_quote = to_decimal(float(self.quote_curve.discount_factor(ttm)))
         df_asset = to_decimal(float(self.asset_curve.discount_factor(ttm)))
         forward_rate = self.spot_price() * df_asset / df_quote
-        return (
-            round_to_step(forward_rate, self.tick_size_forwards)
-            if self.tick_size_forwards
-            else forward_rate
-        )
+        return self.clip_forward(forward_rate)
+
+    def clip_forward(
+        self,
+        forward: Decimal,
+        rounding: Rounding = Rounding.ZERO,
+    ) -> Decimal:
+        """Clip the forward price to the nearest tick size if tick_size_forwards
+        is set"""
+        if self.tick_size_forwards:
+            return round_to_step(forward, self.tick_size_forwards, rounding)
+        return forward
 
 
 class VolSurface(ForwardPricer[S]):
@@ -1269,8 +1237,8 @@ class VolCrossSectionLoader(BaseModel, Generic[S]):
         security: Annotated[S, Doc("Security for the option")],
         strike: Annotated[Decimal, Doc("Strike price for the option")],
         option_type: Annotated[OptionType, Doc("Type of the option (call or put)")],
-        bid: Annotated[Decimal, Doc("Bid price for the option")] = ZERO,
-        ask: Annotated[Decimal, Doc("Ask price for the option")] = ZERO,
+        bid: Annotated[Decimal, Doc("Bid price for the option")],
+        ask: Annotated[Decimal, Doc("Ask price for the option")],
         open_interest: Annotated[Decimal, Doc("Open interest for the option")] = ZERO,
         volume: Annotated[Decimal, Doc("Volume for the option")] = ZERO,
         inverse: Annotated[bool, Doc("Whether the option is an inverse option")] = True,
@@ -1283,8 +1251,6 @@ class VolCrossSectionLoader(BaseModel, Generic[S]):
             strike=strike,
             option_type=option_type,
             maturity=self.maturity,
-            open_interest=normalize_decimal(open_interest),
-            volume=normalize_decimal(volume),
             inverse=inverse,
         )
         option = OptionPrices(
@@ -1292,6 +1258,8 @@ class VolCrossSectionLoader(BaseModel, Generic[S]):
             meta=meta,
             bid=OptionPrice(price=normalize_decimal(bid), meta=meta, side=Side.bid),
             ask=OptionPrice(price=normalize_decimal(ask), meta=meta, side=Side.ask),
+            open_interest=normalize_decimal(open_interest),
+            volume=normalize_decimal(volume),
         )
         if option_type.is_call():
             self.strikes[strike].call = option
@@ -1384,8 +1352,8 @@ class GenericVolSurfaceLoader(ForwardPricer[S], arbitrary_types_allowed=True):
     def add_spot(
         self,
         security: Annotated[S, Doc("Security for the spot price")],
-        bid: Annotated[Decimal, Doc("Bid price for the spot")] = ZERO,
-        ask: Annotated[Decimal, Doc("Ask price for the spot")] = ZERO,
+        bid: Annotated[Decimal, Doc("Bid price for the spot")],
+        ask: Annotated[Decimal, Doc("Ask price for the spot")],
         open_interest: Annotated[Decimal, Doc("Open interest for the spot")] = ZERO,
         volume: Annotated[Decimal, Doc("Volume for the spot")] = ZERO,
     ) -> None:
@@ -1404,8 +1372,8 @@ class GenericVolSurfaceLoader(ForwardPricer[S], arbitrary_types_allowed=True):
         self,
         security: Annotated[S, Doc("Security for the forward price")],
         maturity: Annotated[datetime, Doc("Maturity date for the forward price")],
-        bid: Annotated[Decimal, Doc("Bid price for the forward")] = ZERO,
-        ask: Annotated[Decimal, Doc("Ask price for the forward")] = ZERO,
+        bid: Annotated[Decimal, Doc("Bid price for the forward")],
+        ask: Annotated[Decimal, Doc("Ask price for the forward")],
         open_interest: Annotated[Decimal, Doc("Open interest for the forward")] = ZERO,
         volume: Annotated[Decimal, Doc("Volume for the forward")] = ZERO,
     ) -> None:
@@ -1427,8 +1395,8 @@ class GenericVolSurfaceLoader(ForwardPricer[S], arbitrary_types_allowed=True):
         strike: Annotated[Decimal, Doc("Strike price for the option")],
         maturity: Annotated[datetime, Doc("Maturity date for the option")],
         option_type: Annotated[OptionType, Doc("Type of the option (call or put)")],
-        bid: Annotated[Decimal, Doc("Bid price for the option")] = ZERO,
-        ask: Annotated[Decimal, Doc("Ask price for the option")] = ZERO,
+        bid: Annotated[Decimal, Doc("Bid price for the option")],
+        ask: Annotated[Decimal, Doc("Ask price for the option")],
         open_interest: Annotated[Decimal, Doc("Open interest for the option")] = ZERO,
         volume: Annotated[Decimal, Doc("Volume for the option")] = ZERO,
         inverse: Annotated[bool, Doc("Whether the option is an inverse option")] = True,
@@ -1479,6 +1447,56 @@ class GenericVolSurfaceLoader(ForwardPricer[S], arbitrary_types_allowed=True):
             tick_size_options=self.tick_size_options,
         )
 
+    def calibrate_spot(
+        self,
+        *,
+        max_ttm: Annotated[
+            float,
+            Doc(
+                "Maximum time to maturity (in years) for maturities used to imply "
+                "the spot price. Default is 1/52 (one week)."
+            ),
+        ] = 1.0
+        / 52,
+        max_pairs: Annotated[
+            int, Doc("Maximum number of put-call pairs to use per maturity")
+        ] = 10,
+    ) -> Decimal | None:
+        """Calibrate the spot price from short-dated put-call parity.
+
+        For short-dated options where discount factors are approximately 1,
+        put-call parity simplifies to C - P = S - K, so S = C - P + K.
+        This method computes the median implied spot across all put-call pairs
+        with time to maturity at or below max_ttm and updates the spot price.
+
+        Returns the implied spot, or None if no maturities fall within max_ttm.
+        """
+        spot = self.spot
+        if spot is None:
+            raise ValueError("No spot price provided")
+        ref_date = self.ref_date
+        implied_spots: list[float] = []
+        for maturity in sorted(self.maturities):
+            ttm = self.day_counter.dcf(ref_date, maturity)
+            if ttm <= 0:
+                continue
+            if ttm > max_ttm:
+                break
+            parities = self.maturities[maturity].put_call_parities(
+                ONE, ref_date=ref_date, max_pairs=max_pairs
+            )
+            for p in parities.parities:
+                implied_spots.append(float(p.mid + p.strike))
+        if not implied_spots:
+            return None
+        implied_spot = self.clip_forward(to_decimal(float(np.median(implied_spots))))
+        self.spot = SpotPrice(
+            security=spot.security,
+            bid=implied_spot,
+            ask=implied_spot,
+        )
+        return implied_spot
+
     def calibrate_curves(
         self,
         *,
@@ -1498,20 +1516,6 @@ class GenericVolSurfaceLoader(ForwardPricer[S], arbitrary_types_allowed=True):
                 "When None the current asset_curve is unchanged."
             ),
         ] = None,
-        min_rate_q: Annotated[
-            float,
-            Doc(
-                "Minimum continuously compounded quote rate."
-                " Default 0 enforces non-negative quote rates."
-            ),
-        ] = 0.0,
-        min_rate_a: Annotated[
-            float,
-            Doc(
-                "Minimum continuously compounded asset rate."
-                " Set negative to allow positive asset carry."
-            ),
-        ] = 0.0,
         max_pairs: Annotated[
             int, Doc("Maximum number of put-call pairs to use per maturity")
         ] = 10,

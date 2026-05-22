@@ -48,7 +48,7 @@ class ModelOptionPrice(BaseModel, frozen=True):
     forward: DecimalNumber = Field(description="Forward price of the underlying")
     log_strike: float = Field(description="Log strike over forward, i.e. log(K/F)")
     moneyness: float = Field(description="Moneyness")
-    ttm: float = Field(default=0, description="Time to maturity in years")
+    ttm: float = Field(description="Time to maturity in years")
     price: float = Field(
         description=(
             "Option price in"

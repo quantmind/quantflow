@@ -66,3 +66,8 @@ applyTo: '/**'
 
 * Strategy runtime markdown descriptions (read by `load_description()` at runtime) live inside the package at `quantflow/options/strategies/docs/` — they must be inside the package to be accessible when the library is installed
 * mkdocs documentation pages live in `docs/api/options/` — do not mix these two locations
+
+## Code Conventions
+
+* Always use `utcnow` from `quantflow.utils.dates` for getting the current UTC datetime, never use `datetime.utcnow()` or `datetime.now()`
+* Never import inside functions unless explicitly discussed; all imports should be at the top of the module

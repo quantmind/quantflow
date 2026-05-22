@@ -39,7 +39,7 @@ class NelsonSiegel(YieldCurve):
     lambda_: Decimal = Field(default=Decimal(1), description="Decay factor")
 
     def calibrator(self) -> NelsonSiegelCalibration:
-        """Return a [NelsonSiegelCalibration][..NelsonSiegelCalibration] wrapping
+        """Return a [NelsonSiegelCalibration][...NelsonSiegelCalibration] wrapping
         this curve."""
         return NelsonSiegelCalibration(yield_curve=self)
 
