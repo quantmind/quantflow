@@ -40,7 +40,7 @@ _build
 docs/design
 app/docs
 app/examples
-app/frontend/node_modules
-app/frontend/src/.observablehq
+frontend/node_modules
+frontend/src/.observablehq
 docs/assets/examples
 docs/examples/output

@@ -30,7 +30,7 @@ docs-serve:			## serve docs, examples, and API with auto-reload
 .PHONY: frontend-build
 frontend-build:			## build Observable frontend examples
 	@rm -rf app/examples
-	@npm --prefix app/frontend run build
+	@npm --prefix frontend run build
 
 .PHONY: frontend-serve
 frontend-serve:			## serve Observable frontend with auto-reload
