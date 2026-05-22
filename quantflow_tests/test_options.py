@@ -4,6 +4,7 @@ from decimal import Decimal
 
 import numpy as np
 import pytest
+from ccy.core.daycounter import DayCounter
 
 from quantflow.options import bs
 from quantflow.options.calibration import (
@@ -17,17 +18,44 @@ from quantflow.options.calibration import (
 from quantflow.options.inputs import OptionInput
 from quantflow.options.pricer import OptionPricer
 from quantflow.options.surface import (
+    OptionMetadata,
     OptionPrice,
     OptionType,
     VolSurface,
     surface_from_inputs,
 )
 from quantflow.sp.heston import DoubleHeston, DoubleHestonJ, Heston, HestonJ
+from quantflow.utils.dates import utcnow
 from quantflow.utils.distributions import DoubleExponential
 from quantflow_tests.utils import has_plotly
 
 a = np.asarray
 CROSS_SECTIONS = 8
+
+
+def _make_option(
+    strike: float,
+    forward: float,
+    *,
+    price: Decimal = Decimal(0),
+    option_type: OptionType = OptionType.call,
+    ref_date: datetime | None = None,
+    maturity: datetime | None = None,
+) -> OptionPrice:
+    ref_date = ref_date or utcnow()
+    maturity = maturity or ref_date + timedelta(days=365)
+    day_counter = DayCounter.ACTACT
+    return OptionPrice(
+        price=Decimal(str(price)),
+        implied_vol=0.5,
+        forward=Decimal(str(forward)),
+        ttm=day_counter.dcf(ref_date, maturity),
+        meta=OptionMetadata(
+            strike=Decimal(str(strike)),
+            option_type=option_type,
+            maturity=maturity,
+        ),
+    )
 
 
 @pytest.fixture
@@ -95,10 +123,11 @@ def test_term_structure(vol_surface: VolSurface) -> None:
         "maturity",
         "ttm",
         "forward",
+        "implied_forward",
+        "forward_basis",
+        "rate",
         "bid_ask_spread",
         "basis",
-        "rate_percent",
-        "fwd_spread_pct",
         "open_interest",
         "volume",
     ]
@@ -168,22 +197,20 @@ def test_black_vol(vol_surface: VolSurface):
 
 
 def test_call_put_parity():
-    option = OptionPrice.create(100).calculate_price()
+    option = _make_option(100, 100).calculate_price()
     assert option.log_strike == 0
     assert option.price == option.call_price
-    option2 = OptionPrice.create(100, option_type=OptionType.put).calculate_price()
+    option2 = _make_option(100, 100, option_type=OptionType.put).calculate_price()
     assert option2.price == option2.put_price
     assert option2.price == option.put_price
     assert option2.call_price == option.price
 
 
 def test_call_put_parity_otm():
-    option = OptionPrice.create(105, forward=100).calculate_price()
+    option = _make_option(105, 100).calculate_price()
     assert option.log_strike > 0
     assert option.price == option.call_price
-    option2 = OptionPrice.create(
-        105, forward=100, option_type=OptionType.put
-    ).calculate_price()
+    option2 = _make_option(105, 100, option_type=OptionType.put).calculate_price()
     assert option2.price == option2.put_price
     assert option2.price == pytest.approx(option.put_price)
     assert option2.call_price == pytest.approx(option.price)
@@ -226,7 +253,7 @@ def _synthetic_options(
             key = ModelCalibrationEntryKey(
                 maturity=maturity, strike=Decimal(str(strike))
             )
-            op = OptionPrice.create(
+            op = _make_option(
                 strike=strike,
                 forward=1.0,
                 price=Decimal(str(round(price, 8))),

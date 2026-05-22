@@ -39,13 +39,13 @@ def _make_option(
         strike=Decimal(str(strike)),
         option_type=option_type,
         maturity=MATURITY,
-        forward=FORWARD,
-        ttm=TTM,
         inverse=False,
     )
     bid = OptionPrice(
         price=Decimal("0.01"),
         meta=meta,
+        forward=FORWARD,
+        ttm=TTM,
         implied_vol=iv_bid,
         side=Side.bid,
         converged=True,
@@ -53,6 +53,8 @@ def _make_option(
     ask = OptionPrice(
         price=Decimal("0.02"),
         meta=meta,
+        forward=FORWARD,
+        ttm=TTM,
         implied_vol=iv_ask,
         side=Side.ask,
         converged=True,

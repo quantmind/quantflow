@@ -48,7 +48,7 @@ class ModelOptionPrice(BaseModel, frozen=True):
     forward: DecimalNumber = Field(description="Forward price of the underlying")
     log_strike: float = Field(description="Log strike over forward, i.e. log(K/F)")
     moneyness: float = Field(description="Moneyness")
-    ttm: float = Field(default=0, description="Time to maturity in years")
+    ttm: float = Field(description="Time to maturity in years")
     price: float = Field(
         description=(
             "Option price in"
@@ -77,7 +77,7 @@ class ModelOptionPrice(BaseModel, frozen=True):
         and put price for the same strike and maturity"""
         return 1.0 - float(np.exp(self.log_strike))
 
-    @computed_field  # type: ignore [prop-decorator]
+    @computed_field
     @property
     def black(self) -> BlackSensitivities:
         """Calculate the Black price for the option using the price as time value and

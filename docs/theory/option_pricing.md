@@ -1,24 +1,31 @@
 # Option Pricing
 
-We use characteristic function inversion to price European call options on an underlying $S_t = S_0 e^{s_t}$, where $S_0$ is the spot price at time 0. We assume zero interest rates, so the forward equals the spot. The log-return $s_t = x_t - c_t$ is constructed from a driving process $x_t$ and a deterministic [convexity correction](convexity_correction.md) $c_t$ that enforces the martingale condition ${\mathbb E}[e^{s_t}] = 1$.
+We use characteristic function inversion to price European call options on an underlying $S_t = F_t e^{s_t}$, where $F_t$ is the forward price at time $t$.
+The log-return $s_t = x_t - c_t$ is constructed from a driving process $x_t$ and a deterministic [convexity correction](convexity_correction.md) $c_t$
+that enforces the martingale condition ${\mathbb E}[e^{s_t}] = 1$.
 
 ## Call Option
 
-The price $C$ of a call option with strike $K$ is defined as
+The price $C$ of a call option with expiry $\tau$ and strike $K$ is defined as
 
 \begin{equation}
 \begin{aligned}
-C &= S_0 c_k \\
-k &= \ln\frac{K}{S_0} \\
+C &= D_\tau F_\tau c_k \\
+k &= \ln\frac{K}{F_\tau} \\
 c_k &= {\mathbb E}\left[\left(e^{s_t} - e^k\right)^+\right]
     = \int_{-\infty}^\infty \left(e^s - e^k\right)^+ f_{s_t}(s)\, ds
 \end{aligned}
 \label{call-price}
 \end{equation}
 
-$k$ is the [log-strike](../glossary.md#log-strike) and $f_{s_t}$ is the probability density function of $s_t$. The call price is the discounted expected payoff under the risk-neutral measure, which simplifies to the undiscounted expected payoff when interest rates are zero.
+$k$ is the [log-strike](../glossary.md#log-strike) with respect to the forward $F_\tau$ and $f_{s_t}$ is the probability density function of $s_t$.
+$D_\tau$ is the [discount factor](../glossary#discount-factor) to time $\tau$, which is 1 under a zero interest rate assumption.
 
-All three methods share this starting point. They all express $c_k$ via the characteristic function $\Phi_{s_t}$, but differ in how the integration contour is chosen, how the payoff is handled, and the discretisation strategy.
+## Fourier Inversion Methods
+
+The key insight is that while the density $f_{s_t}$ may not have a closed form, its [characteristic function](../glossary.md#characteristic-function) $\Phi_{s_t}$ is available analytically for a wide class of stochastic processes. The integral in $\eqref{call-price}$ can therefore be evaluated by inverting $\Phi_{s_t}$ numerically.
+
+Quantflow implements three Fourier inversion approaches: [Carr and Madan (1999)](../bibliography.md#carr_madan), [Lewis (2001)](../bibliography.md#lewis), and the [COS method](../bibliography.md#cos) (Fang and Oosterlee, 2008). All three share the same starting point and express $c_k$ via $\Phi_{s_t}$, but differ in how the integration contour is chosen, how the payoff is handled, and the discretisation strategy.
 
 ## Carr & Madan
 

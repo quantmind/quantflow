@@ -5,7 +5,7 @@ ISORT_ARGS="-c"
 BLACK_ARG="--check"
 RUFF_ARG=""
 TAPLO_ARG="format --check"
-PACKAGES="quantflow quantflow_tests docs/examples"
+PACKAGES="quantflow quantflow_tests docs/examples app/api app/utils app/__main__.py"
 
 if [ "$1" = "fix" ] ; then
     ISORT_ARGS=""

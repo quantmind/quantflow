@@ -1,0 +1,114 @@
+@import url("observablehq:default.css");
+@import url("observablehq:theme-slate.css");
+
+:root {
+  --observablehq-header-height: 3rem;
+  --theme-background-b: #1E2129;
+  --theme-foreground: #ffffffd1;
+  --theme-foreground-focus: #00ccb8;
+  --qf-primary: #009688;
+  --qf-accent: #ffc107;
+  font-family: Roboto, Helvetica, Arial, sans-serif;
+}
+
+:root[data-theme="light"] {
+  --theme-background-b: #ffffff;
+  --theme-foreground: #1b1e23;
+  --theme-foreground-focus: #007a6e;
+  --syntax-keyword: #cf222e;
+  --syntax-entity: #8250df;
+  --syntax-string: #0a3069;
+  --syntax-comment: #6e7781;
+  color-scheme: light;
+}
+
+:root[data-theme="light"] #observablehq-header {
+  background: var(--qf-primary);
+}
+
+#observablehq-header {
+  background: var(--qf-primary);
+  color: #fff;
+  padding: 0;
+  margin: 0;
+  left: 0 !important;
+  right: 0 !important;
+  border-bottom: none;
+}
+
+.qf-header-inner {
+  display: flex;
+  align-items: center;
+  padding: 0.4rem 0.8rem;
+  width: 100%;
+}
+
+.qf-header-logo {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  text-decoration: none;
+  color: #fff !important;
+}
+
+.qf-header-logo img {
+  height: 1.5rem;
+  width: auto;
+}
+
+.qf-header-title {
+  font-size: 0.9rem;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.qf-header-spacer {
+  flex: 1;
+}
+
+.qf-header-link {
+  color: #ffffffcc !important;
+  font-size: 0.8rem;
+  text-decoration: none;
+}
+
+.qf-header-link:hover {
+  color: #fff !important;
+}
+
+.qf-theme-toggle {
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: #ffffffcc;
+  padding: 0.2rem 0.4rem;
+  line-height: 1;
+  border-radius: 4px;
+  transition: color 0.2s;
+  display: flex;
+  align-items: center;
+}
+
+.qf-theme-toggle:hover {
+  color: #fff;
+}
+
+/* Show filled lightbulb in dark mode (default), outline in light mode */
+.qf-icon-dark { display: none; }
+.qf-icon-light { display: inline-block; }
+:root[data-theme="light"] .qf-icon-dark { display: inline-block; }
+:root[data-theme="light"] .qf-icon-light { display: none; }
+
+.card {
+  border: 1px solid var(--theme-foreground-faintest);
+  border-radius: 0.4rem;
+  color: var(--theme-foreground);
+  display: block;
+  font-weight: 600;
+  padding: 1rem;
+  text-decoration: none;
+}
+
+.card:hover {
+  border-color: var(--qf-primary);
+}

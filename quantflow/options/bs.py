@@ -165,13 +165,13 @@ def black_price(
         ),
     ],
 ) -> FloatArray:
-    r"""Calculate the Black call/put option prices in forward terms
+    r"""Calculate the undiscounted Black call/put option prices in forward terms
     from the following params
 
     $$
     \begin{align}
-        c &= \frac{C}{F} = N(d1) - e^k N(d2) \\
-        p &= \frac{P}{F} = -N(-d1) + e^k N(-d2) \\
+        c &= \frac{C}{D_\tau F_\tau} = N(d1) - e^k N(d2) \\
+        p &= \frac{P}{D_\tau F_\tau} = -N(-d1) + e^k N(-d2) \\
         d1 &= \frac{-k + \frac{\sigma^2 t}{2}}{\sigma \sqrt{t}} \\
         d2 &= d1 - \sigma \sqrt{t}
     \end{align}
@@ -180,7 +180,8 @@ def black_price(
     The results are option prices divided by the forward price also known as
     option prices in forward terms. These are non-dimensional prices
     that can be easily converted to actual option prices by multiplying with the
-    forward price of the underlying asset.
+    forward price of the underlying asset at time to maturity $\tau$
+    and a suitable discount factor if interest rates are non-zero.
     """
     sig2 = sigma * sigma * ttm
     sig = np.sqrt(sig2)

@@ -11,6 +11,10 @@
 
 ::: quantflow.options.surface.VolCrossSectionLoader
 
+## Info Models
+
+::: quantflow.options.surface.OptionInfo
+
 ## Bid/Ask Prices
 
 ::: quantflow.options.surface.Price
@@ -18,8 +22,6 @@
 ::: quantflow.options.surface.SpotPrice
 
 ::: quantflow.options.surface.FwdPrice
-
-::: quantflow.options.surface.ImpliedFwdPrice
 
 ::: quantflow.options.surface.Strike
 

@@ -1,0 +1,18 @@
+{
+  "name": "quantflow-examples",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "observable build",
+    "dev": "observable preview --host 0.0.0.0"
+  },
+  "dependencies": {
+    "@observablehq/framework": "^1.13.4",
+    "@observablehq/plot": "^0.6.17",
+    "d3": "^7.9.0"
+  },
+  "devDependencies": {
+    "concurrently": "^9.2.1",
+    "typescript": "^5.9.3"
+  }
+}
