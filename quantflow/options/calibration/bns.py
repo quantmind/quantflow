@@ -31,7 +31,7 @@ class BNSCalibration(VolModelCalibration[B], Generic[B]):
     """
 
     def get_bounds(self) -> Bounds:
-        vol_range = self.implied_vol_range()
+        vol_range = self.iv_range()
         vol_lb = 0.5 * vol_range.lb[0]
         vol_ub = 1.5 * vol_range.ub[0]
         v2 = vol_lb**2
@@ -93,7 +93,7 @@ class BNS2Calibration(VolModelCalibration[B2], Generic[B2]):
     """
 
     def get_bounds(self) -> Bounds:
-        vol_range = self.implied_vol_range()
+        vol_range = self.iv_range()
         vol_lb = 0.5 * vol_range.lb[0]
         vol_ub = 1.5 * vol_range.ub[0]
         v2 = vol_lb**2

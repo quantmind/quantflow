@@ -59,8 +59,8 @@ const data = await fetchJson(`/.api/heston-vol-surface?${params}`);
 
 ```js
 const flat = data.ttm.flatMap((t, i) =>
-  data.moneyness.map((m, j) => ({ttm: t.toFixed(2), moneyness: m, implied_vol: data.implied_vol[i][j]}))
-).filter(d => d.implied_vol > 0);
+  data.moneyness.map((m, j) => ({ttm: t.toFixed(2), moneyness: m, iv: data.iv[i][j]}))
+).filter(d => d.iv > 0);
 
 display(Plot.plot({
   width: 800,
@@ -72,7 +72,7 @@ display(Plot.plot({
   y: {label: "Implied Volatility", percent: true},
   color: {type: "ordinal", scheme: "turbo", legend: true, label: "TTM"},
   marks: [
-    Plot.line(flat, {x: "moneyness", y: "implied_vol", stroke: "ttm", strokeWidth: 1.5, tip: true}),
+    Plot.line(flat, {x: "moneyness", y: "iv", stroke: "ttm", strokeWidth: 1.5, tip: true}),
     Plot.ruleX([0], {stroke: "var(--theme-foreground-muted)", strokeDasharray: "4,4"}),
   ]
 }));
@@ -83,8 +83,8 @@ display(Plot.plot({
 ```js
 const atmByTtm = data.ttm.map((t, i) => {
   const midIdx = Math.floor(data.moneyness.length / 2);
-  return {ttm: t, implied_vol: data.implied_vol[i][midIdx]};
-}).filter(d => d.implied_vol > 0);
+  return {ttm: t, iv: data.iv[i][midIdx]};
+}).filter(d => d.iv > 0);
 
 display(Plot.plot({
   width: 800,
@@ -95,8 +95,8 @@ display(Plot.plot({
   x: {label: "Time to Maturity"},
   y: {label: "ATM Implied Volatility", percent: true},
   marks: [
-    Plot.line(atmByTtm, {x: "ttm", y: "implied_vol", stroke: "var(--theme-foreground-focus)", strokeWidth: 2}),
-    Plot.dot(atmByTtm, {x: "ttm", y: "implied_vol", fill: "var(--theme-foreground-focus)", r: 4, tip: true}),
+    Plot.line(atmByTtm, {x: "ttm", y: "iv", stroke: "var(--theme-foreground-focus)", strokeWidth: 2}),
+    Plot.dot(atmByTtm, {x: "ttm", y: "iv", fill: "var(--theme-foreground-focus)", r: 4, tip: true}),
   ]
 }));
 ```

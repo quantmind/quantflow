@@ -79,8 +79,8 @@ def _synthetic_options(
     rng = np.random.default_rng(42)
     moneyness_ttm = rng.uniform(-2.0, 2.0, n).astype(np.float32)
     ttm = rng.uniform(0.1, 2.0, n).astype(np.float32)
-    implied_vols = np.full(n, iv, dtype=np.float64)
-    return moneyness_ttm, ttm, implied_vols
+    ivs = np.full(n, iv, dtype=np.float64)
+    return moneyness_ttm, ttm, ivs
 
 
 # ---------------------------------------------------------------------------
@@ -106,8 +106,8 @@ def test_first_factor_is_constant_one(weights: DIVFMWeights) -> None:
 
 def test_calibrate_constant_iv(pricer: DIVFMPricer) -> None:
     target_iv = 0.3
-    moneyness_ttm, ttm, implied_vols = _synthetic_options(iv=target_iv)
-    pricer.calibrate(moneyness_ttm, ttm, implied_vols)
+    moneyness_ttm, ttm, ivs = _synthetic_options(iv=target_iv)
+    pricer.calibrate(moneyness_ttm, ttm, ivs)
 
     # With zero-weight subnets, all non-constant factors collapse to 0,
     # so the model reduces to sigma = beta_1 * 1 = mean(IV)
@@ -118,8 +118,8 @@ def test_calibrate_constant_iv(pricer: DIVFMPricer) -> None:
 def test_maturity_after_calibrate(weights: DIVFMWeights) -> None:
     # Use a tighter moneyness range so Black-Scholes IV inversion is reliable
     pricer = DIVFMPricer(weights=weights)
-    moneyness_ttm, ttm, implied_vols = _synthetic_options(iv=0.3)
-    pricer.calibrate(moneyness_ttm, ttm, implied_vols)
+    moneyness_ttm, ttm, ivs = _synthetic_options(iv=0.3)
+    pricer.calibrate(moneyness_ttm, ttm, ivs)
 
     mp = pricer.maturity(0.5)
     assert mp.ttm == pytest.approx(0.5, rel=1e-3)
@@ -130,12 +130,12 @@ def test_maturity_after_calibrate(weights: DIVFMWeights) -> None:
     assert np.all(df["call"] >= 0.0)
     # implied vols should be close to the calibrated constant in the central region
     central = np.abs(df["moneyness"]) < 0.5
-    assert np.allclose(df.loc[central, "implied_vol"], 0.3, atol=1e-3)
+    assert np.allclose(df.loc[central, "iv"], 0.3, atol=1e-3)
 
 
 def test_maturity_cache(pricer: DIVFMPricer) -> None:
-    moneyness_ttm, ttm, implied_vols = _synthetic_options()
-    pricer.calibrate(moneyness_ttm, ttm, implied_vols)
+    moneyness_ttm, ttm, ivs = _synthetic_options()
+    pricer.calibrate(moneyness_ttm, ttm, ivs)
 
     mp1 = pricer.maturity(0.25)
     mp2 = pricer.maturity(0.25)
@@ -155,10 +155,10 @@ def test_calibrate_with_extra(weights: DIVFMWeights) -> None:
         extra_features=extra_features,
     )
     pricer = DIVFMPricer(weights=w)
-    moneyness_ttm, ttm, implied_vols = _synthetic_options()
+    moneyness_ttm, ttm, ivs = _synthetic_options()
     extra = np.zeros((N, extra_features), dtype=np.float32)
 
-    pricer.calibrate(moneyness_ttm, ttm, implied_vols, extra=extra)
+    pricer.calibrate(moneyness_ttm, ttm, ivs, extra=extra)
 
     assert pricer.extra is not None
     assert pricer.extra.shape == (1, extra_features)
@@ -170,8 +170,8 @@ def test_calibrate_with_extra(weights: DIVFMWeights) -> None:
 
 
 def test_reset_clears_cache(pricer: DIVFMPricer) -> None:
-    moneyness_ttm, ttm, implied_vols = _synthetic_options()
-    pricer.calibrate(moneyness_ttm, ttm, implied_vols)
+    moneyness_ttm, ttm, ivs = _synthetic_options()
+    pricer.calibrate(moneyness_ttm, ttm, ivs)
 
     pricer.maturity(0.25)
     assert len(pricer.ttm) == 1
@@ -237,10 +237,10 @@ def _make_days(
         n = int(rng.integers(20, 60))
         m = rng.uniform(-2.0, 2.0, n).astype(np.float32)
         t = rng.uniform(0.1, 2.0, n).astype(np.float32)
-        implied_vols = (
+        ivs = (
             iv_fn(m, t) if callable(iv_fn) else np.full(n, iv, dtype=np.float64)  # type: ignore[operator]
         )
-        days.append(DayData(moneyness_ttm=m, ttm=t, implied_vols=implied_vols))
+        days.append(DayData(moneyness_ttm=m, ttm=t, ivs=ivs))
     return days
 
 
@@ -308,7 +308,7 @@ def test_trainer_to_weights_produces_pricer() -> None:
 
     pricer = DIVFMPricer(weights=weights)
     day = days[0]
-    pricer.calibrate(day.moneyness_ttm, day.ttm, day.implied_vols)
+    pricer.calibrate(day.moneyness_ttm, day.ttm, day.ivs)
     mp = pricer.maturity(0.5)
     df = mp.prices(np.linspace(-1.5, 1.5, 20) * np.sqrt(mp.ttm))
     assert len(df) == 20

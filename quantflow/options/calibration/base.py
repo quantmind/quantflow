@@ -52,10 +52,10 @@ class OptionEntry(BaseModel):
     options: list[OptionPrice] = Field(default_factory=list)
     """Bid and ask option prices for this entry"""
 
-    def implied_vol_range(self) -> Bounds:
+    def iv_range(self) -> Bounds:
         """Get the range of implied volatilities across bid and ask"""
-        implied_vols = tuple(option.implied_vol for option in self.options)
-        return Bounds(min(implied_vols), max(implied_vols))
+        ivs = tuple(option.iv for option in self.options)
+        return Bounds(min(ivs), max(ivs))
 
     def mid_price(self) -> float:
         """Mid price as the average of bid and ask call prices"""
@@ -64,7 +64,7 @@ class OptionEntry(BaseModel):
 
     def mid_iv(self) -> float:
         """Mid implied volatility as the average of bid and ask"""
-        ivs = tuple(option.implied_vol for option in self.options)
+        ivs = tuple(option.iv for option in self.options)
         return sum(ivs) / len(ivs)
 
 
@@ -175,17 +175,17 @@ class VolModelCalibration(BaseModel, ABC, Generic[M]):
         return self.vol_surface.ref_date
 
     @property
-    def implied_vols(self) -> np.ndarray:
+    def ivs(self) -> np.ndarray:
         data: list[float] = []
         for entry in self.options.values():
-            data.extend(option.implied_vol for option in entry.options)
+            data.extend(option.iv for option in entry.options)
         return np.asarray(data)
 
-    def implied_vol_range(self) -> Bounds:
+    def iv_range(self) -> Bounds:
         """Range of implied volatilities across all calibration options"""
         return Bounds(
-            min(option.implied_vol_range().lb for option in self.options.values()),
-            max(option.implied_vol_range().ub for option in self.options.values()),
+            min(option.iv_range().lb for option in self.options.values()),
+            max(option.iv_range().ub for option in self.options.values()),
         )
 
     def fit(self) -> OptimizeResult:

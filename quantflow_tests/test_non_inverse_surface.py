@@ -84,7 +84,7 @@ def test_bs_recovers_input_volatility() -> None:
     options = list(surface.option_prices(converged=True))
     assert options, "expected converged options on the synthetic surface"
     for option in options:
-        assert option.implied_vol == pytest.approx(SIGMA, abs=5e-4)
+        assert option.iv == pytest.approx(SIGMA, abs=5e-4)
 
 
 def test_non_inverse_price_in_forward_space_matches_black() -> None:

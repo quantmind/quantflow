@@ -68,7 +68,7 @@ def register(mcp: FastMCP, tool: McpTool) -> None:
         index = None if maturity_index < 0 else maturity_index
         vs.bs(index=index)
         df = vs.options_df(index=index)
-        df["implied_vol"] = df["implied_vol"].map("{:.2%}".format)
+        df["iv"] = df["iv"].map("{:.2%}".format)
         return df.to_csv(index=False)
 
     @mcp.tool()

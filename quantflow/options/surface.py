@@ -169,9 +169,7 @@ class OptionPrice(BaseModel):
         default=ZERO, description="Forward price of the underlying"
     )
     ttm: float = Field(default=0, description="Time to maturity in years")
-    implied_vol: float = Field(
-        default=0, description="Implied volatility of the option"
-    )
+    iv: float = Field(default=0, description="Implied volatility of the option")
     side: Side = Field(
         default=Side.bid, description="Side of the market for the option price"
     )
@@ -264,7 +262,7 @@ class OptionPrice(BaseModel):
             sigfig(
                 black_price(
                     np.asarray(self.log_strike),
-                    self.implied_vol,
+                    self.iv,
                     self.ttm,
                     1 if self.option_type.is_call() else -1,
                 ).sum(),
@@ -286,7 +284,7 @@ class OptionPrice(BaseModel):
             log_strike=self.log_strike,
             moneyness=self.log_strike / np.sqrt(self.ttm),
             ttm=self.ttm,
-            implied_vol=self.implied_vol,
+            iv=self.iv,
             price=float(self.price_in_forward_space),
             price_bp=float(self.price_bp),
             price_quote=float(self.price_in_quote),
@@ -310,7 +308,7 @@ class OptionPrice(BaseModel):
             log_strike=to_decimal(self.log_strike),
             moneyness=to_decimal(self.log_strike / np.sqrt(self.ttm)),
             ttm=to_decimal(self.ttm),
-            implied_vol=to_decimal(self.implied_vol),
+            iv=to_decimal(self.iv),
             price=self.price_in_forward_space,
             price_bp=self.price_bp,
             price_quote=self.price_in_quote,
@@ -336,7 +334,7 @@ class OptionInfo(BaseModel):
         description="Standardised moneyness, log(K/F) / sqrt(T)"
     )
     ttm: DecimalNumber = Field(description="Time to maturity in years")
-    implied_vol: DecimalNumber = Field(description="Black implied volatility")
+    iv: DecimalNumber = Field(description="Black implied volatility")
     price: DecimalNumber = Field(
         description="Option price as a fraction of the forward price"
     )
@@ -360,7 +358,7 @@ class OptionArrays(NamedTuple):
     """The option prices"""
     ttm: FloatArray
     """Time to maturity of the options"""
-    implied_vol: FloatArray
+    iv: FloatArray
     """Implied volatility of the options"""
     call_put: FloatArray
     """Indicator for call (1) or put (-1) options"""
@@ -403,11 +401,11 @@ class OptionPrices(BaseModel, Generic[S]):
 
     def iv_bid_ask_spread(self) -> float:
         """Calculate the bid-ask spread of the implied volatility"""
-        return self.ask.implied_vol - self.bid.implied_vol
+        return self.ask.iv - self.bid.iv
 
     def iv_mid(self) -> float:
         """Calculate the mid implied volatility"""
-        return (self.bid.implied_vol + self.ask.implied_vol) / 2
+        return (self.bid.iv + self.ask.iv) / 2
 
     def is_in_the_money(self, forward: Decimal) -> bool:
         """Check if the option is in the money given the forward price"""
@@ -431,8 +429,8 @@ class OptionPrices(BaseModel, Generic[S]):
         for o in (self.bid, self.ask):
             o.forward = forward
             o.ttm = ttm
-            if not o.implied_vol:
-                o.implied_vol = initial_vol
+            if not o.iv:
+                o.iv = initial_vol
             yield o
 
     def inputs(self) -> OptionInput:
@@ -446,14 +444,10 @@ class OptionPrices(BaseModel, Generic[S]):
             maturity=self.meta.maturity,
             option_type=self.meta.option_type,
             iv_bid=to_decimal_or_none(
-                None
-                if np.isnan(self.bid.implied_vol)
-                else round(self.bid.implied_vol, 7)
+                None if np.isnan(self.bid.iv) else round(self.bid.iv, 7)
             ),
             iv_ask=to_decimal_or_none(
-                None
-                if np.isnan(self.ask.implied_vol)
-                else round(self.ask.implied_vol, 7)
+                None if np.isnan(self.ask.iv) else round(self.ask.iv, 7)
             ),
         )
 
@@ -746,7 +740,7 @@ class VolCrossSection(BaseModel, Generic[S]):
                 svi = SVI.fit(log_m, iv_mid, ttm)
             except Exception:
                 break
-            iv_fit = svi.implied_vol(log_m, ttm)
+            iv_fit = svi.iv(log_m, ttm)
             residuals = np.abs(iv_mid - iv_fit) / iv_mid
             found = False
             for option, residual in zip(options, residuals):
@@ -1026,14 +1020,12 @@ class VolSurface(ForwardPricer[S]):
                 k=d.log_strike,
                 price=d.price,
                 ttm=d.ttm,
-                initial_sigma=d.implied_vol,
+                initial_sigma=d.iv,
                 call_put=d.call_put,
             )
-        for option, implied_vol, converged in zip(
-            d.options, result.values, result.converged
-        ):
-            option.implied_vol = float(implied_vol)
-            option.converged = converged and not np.isnan(implied_vol)
+        for option, iv, converged in zip(d.options, result.values, result.converged):
+            option.iv = float(iv)
+            option.converged = converged and not np.isnan(iv)
         return d.options
 
     def calc_bs_prices(
@@ -1052,7 +1044,7 @@ class VolSurface(ForwardPricer[S]):
         otherwise the price calculation won't be correct.
         """
         d = self.as_array(select=select, index=index, converged=True)
-        return black_price(k=d.log_strike, sigma=d.implied_vol, ttm=d.ttm, s=d.call_put)
+        return black_price(k=d.log_strike, sigma=d.iv, ttm=d.ttm, s=d.call_put)
 
     def options_df(
         self,
@@ -1123,14 +1115,14 @@ class VolSurface(ForwardPricer[S]):
             log_strike.append(float(option.log_strike))
             price.append(float(option.price_in_forward_space))
             ttm.append(float(option.ttm))
-            vol.append(float(option.implied_vol))
+            vol.append(float(option.iv))
             call_put.append(1 if option.option_type.is_call() else -1)
         return OptionArrays(
             options=options,
             log_strike=np.array(log_strike),
             price=np.array(price),
             ttm=np.array(ttm),
-            implied_vol=np.array(vol),
+            iv=np.array(vol),
             call_put=np.array(call_put),
         )
 

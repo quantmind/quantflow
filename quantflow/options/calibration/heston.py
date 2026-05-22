@@ -32,7 +32,7 @@ class HestonCalibration(VolModelCalibration[H], Generic[H]):
     )
 
     def get_bounds(self) -> Bounds:
-        vol_range = self.implied_vol_range()
+        vol_range = self.iv_range()
         vol_lb = 0.5 * vol_range.lb[0]
         vol_ub = 1.5 * vol_range.ub[0]
         return Bounds(
@@ -73,7 +73,7 @@ class HestonJCalibration(HestonCalibration[HestonJ[D]], Generic[D]):
 
     def get_bounds(self) -> Bounds:
         base = super().get_bounds()
-        vol_range = self.implied_vol_range()
+        vol_range = self.iv_range()
         vol_lb = 0.5 * vol_range.lb[0]
         vol_ub = 1.5 * vol_range.ub[0]
         lower = list(base.lb) + [1.0, (0.01 * vol_lb) ** 2]
@@ -149,7 +149,7 @@ class DoubleHestonCalibration(VolModelCalibration[DH], Generic[DH]):
         return ttms[len(ttms) // 2]
 
     def get_bounds(self) -> Bounds:
-        vol_range = self.implied_vol_range()
+        vol_range = self.iv_range()
         vol_lb = 0.5 * vol_range.lb[0]
         vol_ub = 1.5 * vol_range.ub[0]
         v2 = vol_lb**2
@@ -271,7 +271,7 @@ class DoubleHestonJCalibration(DoubleHestonCalibration[DoubleHestonJ[D]], Generi
 
     def get_bounds(self) -> Bounds:
         base = super().get_bounds()
-        vol_range = self.implied_vol_range()
+        vol_range = self.iv_range()
         vol_lb = 0.5 * vol_range.lb[0]
         vol_ub = 1.5 * vol_range.ub[0]
         lower = list(base.lb) + [1.0, (0.01 * vol_lb) ** 2]
