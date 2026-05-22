@@ -2,7 +2,9 @@
 name = "quantflow"
 version = "0.9.0"
 description = "quantitative analysis"
-authors = [ { name = "Luca Sbardella", email = "luca@quantmind.com" } ]
+authors = [
+    { name = "Luca Sbardella", email = "luca@quantmind.com" },
+]
 license = "BSD-3-Clause"
 classifiers = [
     "Development Status :: 4 - Beta",
@@ -62,7 +64,9 @@ book = [
     "plotly>=6.2.0",
     "sympy>=1.12",
 ]
-data = [ "aio-fluid[http]>=1.2.1" ]
+data = [
+    "aio-fluid[http]>=2.2.6",
+]
 dev = [
     "black>=26.3.1",
     "ghp-import>=2.0.2",
@@ -74,6 +78,7 @@ dev = [
     "types-python-dateutil>=2.9.0.20251115",
 ]
 docs = [
+    "aio-fluid[http,log,k8s]>=2.2.6",
     "fastapi>=0.129.0",
     "griffe-pydantic>=1.1.0",
     "griffe-typingdoc>=0.2.7",
@@ -92,11 +97,15 @@ ml = [
 qf-mcp = "quantflow.ai.server:main"
 
 [build-system]
-requires = [ "hatchling" ]
+requires = [
+    "hatchling",
+]
 build-backend = "hatchling.build"
 
 [tool.uv.workspace]
-members = [ "packages/*" ]
+members = [
+    "packages/*",
+]
 
 [tool.uv.sources]
 torch = { index = "pytorch" }
@@ -114,7 +123,9 @@ theme = "dark"
 
 [tool.pytest.ini_options]
 asyncio_mode = "auto"
-testpaths = [ "quantflow_tests" ]
+testpaths = [
+    "quantflow_tests",
+]
 
 [tool.coverage.report]
 exclude_also = [
@@ -123,14 +134,21 @@ exclude_also = [
 
 [tool.isort]
 profile = "black"
-skip_glob = [ "app/frontend/*" ]
+skip_glob = [
+    "app/frontend/*",
+]
 
 [tool.black]
 extend-exclude = "/app/frontend/"
 
 [tool.ruff]
-exclude = [ "app/frontend" ]
-lint.select = [ "E", "F" ]
+exclude = [
+    "app/frontend",
+]
+lint.select = [
+    "E",
+    "F",
+]
 line-length = 88
 
 [tool.hatch.version]
@@ -140,9 +158,13 @@ path = "quantflow/__init__.py"
 # strict = true
 disallow_untyped_calls = true
 disallow_untyped_defs = true
-exclude = [ "^app/frontend/" ]
+exclude = [
+    "^app/frontend/",
+]
 warn_no_return = true
-disable_error_code = [ "prop-decorator" ]
+disable_error_code = [
+    "prop-decorator",
+]
 
 [[tool.mypy.overrides]]
 module = [
