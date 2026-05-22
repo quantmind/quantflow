@@ -4,7 +4,7 @@ import {fileURLToPath} from "node:url";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const apiOrigin = process.env.QUANTFLOW_API_ORIGIN || "";
-const headSnippet = readFileSync(resolve(__dirname, "../../docs/assets/logos/head-snippet.html"), "utf-8")
+const headSnippet = readFileSync(resolve(__dirname, "../docs/assets/logos/head-snippet.html"), "utf-8")
   .trim()
   .replace(/href="\//g, 'href="https://quantflow.quantmind.com/');
 
