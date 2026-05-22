@@ -14,3 +14,5 @@ __pycache__
 .pytest_cache
 .codebuild
 .gihub
+frontend/node_modules
+frontend/src/.observablehq

@@ -5,8 +5,11 @@ FROM ghcr.io/astral-sh/uv:python3.14-bookworm-slim AS builder
 WORKDIR /build
 
 # Install Chromium for kaleido (Plotly static image export used by docs examples)
+# Install Node.js for Observable Framework frontend build
 RUN apt-get update && apt-get install -y --no-install-recommends \
     chromium \
+    nodejs \
+    npm \
     && rm -rf /var/lib/apt/lists/*
 
 # Copy dependency files
@@ -20,7 +23,10 @@ COPY mkdocs.yml ./
 COPY dev/ ./dev/
 COPY docs/ ./docs/
 COPY quantflow/ ./quantflow/
+COPY frontend/ ./frontend/
 COPY app/ ./app/
+RUN npm --prefix frontend install
+RUN npm --prefix frontend run build
 RUN uv run ./dev/build-examples
 RUN uv run mkdocs build
 

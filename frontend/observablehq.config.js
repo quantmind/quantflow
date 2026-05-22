@@ -11,7 +11,7 @@ const headSnippet = readFileSync(resolve(__dirname, "../../docs/assets/logos/hea
 export default {
   title: "Quantflow Examples",
   root: "src",
-  output: "../examples",
+  output: "../app/examples",
   base: "/examples",
   head: `<meta name="quantflow-api-origin" content="${apiOrigin}">\n${headSnippet}`,
   style: "style.css",
