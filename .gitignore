@@ -37,6 +37,7 @@ dist
 _build
 
 # builds
+docs/design
 app/docs
 app/examples
 app/frontend/node_modules
