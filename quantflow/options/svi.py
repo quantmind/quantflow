@@ -88,7 +88,7 @@ class SVI(BaseModel, extra="forbid"):
         km = k_arr - m
         return a + b * (rho * km + np.sqrt(km**2 + theta**2))
 
-    def implied_vol(
+    def iv(
         self,
         k: Annotated[ArrayLike, Doc("Log-moneyness log(K/F), scalar or array")],
         ttm: Annotated[float, Doc("Time to maturity in years")],

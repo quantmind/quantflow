@@ -325,7 +325,7 @@ async def test_crypto_implied_volatility(
         result = await crypto_server.call_tool(
             "crypto_implied_volatility", {"currency": "ETH"}
         )
-        assert "implied_vol" in text(result)
+        assert "iv" in text(result)
 
 
 async def test_crypto_prices(

@@ -100,7 +100,7 @@ class DIVFMPricer(OptionPricerBase, arbitrary_types_allowed=True):
         self,
         moneyness_ttm: FloatArray,
         ttm: FloatArray,
-        implied_vols: FloatArray,
+        ivs: FloatArray,
         extra: FloatArray | None = None,
     ) -> None:
         """Fit daily OLS coefficients from observed implied volatilities.
@@ -118,7 +118,7 @@ class DIVFMPricer(OptionPricerBase, arbitrary_types_allowed=True):
             Shape (N,). Time-scaled moneyness M = log(K/F) / sqrt(tau).
         ttm:
             Shape (N,). Time-to-maturity tau in years.
-        implied_vols:
+        ivs:
             Shape (N,). Observed implied volatilities.
         extra:
             Shape (N, extra_features) or None. Additional features passed to
@@ -130,7 +130,7 @@ class DIVFMPricer(OptionPricerBase, arbitrary_types_allowed=True):
             np.asarray(ttm, dtype=np.float32),
             extra_arr,
         )
-        self.betas = np.linalg.lstsq(F, implied_vols, rcond=None)[0]
+        self.betas = np.linalg.lstsq(F, ivs, rcond=None)[0]
         # Store the mean X across options as the day-level representative value
         # used when pricing on a grid in _compute_maturity
         self.extra = (

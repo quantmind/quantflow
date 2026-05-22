@@ -41,7 +41,7 @@ const enriched = options.map(d => ({
   log_strike: parseFloat(d.log_strike),
   moneyness: parseFloat(d.moneyness),
   ttm: parseFloat(d.ttm),
-  implied_vol: parseFloat(d.implied_vol),
+  iv: parseFloat(d.iv),
   price_bp: parseFloat(d.price_bp),
   open_interest: parseFloat(d.open_interest),
   volume: parseFloat(d.volume),
@@ -123,7 +123,7 @@ display(Plot.plot({
   marks: [
     Plot.dot(smileData, {
       x: xAxis,
-      y: "implied_vol",
+      y: "iv",
       fill: "maturity",
       r: 3,
       opacity: 0.8,
@@ -142,7 +142,7 @@ display(Plot.plot({
 const atmByMaturity = maturities.map(m => {
   const slice = enriched.filter(d => d.maturity === m);
   const atm = slice.reduce((best, d) => Math.abs(d.moneyness) < Math.abs(best.moneyness) ? d : best);
-  return {maturity: m, implied_vol: atm.implied_vol};
+  return {maturity: m, iv: atm.iv};
 });
 
 display(Plot.plot({
@@ -154,10 +154,10 @@ display(Plot.plot({
   x: {label: "Maturity", type: "point"},
   y: {label: "ATM Implied Volatility", percent: true},
   marks: [
-    Plot.line(atmByMaturity, {x: "maturity", y: "implied_vol", stroke: "var(--theme-foreground-focus)", strokeWidth: 2}),
+    Plot.line(atmByMaturity, {x: "maturity", y: "iv", stroke: "var(--theme-foreground-focus)", strokeWidth: 2}),
     Plot.dot(atmByMaturity, {
       x: "maturity",
-      y: "implied_vol",
+      y: "iv",
       fill: "var(--theme-foreground-focus)",
       r: 5,
       tip: true

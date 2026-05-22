@@ -13,7 +13,7 @@ heston_router = APIRouter()
 class VolSurfaceGridResponse(BaseModel):
     moneyness: list[float] = Field(description="Moneyness grid values")
     ttm: list[float] = Field(description="Time to maturity grid values")
-    implied_vol: list[list[float]] = Field(
+    iv: list[list[float]] = Field(
         description="Implied vol grid (rows=ttm, cols=moneyness)"
     )
 
@@ -68,7 +68,7 @@ async def heston_vol_surface(
     implied = np.zeros((len(ttm_arr), len(moneyness_arr)))
     for i, t in enumerate(ttm_arr):
         maturity = pricer.maturity(float(t))
-        vols = maturity.prices(moneyness_arr * np.sqrt(t))["implied_vol"].values
+        vols = maturity.prices(moneyness_arr * np.sqrt(t))["iv"].values
         # replace NaN/Inf/negative with 0
         vols = np.where(np.isfinite(vols) & (vols > 0), vols, 0.0)
         implied[i, :] = vols
@@ -76,5 +76,5 @@ async def heston_vol_surface(
     return VolSurfaceGridResponse(
         moneyness=[float(m) for m in moneyness_arr],
         ttm=[float(t) for t in ttm_arr],
-        implied_vol=[[float(v) for v in row] for row in implied],
+        iv=[[float(v) for v in row] for row in implied],
     )

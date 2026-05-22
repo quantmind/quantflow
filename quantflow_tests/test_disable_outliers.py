@@ -46,7 +46,7 @@ def _make_option(
         meta=meta,
         forward=FORWARD,
         ttm=TTM,
-        implied_vol=iv_bid,
+        iv=iv_bid,
         side=Side.bid,
         converged=True,
     )
@@ -55,7 +55,7 @@ def _make_option(
         meta=meta,
         forward=FORWARD,
         ttm=TTM,
-        implied_vol=iv_ask,
+        iv=iv_ask,
         side=Side.ask,
         converged=True,
     )
@@ -150,7 +150,7 @@ def _svi_smile(
         theta=Decimal("0.15"),
     )
     k = np.log(np.array(strikes) / forward)
-    return svi.implied_vol(k, ttm).tolist()
+    return svi.iv(k, ttm).tolist()
 
 
 def test_pass2_disables_svi_outlier() -> None:

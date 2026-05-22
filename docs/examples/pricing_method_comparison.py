@@ -59,7 +59,7 @@ class PricingMethodComparison(BaseModel):
         description="Chart properties for each pricing method",
     )
 
-    def _implied_vols(
+    def _ivs(
         self, r: OptionPricingResult, log_strikes: np.ndarray, ttm: float
     ) -> np.ndarray:
         call = np.asarray(r.call_price(log_strikes))
@@ -91,7 +91,7 @@ class PricingMethodComparison(BaseModel):
                 self.ref_n + 1, max_log_strike=max_log_strike
             )
             ref = ms.call_option(self.ref_n, max_moneyness=self.max_moneyness)
-            iv_ref = self._implied_vols(ref, log_strikes, ttm)
+            iv_ref = self._ivs(ref, log_strikes, ttm)
             moneyness_ref = log_strikes / np.sqrt(ttm)
             ttm_label = f"TTM={ttm}"
             slug = ttm_label.lower().replace("=", "").replace(".", "_")
@@ -136,7 +136,7 @@ class PricingMethodComparison(BaseModel):
                         fig.add_trace(
                             go.Scatter(
                                 x=moneyness_ref,
-                                y=self._implied_vols(r, log_strikes, ttm),
+                                y=self._ivs(r, log_strikes, ttm),
                                 name=method.value,
                                 mode="lines",
                                 line=dict(color=props.color, dash=props.dash),

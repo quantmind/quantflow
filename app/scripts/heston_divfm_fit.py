@@ -85,7 +85,7 @@ def _sample_day(rng: np.random.Generator, pricer: OptionPricer) -> DayData | Non
             np.float32
         )
         moneyness = m_ttm * np.sqrt(ttm)
-        ivs = np.interp(moneyness, mat.moneyness, mat.implied_vols)
+        ivs = np.interp(moneyness, mat.moneyness, mat.ivs)
 
         # drop any degenerate points (NaN / non-positive IV)
         valid = np.isfinite(ivs) & (ivs > 0)
@@ -102,7 +102,7 @@ def _sample_day(rng: np.random.Generator, pricer: OptionPricer) -> DayData | Non
     return DayData(
         moneyness_ttm=np.concatenate(m_list),
         ttm=np.concatenate(t_list),
-        implied_vols=np.concatenate(iv_list),
+        ivs=np.concatenate(iv_list),
     )
 
 

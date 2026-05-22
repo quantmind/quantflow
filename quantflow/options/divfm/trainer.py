@@ -25,7 +25,7 @@ class DayData:
     """Shape (N,). Time-scaled moneyness M = log(K/F) / sqrt(tau)."""
     ttm: np.ndarray
     """Shape (N,). Time-to-maturity tau in years."""
-    implied_vols: np.ndarray
+    ivs: np.ndarray
     """Shape (N,). Observed implied volatilities."""
     extra: np.ndarray | None = None
     """Shape (N, extra_features) or None. Additional observable features X."""
@@ -44,7 +44,7 @@ def _day_loss(
     """
     M = torch.tensor(day.moneyness_ttm, dtype=torch.float32)
     T = torch.tensor(day.ttm, dtype=torch.float32)
-    IV = torch.tensor(day.implied_vols, dtype=torch.float32)
+    IV = torch.tensor(day.ivs, dtype=torch.float32)
     extra = (
         torch.tensor(day.extra, dtype=torch.float32) if day.extra is not None else None
     )

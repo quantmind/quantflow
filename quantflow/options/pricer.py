@@ -186,7 +186,7 @@ class MaturityPricer(BaseModel, arbitrary_types_allowed=True):
                 "log_strike": log_strikes,
                 "moneyness": self.moneyness(log_strikes),
                 "call": call_prices,
-                "implied_vol": ivs,
+                "iv": ivs,
                 "time_value": call_prices - np.maximum(0, 1 - np.exp(log_strikes)),
             }
         )
@@ -283,7 +283,7 @@ class OptionPricerBase(BaseModel, arbitrary_types_allowed=True):
         implied = np.zeros((len(ttm), len(moneyness)))
         for i, t in enumerate(ttm):
             maturity = self.maturity(cast(float, t))
-            implied[i, :] = maturity.prices(moneyness * np.sqrt(t))["implied_vol"]
+            implied[i, :] = maturity.prices(moneyness * np.sqrt(t))["iv"]
         properties: dict = dict(
             xaxis_title="moneyness",
             yaxis_title="TTM",
@@ -292,7 +292,7 @@ class OptionPricerBase(BaseModel, arbitrary_types_allowed=True):
             scene=dict(
                 xaxis=dict(title="moneyness"),
                 yaxis=dict(title="TTM"),
-                zaxis=dict(title="implied_vol"),
+                zaxis=dict(title="iv"),
             ),
             scene_camera=scene_camera or dict(eye=dict(x=1.2, y=-1.8, z=0.3)),
             contours=dict(

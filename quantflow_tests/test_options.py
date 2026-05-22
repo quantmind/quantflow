@@ -47,7 +47,7 @@ def _make_option(
     day_counter = DayCounter.ACTACT
     return OptionPrice(
         price=Decimal(str(price)),
-        implied_vol=0.5,
+        iv=0.5,
         forward=Decimal(str(forward)),
         ttm=day_counter.dcf(ref_date, maturity),
         meta=OptionMetadata(
@@ -152,7 +152,7 @@ def test_trim_full(vol_surface: VolSurface) -> None:
     assert trimmed == vol_surface
 
 
-def test_inputs_implied_vols(vol_surface: VolSurface) -> None:
+def test_inputs_ivs(vol_surface: VolSurface) -> None:
     vol_surface.bs()
     inputs = vol_surface.inputs()
     option_inputs = [i for i in inputs.inputs if isinstance(i, OptionInput)]
@@ -164,7 +164,7 @@ def test_inputs_implied_vols(vol_surface: VolSurface) -> None:
     assert converged
 
 
-def test_inputs_implied_vols_rounded(vol_surface: VolSurface) -> None:
+def test_inputs_ivs_rounded(vol_surface: VolSurface) -> None:
     vol_surface.bs()
     inputs = vol_surface.inputs()
     option_inputs = [i for i in inputs.inputs if isinstance(i, OptionInput)]
@@ -222,7 +222,7 @@ def test_calibration_setup(vol_surface: VolSurface, heston: OptionPricer[Heston]
     )
     assert cal.ref_date == vol_surface.ref_date
     assert cal.options
-    vol_range = cal.implied_vol_range()
+    vol_range = cal.iv_range()
     assert vol_range.lb < vol_range.ub
     assert vol_range.lb > 0
     assert vol_range.ub < 10
