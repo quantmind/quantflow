@@ -1,4 +1,6 @@
+from datetime import date
 from typing import AsyncIterator
+from unittest.mock import AsyncMock
 
 import pytest
 
@@ -59,3 +61,38 @@ async def __test_fiscal_data() -> None:
         assert df is not None
         assert df.shape[0] > 0
         assert df.shape[1] == 2
+
+
+async def test_fiscal_securities_builds_previous_month_filter() -> None:
+    fd = FiscalData()
+    fd.get_all = AsyncMock(return_value=[{"a": 1}])  # type: ignore[method-assign]
+    df = await fd.securities(record_date=date(2024, 3, 15))
+    fd.get_all.assert_awaited_once_with(
+        "/v1/debt/mspd/mspd_table_3_market",
+        {"filter": "record_date:eq:2024-02-29"},
+    )
+    assert len(df) == 1
+
+
+async def test_fiscal_get_all_multi_page() -> None:
+    fd = FiscalData()
+    fd.get = AsyncMock(  # type: ignore[method-assign]
+        side_effect=[
+            {
+                "data": [{"id": 1}],
+                "links": {"next": "/v1/debt/mspd/mspd_table_3_market?page=2"},
+            },
+            {"data": [{"id": 2}], "links": {"next": None}},
+        ]
+    )
+    data = await fd.get_all("/v1/debt/mspd/mspd_table_3_market", {"a": "b"})
+    assert data == [{"id": 1}, {"id": 2}]
+    assert fd.get.await_count == 2
+
+
+async def test_fiscal_get_all_single_page_without_links() -> None:
+    fd = FiscalData()
+    fd.get = AsyncMock(return_value={"data": [{"id": 7}]})  # type: ignore[method-assign]
+    data = await fd.get_all("/v1/debt/mspd/mspd_table_3_market", {"a": "b"})
+    assert data == [{"id": 7}]
+    fd.get.assert_awaited_once()
