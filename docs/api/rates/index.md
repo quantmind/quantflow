@@ -12,6 +12,10 @@ The central concept is the [discount factor](../../glossary.md#discount-factor) 
     f(\tau) = -\frac{\partial \ln D_\tau}{\partial \tau}
 \end{equation}
 
+**[CIRCurve](cir.md)** is a short-rate term-structure model derived from the Cox-Ingersoll-Ross process, with positive-rate dynamics and closed-form discount factors.
+
 **[NelsonSiegel](nelson_siegel.md)** is a concrete `YieldCurve` implementation that fits a smooth parametric curve to observed zero-coupon rates using the Nelson-Siegel functional form.
+
+**[VasicekCurve](vasicek.md)** is a Gaussian mean-reverting short-rate model with analytical formulas for discount factors and instantaneous forward rates.
 
 **[Options Discounting](options.md)** provides `YieldCurveCalibration`, the base class for fitting a yield curve to discount factors, and `OptionsDiscountingCalibration`, which bootstraps asset and quote curves from put-call parity observations.

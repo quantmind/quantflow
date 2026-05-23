@@ -58,6 +58,19 @@ Time series filters and indicators for financial data.
 | [OHLC](ta/ohlc.md) | OHLC bar utilities and resampling |
 | [Paths](ta/paths.md) | Simulated path containers and statistics |
 
+### [Rates](rates/index.md)
+
+Interest rate models and curve construction tools for discounting and term-structure modelling.
+
+| Module | Description |
+|---|---|
+| [Interest Rate](rates/interest_rate.md) | Spot/forward rates with compounding and day-count conventions |
+| [Yield Curve](rates/yield_curve.md) | Base class for discount factors and instantaneous forward rates |
+| [CIR Curve](rates/cir.md) | Cox-Ingersoll-Ross short-rate term-structure model |
+| [Nelson Siegel Curve](rates/nelson_siegel.md) | Parametric yield curve with level, slope, and curvature factors |
+| [Vasicek Curve](rates/vasicek.md) | Gaussian mean-reverting short-rate term-structure model |
+| [Options Discounting](rates/options.md) | Curve calibration from discount factors and put-call parity data |
+
 ### [Utilities](utils/index.md)
 
 Low-level building blocks used throughout the library.
