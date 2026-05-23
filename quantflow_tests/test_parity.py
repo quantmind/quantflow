@@ -4,7 +4,7 @@ from decimal import Decimal
 
 import pytest
 
-from quantflow.options.parity import PutCallParity, PutCallParities
+from quantflow.options.parity import PutCallParities, PutCallParity
 from quantflow.utils.price import Price
 
 

@@ -1,5 +1,5 @@
-from typing import AsyncIterator
 from datetime import date
+from typing import AsyncIterator
 from unittest.mock import AsyncMock
 
 import pytest

@@ -12,9 +12,9 @@ try:
 
     from quantflow.options.divfm.network import (
         DIVFMNetwork,
-        _extract_subnet as extract_subnet_torch,
-        _make_subnet as make_subnet_torch,
     )
+    from quantflow.options.divfm.network import _extract_subnet as extract_subnet_torch
+    from quantflow.options.divfm.network import _make_subnet as make_subnet_torch
     from quantflow.options.divfm.trainer import DayData, DIVFMTrainer, _day_loss
 
     has_torch = True
