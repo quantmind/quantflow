@@ -136,23 +136,28 @@ class CIRCurve(YieldCurve):
 
     @classmethod
     def calibrate(cls, ttm: ArrayLike, rates: ArrayLike) -> Self:
-        """Fit the CIR curve to continuously compounded rates via least squares."""
+        """Fit the CIR curve to continuously compounded rates via least squares.
+
+        The Feller condition is enforced by reparametrising sigma as
+        sigma = ratio * sqrt(2 * kappa * theta), with ratio in [0, 1].
+        """
         ttm_arr = np.asarray(ttm, dtype=float)
         rates_arr = np.asarray(rates, dtype=float)
 
         def residuals(params: np.ndarray) -> np.ndarray:
-            curve = cls(
-                rate=params[0], kappa=params[1], theta=params[2], sigma=params[3]
-            )
+            rate, kappa, theta, sigma_ratio = params
+            sigma = sigma_ratio * np.sqrt(2.0 * kappa * theta)
+            curve = cls(rate=rate, kappa=kappa, theta=theta, sigma=sigma)
             df = np.asarray(curve.discount_factor(ttm_arr), dtype=float)
             fitted = -np.log(df) / ttm_arr
             return fitted - rates_arr
 
-        x0 = np.array([rates_arr[0], 1.0, rates_arr[-1], 0.1])
+        x0 = np.array([rates_arr[0], 1.0, rates_arr[-1], 0.5])
         result = least_squares(
             residuals,
             x0,
-            bounds=([0.0, 1e-4, 0.0, 1e-4], [1.0, 50.0, 1.0, 2.0]),
+            bounds=([0.0, 1e-4, 1e-6, 1e-4], [1.0, 50.0, 1.0, 1.0]),
         )
-        r, k, th, s = result.x
+        r, k, th, sr = result.x
+        s = sr * np.sqrt(2.0 * k * th)
         return cls(rate=r, kappa=k, theta=th, sigma=s)

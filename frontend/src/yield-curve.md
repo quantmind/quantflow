@@ -13,7 +13,7 @@ import * as d3 from "npm:d3";
 ```
 
 ```js
-const curveType = view(Inputs.select(["nelson_siegel", "vasicek_curve"], {label: "Curve type"}));
+const curveType = view(Inputs.select(["nelson_siegel", "vasicek_curve", "cir_curve"], {label: "Curve type"}));
 ```
 
 ```js
