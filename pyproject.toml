@@ -88,6 +88,7 @@ docs = [
     "mkdocs-redirects>=1.2.1",
     "mkdocstrings[python]==1.0.0",
     "plotly>=6.2.0",
+    "pyarrow>=19.0.0",
 ]
 ml = [
     "torch>=2.10.0",
@@ -125,6 +126,12 @@ theme = "dark"
 asyncio_mode = "auto"
 testpaths = [
     "quantflow_tests",
+]
+
+[tool.coverage.run]
+source = [
+    "quantflow",
+    "app",
 ]
 
 [tool.coverage.report]
