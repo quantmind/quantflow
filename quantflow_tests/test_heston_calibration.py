@@ -14,7 +14,7 @@ from quantflow.utils.distributions import DoubleExponential
 
 
 def test_heston_calibration_get_set_and_penalize(vol_surface) -> None:
-    cal = HestonCalibration(
+    cal: HestonCalibration = HestonCalibration(
         pricer=OptionPricer(
             model=Heston.create(vol=0.4, kappa=2.0, sigma=0.6, rho=-0.4)
         ),
@@ -41,7 +41,9 @@ def test_hestonj_calibration_get_set_and_bounds(vol_surface) -> None:
         jump_fraction=0.2,
         jump_asymmetry=0.1,
     )
-    cal = HestonJCalibration(pricer=OptionPricer(model=model), vol_surface=vol_surface)
+    cal: HestonJCalibration = HestonJCalibration(
+        pricer=OptionPricer(model=model), vol_surface=vol_surface
+    )
     params = cal.get_params()
     cal.set_params(params)
     assert np.allclose(cal.get_params(), params)
@@ -54,7 +56,7 @@ def test_double_heston_calibration_param_logic(vol_surface) -> None:
         heston1=Heston.create(vol=0.3, kappa=2.0, sigma=0.4, rho=-0.2),
         heston2=Heston.create(vol=0.25, kappa=1.0, sigma=0.3, rho=-0.4),
     )
-    cal = DoubleHestonCalibration(
+    cal: DoubleHestonCalibration = DoubleHestonCalibration(
         pricer=OptionPricer(model=model), vol_surface=vol_surface
     )
     params = cal.get_params()
@@ -82,7 +84,7 @@ def test_double_hestonj_calibration_get_set_and_bounds(vol_surface) -> None:
         ),
         heston2=Heston.create(vol=0.25, kappa=1.2, sigma=0.3, rho=-0.4),
     )
-    cal = DoubleHestonJCalibration(
+    cal: DoubleHestonJCalibration = DoubleHestonJCalibration(
         pricer=OptionPricer(model=model),
         vol_surface=vol_surface,
     )

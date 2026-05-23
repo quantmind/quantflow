@@ -49,9 +49,11 @@ async def test_sector_performance_summary_and_timeseries() -> None:
         ]
     )
     snapshot = await fmp.sector_performance()
+    assert isinstance(snapshot, dict)
     assert str(snapshot["Tech"]) == "1.23"
 
     summary = await fmp.sector_performance(from_date=date(2024, 1, 1), summary=True)
+    assert isinstance(summary, dict)
     assert str(summary["Technology"]) == "3.02"
 
 

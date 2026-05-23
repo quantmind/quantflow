@@ -78,6 +78,8 @@ def test_options_discounting_joint_calibration() -> None:
         ttm=ttm,
     )
     asset_curve, quote_curve = calibration.calibrate()
+    assert isinstance(asset_curve, ExponentialCurve)
+    assert isinstance(quote_curve, ExponentialCurve)
     assert asset_curve.rate == pytest.approx(0.02, abs=1e-3)
     assert quote_curve.rate == pytest.approx(0.04, abs=1e-3)
 
@@ -94,6 +96,8 @@ def test_options_discounting_asset_only_calibration() -> None:
         ttm=ttm,
     )
     asset_curve, quote_curve = calibration.calibrate()
+    assert isinstance(asset_curve, ExponentialCurve)
+    assert isinstance(quote_curve, ExponentialCurve)
     assert asset_curve.rate == pytest.approx(0.02, abs=1e-3)
     assert quote_curve.rate == pytest.approx(0.04, abs=1e-9)
 
@@ -110,6 +114,8 @@ def test_options_discounting_quote_only_calibration() -> None:
         ttm=ttm,
     )
     asset_curve, quote_curve = calibration.calibrate()
+    assert isinstance(asset_curve, ExponentialCurve)
+    assert isinstance(quote_curve, ExponentialCurve)
     assert asset_curve.rate == pytest.approx(0.02, abs=1e-9)
     assert quote_curve.rate == pytest.approx(0.04, abs=1e-3)
 
