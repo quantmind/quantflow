@@ -17,23 +17,22 @@ class EWMA(BaseModel):
 
     This implementation uses the standard EWMA formula:
 
-    $$
     \begin{equation}
         s_t = \alpha x_t + (1 - \alpha) s_{t-1}
     \end{equation}
-    $$
 
     where $\alpha$ is the smoothing factor derived from the period parameter.
-    To match SuperSmoother characteristics, the formula is:
+    The period represents the half-life of the exponential decay, that is,
+    the number of steps after which the weight assigned to a past observation
+    drops to half. The relationship is:
 
-    $$
     \begin{equation}
-        \alpha = \frac{2}{\text{period} + 1}
+        \alpha = 1 - \exp\left(-\frac{\ln 2}{p}\right)
     \end{equation}
-    $$
 
-    This provides frequency response similar to a simple moving average and
-    approximates the smoothing characteristics of higher-order filters.
+    where $N$ is the [period][.period]. This definition makes the period directly
+    comparable to the period used in
+    [SuperSmoother][quantflow.ta.supersmoother.SuperSmoother].
 
     ## Example
 
@@ -75,23 +74,20 @@ class EWMA(BaseModel):
 
         The half-life represents the time for weight to decay to 0.5.
 
-        $$
-        \alpha = 1 - \exp\left(-\frac{\ln(2)}{\text{half life}}\right)
-        $$
+        \begin{equation}
+            \alpha = 1 - \exp\left(-\frac{\ln(2)}{\tt{half\_life}}\right)
+        \end{equation}
         """
-        # Calculate equivalent period that produces the desired half-life behavior
-        # From: alpha = 1 - exp(-ln(2) / half_life)
-        # And: alpha = 2 / (period + 1)
-        # We solve: 2 / (period + 1) = 1 - exp(-ln(2) / half_life)
-        alpha = 1.0 - math.exp(-log2 / half_life)
+        return cls.from_alpha(1.0 - math.exp(-log2 / half_life), tau=tau)
+
+    @classmethod
+    def from_alpha(cls, alpha: float, tau: float | None = None) -> Self:
+        """Create an EWMA directly from a specified alpha value."""
         period = int(2.0 / alpha - 1)
         return cls(period=max(1, period), tau=tau)
 
     def model_post_init(self, __context: Any) -> None:
-        # Convert period to alpha using the standard formula:
-        # alpha = 2 / (period + 1)
-        # This matches the smoothing characteristics of an SMA with the same period
-        self._alpha = 2.0 / (self.period + 1)
+        self._alpha = 1.0 - math.exp(-log2 / self.period)
 
     def update(self, value: float) -> float:
         """Update the filter with a new value and return the smoothed result.

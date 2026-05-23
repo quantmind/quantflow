@@ -43,7 +43,7 @@ class NelsonSiegel(YieldCurve):
         this curve."""
         return NelsonSiegelCalibration(yield_curve=self)
 
-    def instanteous_forward_rate(self, ttm: FloatArrayLike) -> FloatArrayLike:
+    def instantaneous_forward_rate(self, ttm: FloatArrayLike) -> FloatArrayLike:
         b1, b2, b3, lam = (
             float(self.beta1),
             float(self.beta2),

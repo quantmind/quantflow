@@ -29,8 +29,8 @@ def test_straddle_from_strike(pricer: OptionPricer) -> None:
     assert p.gamma > 0
 
 
-def test_strangle_from_moneyness(pricer: OptionPricer) -> None:
-    p = Strangle.from_moneyness(FORWARD, MATURITY).price(pricer, FORWARD, REF_DATE)
+def test_strangle_from_strikes_otm(pricer: OptionPricer) -> None:
+    p = Strangle.from_strikes(95.0, 105.0, MATURITY).price(pricer, FORWARD, REF_DATE)
     assert p.price > 0
     assert p.gamma > 0
     assert (
@@ -46,8 +46,10 @@ def test_strangle_from_strikes(pricer: OptionPricer) -> None:
     assert p.gamma > 0
 
 
-def test_butterfly_from_moneyness(pricer: OptionPricer) -> None:
-    p = Butterfly.from_moneyness(FORWARD, MATURITY).price(pricer, FORWARD, REF_DATE)
+def test_butterfly_from_strikes_atm(pricer: OptionPricer) -> None:
+    p = Butterfly.from_strikes(95.0, 100.0, 105.0, MATURITY, FORWARD).price(
+        pricer, FORWARD, REF_DATE
+    )
     assert p.price > 0
     assert p.gamma < 0
     assert Butterfly.description != ""

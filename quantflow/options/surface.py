@@ -33,7 +33,7 @@ from quantflow.utils.numbers import (
     to_decimal,
     to_decimal_or_none,
 )
-from quantflow.utils.price import Price
+from quantflow.utils.price import PriceVolume
 from quantflow.utils.types import FloatArray
 
 from .bs import black_price, implied_black_volatility
@@ -41,6 +41,7 @@ from .inputs import (
     DefaultVolSecurity,
     ForwardInput,
     OptionInput,
+    OptionMetadata,
     OptionType,
     Side,
     SpotInput,
@@ -49,6 +50,7 @@ from .inputs import (
     VolSurfaceInputs,
     VolSurfaceSecurity,
 )
+from .moneyness import moneyness_from_log_strike
 from .parity import PutCallParities, PutCallParity
 from .svi import SVI
 
@@ -81,16 +83,12 @@ class OptionSelection(enum.Enum):
     """Select all options regardless of their moneyness"""
 
 
-class SecurityPrice(Price, Generic[S]):
+class SecurityPrice(PriceVolume, Generic[S]):
     """Represents the bid/ask price of a security,
     which can be a spot price, forward price or option price
     """
 
     security: S = Field(description="The underlying security of the price")
-    open_interest: DecimalNumber = Field(
-        default=ZERO, description="Open interest of the spot price"
-    )
-    volume: DecimalNumber = Field(default=ZERO, description="Total volume traded")
 
     def is_valid(self) -> bool:
         """Check if the forward price is valid, which means that the bid and ask
@@ -132,29 +130,6 @@ class FwdPrice(SecurityPrice[S]):
             open_interest=self.open_interest,
             volume=self.volume,
         )
-
-
-class OptionMetadata(BaseModel):
-    """Represents the metadata of an option, including its strike, type, maturity,
-    and other relevant information."""
-
-    strike: DecimalNumber = Field(description="Strike price of the option")
-    option_type: OptionType = Field(description="Type of the option, call or put")
-    maturity: datetime = Field(description="Maturity date of the option")
-    inverse: bool = Field(
-        default=True,
-        description=(
-            "Whether the option is an inverse option (i.e. quoted in terms of the "
-            "underlying) or not (i.e. quoted in terms of the quote currency)"
-        ),
-    )
-
-    def is_in_the_money(self, forward: Decimal) -> bool:
-        """Check if the option is in the money given the forward price"""
-        if self.option_type.is_call():
-            return self.strike < forward
-        else:
-            return self.strike > forward
 
 
 class OptionPrice(BaseModel):
@@ -282,7 +257,7 @@ class OptionPrice(BaseModel):
             forward=float(self.forward),
             maturity=self.maturity,
             log_strike=self.log_strike,
-            moneyness=self.log_strike / np.sqrt(self.ttm),
+            moneyness=moneyness_from_log_strike(self.log_strike, self.ttm),
             ttm=self.ttm,
             iv=self.iv,
             price=float(self.price_in_forward_space),
@@ -306,7 +281,9 @@ class OptionPrice(BaseModel):
             forward=self.forward,
             maturity=self.maturity,
             log_strike=to_decimal(self.log_strike),
-            moneyness=to_decimal(self.log_strike / np.sqrt(self.ttm)),
+            moneyness=to_decimal(
+                float(moneyness_from_log_strike(self.log_strike, self.ttm))
+            ),
             ttm=to_decimal(self.ttm),
             iv=to_decimal(self.iv),
             price=self.price_in_forward_space,
@@ -395,9 +372,14 @@ class OptionPrices(BaseModel, Generic[S]):
         """Calculate the bid-ask spread"""
         return self.ask.price - self.bid.price
 
-    def price(self) -> Price:
-        """Convert the option prices to a Price object"""
-        return Price(bid=self.bid.price, ask=self.ask.price)
+    def price(self) -> PriceVolume:
+        """Convert the option prices to a PriceVolume object"""
+        return PriceVolume(
+            bid=self.bid.price,
+            ask=self.ask.price,
+            volume=self.volume,
+            open_interest=self.open_interest,
+        )
 
     def iv_bid_ask_spread(self) -> float:
         """Calculate the bid-ask spread of the implied volatility"""

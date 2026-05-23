@@ -33,7 +33,7 @@ class VasicekCurve(YieldCurve):
             bdlp=WienerProcess(sigma=float(self.sigma)),
         )
 
-    def instanteous_forward_rate(self, ttm: FloatArrayLike) -> FloatArrayLike:
+    def instantaneous_forward_rate(self, ttm: FloatArrayLike) -> FloatArrayLike:
         r"""Calculate the instantaneous forward rate."""
         arr = np.asarray(ttm, dtype=float)
         ttma = np.maximum(arr, 0.0)

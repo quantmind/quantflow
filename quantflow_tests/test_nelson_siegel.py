@@ -69,7 +69,7 @@ def test_instantaneous_forward_rate_at_zero() -> None:
         beta3=Decimal("0.01"),
         lambda_=Decimal("1"),
     )
-    assert float(ns.instanteous_forward_rate(0)) == pytest.approx(0.06, rel=1e-6)
+    assert float(ns.instantaneous_forward_rate(0)) == pytest.approx(0.06, rel=1e-6)
 
 
 def test_instantaneous_forward_rate_large_ttm() -> None:
@@ -79,7 +79,7 @@ def test_instantaneous_forward_rate_large_ttm() -> None:
         beta3=Decimal("0.01"),
         lambda_=Decimal("1"),
     )
-    assert float(ns.instanteous_forward_rate(100)) == pytest.approx(0.04, abs=1e-5)
+    assert float(ns.instantaneous_forward_rate(100)) == pytest.approx(0.04, abs=1e-5)
 
 
 def test_consistency_forward_and_discount() -> None:
@@ -94,7 +94,9 @@ def test_consistency_forward_and_discount() -> None:
         math.log(float(ns.discount_factor(ttm + h)))
         - math.log(float(ns.discount_factor(ttm - h)))
     ) / (2 * h)
-    assert numerical == pytest.approx(float(ns.instanteous_forward_rate(ttm)), rel=1e-4)
+    assert numerical == pytest.approx(
+        float(ns.instantaneous_forward_rate(ttm)), rel=1e-4
+    )
 
 
 # ---------------------------------------------------------------------------

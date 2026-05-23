@@ -4,14 +4,14 @@ from quantflow.ta.ohlc import OHLC
 
 def test_ohlc() -> None:
     ohlc = OHLC(
-        serie="0",
-        period="10m",
+        series="0",
+        period="10min",
         parkinson_variance=True,
         garman_klass_variance=True,
         rogers_satchell_variance=True,
     )
-    assert ohlc.serie == "0"
-    assert ohlc.period == "10m"
+    assert ohlc.series == "0"
+    assert ohlc.period == "10min"
     assert ohlc.index_column == "index"
     assert ohlc.parkinson_variance is True
     assert ohlc.garman_klass_variance is True

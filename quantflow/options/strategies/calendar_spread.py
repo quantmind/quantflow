@@ -5,9 +5,10 @@ from typing import ClassVar
 
 from typing_extensions import Self
 
-from quantflow.options.inputs import OptionType
+from quantflow.options.inputs import OptionMetadata, OptionType
+from quantflow.utils.numbers import Number, to_decimal
 
-from .base import Strategy, StrategyLeg, load_description
+from .base import Strategy, StrategyError, StrategyLeg, load_description
 
 
 class CalendarSpread(Strategy, frozen=True):
@@ -21,33 +22,39 @@ class CalendarSpread(Strategy, frozen=True):
     @property
     def option_type(self) -> OptionType:
         """Option type of the calendar spread."""
-        return self.legs[0].option_type
+        return self.legs[0].meta.option_type
 
     @classmethod
     def create(
         cls,
-        strike: float,
+        strike: Number,
         near_maturity: datetime,
         far_maturity: datetime,
         option_type: OptionType,
-        quantity: float = 1.0,
+        quantity: Number = 1.0,
     ) -> Self:
-        """Long far call, short near call at the same strike."""
+        """Long far option, short near option at the same strike."""
         if near_maturity >= far_maturity:
-            raise ValueError("Near maturity must be before far maturity.")
+            raise StrategyError("Near maturity must be before far maturity.")
+        strike_ = to_decimal(strike)
+        q = to_decimal(quantity)
         return cls(
             legs=(
                 StrategyLeg(
-                    option_type=option_type,
-                    quantity=quantity,
-                    strike=strike,
-                    maturity=far_maturity,
+                    meta=OptionMetadata(
+                        option_type=option_type,
+                        strike=strike_,
+                        maturity=far_maturity,
+                    ),
+                    quantity=q,
                 ),
                 StrategyLeg(
-                    option_type=option_type,
-                    quantity=-quantity,
-                    strike=strike,
-                    maturity=near_maturity,
+                    meta=OptionMetadata(
+                        option_type=option_type,
+                        strike=strike_,
+                        maturity=near_maturity,
+                    ),
+                    quantity=-q,
                 ),
             )
         )
@@ -55,10 +62,10 @@ class CalendarSpread(Strategy, frozen=True):
     @classmethod
     def call(
         cls,
-        strike: float,
+        strike: Number,
         near_maturity: datetime,
         far_maturity: datetime,
-        quantity: float = 1.0,
+        quantity: Number = 1.0,
     ) -> Self:
         return cls.create(
             strike, near_maturity, far_maturity, OptionType.call, quantity
@@ -67,9 +74,9 @@ class CalendarSpread(Strategy, frozen=True):
     @classmethod
     def put(
         cls,
-        strike: float,
+        strike: Number,
         near_maturity: datetime,
         far_maturity: datetime,
-        quantity: float = 1.0,
+        quantity: Number = 1.0,
     ) -> Self:
         return cls.create(strike, near_maturity, far_maturity, OptionType.put, quantity)

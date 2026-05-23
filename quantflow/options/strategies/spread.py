@@ -5,9 +5,10 @@ from typing import ClassVar
 
 from typing_extensions import Self
 
-from quantflow.options.inputs import OptionType
+from quantflow.options.inputs import OptionMetadata, OptionType
+from quantflow.utils.numbers import Number, to_decimal
 
-from .base import Strategy, StrategyLeg, load_description
+from .base import Strategy, StrategyError, StrategyLeg, load_description
 
 
 class Spread(Strategy, frozen=True):
@@ -23,25 +24,34 @@ class Spread(Strategy, frozen=True):
     @classmethod
     def call(
         cls,
-        low_strike: float,
-        high_strike: float,
+        low_strike: Number,
+        high_strike: Number,
         maturity: datetime,
-        quantity: float = 1.0,
+        quantity: Number = 1.0,
     ) -> Self:
         """Long call at low_strike, short call at high_strike."""
+        low = to_decimal(low_strike)
+        high = to_decimal(high_strike)
+        if low >= high:
+            raise StrategyError("low_strike must be less than high_strike.")
+        q = to_decimal(quantity)
         return cls(
             legs=(
                 StrategyLeg(
-                    option_type=OptionType.call,
-                    quantity=quantity,
-                    strike=low_strike,
-                    maturity=maturity,
+                    meta=OptionMetadata(
+                        option_type=OptionType.call,
+                        strike=low,
+                        maturity=maturity,
+                    ),
+                    quantity=q,
                 ),
                 StrategyLeg(
-                    option_type=OptionType.call,
-                    quantity=-quantity,
-                    strike=high_strike,
-                    maturity=maturity,
+                    meta=OptionMetadata(
+                        option_type=OptionType.call,
+                        strike=high,
+                        maturity=maturity,
+                    ),
+                    quantity=-q,
                 ),
             )
         )
@@ -49,25 +59,34 @@ class Spread(Strategy, frozen=True):
     @classmethod
     def put(
         cls,
-        low_strike: float,
-        high_strike: float,
+        low_strike: Number,
+        high_strike: Number,
         maturity: datetime,
-        quantity: float = 1.0,
+        quantity: Number = 1.0,
     ) -> Self:
         """Long put at high_strike, short put at low_strike."""
+        low = to_decimal(low_strike)
+        high = to_decimal(high_strike)
+        if low >= high:
+            raise StrategyError("low_strike must be less than high_strike.")
+        q = to_decimal(quantity)
         return cls(
             legs=(
                 StrategyLeg(
-                    option_type=OptionType.put,
-                    quantity=quantity,
-                    strike=high_strike,
-                    maturity=maturity,
+                    meta=OptionMetadata(
+                        option_type=OptionType.put,
+                        strike=high,
+                        maturity=maturity,
+                    ),
+                    quantity=q,
                 ),
                 StrategyLeg(
-                    option_type=OptionType.put,
-                    quantity=-quantity,
-                    strike=low_strike,
-                    maturity=maturity,
+                    meta=OptionMetadata(
+                        option_type=OptionType.put,
+                        strike=low,
+                        maturity=maturity,
+                    ),
+                    quantity=-q,
                 ),
             )
         )

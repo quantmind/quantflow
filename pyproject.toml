@@ -33,10 +33,10 @@ readme = "readme.md"
 requires-python = ">=3.11,<3.15"
 dependencies = [
     "scipy>=1.14.1",
+    "pandas>=2.0.0",
     "pydantic>=2.0.2",
     "ccy>=2.0.0",
     "python-dotenv>=1.0.1",
-    "polars[pandas,pyarrow]>=1.11.0",
     "statsmodels>=0.14.6,<0.15.0",
 ]
 

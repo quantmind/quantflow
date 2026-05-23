@@ -1,3 +1,3 @@
 # Kalman Filter
 
-::: quantflow.ta.KalmanFilter
+::: quantflow.ta.kalman.KalmanFilter

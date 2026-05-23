@@ -37,7 +37,7 @@ class YieldCurve(BaseModel, ABC, extra="forbid"):
     )
 
     @abstractmethod
-    def instanteous_forward_rate(self, ttm: FloatArrayLike) -> FloatArrayLike:
+    def instantaneous_forward_rate(self, ttm: FloatArrayLike) -> FloatArrayLike:
         r"""Calculate the instantaneous forward rate for a given time to maturity.
 
         The instantaneous forward rate is related to discount factor
@@ -119,7 +119,7 @@ class YieldCurve(BaseModel, ABC, extra="forbid"):
         ttm_ = np.asarray(ttm, dtype=float)
         df = np.asarray(self.discount_factor(ttm_), dtype=float)
         result = np.where(
-            ttm_ <= 0, self.instanteous_forward_rate(0.0), -np.log(df) / ttm_
+            ttm_ <= 0, self.instantaneous_forward_rate(0.0), -np.log(df) / ttm_
         )
         return maybe_float(result)
 
@@ -161,7 +161,7 @@ class NoDiscount(YieldCurve):
 
     curve_type: Literal["no_discount"] = "no_discount"
 
-    def instanteous_forward_rate(self, ttm: FloatArrayLike) -> FloatArrayLike:
+    def instantaneous_forward_rate(self, ttm: FloatArrayLike) -> FloatArrayLike:
         arr = np.asarray(ttm, dtype=float)
         return np.zeros_like(arr) if arr.ndim > 0 else 0.0
 

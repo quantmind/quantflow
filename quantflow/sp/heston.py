@@ -167,7 +167,7 @@ class Heston(StochasticProcess1D):
 
     def sample_from_draws(
         self,
-        path1: Annotated[
+        draws: Annotated[
             Paths,
             Doc("Pre-drawn standard normal increments for the first Brownian motion"),
         ],
@@ -182,14 +182,14 @@ class Heston(StochasticProcess1D):
         if args:
             path2 = args[0]
         else:
-            path2 = Paths.normal_draws(path1.samples, path1.t, path1.time_steps)
-        dz = path1.data
+            path2 = Paths.normal_draws(draws.samples, draws.t, draws.time_steps)
+        dz = draws.data
         dw = self.rho * dz + np.sqrt(1 - self.rho * self.rho) * path2.data
-        v = self.variance_process.sample_from_draws(path1)
-        dx = dw * np.sqrt(v.data * path1.dt)
+        v = self.variance_process.sample_from_draws(draws)
+        dx = dw * np.sqrt(v.data * draws.dt)
         paths = np.zeros(dx.shape)
         paths[1:] = np.cumsum(dx[:-1], axis=0)
-        return Paths(t=path1.t, data=paths)
+        return Paths(t=draws.t, data=paths)
 
 
 class HestonJ(Heston, Generic[D]):
@@ -315,8 +315,21 @@ class HestonJ(Heston, Generic[D]):
             t, u
         ) + self.jumps.characteristic_exponent(t, u)
 
-    def sample_from_draws(self, path1: Paths, *args: Paths) -> Paths:
-        diffusion = super().sample_from_draws(path1, *args)
+    def sample_from_draws(
+        self,
+        draws: Annotated[
+            Paths,
+            Doc("Pre-drawn standard normal increments for the first Brownian motion"),
+        ],
+        *args: Annotated[
+            Paths,
+            Doc(
+                "Optional pre-drawn increments for the second Brownian motion; "
+                "new draws are generated if omitted"
+            ),
+        ],
+    ) -> Paths:
+        diffusion = super().sample_from_draws(draws, *args)
         jump_path = self.jumps.sample(
             diffusion.samples, diffusion.t, diffusion.time_steps
         )
@@ -377,7 +390,7 @@ class DoubleHeston(StochasticProcess1D):
 
     def sample_from_draws(
         self,
-        path1: Annotated[Paths, Doc("First Brownian motion draws for heston1")],
+        draws: Annotated[Paths, Doc("First Brownian motion draws for heston1")],
         *args: Annotated[
             Paths,
             Doc(
@@ -386,9 +399,9 @@ class DoubleHeston(StochasticProcess1D):
             ),
         ],
     ) -> Paths:
-        paths1 = self.heston1.sample_from_draws(path1, args[0])
+        paths1 = self.heston1.sample_from_draws(draws, args[0])
         paths2 = self.heston2.sample_from_draws(args[1], args[2])
-        return Paths(t=path1.t, data=paths1.data + paths2.data)
+        return Paths(t=draws.t, data=paths1.data + paths2.data)
 
 
 class DoubleHestonJ(DoubleHeston, Generic[D]):

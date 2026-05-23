@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import math
 from datetime import datetime
 from pathlib import Path
 from typing import ClassVar
@@ -9,9 +8,10 @@ from ccy.core.daycounter import DayCounter
 from pydantic import BaseModel, Field
 from typing_extensions import Annotated, Doc
 
-from quantflow.options.inputs import OptionType
+from quantflow.options.inputs import OptionMetadata
 from quantflow.options.pricer import ModelOptionPrice, OptionPricer  # noqa: TC001
 from quantflow.options.surface import default_day_counter
+from quantflow.utils.numbers import DecimalNumber
 
 OPTIONS_DOCS_PATH = Path(__file__).parent.parent / "docs"
 
@@ -21,32 +21,17 @@ def load_description(filename: str) -> str:
     return (OPTIONS_DOCS_PATH / filename).read_text(encoding="utf-8")
 
 
+class StrategyError(ValueError):
+    """Custom error for invalid strategy construction."""
+
+
 class StrategyLeg(BaseModel, frozen=True):
     """A single leg of an option strategy."""
 
-    option_type: OptionType = Field(description="Call or put")
-    quantity: float = Field(
+    meta: OptionMetadata = Field(description="Option metadata for this leg")
+    quantity: DecimalNumber = Field(
         description="Signed quantity: positive for long, negative for short"
     )
-    strike: float = Field(description="Absolute strike price")
-    maturity: datetime = Field(description="Expiry date of the option")
-
-    @classmethod
-    def from_moneyness(
-        cls,
-        option_type: OptionType,
-        moneyness: float,
-        forward: float,
-        maturity: datetime,
-        quantity: float = 1.0,
-    ) -> StrategyLeg:
-        """Create a leg from a log-strike moneyness offset and forward price."""
-        return cls(
-            option_type=option_type,
-            quantity=quantity,
-            strike=forward * math.exp(moneyness),
-            maturity=maturity,
-        )
 
 
 class StrategyPrice(BaseModel, frozen=True):
@@ -91,17 +76,18 @@ class Strategy(BaseModel, frozen=True):
         total_gamma = 0.0
 
         for leg in self.legs:
-            ttm = day_counter.dcf(ref_date, leg.maturity)
+            ttm = day_counter.dcf(ref_date, leg.meta.maturity)
             leg_price = pricer.price(
-                option_type=leg.option_type,
-                strike=leg.strike,
+                option_type=leg.meta.option_type,
+                strike=leg.meta.strike,
                 forward=forward,
                 ttm=ttm,
             )
             priced.append(leg_price)
-            total_price += leg.quantity * leg_price.price
-            total_delta += leg.quantity * leg_price.delta
-            total_gamma += leg.quantity * leg_price.gamma
+            q = float(leg.quantity)
+            total_price += q * leg_price.price
+            total_delta += q * leg_price.delta
+            total_gamma += q * leg_price.gamma
 
         return StrategyPrice(
             legs=tuple(priced),
