@@ -10,6 +10,7 @@ import pandas as pd
 import pytest
 from mcp.server.fastmcp import FastMCP
 
+from quantflow.ai import server as ai_server
 from quantflow.ai.tools import charts, crypto, fred, stocks, vault
 from quantflow.ai.tools.base import McpTool
 from quantflow.data.vault import Vault
@@ -459,3 +460,28 @@ async def test_ascii_chart_empty(
     with patch("quantflow.ai.tools.base.FMP", return_value=mock_fmp):
         result = await charts_server.call_tool("ascii_chart", {"symbol": "FAKE"})
     assert "No price data" in text(result)
+
+
+def test_create_server_registers_all_tools() -> None:
+    fake_tool = MagicMock()
+    with (
+        patch("quantflow.ai.server.McpTool", return_value=fake_tool),
+        patch("quantflow.ai.server.vault.register") as vault_register,
+        patch("quantflow.ai.server.crypto.register") as crypto_register,
+        patch("quantflow.ai.server.stocks.register") as stocks_register,
+        patch("quantflow.ai.server.fred.register") as fred_register,
+        patch("quantflow.ai.server.charts.register") as charts_register,
+    ):
+        mcp = ai_server.create_server()
+    vault_register.assert_called_once_with(mcp, fake_tool)
+    crypto_register.assert_called_once_with(mcp, fake_tool)
+    stocks_register.assert_called_once_with(mcp, fake_tool)
+    fred_register.assert_called_once_with(mcp, fake_tool)
+    charts_register.assert_called_once_with(mcp, fake_tool)
+
+
+def test_main_runs_server() -> None:
+    mock_server = MagicMock()
+    with patch("quantflow.ai.server.create_server", return_value=mock_server):
+        ai_server.main()
+    mock_server.run.assert_called_once_with()

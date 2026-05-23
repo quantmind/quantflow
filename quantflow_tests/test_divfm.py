@@ -10,8 +10,12 @@ from quantflow.options.pricer import OptionPricerBase
 try:
     import torch
 
-    from quantflow.options.divfm.network import DIVFMNetwork
-    from quantflow.options.divfm.trainer import DayData, DIVFMTrainer
+    from quantflow.options.divfm.network import (
+        DIVFMNetwork,
+        _extract_subnet as extract_subnet_torch,
+        _make_subnet as make_subnet_torch,
+    )
+    from quantflow.options.divfm.trainer import DayData, DIVFMTrainer, _day_loss
 
     has_torch = True
 except ImportError:
@@ -192,6 +196,12 @@ def test_network_default_construction() -> None:
 
 
 @pytest.mark.skipif(not has_torch, reason="torch not installed")
+def test_network_minimum_factors_validation() -> None:
+    with pytest.raises(ValueError, match="at least 3"):
+        DIVFMNetwork(num_factors=2)
+
+
+@pytest.mark.skipif(not has_torch, reason="torch not installed")
 def test_network_forward_shape() -> None:
     net = DIVFMNetwork(num_factors=NUM_FACTORS, hidden_size=HIDDEN_SIZE)
     net.eval()
@@ -200,6 +210,28 @@ def test_network_forward_shape() -> None:
     out = net(M, T)
     assert out.shape == (N, NUM_FACTORS)
     assert (out[:, 0] == 1.0).all()  # f_1 = 1
+
+
+@pytest.mark.skipif(not has_torch, reason="torch not installed")
+def test_make_subnet_layout() -> None:
+    subnet = make_subnet_torch(2, 4, 2, 3)
+    modules = list(subnet.children())
+    assert isinstance(modules[0], torch.nn.Linear)
+    assert isinstance(modules[1], torch.nn.Sigmoid)
+    assert isinstance(modules[2], torch.nn.BatchNorm1d)
+    assert isinstance(modules[-1], torch.nn.BatchNorm1d)
+    assert modules[-1].affine is False
+
+
+@pytest.mark.skipif(not has_torch, reason="torch not installed")
+def test_extract_subnet_output_structure() -> None:
+    subnet = make_subnet_torch(2, 4, 1, 1)
+    subnet.eval()
+    extracted = extract_subnet_torch(subnet)
+    assert isinstance(extracted, SubnetWeights)
+    assert len(extracted.layers) == 2
+    assert extracted.layers[0].apply_activation is True
+    assert extracted.layers[-1].apply_activation is False
 
 
 @pytest.mark.skipif(not has_torch, reason="torch not installed")
@@ -218,6 +250,14 @@ def test_to_weights_forward_matches_network() -> None:
     numpy_out = w.forward(M_np, T_np)
 
     np.testing.assert_allclose(torch_out, numpy_out, atol=1e-5)
+
+
+@pytest.mark.skipif(not has_torch, reason="torch not installed")
+def test_to_weights_without_joint_subnet() -> None:
+    net = DIVFMNetwork(num_factors=3, hidden_size=HIDDEN_SIZE)
+    weights = net.to_weights()
+    assert weights.subnet_joint is None
+    assert weights.num_factors == 3
 
 
 # ---------------------------------------------------------------------------
@@ -253,6 +293,14 @@ def test_trainer_construction() -> None:
 
 
 @pytest.mark.skipif(not has_torch, reason="torch not installed")
+def test_day_loss_non_negative() -> None:
+    net = DIVFMNetwork(num_factors=NUM_FACTORS, hidden_size=HIDDEN_SIZE)
+    day = _make_days(num_days=1)[0]
+    loss = _day_loss(net, day, ridge=1e-6)
+    assert float(loss.detach().item()) >= 0.0
+
+
+@pytest.mark.skipif(not has_torch, reason="torch not installed")
 def test_trainer_step_returns_loss() -> None:
     net = DIVFMNetwork(num_factors=NUM_FACTORS, hidden_size=HIDDEN_SIZE)
     trainer = DIVFMTrainer(net, batch_days=4)
@@ -270,6 +318,13 @@ def test_trainer_evaluate() -> None:
     val_loss = trainer.evaluate(days)
     assert isinstance(val_loss, float)
     assert val_loss >= 0.0
+
+
+@pytest.mark.skipif(not has_torch, reason="torch not installed")
+def test_trainer_evaluate_empty_days() -> None:
+    net = DIVFMNetwork(num_factors=NUM_FACTORS, hidden_size=HIDDEN_SIZE)
+    trainer = DIVFMTrainer(net)
+    assert trainer.evaluate([]) == 0.0
 
 
 @pytest.mark.skipif(not has_torch, reason="torch not installed")
@@ -294,6 +349,16 @@ def test_trainer_fit_loss_decreases() -> None:
     assert len(losses) == 100
     # Average loss over the last 10 steps should be lower than the first 10
     assert np.mean(losses[-10:]) < np.mean(losses[:10])
+
+
+@pytest.mark.skipif(not has_torch, reason="torch not installed")
+def test_trainer_fit_with_validation_days() -> None:
+    torch.manual_seed(1)
+    net = DIVFMNetwork(num_factors=NUM_FACTORS, hidden_size=HIDDEN_SIZE)
+    trainer = DIVFMTrainer(net, lr=1e-2, batch_days=4)
+    days = _make_days(num_days=8)
+    losses = trainer.fit(days, num_steps=5, val_days=days[:2], log_every=2)
+    assert len(losses) == 5
 
 
 @pytest.mark.skipif(not has_torch, reason="torch not installed")
