@@ -5,7 +5,8 @@ from typing import ClassVar
 
 from typing_extensions import Self
 
-from quantflow.options.inputs import OptionType
+from quantflow.options.inputs import OptionMetadata, OptionType
+from quantflow.utils.numbers import Number, to_decimal
 
 from .base import Strategy, StrategyLeg, load_description
 
@@ -19,21 +20,27 @@ class Straddle(Strategy, frozen=True):
     description: ClassVar[str] = load_description("straddle.md")
 
     @classmethod
-    def create(cls, strike: float, maturity: datetime, quantity: float = 1.0) -> Self:
+    def create(cls, strike: Number, maturity: datetime, quantity: Number = 1.0) -> Self:
         """Create a straddle at a given absolute strike."""
+        strike_ = to_decimal(strike)
+        q = to_decimal(quantity)
         return cls(
             legs=(
                 StrategyLeg(
-                    option_type=OptionType.call,
-                    quantity=quantity,
-                    strike=strike,
-                    maturity=maturity,
+                    meta=OptionMetadata(
+                        option_type=OptionType.call,
+                        strike=strike_,
+                        maturity=maturity,
+                    ),
+                    quantity=q,
                 ),
                 StrategyLeg(
-                    option_type=OptionType.put,
-                    quantity=quantity,
-                    strike=strike,
-                    maturity=maturity,
+                    meta=OptionMetadata(
+                        option_type=OptionType.put,
+                        strike=strike_,
+                        maturity=maturity,
+                    ),
+                    quantity=q,
                 ),
             )
         )

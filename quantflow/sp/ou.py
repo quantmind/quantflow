@@ -6,6 +6,7 @@ from typing import Generic, Self
 import numpy as np
 from pydantic import Field
 from scipy.stats import gamma, norm
+from typing_extensions import Annotated, Doc
 
 from ..ta.paths import Paths
 from ..utils.distributions import Exponential
@@ -59,11 +60,25 @@ class Vasicek(StochasticProcess1D):
         var = self.analytical_variance(t)
         return u * (-1j * mu + 0.5 * var * u)
 
-    def sample(self, n: int, time_horizon: float = 1, time_steps: int = 100) -> Paths:
+    def sample(
+        self,
+        n: Annotated[int, Doc("Number of paths")],
+        time_horizon: Annotated[float, Doc("Time horizon")] = 1,
+        time_steps: Annotated[
+            int, Doc("Number of time steps to arrive at horizon")
+        ] = 100,
+    ) -> Paths:
         paths = Paths.normal_draws(n, time_horizon, time_steps)
         return self.sample_from_draws(paths)
 
-    def sample_from_draws(self, draws: Paths, *args: Paths) -> Paths:
+    def sample_from_draws(
+        self,
+        draws: Annotated[
+            Paths,
+            Doc("Pre-drawn standard normal increments for the Brownian motion"),
+        ],
+        *args: Paths,
+    ) -> Paths:
         kappa = self.kappa
         theta = self.theta
         dt = draws.dt
@@ -261,7 +276,14 @@ class GammaOU(NGOU[Exponential]):
         )
         return c0 + c1 * self.rate
 
-    def sample(self, n: int, time_horizon: float = 1, time_steps: int = 100) -> Paths:
+    def sample(
+        self,
+        n: Annotated[int, Doc("Number of paths")],
+        time_horizon: Annotated[float, Doc("Time horizon")] = 1,
+        time_steps: Annotated[
+            int, Doc("Number of time steps to arrive at horizon")
+        ] = 100,
+    ) -> Paths:
         dt = time_horizon / time_steps
         jump_process = self.bdlp
         paths = np.zeros((time_steps + 1, n))

@@ -52,7 +52,7 @@ def _range_std(pdf: Any, range_seconds: float, seconds_in_day: int) -> float:
 
 def _ohlc_hurst(df: pd.DataFrame, serie: str, periods: tuple) -> dict[str, float]:
     template = OHLC(
-        serie=serie,
+        series=serie,
         period="10m",
         rogers_satchell_variance=True,
         parkinson_variance=True,
@@ -97,7 +97,7 @@ async def hurst_wiener(
     gk_vals = []
     rs_vals = []
     template = OHLC(
-        serie="0",
+        series="0",
         period="10m",
         rogers_satchell_variance=True,
         parkinson_variance=True,

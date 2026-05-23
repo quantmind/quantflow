@@ -17,6 +17,7 @@ from quantflow.utils.numbers import DecimalNumber, to_decimal
 from ..utils.types import FloatArray, FloatArrayLike
 from .bs import BlackSensitivities, implied_black_volatility
 from .inputs import OptionType
+from .moneyness import log_strike_from_moneyness, moneyness_from_log_strike
 
 M = TypeVar("M", bound=StochasticProcess1D)
 
@@ -143,7 +144,7 @@ class MaturityPricer(BaseModel, arbitrary_types_allowed=True):
 
     def moneyness(self, log_strikes: FloatArrayLike) -> FloatArrayLike:
         """Time-adjusted moneyness for one or many log-strikes"""
-        return log_strikes / np.sqrt(self.ttm)
+        return moneyness_from_log_strike(log_strikes, self.ttm)
 
     def price(
         self,
@@ -237,8 +238,8 @@ class OptionPricerBase(BaseModel, arbitrary_types_allowed=True):
         self,
         option_type: Annotated[OptionType, Doc("Type of the option (call or put)")],
         ttm: Annotated[float, Doc("Time to maturity")],
-        strike: Annotated[float, Doc("Strike price of the option")],
-        forward: Annotated[float, Doc("Forward price of the underlying")],
+        strike: Annotated[float | Decimal, Doc("Strike price of the option")],
+        forward: Annotated[float | Decimal, Doc("Forward price of the underlying")],
     ) -> ModelOptionPrice:
         """Price a single option
 
@@ -283,7 +284,9 @@ class OptionPricerBase(BaseModel, arbitrary_types_allowed=True):
         implied = np.zeros((len(ttm), len(moneyness)))
         for i, t in enumerate(ttm):
             maturity = self.maturity(cast(float, t))
-            implied[i, :] = maturity.prices(moneyness * np.sqrt(t))["iv"]
+            implied[i, :] = maturity.prices(
+                np.asarray(log_strike_from_moneyness(moneyness, t))
+            )["iv"]
         properties: dict = dict(
             xaxis_title="moneyness",
             yaxis_title="TTM",

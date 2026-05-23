@@ -5,96 +5,83 @@ from typing import ClassVar
 
 from typing_extensions import Self
 
-from quantflow.options.inputs import OptionType
+from quantflow.options.inputs import OptionMetadata, OptionType
+from quantflow.options.moneyness import log_strike_from_strike
+from quantflow.utils.numbers import Number, to_decimal
 
-from .base import Strategy, StrategyLeg, load_description
+from .base import Strategy, StrategyError, StrategyLeg, load_description
 
 
-def _option_type_for_moneyness(mid_moneyness: float) -> OptionType:
-    """Select option type based on body moneyness for best liquidity.
+def _option_type_for_log_strike(mid_log_strike: float) -> OptionType:
+    """Select option type based on body position relative to ATM.
 
     Calls for body above ATM, puts for body below ATM, calls at ATM.
     """
-    return OptionType.put if mid_moneyness < 0 else OptionType.call
+    return OptionType.put if mid_log_strike < 0 else OptionType.call
 
 
 class Butterfly(Strategy, frozen=True):
     """Three-strike strategy: long wings, short body.
 
     Long butterfly when quantity > 0, short butterfly when quantity < 0.
-    Can be constructed with calls or puts — both are equivalent by put-call parity.
+    Can be constructed with calls or puts, both are equivalent by put-call parity.
     """
 
     description: ClassVar[str] = load_description("butterfly.md")
 
     @classmethod
-    def from_moneyness(
-        cls,
-        forward: float,
-        maturity: datetime,
-        wing_moneyness: float = 0.05,
-        mid_moneyness: float = 0.0,
-        quantity: float = 1.0,
-        option_type: OptionType | None = None,
-    ) -> Self:
-        """Create a butterfly from a wing offset and body moneyness.
-
-        If option_type is not specified, it is selected automatically based on
-        the body moneyness for best liquidity.
-        """
-        ot = option_type or _option_type_for_moneyness(mid_moneyness)
-        return cls(
-            legs=(
-                StrategyLeg.from_moneyness(
-                    ot, mid_moneyness - wing_moneyness, forward, maturity, quantity
-                ),
-                StrategyLeg.from_moneyness(
-                    ot, mid_moneyness, forward, maturity, -2.0 * quantity
-                ),
-                StrategyLeg.from_moneyness(
-                    ot, mid_moneyness + wing_moneyness, forward, maturity, quantity
-                ),
-            )
-        )
-
-    @classmethod
     def from_strikes(
         cls,
-        low_strike: float,
-        mid_strike: float,
-        high_strike: float,
+        low_strike: Number,
+        mid_strike: Number,
+        high_strike: Number,
         maturity: datetime,
-        forward: float,
-        quantity: float = 1.0,
+        forward: Number,
+        quantity: Number = 1.0,
         option_type: OptionType | None = None,
     ) -> Self:
         """Create a butterfly from absolute strikes.
 
         If option_type is not specified, it is selected automatically based on
-        the body moneyness for best liquidity.
+        the body position relative to the forward for best liquidity.
         """
-        import math
-
-        ot = option_type or _option_type_for_moneyness(math.log(mid_strike / forward))
+        low = to_decimal(low_strike)
+        mid = to_decimal(mid_strike)
+        high = to_decimal(high_strike)
+        fwd = to_decimal(forward)
+        if not (low < mid < high):
+            raise StrategyError(
+                "Strikes must be strictly increasing: low < mid < high."
+            )
+        q = to_decimal(quantity)
+        ot = option_type or _option_type_for_log_strike(
+            log_strike_from_strike(mid, fwd)
+        )
         return cls(
             legs=(
                 StrategyLeg(
-                    option_type=ot,
-                    quantity=quantity,
-                    strike=low_strike,
-                    maturity=maturity,
+                    meta=OptionMetadata(
+                        option_type=ot,
+                        strike=low,
+                        maturity=maturity,
+                    ),
+                    quantity=q,
                 ),
                 StrategyLeg(
-                    option_type=ot,
-                    quantity=-2.0 * quantity,
-                    strike=mid_strike,
-                    maturity=maturity,
+                    meta=OptionMetadata(
+                        option_type=ot,
+                        strike=mid,
+                        maturity=maturity,
+                    ),
+                    quantity=to_decimal(-2) * q,
                 ),
                 StrategyLeg(
-                    option_type=ot,
-                    quantity=quantity,
-                    strike=high_strike,
-                    maturity=maturity,
+                    meta=OptionMetadata(
+                        option_type=ot,
+                        strike=high,
+                        maturity=maturity,
+                    ),
+                    quantity=q,
                 ),
             )
         )

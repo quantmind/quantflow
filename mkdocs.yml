@@ -74,6 +74,7 @@ nav:
           - Black-Scholes: api/options/black.md
           - Calibration: api/options/calibration.md
           - Deep IV Factor Model: api/options/divfm.md
+          - Moneyness: api/options/moneyness.md
           - Put-Call Parity: api/options/parity.md
           - Pricer: api/options/pricer.md
           - SVI Smile: api/options/svi.md
@@ -90,7 +91,7 @@ nav:
           - Poisson Process: api/sp/poisson.md
           - Wiener Process: api/sp/wiener.md
           - Copulas: api/sp/copula.md
-      - Technical Analysis:
+      - Timeseries Analysis:
           - api/ta/index.md
           - EWMA: api/ta/ewma.md
           - Kalman Filter: api/ta/kalman.md
@@ -109,6 +110,7 @@ nav:
           - Distributions: api/utils/distributions.md
           - Marginal 1D: api/utils/marginal1d.md
           - Numbers: api/utils/numbers.md
+          - Price: api/utils/price.md
           - Types: api/utils/types.md
   - Tutorials:
       - tutorials/index.md

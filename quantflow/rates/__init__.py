@@ -2,6 +2,7 @@ from typing import Annotated, Union
 
 from pydantic import Field
 
+from .cir import CIRCurve
 from .interest_rate import Rate
 from .nelson_siegel import NelsonSiegel
 from .options import YieldCurveCalibration
@@ -12,6 +13,7 @@ __all__ = [
     "YieldCurve",
     "YieldCurveCalibration",
     "NoDiscount",
+    "CIRCurve",
     "NelsonSiegel",
     "VasicekCurve",
     "AnyYieldCurve",
@@ -19,8 +21,8 @@ __all__ = [
 ]
 
 AnyYieldCurve = Annotated[
-    Union[NoDiscount, NelsonSiegel, VasicekCurve],
+    Union[NoDiscount, CIRCurve, NelsonSiegel, VasicekCurve],
     Field(discriminator="curve_type"),
 ]
 
-YieldCurve.register_curve_types(NoDiscount, NelsonSiegel, VasicekCurve)
+YieldCurve.register_curve_types(NoDiscount, CIRCurve, NelsonSiegel, VasicekCurve)

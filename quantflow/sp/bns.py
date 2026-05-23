@@ -109,25 +109,45 @@ class BNS(StochasticProcess1D):
         )
         return diffusion - bdlp
 
-    def sample(self, n: int, time_horizon: float = 1, time_steps: int = 100) -> Paths:
+    def sample(
+        self,
+        n: Annotated[int, Doc("Number of paths")],
+        time_horizon: Annotated[float, Doc("Time horizon")] = 1,
+        time_steps: Annotated[
+            int, Doc("Number of time steps to arrive at horizon")
+        ] = 100,
+    ) -> Paths:
         return self.sample_from_draws(Paths.normal_draws(n, time_horizon, time_steps))
 
-    def sample_from_draws(self, path_dw: Paths, *args: Paths) -> Paths:
+    def sample_from_draws(
+        self,
+        draws: Annotated[
+            Paths,
+            Doc("Pre-drawn standard normal increments for the Brownian motion"),
+        ],
+        *args: Annotated[
+            Paths,
+            Doc(
+                "Optional pre-drawn subordinator paths; "
+                "new draws are generated if omitted"
+            ),
+        ],
+    ) -> Paths:
         path_dz = (
             args[0]
             if args
             else self.variance_process.bdlp.sample(
-                path_dw.samples,
-                self.variance_process.kappa * path_dw.t,
-                path_dw.time_steps,
+                draws.samples,
+                self.variance_process.kappa * draws.t,
+                draws.time_steps,
             )
         )
         v = self._variance_path(path_dz)
         # Price: x_t = integral sqrt(v) dW + rho * z_{kappa t}
-        diffusion = np.sqrt(v[:-1] * path_dw.dt) * path_dw.data[:-1]
-        paths = np.zeros_like(path_dw.data)
+        diffusion = np.sqrt(v[:-1] * draws.dt) * draws.data[:-1]
+        paths = np.zeros_like(draws.data)
         paths[1:] = np.cumsum(diffusion, axis=0) + self.rho * path_dz.data[1:]
-        return Paths(t=path_dw.t, data=paths)
+        return Paths(t=draws.t, data=paths)
 
     def _variance_path(self, path_dz: Paths) -> np.ndarray:
         """Simulate the OU variance path on the same grid as `path_dz`."""
@@ -209,15 +229,15 @@ class BNS2(StochasticProcess1D):
 
     def sample_from_draws(
         self,
-        path_dw: Annotated[Paths, Doc("Single Brownian motion driving both factors")],
+        draws: Annotated[Paths, Doc("Single Brownian motion driving both factors")],
         *args: Annotated[
             Paths,
             Doc("Optional pre-drawn BDLP paths for bns1 and bns2 (in that order)"),
         ],
     ) -> Paths:
-        time_horizon = path_dw.t
-        time_steps = path_dw.time_steps
-        n = path_dw.samples
+        time_horizon = draws.t
+        time_steps = draws.time_steps
+        n = draws.samples
         path_dz1 = (
             args[0]
             if len(args) > 0
@@ -236,8 +256,8 @@ class BNS2(StochasticProcess1D):
         v2 = self.bns2._variance_path(path_dz2)
         w = self.weight
         sigma2 = w * v1 + (1.0 - w) * v2
-        diffusion = np.sqrt(sigma2[:-1] * path_dw.dt) * path_dw.data[:-1]
-        paths = np.zeros_like(path_dw.data)
+        diffusion = np.sqrt(sigma2[:-1] * draws.dt) * draws.data[:-1]
+        paths = np.zeros_like(draws.data)
         paths[1:] = (
             np.cumsum(diffusion, axis=0)
             + self.bns1.rho * path_dz1.data[1:]

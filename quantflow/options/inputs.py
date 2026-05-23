@@ -2,12 +2,15 @@ from __future__ import annotations
 
 import enum
 from datetime import datetime
+from decimal import Decimal
 from typing import Self, TypeVar
 
 from pydantic import BaseModel, Field
+from typing_extensions import Annotated, Doc
 
 from quantflow.rates import AnyYieldCurve
-from quantflow.utils.numbers import ZERO, DecimalNumber
+from quantflow.utils.numbers import DecimalNumber
+from quantflow.utils.price import PriceVolume
 
 P = TypeVar("P")
 
@@ -34,6 +37,29 @@ class OptionType(enum.StrEnum):
     def call_put(self) -> int:
         """Return 1 for call options and -1 for put options"""
         return 1 if self is OptionType.call else -1
+
+
+class OptionMetadata(BaseModel):
+    """Represents the metadata of an option, including its strike, type, maturity,
+    and other relevant information."""
+
+    strike: DecimalNumber = Field(description="Strike price of the option")
+    option_type: OptionType = Field(description="Type of the option, call or put")
+    maturity: datetime = Field(description="Maturity date of the option")
+    inverse: bool = Field(
+        default=True,
+        description=(
+            "Whether the option is an inverse option (i.e. quoted in terms of the "
+            "underlying) or not (i.e. quoted in terms of the quote currency)"
+        ),
+    )
+
+    def is_in_the_money(self, forward: Decimal) -> bool:
+        """Check if the option is in the money given the forward price"""
+        if self.option_type.is_call():
+            return self.strike < forward
+        else:
+            return self.strike > forward
 
 
 class VolSecurityType(enum.StrEnum):
@@ -78,18 +104,7 @@ class DefaultVolSecurity(VolSurfaceSecurity):
         return cls(security_type=VolSecurityType.option)
 
 
-class VolSurfaceInput(BaseModel):
-    """Base class for volatility surface inputs"""
-
-    bid: DecimalNumber = Field(description="Bid price of the security")
-    ask: DecimalNumber = Field(description="Ask price of the security")
-    open_interest: DecimalNumber = Field(
-        default=ZERO, description="Open interest of the security"
-    )
-    volume: DecimalNumber = Field(default=ZERO, description="Volume of the security")
-
-
-class SpotInput(VolSurfaceInput):
+class SpotInput(PriceVolume):
     """Input data for a spot contract in the volatility surface"""
 
     security_type: VolSecurityType = Field(
@@ -98,7 +113,7 @@ class SpotInput(VolSurfaceInput):
     )
 
 
-class ForwardInput(VolSurfaceInput):
+class ForwardInput(PriceVolume):
     """Input data for a forward contract in the volatility surface"""
 
     maturity: datetime = Field(description="Expiry date of the forward contract")
@@ -108,12 +123,9 @@ class ForwardInput(VolSurfaceInput):
     )
 
 
-class OptionInput(VolSurfaceInput):
+class OptionInput(PriceVolume, OptionMetadata):
     """Input data for an option in the volatility surface"""
 
-    strike: DecimalNumber = Field(description="Strike price of the option")
-    maturity: datetime = Field(description="Expiry date of the option")
-    option_type: OptionType = Field(description="Type of the option - call or put")
     security_type: VolSecurityType = Field(
         default=VolSecurityType.option,
         description="Type of security for the volatility surface",
@@ -132,13 +144,12 @@ class OptionInput(VolSurfaceInput):
             "(e.g. 0.2 for 20%)"
         ),
     )
-    inverse: bool = Field(
-        default=True,
-        description=(
-            "Whether the security is inverse (i.e. quoted in terms of the underlying) "
-            "or not (i.e. quoted in terms of the quote currency)"
-        ),
-    )
+
+
+VolSurfaceInput = Annotated[
+    SpotInput | ForwardInput | OptionInput,
+    Doc("Input data for a security in the volatility surface"),
+]
 
 
 class VolSurfaceInputs(BaseModel):

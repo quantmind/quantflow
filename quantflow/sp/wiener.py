@@ -3,6 +3,7 @@ from __future__ import annotations
 import numpy as np
 from pydantic import Field
 from scipy.stats import norm
+from typing_extensions import Annotated, Doc
 
 from ..ta.paths import Paths
 from ..utils.types import FloatArrayLike, Vector
@@ -20,11 +21,25 @@ class WienerProcess(StochasticProcess1D):
         su = self.sigma * u
         return 0.5 * su * su * t
 
-    def sample(self, n: int, time_horizon: float = 1, time_steps: int = 100) -> Paths:
+    def sample(
+        self,
+        n: Annotated[int, Doc("Number of paths")],
+        time_horizon: Annotated[float, Doc("Time horizon")] = 1,
+        time_steps: Annotated[
+            int, Doc("Number of time steps to arrive at horizon")
+        ] = 100,
+    ) -> Paths:
         paths = Paths.normal_draws(n, time_horizon, time_steps)
         return self.sample_from_draws(paths)
 
-    def sample_from_draws(self, draws: Paths, *args: Paths) -> Paths:
+    def sample_from_draws(
+        self,
+        draws: Annotated[
+            Paths,
+            Doc("Pre-drawn standard normal increments for the Brownian motion"),
+        ],
+        *args: Paths,
+    ) -> Paths:
         sdt = self.sigma * np.sqrt(draws.dt)
         paths = np.zeros(draws.data.shape)
         paths[1:] = np.cumsum(draws.data[:-1], axis=0)

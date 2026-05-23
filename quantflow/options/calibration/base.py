@@ -15,6 +15,7 @@ from quantflow.sp.base import StochasticProcess1D
 from quantflow.utils import plot
 
 from ..bs import implied_black_volatility
+from ..moneyness import log_strike_from_moneyness, moneyness_from_log_strike
 from ..pricer import OptionPricerBase
 from ..surface import OptionPrice, VolSurface
 
@@ -150,7 +151,9 @@ class VolModelCalibration(BaseModel, ABC, Generic[M]):
         entries = tuple(self.options.values())
         self._log_strikes = np.asarray([e.log_strike for e in entries])
         self._ttms = np.asarray([e.ttm for e in entries])
-        self._moneyness = self._log_strikes / np.sqrt(self._ttms)
+        self._moneyness = np.asarray(
+            moneyness_from_log_strike(self._log_strikes, self._ttms)
+        )
         self._mid_prices = np.asarray([e.mid_price() for e in entries])
         self._mid_ivs = np.asarray([e.mid_iv() for e in entries])
 
@@ -223,7 +226,7 @@ class VolModelCalibration(BaseModel, ABC, Generic[M]):
         Up-weights wing options via `exp(moneyness_weight * moneyness**2)`,
         capped at `max_cost_weight`. The quadratic form mimics `1/vega`.
         """
-        moneyness = log_strike / np.sqrt(ttm)
+        moneyness = float(moneyness_from_log_strike(log_strike, ttm))
         weight = np.exp(self.moneyness_weight * moneyness * moneyness)
         return float(min(weight, self.max_cost_weight))
 
@@ -281,7 +284,11 @@ class VolModelCalibration(BaseModel, ABC, Generic[M]):
     def _model_grid(
         self, ttm: float, max_moneyness: float, support: int
     ) -> pd.DataFrame:
-        log_strikes = np.linspace(-max_moneyness, max_moneyness, support) * np.sqrt(ttm)
+        log_strikes = np.asarray(
+            log_strike_from_moneyness(
+                np.linspace(-max_moneyness, max_moneyness, support), ttm
+            )
+        )
         return self.pricer.maturity(ttm).prices(log_strikes)
 
     def plot(

@@ -5,9 +5,10 @@ from typing import ClassVar
 
 from typing_extensions import Self
 
-from quantflow.options.inputs import OptionType
+from quantflow.options.inputs import OptionMetadata, OptionType
+from quantflow.utils.numbers import Number, to_decimal
 
-from .base import Strategy, StrategyLeg, load_description
+from .base import Strategy, StrategyError, StrategyLeg, load_description
 
 
 class Strangle(Strategy, frozen=True):
@@ -19,50 +20,36 @@ class Strangle(Strategy, frozen=True):
     description: ClassVar[str] = load_description("strangle.md")
 
     @classmethod
-    def from_moneyness(
-        cls,
-        forward: float,
-        maturity: datetime,
-        put_moneyness: float = -0.05,
-        call_moneyness: float = 0.05,
-        quantity: float = 1.0,
-    ) -> Self:
-        """Create a strangle from log-strike offsets from forward."""
-        return cls(
-            legs=(
-                StrategyLeg.from_moneyness(
-                    OptionType.put, put_moneyness, forward, maturity, quantity
-                ),
-                StrategyLeg.from_moneyness(
-                    OptionType.call, call_moneyness, forward, maturity, quantity
-                ),
-            )
-        )
-
-    @classmethod
     def from_strikes(
         cls,
-        put_strike: float,
-        call_strike: float,
+        put_strike: Number,
+        call_strike: Number,
         maturity: datetime,
-        quantity: float = 1.0,
+        quantity: Number = 1.0,
     ) -> Self:
         """Create a strangle from absolute strikes."""
-        if put_strike >= call_strike:
-            raise ValueError("Put strike must be less than call strike.")
+        put = to_decimal(put_strike)
+        call = to_decimal(call_strike)
+        if put >= call:
+            raise StrategyError("Put strike must be less than call strike.")
+        q = to_decimal(quantity)
         return cls(
             legs=(
                 StrategyLeg(
-                    option_type=OptionType.put,
-                    quantity=quantity,
-                    strike=put_strike,
-                    maturity=maturity,
+                    meta=OptionMetadata(
+                        option_type=OptionType.put,
+                        strike=put,
+                        maturity=maturity,
+                    ),
+                    quantity=q,
                 ),
                 StrategyLeg(
-                    option_type=OptionType.call,
-                    quantity=quantity,
-                    strike=call_strike,
-                    maturity=maturity,
+                    meta=OptionMetadata(
+                        option_type=OptionType.call,
+                        strike=call,
+                        maturity=maturity,
+                    ),
+                    quantity=q,
                 ),
             )
         )

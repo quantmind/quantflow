@@ -23,7 +23,17 @@ class StochasticProcess(BaseModel, ABC, extra="forbid"):
     """
 
     @abstractmethod
-    def sample_from_draws(self, draws: Paths, *args: Paths) -> Paths:
+    def sample_from_draws(
+        self,
+        draws: Annotated[
+            Paths,
+            Doc("Pre-drawn random increments (typically standard normal)"),
+        ],
+        *args: Annotated[
+            Paths,
+            Doc("Additional pre-drawn paths for multi-factor models"),
+        ],
+    ) -> Paths:
         """Sample [Paths][quantflow.ta.paths.Paths]
         from the process given a set of draws"""
 

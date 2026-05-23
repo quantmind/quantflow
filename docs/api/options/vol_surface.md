@@ -17,8 +17,6 @@
 
 ## Bid/Ask Prices
 
-::: quantflow.options.surface.Price
-
 ::: quantflow.options.surface.SpotPrice
 
 ::: quantflow.options.surface.FwdPrice
@@ -26,8 +24,6 @@
 ::: quantflow.options.surface.Strike
 
 ::: quantflow.options.surface.OptionArrays
-
-::: quantflow.options.surface.OptionMetadata
 
 ::: quantflow.options.surface.OptionPrice
 
@@ -40,6 +36,8 @@
 ## Vol Surface Inputs
 
 ::: quantflow.options.inputs.OptionType
+
+::: quantflow.options.inputs.OptionMetadata
 
 ::: quantflow.options.inputs.VolSurfaceInputs
 

@@ -35,3 +35,12 @@ class Price(BaseModel):
         """Check if the price is valid, which means the bid is less than
         or equal to the ask"""
         return self.bid <= self.ask
+
+
+class PriceVolume(Price):
+    """Base class for price with volume and open interest"""
+
+    open_interest: DecimalNumber = Field(
+        default=ZERO, description="Open interest of the security"
+    )
+    volume: DecimalNumber = Field(default=ZERO, description="Volume of the security")

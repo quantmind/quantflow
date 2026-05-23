@@ -36,16 +36,33 @@ class JumpDiffusion(StochasticProcess1D, Generic[D]):
             t, u
         ) + self.jumps.characteristic_exponent(t, u)
 
-    def sample(self, n: int, time_horizon: float = 1, time_steps: int = 100) -> Paths:
+    def sample(
+        self,
+        n: Annotated[int, Doc("Number of paths")],
+        time_horizon: Annotated[float, Doc("Time horizon")] = 1,
+        time_steps: Annotated[
+            int, Doc("Number of time steps to arrive at horizon")
+        ] = 100,
+    ) -> Paths:
         dw1 = Paths.normal_draws(n, time_horizon, time_steps)
         return self.sample_from_draws(dw1)
 
-    def sample_from_draws(self, path_w: Paths, *args: Paths) -> Paths:
+    def sample_from_draws(
+        self,
+        draws: Annotated[
+            Paths,
+            Doc("Pre-drawn standard normal increments for the diffusion component"),
+        ],
+        *args: Annotated[
+            Paths,
+            Doc("Optional pre-drawn jump paths; " "new draws are generated if omitted"),
+        ],
+    ) -> Paths:
         if args:
             path_j = args[0]
         else:
-            path_j = self.jumps.sample(path_w.samples, path_w.t, path_w.time_steps)
-        path_w = self.diffusion.sample_from_draws(path_w)
+            path_j = self.jumps.sample(draws.samples, draws.t, draws.time_steps)
+        path_w = self.diffusion.sample_from_draws(draws)
         return Paths(t=path_w.t, data=path_w.data + path_j.data)
 
     def analytical_mean(self, t: FloatArrayLike) -> FloatArrayLike:

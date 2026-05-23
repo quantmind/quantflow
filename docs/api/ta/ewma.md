@@ -1,4 +1,4 @@
 # EWMA
 
 
-::: quantflow.ta.EWMA
+::: quantflow.ta.ewma.EWMA

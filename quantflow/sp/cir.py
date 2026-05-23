@@ -4,6 +4,7 @@ import numpy as np
 from pydantic import Field
 from scipy import special
 from scipy.optimize import Bounds
+from typing_extensions import Annotated, Doc
 
 from quantflow.utils.types import FloatArrayLike, Vector
 
@@ -57,19 +58,31 @@ class CIR(IntensityProcess):
         return self.feller_condition >= 0.0
 
     def sample(
-        self, paths: int, time_horizon: float = 1, time_steps: int = 100
+        self,
+        n: Annotated[int, Doc("Number of paths")],
+        time_horizon: Annotated[float, Doc("Time horizon")] = 1,
+        time_steps: Annotated[
+            int, Doc("Number of time steps to arrive at horizon")
+        ] = 100,
     ) -> Paths:
-        draws = Paths.normal_draws(paths, time_horizon, time_steps)
+        draws = Paths.normal_draws(n, time_horizon, time_steps)
         return self.sample_from_draws(draws)
 
-    def sample_from_draws(self, paths: Paths, *args: Paths) -> Paths:
+    def sample_from_draws(
+        self,
+        draws: Annotated[
+            Paths,
+            Doc("Pre-drawn standard normal increments"),
+        ],
+        *args: Paths,
+    ) -> Paths:
         match self.sample_algo:
             case SamplingAlgorithm.EULER:
-                return self.sample_euler(paths)
+                return self.sample_euler(draws)
             case SamplingAlgorithm.MILSTEIN:
-                return self.sample_euler(paths, 0.25)
+                return self.sample_euler(draws, 0.25)
             case SamplingAlgorithm.IMPLICIT:
-                return self.sample_implicit(paths)
+                return self.sample_implicit(draws)
 
     def sample_euler(self, draws: Paths, milstein_coef: float = 0.0) -> Paths:
         kappa = self.kappa
