@@ -8,9 +8,9 @@ from quantflow.options.parity import PutCallParity, PutCallParities
 from quantflow.utils.price import Price
 
 
-def _parity(strike: float, mid: float, inverse: bool = False) -> PutCallParity:
+def _parity(strike: float, cp_mid: float, inverse: bool = False) -> PutCallParity:
     call = Price(bid=Decimal("1.0"), ask=Decimal("1.0"))
-    put_value = Decimal(str(1.0 - mid))
+    put_value = Decimal(str(1.0 - cp_mid))
     put = Price(bid=put_value, ask=put_value)
     return PutCallParity(strike=Decimal(str(strike)), call=call, put=put, inverse=inverse)
 
@@ -39,7 +39,11 @@ def test_regressand_inverse() -> None:
 
 
 def test_fit_discounts_with_fixed_values() -> None:
-    parities = PutCallParities.from_parities([_parity(90, 0.11), _parity(110, -0.08)], 100, 1)
+    parities = PutCallParities.from_parities(
+        [_parity(90, 12.5), _parity(110, -6.5)],
+        100,
+        1,
+    )
     fitted_both = parities.fit_discounts(dq=0.95, da=0.98)
     assert fitted_both is not None
     assert fitted_both.quote_discount == pytest.approx(0.95)
@@ -59,7 +63,7 @@ def test_fit_discounts_constrained_branch() -> None:
     dq_true = 0.95
     spot = 100
     strikes = [90, 100, 110, 120]
-    mids = [da_true - dq_true * (k / spot) for k in strikes]
+    mids = [spot * (da_true - dq_true * (k / spot)) for k in strikes]
     parities = PutCallParities.from_parities(
         [_parity(k, m) for k, m in zip(strikes, mids)], spot=spot, ttm=1
     )
@@ -73,5 +77,5 @@ def test_fit_discounts_invalid_or_empty_returns_none() -> None:
     empty = PutCallParities.from_parities([], spot=100, ttm=1)
     assert empty.fit_discounts() is None
 
-    parities = PutCallParities.from_parities([_parity(100, 0.02)], spot=100, ttm=1)
-    assert parities.fit_discounts(dq=1.0, da=1.0, min_rate_q=0.1, min_rate_a=0.1) is None
+    parities = PutCallParities.from_parities([_parity(100, 2.0)], spot=100, ttm=1)
+    assert parities.fit_discounts(dq=1.0, min_rate_q=0.1, min_rate_a=0.1) is None
