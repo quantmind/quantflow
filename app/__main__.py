@@ -64,12 +64,16 @@ def crate_app() -> FastAPI:
     api.include_router(volatility_router)
     app.include_router(api)
     app.include_router(status_router, include_in_schema=False)
-    app.mount(
-        "/examples",
-        HtmlFallbackStaticFiles(directory=APP_PATH / "examples", html=True),
-        name="examples",
-    )
-    app.mount("/", StaticFiles(directory=APP_PATH / "docs", html=True), name="static")
+    examples_dir = APP_PATH / "examples"
+    if examples_dir.is_dir():
+        app.mount(
+            "/examples",
+            HtmlFallbackStaticFiles(directory=examples_dir, html=True),
+            name="examples",
+        )
+    docs_dir = APP_PATH / "docs"
+    if docs_dir.is_dir():
+        app.mount("/", StaticFiles(directory=docs_dir, html=True), name="static")
     return app
 
 
