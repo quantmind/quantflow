@@ -12,7 +12,9 @@ def _parity(strike: float, cp_mid: float, inverse: bool = False) -> PutCallParit
     call = Price(bid=Decimal("1.0"), ask=Decimal("1.0"))
     put_value = Decimal(str(1.0 - cp_mid))
     put = Price(bid=put_value, ask=put_value)
-    return PutCallParity(strike=Decimal(str(strike)), call=call, put=put, inverse=inverse)
+    return PutCallParity(
+        strike=Decimal(str(strike)), call=call, put=put, inverse=inverse
+    )
 
 
 def test_regressand_and_regressor_direct() -> None:
