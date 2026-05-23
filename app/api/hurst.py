@@ -13,8 +13,18 @@ from quantflow.ta.ohlc import OHLC
 
 hurst_router = APIRouter()
 
-DEFAULT_PERIODS = ("10s", "20s", "30s", "1m", "2m", "3m", "5m", "10m", "30m")
-VASICEK_PERIODS = ("10m", "20m", "30m", "1h")
+DEFAULT_PERIODS = (
+    "10s",
+    "20s",
+    "30s",
+    "1min",
+    "2min",
+    "3min",
+    "5min",
+    "10min",
+    "30min",
+)
+VASICEK_PERIODS = ("10min", "20min", "30min", "1h")
 
 
 class HurstWienerResponse(BaseModel):
