@@ -13,7 +13,7 @@ from typing_extensions import Annotated, Doc
 
 from quantflow.options.inputs import DefaultVolSecurity, OptionType
 from quantflow.options.surface import VolSurfaceLoader
-from quantflow.rates.yield_curve import NoDiscount
+from quantflow.rates.no_discount import NoDiscount
 from quantflow.utils.dates import as_utc, utcnow
 from quantflow.utils.numbers import to_decimal
 

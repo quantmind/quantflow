@@ -42,35 +42,31 @@ class YieldCurveCalibration(BaseModel, Generic[Y]):
         """
         return np.asarray(self.yield_curve.discount_factor(ttm), dtype=float)
 
+    @abstractmethod
     def calibrate(
+        self,
+        ttm: Annotated[ArrayLike, Doc("Times to maturity in years.")],
+        rates: Annotated[
+            ArrayLike, Doc("Continuously compounded rates, same length as ttm.")
+        ],
+    ) -> Y:
+        """Fit the yield curve to continuously compounded rates."""
+
+    def calibrate_df(
         self,
         ttm: Annotated[ArrayLike, Doc("Times to maturity in years.")],
         target: Annotated[
             ArrayLike, Doc("Target discount factors, same length as ttm.")
         ],
     ) -> Y:
-        """Fit the yield curve to target discount factors via least squares."""
+        """Fit the yield curve to target discount factors.
+
+        Converts discount factors to continuously compounded rates then calls
+        [calibrate][.calibrate].
+        """
         ttm_ = np.asarray(ttm, dtype=float)
-        target_ = np.asarray(target, dtype=float)
-        has_jacobian = self.yield_curve.jacobian(ttm_) is not None
-
-        def residuals(params: np.ndarray) -> np.ndarray:
-            self.set_params(params)
-            return self(ttm_) - target_
-
-        def jac(params: np.ndarray) -> FloatArray:
-            self.set_params(params)
-            return self.yield_curve.jacobian(ttm_)  # type: ignore[return-value]
-
-        result = least_squares(
-            residuals,
-            self.get_params(),
-            jac=jac if has_jacobian else "2-point",
-            bounds=self.get_bounds(),
-            method="trf",
-        )
-        self.set_params(result.x)
-        return self.yield_curve
+        rates = -np.log(np.asarray(target, dtype=float)) / ttm_
+        return self.calibrate(ttm_, rates)
 
 
 @dataclass
@@ -170,7 +166,7 @@ class OptionsDiscountingCalibration:
         """Calibrate only the asset curve; quote curve is fixed."""
         dq = np.asarray(fixed_quote.discount_factor(self.ttm), dtype=float)
         target_da = self.cp + dq * self.strikes
-        return asset_cal.calibrate(self.ttm, target_da), fixed_quote
+        return asset_cal.calibrate_df(self.ttm, target_da), fixed_quote
 
     def quote_calibration(
         self,
@@ -180,4 +176,4 @@ class OptionsDiscountingCalibration:
         """Calibrate only the quote curve; asset curve is fixed."""
         da = np.asarray(fixed_asset.discount_factor(self.ttm), dtype=float)
         target_dq = (da - self.cp) / self.strikes
-        return fixed_asset, quote_cal.calibrate(self.ttm, target_dq)
+        return fixed_asset, quote_cal.calibrate_df(self.ttm, target_dq)

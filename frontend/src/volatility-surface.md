@@ -4,7 +4,7 @@ title: Volatility Surface
 
 # Volatility Surface
 
-Live implied volatility surface from market options data. Crypto assets (BTC, ETH) use [Deribit](https://www.deribit.com/); equities (SPY, AAPL, NVDA) use [Yahoo Finance](https://finance.yahoo.com/).
+Live implied volatility surface from market options data. Crypto assets (BTC, ETH) use the [Deribit volatility surface loader](https://quantflow.quantmind.com/api/data/deribit/#quantflow.data.deribit.Deribit.volatility_surface_loader); equities (SPY, AAPL, NVDA) use the [Yahoo Finance volatility surface loader](https://quantflow.quantmind.com/api/data/yahoo/#quantflow.data.yahoo.Yahoo.volatility_surface_loader).
 
 ```js
 import {fetchJson} from "./lib/api.js";
@@ -69,7 +69,7 @@ const downloadInputs = () => {
   URL.revokeObjectURL(url);
 };
 
-display(html`<button onclick=${downloadInputs} style="cursor: pointer">Download Inputs (JSON)</button>`);
+display(html`<button onclick=${downloadInputs} style="cursor: pointer; background: var(--qf-primary); color: #fff; border: none; padding: 0.5em 1em; border-radius: 4px;">Download Inputs (JSON)</button>`);
 ```
 
 ```js
@@ -162,6 +162,28 @@ display(Plot.plot({
       r: 5,
       tip: true
     })
+  ]
+}));
+```
+
+## Forward Curve
+
+```js
+const forwardCurve = data.forward_curve.ttm.map((t, i) => ({ttm: t, forward: data.forward_curve.forward[i]}));
+const pcpForwards = data.pcp_forwards.map(d => ({ttm: d.ttm, forward: d.forward, maturity: d.maturity.slice(0, 10)}));
+
+display(Plot.plot({
+  width: 800,
+  height: 350,
+  marginLeft: 80,
+  marginBottom: 50,
+  style: {background: "transparent"},
+  x: {label: "Time to Maturity (years)", grid: true},
+  y: {label: "Forward Price (USD)", grid: true},
+  color: {legend: true, domain: ["Model", "Put-Call Parity"], range: ["var(--theme-foreground-focus)", "var(--qf-accent)"]},
+  marks: [
+    Plot.line(forwardCurve, {x: "ttm", y: "forward", stroke: "var(--theme-foreground-focus)", strokeWidth: 2}),
+    Plot.dot(pcpForwards, {x: "ttm", y: "forward", fill: "var(--qf-accent)", r: 5, tip: true}),
   ]
 }));
 ```

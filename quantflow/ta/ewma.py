@@ -22,15 +22,22 @@ class EWMA(BaseModel):
     \end{equation}
 
     where $\alpha$ is the smoothing factor derived from the period parameter.
-    The period represents the half-life of the exponential decay, that is,
-    the number of steps after which the weight assigned to a past observation
-    drops to half. The relationship is:
+    The period represents the effective averaging window of the exponential decay,
+    defined as the half-life $h$ divided by $\ln 2$:
 
     \begin{equation}
-        \alpha = 1 - \exp\left(-\frac{\ln 2}{p}\right)
+        p = \frac{h}{\ln 2}
     \end{equation}
 
-    where $N$ is the [period][.period]. This definition makes the period directly
+    For an exponential decay with half-life $h$, the sum of all weights equals
+    $h / \ln 2$, making the period the continuous-time equivalent of the number of
+    observations in a simple moving average. The smoothing factor is:
+
+    \begin{equation}
+        \alpha = 1 - \exp\left(-\frac{1}{p}\right)
+    \end{equation}
+
+    where $p$ is the [period][.period]. This definition makes the period directly
     comparable to the period used in
     [SuperSmoother][quantflow.ta.supersmoother.SuperSmoother].
 
@@ -44,7 +51,7 @@ class EWMA(BaseModel):
     import pandas as pd
     ewma = EWMA(period=10)
     df = pd.DataFrame({"value": [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]})
-    df["ewma"] = df["value"].apply(ewma.update)
+    df["ewma"] = df["value"].apply(EWMA(period=10).update)
     ```
 
     For online updates:
@@ -75,6 +82,26 @@ class EWMA(BaseModel):
     _smoothed: float = PrivateAttr(default=0.0)
     _alpha: float = PrivateAttr(default=0.0)
 
+    @property
+    def current_value(self) -> float | None:
+        """Get the most recent smoothed value, if available."""
+        return self._smoothed if self._count > 0 else None
+
+    @property
+    def alpha(self) -> float:
+        r"""Get the smoothing factor $0 < \alpha < 1$ used by the filter."""
+        return self._alpha
+
+    @property
+    def half_life(self) -> float:
+        r"""Get the half-life corresponding to the current period.
+
+        \begin{equation}
+            h = p \cdot \ln 2
+        \end{equation}
+        """
+        return self.period * log2
+
     @classmethod
     def from_half_life(cls, half_life: float, tau: float | None = None) -> Self:
         r"""Create an EWMA using half-life semantics instead of period.
@@ -82,10 +109,13 @@ class EWMA(BaseModel):
         The half-life represents the time for weight to decay to 0.5.
 
         \begin{equation}
-            \alpha = 1 - \exp\left(-\frac{\ln(2)}{\tt{half\_life}}\right)
+            \alpha = 1 - \exp\left(-\frac{\ln(2)}{h}\right)
         \end{equation}
         """
-        return cls.from_alpha(1.0 - math.exp(-log2 / half_life), tau=tau)
+        if half_life <= 0:
+            raise ValueError("half_life must be greater than 0")
+        period = int(round(half_life / log2))
+        return cls(period=max(1, period), tau=tau)
 
     @classmethod
     def from_alpha(cls, alpha: float, tau: float | None = None) -> Self:
@@ -94,16 +124,16 @@ class EWMA(BaseModel):
         The period is computed as the inverse of:
 
         \begin{equation}
-            \alpha = 1 - \exp\left(-\frac{\ln 2}{p}\right)
+            \alpha = 1 - \exp\left(-\frac{1}{p}\right)
         \end{equation}
         """
         if not 0.0 < alpha < 1.0:
             raise ValueError("alpha must be between 0 and 1")
-        period = int(round(-log2 / math.log1p(-alpha)))
+        period = int(round(-1.0 / math.log1p(-alpha)))
         return cls(period=max(1, period), tau=tau)
 
     def model_post_init(self, __context: Any) -> None:
-        self._alpha = 1.0 - math.exp(-log2 / self.period)
+        self._alpha = 1.0 - math.exp(-1.0 / self.period)
 
     def update(self, value: float) -> float:
         """Update the filter with a new value and return the smoothed result.
@@ -131,13 +161,3 @@ class EWMA(BaseModel):
             self._smoothed += alpha * (value - self._smoothed)
 
         return self._smoothed
-
-    @property
-    def current_value(self) -> float | None:
-        """Get the most recent smoothed value, if available."""
-        return self._smoothed if self._count > 0 else None
-
-    @property
-    def alpha(self) -> float:
-        """Get the smoothing factor (alpha) used by the filter."""
-        return self._alpha

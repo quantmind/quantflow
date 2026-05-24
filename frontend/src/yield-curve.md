@@ -17,6 +17,20 @@ const curveType = view(Inputs.select(["nelson_siegel", "vasicek_curve", "cir_cur
 ```
 
 ```js
+const downloadRates = () => {
+  const blob = new Blob([JSON.stringify(inputRates, null, 2)], {type: "application/json"});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = `rates_${curveType}.json`;
+  a.click();
+  URL.revokeObjectURL(url);
+};
+
+display(html`<button onclick=${downloadRates} style="cursor: pointer; background: var(--qf-primary); color: #fff; border: none; padding: 0.5em 1em; border-radius: 4px;">Download Rates (JSON)</button>`);
+```
+
+```js
 const defaultRates = [
   {ttm: 1/365, rate: 0.043},
   {ttm: 7/365, rate: 0.043},
@@ -64,12 +78,19 @@ const marginRight = 20;
 const marginBottom = 40;
 const marginLeft = 50;
 
+const allRates = inputRates.map(d => d.rate);
+const rateMin = Math.min(...allRates);
+const rateMax = Math.max(...allRates);
+const padding = Math.max((rateMax - rateMin) * 0.2, 0.005);
+const yMin = rateMin - padding;
+const yMax = rateMax + padding;
+
 const x = d3.scaleLog()
   .domain([1/365, 32])
   .range([marginLeft, width - marginRight]);
 
 const y = d3.scaleLinear()
-  .domain([0.02, 0.06])
+  .domain([yMin, yMax])
   .range([height - marginBottom, marginTop]);
 
 const svg = d3.create("svg")
@@ -125,9 +146,8 @@ svg.selectAll("circle")
   .call(d3.drag()
     .on("drag", function(event, d) {
       const newRate = y.invert(event.y);
-      const clamped = Math.max(0.001, Math.min(0.1, newRate));
-      d.rate = clamped;
-      d3.select(this).attr("cy", y(clamped));
+      d.rate = newRate;
+      d3.select(this).attr("cy", y(newRate));
     })
     .on("end", function() {
       setInputRates(points.map(p => ({ttm: p.ttm, rate: p.rate})));

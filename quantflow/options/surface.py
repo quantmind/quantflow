@@ -1579,6 +1579,38 @@ class GenericVolSurfaceLoader(ForwardPricer[S], arbitrary_types_allowed=True):
             np.concatenate(strikes),
         )
 
+    def implied_forward_term_structure(
+        self,
+        *,
+        max_pairs: Annotated[
+            int, Doc("Maximum number of put-call pairs to use per maturity")
+        ] = 10,
+    ) -> list[tuple[datetime, float, float]]:
+        """Return per-maturity implied forwards from put-call parity.
+
+        For each maturity, fits asset and quote discount factors from the most
+        liquid put-call pairs and returns the implied forward `spot * Da / Dq`.
+
+        Returns a list of `(maturity, ttm, forward)` tuples, one per maturity
+        for which a valid fit is available.
+        """
+        if not self.spot or self.spot.mid == ZERO:
+            raise ValueError("No spot price provided")
+        spot = self.spot.mid
+        ref_date = self.ref_date
+        result = []
+        for maturity, section in sorted(self.maturities.items()):
+            ttm = self.day_counter.dcf(ref_date, maturity)
+            if ttm <= 0:
+                continue
+            parities = section.put_call_parities(
+                spot, ref_date=ref_date, max_pairs=max_pairs
+            )
+            forward = parities.implied_forward()
+            if forward is not None:
+                result.append((maturity, ttm, forward))
+        return result
+
 
 class VolSurfaceLoader(GenericVolSurfaceLoader[DefaultVolSecurity]):
     """Helper class to build a volatility surface from a list of securities

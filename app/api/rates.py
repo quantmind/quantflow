@@ -50,7 +50,10 @@ async def yield_curve(
     curve_class = YieldCurve.get_curve_class(curve_type)
     if curve_class is None:
         raise ValueError(f"Unsupported curve type: {curve_type}")
-    curve = cast(AnyYieldCurve, curve_class.calibrate(ttm, rates))
+    calibrator = curve_class().calibrator()
+    if calibrator is None:
+        raise ValueError(f"Curve type {curve_type!r} does not support calibration")
+    curve = cast(AnyYieldCurve, calibrator.calibrate(ttm, rates))
     if max_ttm is not None:
         ttm = list(np.geomspace(1 / 365, max_ttm, num_points))
     rates = [float(r) for r in np.atleast_1d(curve.continuously_compounded_rate(ttm))]

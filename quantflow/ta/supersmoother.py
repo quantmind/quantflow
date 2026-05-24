@@ -13,23 +13,23 @@ class SuperSmoother(BaseModel):
     preserving the underlying trend with minimal lag.
     The filter is defined by the following recurrence relation:
 
-    $$
-    y_t = c_1 \frac{x_t + x_{t-1}}{2} + c_2 y_{t-1} + c_3 y_{t-2}
-    $$
+    \begin{equation}
+        y_t = c_1 \frac{x_t + x_{t-1}}{2} + c_2 y_{t-1} + c_3 y_{t-2}
+    \end{equation}
 
     where the coefficients are calculated as:
 
-    $$
-    \begin{align}
-        \lambda &= \frac{\pi \sqrt{2}}{N} \\
+    \begin{equation}
+    \begin{aligned}
+        \lambda &= \frac{\pi \sqrt{2}}{p} \\
         a &= \exp(-\lambda) \\
         c_2 &= 2 a \cos(\lambda) \\
         c_3 &= -a^2 \\
         c_1 &= 1 - c_2 - c_3
-    \end{align}
-    $$
+    \end{aligned}
+    \end{equation}
 
-    and $N$ is the period.
+    and $p$ is the period.
 
     ## Example
 
@@ -37,7 +37,7 @@ class SuperSmoother(BaseModel):
     import pandas as pd
     smoother = SuperSmoother(period=10)
     df = pd.DataFrame({"value": [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]})
-    df["smoothed"] = df["value"].apply(smoother.update)
+    df["smoothed"] = df["value"].apply(SuperSmoother(period=10).update)
     ```
 
     For online updates:
@@ -45,7 +45,7 @@ class SuperSmoother(BaseModel):
     ```python
     smoother = SuperSmoother(period=10)
     for value in [1, 2, 3, 4, 5]:
-        smoothed = smoother(value)
+        smoothed = smoother.update(value)
         print(smoothed)
     ```
     """

@@ -42,17 +42,7 @@ async def supersmoother(
         .sort_values("date", ascending=True)
         .reset_index(drop=True)
     )
-    smoother = SuperSmoother(period=period)
-    ewma = EWMA(period=period)
-    sm["supersmoother"] = sm["close"].apply(smoother.update)
-    sm["ewma"] = sm["close"].apply(ewma.update)
-    data = [
-        SmootherPoint(
-            date=str(row["date"]),
-            close=float(row["close"]),
-            supersmoother=float(row["supersmoother"]),
-            ewma=float(row["ewma"]),
-        )
-        for _, row in sm.iterrows()
-    ]
-    return SmootherResponse(data=data)
+    sm["supersmoother"] = sm["close"].apply(SuperSmoother(period=period).update)
+    sm["ewma"] = sm["close"].apply(EWMA(period=period).update)
+    sm["date"] = sm["date"].astype(str)
+    return SmootherResponse(data=sm.to_dict(orient="records"))

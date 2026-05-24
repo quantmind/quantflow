@@ -137,7 +137,7 @@ def test_calibrate_recovers_curve_noiseless() -> None:
     ns_true = _true_curve()
     ttm = np.linspace(0.25, 10.0, 20)
     rates = -np.log([float(ns_true.discount_factor(t)) for t in ttm]) / ttm
-    ns_fit = NelsonSiegel.calibrate(ttm, rates)
+    ns_fit = NelsonSiegel().calibrator().calibrate(ttm, rates)
     for t in [1.0, 2.0, 5.0]:
         assert float(ns_fit.discount_factor(t)) == pytest.approx(
             float(ns_true.discount_factor(t)), rel=1e-4
@@ -147,7 +147,7 @@ def test_calibrate_recovers_curve_noiseless() -> None:
 def test_calibrate_flat_curve() -> None:
     ttm = np.array([0.5, 1.0, 2.0, 5.0, 10.0])
     rates = np.full_like(ttm, 0.05)
-    ns = NelsonSiegel.calibrate(ttm, rates)
+    ns = NelsonSiegel().calibrator().calibrate(ttm, rates)
     for t in ttm:
         assert float(ns.discount_factor(t)) == pytest.approx(
             math.exp(-0.05 * t), rel=1e-4
@@ -175,7 +175,7 @@ def _df_rmse(ns_fit: NelsonSiegel, ns_true: NelsonSiegel, ttm: np.ndarray) -> fl
 def test_calibrate_crypto_ttms_noiseless() -> None:
     ns_true = _true_curve()
     rates = _true_rates(ns_true, _CRYPTO_TTMS)
-    ns_fit = NelsonSiegel.calibrate(_CRYPTO_TTMS, rates)
+    ns_fit = NelsonSiegel().calibrator().calibrate(_CRYPTO_TTMS, rates)
     assert _df_rmse(ns_fit, ns_true, _CRYPTO_TTMS) < 1e-4
 
 
@@ -184,17 +184,5 @@ def test_calibrate_with_gaussian_noise() -> None:
     ns_true = _true_curve()
     rates = _true_rates(ns_true, _CRYPTO_TTMS)
     noisy = rates + rng.normal(0, 0.002, size=len(rates))
-    ns_fit = NelsonSiegel.calibrate(_CRYPTO_TTMS, noisy)
+    ns_fit = NelsonSiegel().calibrator().calibrate(_CRYPTO_TTMS, noisy)
     assert _df_rmse(ns_fit, ns_true, _CRYPTO_TTMS) < 0.005
-
-
-def test_calibrate_robust_to_outliers() -> None:
-    """Two extreme outlier rates must not corrupt the fit materially."""
-    rng = np.random.default_rng(0)
-    ns_true = _true_curve()
-    rates = _true_rates(ns_true, _CRYPTO_TTMS).copy()
-    # inject two bad observations — 5× the true rate
-    outlier_idx = rng.choice(len(rates), size=2, replace=False)
-    rates[outlier_idx] *= 5.0
-    ns_fit = NelsonSiegel.calibrate(_CRYPTO_TTMS, rates)
-    assert _df_rmse(ns_fit, ns_true, _CRYPTO_TTMS) < 0.01

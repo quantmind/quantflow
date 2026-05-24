@@ -95,7 +95,7 @@ async def hurst_wiener(
     seconds_in_day = 24 * 60 * 60
     wiener = WienerProcess(sigma=sigma)
     paths = wiener.sample(n=1, time_horizon=1, time_steps=seconds_in_day)
-    wiener_df = paths.as_datetime_df(start=start_of_day(), unit="d").reset_index()
+    wiener_df = paths.as_datetime_df(start=start_of_day(), unit="D").reset_index()
 
     dates = [str(d) for d in wiener_df.iloc[:, 0]]
     values = [float(v) for v in wiener_df.iloc[:, 1]]
