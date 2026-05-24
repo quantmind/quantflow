@@ -5,7 +5,7 @@ Quantflow exposes its crypto volatility tools as an [MCP](https://modelcontextpr
 The server is hosted at:
 
 ```
-https://quantflow.quantmind.com/mcp
+https://quantflow.quantmind.com/.api/mcp
 ```
 
 It uses the [Streamable HTTP](https://modelcontextprotocol.io/specification/2025-03-26/basic/transports#streamable-http) transport. No API key is required — all tools use the public Deribit API.
@@ -13,7 +13,7 @@ It uses the [Streamable HTTP](https://modelcontextprotocol.io/specification/2025
 ## Claude Code
 
 ```bash
-claude mcp add --transport http quantflow https://quantflow.quantmind.com/mcp
+claude mcp add --transport http quantflow https://quantflow.quantmind.com/.api/mcp
 ```
 
 ## Claude Desktop
@@ -25,7 +25,7 @@ Add to your Claude Desktop config (`~/Library/Application Support/Claude/claude_
   "mcpServers": {
     "quantflow": {
       "type": "streamable-http",
-      "url": "https://quantflow.quantmind.com/mcp"
+      "url": "https://quantflow.quantmind.com/.api/mcp"
     }
   }
 }
