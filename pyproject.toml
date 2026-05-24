@@ -36,7 +36,6 @@ dependencies = [
     "pandas>=2.0.0",
     "pydantic>=2.0.2",
     "ccy>=2.0.0",
-    "python-dotenv>=1.0.1",
     "statsmodels>=0.14.6,<0.15.0",
 ]
 
@@ -61,16 +60,18 @@ data = [
 dev = [
     "black>=26.3.1",
     "ghp-import>=2.0.2",
+    "hypothesis>=6.152.2",
     "isort>=8.0.0",
     "mypy>=1.14.1",
     "pytest-asyncio>=1.0.0",
     "pytest-cov>=7.0.0",
+    "python-dotenv>=1.0.1",
     "ruff>=0.15.4",
     "types-python-dateutil>=2.9.0.20251115",
 ]
 docs = [
     "aio-fluid[http,log,k8s]>=2.2.6",
-    "fastapi>=0.129.0",
+    "fastapi>=0.136.3",
     "griffe-pydantic>=1.1.0",
     "griffe-typingdoc>=0.2.7",
     "kaleido>=1.2.0",
@@ -81,6 +82,7 @@ docs = [
     "mkdocstrings[python]==1.0.0",
     "plotly>=6.2.0",
     "pyarrow>=19.0.0",
+    "python-dotenv>=1.0.1",
 ]
 ml = [
     "torch>=2.10.0",
@@ -179,8 +181,3 @@ module = [
 ]
 ignore_missing_imports = true
 disallow_untyped_defs = false
-
-[dependency-groups]
-dev = [
-    "hypothesis>=6.152.2",
-]
