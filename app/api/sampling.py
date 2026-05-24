@@ -1,9 +1,11 @@
 import numpy as np
 from fastapi import APIRouter, Query
 from pydantic import BaseModel, Field
+from scipy.stats import chisquare, ks_1samp
 
 from quantflow.sp.ou import Vasicek
 from quantflow.sp.poisson import PoissonProcess
+from quantflow.ta.paths import Paths
 from quantflow.utils import bins
 from quantflow.utils.distributions import DoubleExponential
 
@@ -16,6 +18,18 @@ class SamplingResponse(BaseModel):
     analytical: list[float] = Field(description="Analytical PDF values")
 
 
+class GaussianSamplingResponse(SamplingResponse):
+    ks_statistic: float = Field(
+        description="Kolmogorov-Smirnov statistic vs analytical CDF"
+    )
+    ks_pvalue: float = Field(description="Kolmogorov-Smirnov p-value")
+
+
+class PoissonSamplingResponse(SamplingResponse):
+    chi2_statistic: float = Field(description="Chi-squared goodness-of-fit statistic")
+    chi2_pvalue: float = Field(description="Chi-squared p-value")
+
+
 class DoubleExponentialResponse(SamplingResponse):
     char_x: list[float] = Field(description="X values from characteristic function")
     char_y: list[float] = Field(description="Y values from characteristic function")
@@ -25,28 +39,59 @@ class DoubleExponentialResponse(SamplingResponse):
 async def gaussian_sampling(
     kappa: float = Query(1.0, description="Mean reversion speed", ge=0.1, le=5.0),
     samples: int = Query(1000, description="Number of sample paths", ge=100, le=10000),
-) -> SamplingResponse:
+    antithetic: bool = Query(
+        True, description="Use antithetic variates variance reduction"
+    ),
+) -> GaussianSamplingResponse:
     pr = Vasicek(rate=0.5, kappa=kappa)
-    paths = pr.sample(samples, 1, 1000)
+    draws = Paths.normal_draws(samples, 1, 1000, antithetic_variates=antithetic)
+    paths = pr.sample_from_draws(draws)
     pdf = paths.pdf(num_bins=50)
     x = [float(v) for v in pdf.index]
     simulation = [float(v) for v in pdf["pdf"]]
     analytical = [float(v) for v in np.atleast_1d(pr.marginal(1).pdf(pdf.index))]
-    return SamplingResponse(x=x, simulation=simulation, analytical=analytical)
+    final_values = paths.data[-1, :]
+    ks = ks_1samp(final_values, lambda v: pr.analytical_cdf(1, v))
+    return GaussianSamplingResponse(
+        x=x,
+        simulation=simulation,
+        analytical=analytical,
+        ks_statistic=float(ks.statistic),
+        ks_pvalue=float(ks.pvalue),
+    )
 
 
 @sampling_router.get("/poisson-sampling")
 async def poisson_sampling(
-    intensity: float = Query(2.0, description="Poisson intensity", ge=2.0, le=5.0),
+    intensity: float = Query(2.0, description="Poisson intensity", ge=2.0, le=20.0),
     samples: int = Query(1000, description="Number of sample paths", ge=100, le=10000),
-) -> SamplingResponse:
+) -> PoissonSamplingResponse:
     pr = PoissonProcess(intensity=intensity)
     paths = pr.sample(samples, 1, 1000)
     pdf = paths.pdf(delta=1)
     x = [float(v) for v in pdf.index]
     simulation = [float(v) for v in pdf["pdf"]]
     analytical = [float(v) for v in np.atleast_1d(pr.marginal(1).pdf(pdf.index))]
-    return SamplingResponse(x=x, simulation=simulation, analytical=analytical)
+    f_obs = np.array(simulation) * samples
+    f_exp = np.array(analytical) * samples
+    f_exp = f_exp * (f_obs.sum() / f_exp.sum())
+    # merge tail bins with expected count < 5 to satisfy chi-squared requirements
+    while len(f_exp) > 1 and f_exp[0] < 5:
+        f_obs[1] += f_obs[0]
+        f_exp[1] += f_exp[0]
+        f_obs, f_exp = f_obs[1:], f_exp[1:]
+    while len(f_exp) > 1 and f_exp[-1] < 5:
+        f_obs[-2] += f_obs[-1]
+        f_exp[-2] += f_exp[-1]
+        f_obs, f_exp = f_obs[:-1], f_exp[:-1]
+    chi2 = chisquare(f_obs, f_exp)
+    return PoissonSamplingResponse(
+        x=x,
+        simulation=simulation,
+        analytical=analytical,
+        chi2_statistic=float(chi2.statistic),
+        chi2_pvalue=float(chi2.pvalue),
+    )
 
 
 @sampling_router.get("/double-exponential-sampling")
