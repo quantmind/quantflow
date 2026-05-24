@@ -36,6 +36,12 @@ def test_ewma_factory_methods() -> None:
     ewma_alpha = EWMA.from_alpha(alpha=0.5)
     assert ewma_half_life.period >= 1
     assert ewma_alpha.period >= 1
+    assert ewma_alpha.alpha == pytest.approx(0.5)
+
+
+def test_ewma_from_alpha_validation() -> None:
+    with pytest.raises(ValueError, match="between 0 and 1"):
+        EWMA.from_alpha(alpha=0.0)
 
 
 def test_kalman_initialization_and_first_update() -> None:
