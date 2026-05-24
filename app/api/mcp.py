@@ -1,4 +1,4 @@
-"""Crypto tools for the quantflow MCP server."""
+"""MCP server for quantflow - crypto volatility tools served via HTTP."""
 
 from pathlib import Path
 
@@ -6,10 +6,9 @@ from mcp.server.fastmcp import FastMCP
 
 from quantflow.data.deribit import Deribit, InstrumentKind
 
-from .base import McpTool
 
-
-def register(mcp: FastMCP, tool: McpTool) -> None:
+def create_mcp() -> FastMCP:
+    mcp = FastMCP("quantflow")
 
     @mcp.tool()
     async def crypto_instruments(currency: str, kind: str = "spot") -> str:
@@ -88,18 +87,4 @@ def register(mcp: FastMCP, tool: McpTool) -> None:
         Path(path).write_text(inputs.model_dump_json(indent=2))
         return f"Saved {len(vs.maturities)} maturities to {path}"
 
-    @mcp.tool()
-    async def crypto_prices(symbol: str, frequency: str = "") -> str:
-        """Get OHLC price history for a cryptocurrency via FMP.
-
-        Args:
-            symbol: Cryptocurrency symbol e.g. BTCUSD
-            frequency: Data frequency - 1min, 5min, 15min, 30min, 1hour, 4hour,
-                or empty for daily
-        """
-        async with tool.fmp() as client:
-            df = await client.prices(symbol, frequency=frequency)
-        if df.empty:
-            return f"No price data for {symbol}"
-        df = df[["date", "open", "high", "low", "close", "volume"]].sort_values("date")
-        return df.tail(50).to_csv(index=False)
+    return mcp

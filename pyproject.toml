@@ -47,15 +47,6 @@ Documentation = "https://quantflow.quantmind.com"
 Issues = "https://github.com/quantmind/quantflow/issues"
 
 [project.optional-dependencies]
-ai = [
-    "asciichartpy>=1.5.25",
-    "ccy[holidays]>=2.0.0",
-    "google-genai>=1.61.0",
-    "mcp>=1.26.0",
-    "openai>=2.16.0",
-    "pydantic-ai-slim>=1.51.0",
-    "rich>=13.9.4",
-]
 book = [
     "altair>=6.0.0",
     "autodocsumm>=0.2.14",
@@ -83,6 +74,7 @@ docs = [
     "griffe-pydantic>=1.1.0",
     "griffe-typingdoc>=0.2.7",
     "kaleido>=1.2.0",
+    "mcp>=1.26.0",
     "mkdocs-macros-plugin>=1.3.7",
     "mkdocs-material>=9.7.0",
     "mkdocs-redirects>=1.2.1",
@@ -93,9 +85,6 @@ docs = [
 ml = [
     "torch>=2.10.0",
 ]
-
-[project.scripts]
-qf-mcp = "quantflow.ai.server:main"
 
 [build-system]
 requires = [

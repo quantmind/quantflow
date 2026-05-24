@@ -131,7 +131,7 @@ nav:
       - Inversion: theory/inversion.md
       - Lévy Process: theory/levy.md
       - Option Pricing: theory/option_pricing.md
-  - Live Examples: https://quantflow.quantmind.com/examples/
+  - Live Examples: https://quantflow.quantmind.com/examples
   - MCP Server: mcp.md
   - Glossary: glossary.md
   - Contributing: contributing.md
