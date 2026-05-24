@@ -18,7 +18,6 @@ pip install quantflow
 ### Optional dependencies
 
 * `data` — data retrieval: `pip install quantflow[data]`
-* `ai` — MCP server for AI clients: `pip install quantflow[ai,data]`
 * `ml` — training the Deep Implied Volatility model: `pip install quantflow[ml]`
 
 ## Features
@@ -32,8 +31,6 @@ pip install quantflow
 * **Market Data**: connectors for [Deribit](https://www.deribit.com), [Yahoo Finance](https://finance.yahoo.com), [Financial Modeling Prep](https://financialmodelingprep.com) (FMP), [FRED](https://fred.stlouisfed.org), the [Federal Reserve](https://www.federalreserve.gov), and [US Fiscal Data](https://fiscaldata.treasury.gov) APIs.
 
 * **Time Series Analysis**: exponentially weighted moving averages (EWMA), Kalman filtering, super-smoothers, and OHLC bar utilities.
-
-* **AI Integration**: an [MCP server](https://quantflow.quantmind.com/mcp/) that exposes quantflow's data tools to AI assistants.
 
 * **JSON Serializable**: all models and pricers are built on [Pydantic](https://docs.pydantic.dev), making them fully serializable to and from JSON.
 
