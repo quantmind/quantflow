@@ -34,6 +34,10 @@ class EWMA(BaseModel):
     comparable to the period used in
     [SuperSmoother][quantflow.ta.supersmoother.SuperSmoother].
 
+    If [tau][.tau] is provided, EWMA becomes asymmetric: for up-moves the update uses
+    $\alpha \cdot \tau$, while for down-moves it uses $\alpha \cdot (1-\tau)$.
+    This is useful when you want different reaction speeds to rising and falling values.
+
     ## Example
 
     ```python
@@ -61,7 +65,10 @@ class EWMA(BaseModel):
         default=None,
         ge=0,
         le=1,
-        description="Optional asymmetric smoothing filter",
+        description=(
+            "Optional asymmetry control. For increasing values use alpha*tau; "
+            "for decreasing values use alpha*(1-tau)"
+        ),
     )
 
     _count: int = PrivateAttr(default=0)
@@ -82,8 +89,17 @@ class EWMA(BaseModel):
 
     @classmethod
     def from_alpha(cls, alpha: float, tau: float | None = None) -> Self:
-        """Create an EWMA directly from a specified alpha value."""
-        period = int(2.0 / alpha - 1)
+        r"""Create an EWMA directly from a specified alpha value.
+
+        The period is computed as the inverse of:
+
+        \begin{equation}
+            \alpha = 1 - \exp\left(-\frac{\ln 2}{p}\right)
+        \end{equation}
+        """
+        if not 0.0 < alpha < 1.0:
+            raise ValueError("alpha must be between 0 and 1")
+        period = int(round(-log2 / math.log1p(-alpha)))
         return cls(period=max(1, period), tau=tau)
 
     def model_post_init(self, __context: Any) -> None:
