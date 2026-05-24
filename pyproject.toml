@@ -133,11 +133,25 @@ source = [
     "quantflow",
     "app",
 ]
+omit = [
+    "quantflow/utils/plot.py",
+    "app/docs/*",
+    "app/scripts/*",
+]
 
 [tool.coverage.report]
 exclude_also = [
-    "@abstractmethod",
+    "pragma: no cover",
+    "raise NotImplementedError",
+    "if TYPE_CHECKING:",
+    "@abstract",
 ]
+
+[tool.coverage.html]
+directory = "build/coverage/html"
+
+[tool.coverage.xml]
+output = "build/coverage.xml"
 
 [tool.isort]
 profile = "black"

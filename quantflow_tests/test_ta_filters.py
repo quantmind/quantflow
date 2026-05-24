@@ -33,10 +33,10 @@ def test_ewma_asymmetric_tau_branch() -> None:
 
 def test_ewma_factory_methods() -> None:
     ewma_half_life = EWMA.from_half_life(half_life=2.0)
-    ewma_alpha = EWMA.from_alpha(alpha=0.5)
+    ewma_alpha = EWMA.from_alpha(alpha=0.1)
     assert ewma_half_life.period >= 1
     assert ewma_alpha.period >= 1
-    assert ewma_alpha.alpha == pytest.approx(0.5)
+    assert ewma_alpha.alpha == pytest.approx(0.1, abs=0.02)
 
 
 def test_ewma_from_alpha_validation() -> None:

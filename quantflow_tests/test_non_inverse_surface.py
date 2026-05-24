@@ -17,7 +17,7 @@ import pytest
 from quantflow.options.bs import black_price
 from quantflow.options.inputs import DefaultVolSecurity, OptionType
 from quantflow.options.surface import VolSurfaceLoader
-from quantflow.rates.yield_curve import NoDiscount
+from quantflow.rates.no_discount import NoDiscount
 
 REF_DATE = datetime(2026, 1, 1, tzinfo=timezone.utc)
 MATURITY = datetime(2026, 7, 2, tzinfo=timezone.utc)  # roughly 0.5y

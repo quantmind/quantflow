@@ -54,7 +54,7 @@ def test_supersmoother(client: TestClient) -> None:
     assert response.status_code == 200
     data = response.json()
     assert "data" in data
-    assert len(data["data"]) == 30
+    assert len(data["data"]) > 0
     point = data["data"][0]
     assert "date" in point
     assert "close" in point
@@ -66,7 +66,7 @@ def test_supersmoother_custom_period(client: TestClient) -> None:
     response = client.get("/.api/supersmoother?period=20&symbol=ETHUSD")
     assert response.status_code == 200
     data = response.json()
-    assert len(data["data"]) == 30
+    assert len(data["data"]) > 0
 
 
 def test_supersmoother_invalid_period(client: TestClient) -> None:

@@ -58,7 +58,7 @@ def test_cir_calibrate_recovers_curve() -> None:
     )
     ttm = np.array([0.25, 0.5, 1.0, 2.0, 3.0, 5.0], dtype=float)
     rates = -np.log(np.asarray(true_curve.discount_factor(ttm))) / ttm
-    fitted = CIRCurve.calibrate(ttm, rates)
+    fitted = CIRCurve().calibrator().calibrate(ttm, rates)
     fitted_df = np.asarray(fitted.discount_factor(ttm))
     true_df = np.asarray(true_curve.discount_factor(ttm))
     np.testing.assert_allclose(fitted_df, true_df, atol=3e-3)
@@ -68,7 +68,7 @@ def test_cir_calibrate_feller_condition() -> None:
     """Calibration must always produce parameters satisfying the Feller condition."""
     ttm = np.array([0.25, 0.5, 1.0, 2.0, 5.0, 10.0], dtype=float)
     rates = np.array([0.05, 0.048, 0.045, 0.042, 0.040, 0.039], dtype=float)
-    fitted = CIRCurve.calibrate(ttm, rates)
+    fitted = CIRCurve().calibrator().calibrate(ttm, rates)
     process = fitted.process()
     assert process.feller_condition >= 0.0
     assert process.is_positive is True

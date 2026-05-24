@@ -1,31 +1,65 @@
 from __future__ import annotations
 
+from decimal import Decimal
 from typing import Literal
 
 import numpy as np
 from numpy.typing import ArrayLike
 from pydantic import Field
-from scipy.optimize import least_squares
-from typing_extensions import Self
+from scipy.optimize import Bounds, least_squares
+from typing_extensions import Annotated, Doc
 
 from quantflow.sp.ou import Vasicek
 from quantflow.sp.wiener import WienerProcess
 from quantflow.utils.numbers import ZERO, DecimalNumber
-from quantflow.utils.types import FloatArrayLike
+from quantflow.utils.types import FloatArray, FloatArrayLike
 
+from .options import YieldCurveCalibration
 from .yield_curve import YieldCurve
 
 
 class VasicekCurve(YieldCurve):
-    """Class representing a Vasicek yield curve"""
+    r"""Yield curve derived from the Vasicek short-rate model.
+
+    The Vasicek model describes the short rate as a mean-reverting
+    Ornstein-Uhlenbeck process:
+
+    \begin{equation}
+        dr_t = \kappa(\theta - r_t)\, dt + \sigma\, dW_t
+    \end{equation}
+
+    The model admits a closed-form discount factor; see
+    [discount_factor][.discount_factor].
+
+    Throughout, the auxiliary quantity is:
+
+    \begin{equation}
+        B(\tau) = \frac{1 - e^{-\kappa\tau}}{\kappa}
+    \end{equation}
+    """
 
     curve_type: Literal["vasicek_curve"] = "vasicek_curve"
-    rate: DecimalNumber = Field(description=r"Initial value $x_0$")
-    kappa: DecimalNumber = Field(gt=ZERO, description=r"Mean reversion speed $\kappa$")
-    theta: DecimalNumber = Field(description=r"Mean level $\theta$")
-    sigma: DecimalNumber = Field(ge=ZERO, description=r"Volatility $\sigma$")
+    rate: DecimalNumber = Field(
+        default=Decimal("0.05"), description=r"Initial value $x_0$"
+    )
+    kappa: DecimalNumber = Field(
+        default=Decimal("1.0"), gt=ZERO, description=r"Mean reversion speed $\kappa$"
+    )
+    theta: DecimalNumber = Field(
+        default=Decimal("0.05"), description=r"Mean level $\theta$"
+    )
+    sigma: DecimalNumber = Field(
+        default=Decimal("0.01"), ge=ZERO, description=r"Volatility $\sigma$"
+    )
+
+    def calibrator(self) -> VasicekCurveCalibration:
+        """Return a [VasicekCurveCalibration][...VasicekCurveCalibration] wrapping
+        this curve."""
+        return VasicekCurveCalibration(yield_curve=self)
 
     def process(self) -> Vasicek:
+        """Return the underlying [Vasicek][quantflow.sp.ou.Vasicek] process
+        corresponding to this curve."""
         return Vasicek(
             rate=float(self.rate),
             kappa=float(self.kappa),
@@ -34,7 +68,14 @@ class VasicekCurve(YieldCurve):
         )
 
     def instantaneous_forward_rate(self, ttm: FloatArrayLike) -> FloatArrayLike:
-        r"""Calculate the instantaneous forward rate."""
+        r"""Calculate the instantaneous forward rate for the Vasicek model.
+
+        \begin{equation}
+            f(\tau) = r_0\, e^{-\kappa\tau}
+                + \theta(1 - e^{-\kappa\tau})
+                - \frac{\sigma^2}{2\kappa}\, B(\tau)\, e^{-\kappa\tau}
+        \end{equation}
+        """
         arr = np.asarray(ttm, dtype=float)
         ttma = np.maximum(arr, 0.0)
         kappa = float(self.kappa)
@@ -48,7 +89,22 @@ class VasicekCurve(YieldCurve):
         return fwd if fwd.ndim > 0 else float(fwd)
 
     def discount_factor(self, ttm: FloatArrayLike) -> FloatArrayLike:
-        r"""Calculate the discount factor for a given time to maturity."""
+        r"""Calculate the discount factor using the Vasicek closed-form solution.
+
+        The discount factor is:
+
+        \begin{equation}
+            D(\tau) = e^{A(\tau) - B(\tau)\, r_0}
+        \end{equation}
+
+        where:
+
+        \begin{equation}
+            A(\tau) = \left(\theta - \frac{\sigma^2}{2\kappa^2}\right)
+                \bigl(B(\tau) - \tau\bigr)
+                + \frac{\sigma^2 B(\tau)^2}{4\kappa}
+        \end{equation}
+        """
         arr = np.asarray(ttm, dtype=float)
         ttma = np.maximum(arr, 0.0)
         kappa = float(self.kappa)
@@ -63,23 +119,92 @@ class VasicekCurve(YieldCurve):
         df = np.exp(a - rate * b)
         return df if df.ndim > 0 else float(df)
 
-    @classmethod
-    def calibrate(cls, ttm: ArrayLike, rates: ArrayLike) -> Self:
+    def jacobian(self, ttm: FloatArrayLike) -> FloatArray | None:
+        r"""Analytical Jacobian of discount factors w.r.t.
+        $[r_0, \kappa, \theta, \sigma]$. Returns shape (len(ttm), 4).
+        """
+        arr = np.asarray(ttm, dtype=float)
+        ttma = np.maximum(arr, 0.0)
+        kappa = float(self.kappa)
+        theta = float(self.theta)
+        sigma = float(self.sigma)
+        rate = float(self.rate)
+        s2 = sigma * sigma
+        et = np.exp(-kappa * ttma)
+        b = (1.0 - et) / kappa
+        a = (theta - s2 / (2.0 * kappa * kappa)) * (b - ttma) + s2 * b * b / (
+            4.0 * kappa
+        )
+        d = np.exp(a - rate * b)
+
+        # ∂D/∂r0
+        d_rate = -b * d
+
+        # ∂D/∂κ
+        db_k = (ttma * et * kappa - (1.0 - et)) / (kappa * kappa)
+        da_k = (
+            s2 / (kappa**3) * (b - ttma)
+            + (theta - s2 / (2.0 * kappa * kappa)) * db_k
+            + s2 * b * db_k / (2.0 * kappa)
+            - s2 * b * b / (4.0 * kappa * kappa)
+        )
+        d_kappa = d * (da_k - rate * db_k)
+
+        # ∂D/∂θ
+        d_theta = d * (b - ttma)
+
+        # ∂D/∂σ
+        da_s = (-sigma / (kappa * kappa)) * (b - ttma) + sigma * b * b / (2.0 * kappa)
+        d_sigma = d * da_s
+
+        return np.column_stack([d_rate, d_kappa, d_theta, d_sigma])
+
+
+class VasicekCurveCalibration(YieldCurveCalibration[VasicekCurve]):
+    """Calibration wrapper for a Vasicek yield curve."""
+
+    def get_params(self) -> FloatArray:
+        c = self.yield_curve
+        return np.array([float(c.rate), float(c.kappa), float(c.theta), float(c.sigma)])
+
+    def set_params(self, params: FloatArray) -> None:
+        rate, kappa, theta, sigma = params
+        self.yield_curve.rate = Decimal(str(round(float(rate), 10)))
+        self.yield_curve.kappa = Decimal(str(round(float(kappa), 10)))
+        self.yield_curve.theta = Decimal(str(round(float(theta), 10)))
+        self.yield_curve.sigma = Decimal(str(round(float(sigma), 10)))
+
+    def get_bounds(self) -> Bounds:
+        return Bounds([-1.0, 1e-4, -1.0, 0.0], [1.0, 1000.0, 1.0, 1.0])
+
+    def calibrate(
+        self,
+        ttm: Annotated[ArrayLike, Doc("Times to maturity in years.")],
+        rates: Annotated[
+            ArrayLike, Doc("Continuously compounded rates, same length as ttm.")
+        ],
+    ) -> VasicekCurve:
         """Fit the Vasicek curve to continuously compounded rates via least squares."""
         ttm_arr = np.asarray(ttm, dtype=float)
         rates_arr = np.asarray(rates, dtype=float)
 
         def residuals(params: np.ndarray) -> np.ndarray:
-            curve = cls(
-                rate=params[0], kappa=params[1], theta=params[2], sigma=params[3]
-            )
-            df = np.asarray(curve.discount_factor(ttm_arr), dtype=float)
-            fitted = -np.log(df) / ttm_arr
-            return fitted - rates_arr
+            self.set_params(params)
+            df = np.asarray(self.yield_curve.discount_factor(ttm_arr), dtype=float)
+            return -np.log(df) / ttm_arr - rates_arr
+
+        def jac(params: np.ndarray) -> FloatArray:
+            self.set_params(params)
+            df = np.asarray(self.yield_curve.discount_factor(ttm_arr), dtype=float)
+            jac_d = np.asarray(self.yield_curve.jacobian(ttm_arr), dtype=float)
+            return -jac_d / (df * ttm_arr)[:, None]
 
         x0 = np.array([rates_arr[0], 1.0, rates_arr[-1], 0.01])
         result = least_squares(
-            residuals, x0, bounds=([-1.0, 1e-4, -1.0, 0.0], [1.0, 50.0, 1.0, 1.0])
+            residuals,
+            jac=jac,
+            x0=x0,
+            bounds=([-1.0, 1e-4, -1.0, 0.0], [1.0, 1000.0, 1.0, 1.0]),
         )
-        r, k, th, s = result.x
-        return cls(rate=r, kappa=k, theta=th, sigma=s)
+        self.set_params(result.x)
+        return self.yield_curve

@@ -55,8 +55,11 @@ async def _cointegration(fmp: FMP, frequency: FMP.freq) -> CointegrationResponse
     prices_3 = prices_3.dropna()
 
     log_prices_3 = np.log(prices_3)
-    johansen_result = coint_johansen(log_prices_3, det_order=0, k_ar_diff=1)
-    deltas = johansen_result.evec[:, 0]
+    std = log_prices_3.std()
+    scaled = log_prices_3 / std
+    johansen_result = coint_johansen(scaled, det_order=0, k_ar_diff=1)
+    deltas = johansen_result.evec[:, 0] / std.values
+    deltas = deltas / np.linalg.norm(deltas)
 
     residuals = log_prices_3.dot(deltas)
     residual_mean = residuals.mean()

@@ -47,7 +47,7 @@ def test_vasicek_calibrate_recovers_curve() -> None:
     )
     ttm = np.array([0.25, 0.5, 1.0, 2.0, 3.0, 5.0], dtype=float)
     rates = -np.log(np.asarray(true_curve.discount_factor(ttm))) / ttm
-    fitted = VasicekCurve.calibrate(ttm, rates)
+    fitted = VasicekCurve().calibrator().calibrate(ttm, rates)
     fitted_df = np.asarray(fitted.discount_factor(ttm))
     true_df = np.asarray(true_curve.discount_factor(ttm))
     np.testing.assert_allclose(fitted_df, true_df, atol=3e-3)

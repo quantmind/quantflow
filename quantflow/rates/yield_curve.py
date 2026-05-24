@@ -2,12 +2,12 @@ from __future__ import annotations
 
 from abc import ABC, abstractmethod
 from datetime import datetime
-from typing import TYPE_CHECKING, Any, Literal
+from typing import TYPE_CHECKING, Any
 
 import numpy as np
 from numpy.typing import ArrayLike
 from pydantic import BaseModel, Field
-from typing_extensions import Annotated, Doc, Self
+from typing_extensions import Annotated, Doc
 
 from quantflow.utils import plot
 from quantflow.utils.dates import utcnow
@@ -70,20 +70,6 @@ class YieldCurve(BaseModel, ABC, extra="forbid"):
         Accepts a scalar float or a float array. Returns a scalar float for scalar
         input and a numpy float array for array input.
         """
-
-    @classmethod
-    @abstractmethod
-    def calibrate(
-        cls,
-        ttm: Annotated[ArrayLike, Doc("Times to maturity in years.")],
-        rates: Annotated[
-            ArrayLike,
-            Doc(
-                "Continuously compounded rates, same length as ttm (e.g. 0.05 for 5%)."
-            ),
-        ],
-    ) -> Self:
-        """Fit the yield curve to continuously compounded rates."""
 
     def calibrator(self) -> YieldCurveCalibration | None:
         """Return a calibration wrapper for this curve, or None if not available."""
@@ -154,21 +140,3 @@ class YieldCurve(BaseModel, ABC, extra="forbid"):
     def get_curve_class(cls, curve_type: str) -> type[YieldCurve] | None:
         """Get the yield curve class for a given curve type."""
         return _CURVE_TYPES.get(curve_type)
-
-
-class NoDiscount(YieldCurve):
-    """Flat yield curve with zero rates (discount factor is always 1)."""
-
-    curve_type: Literal["no_discount"] = "no_discount"
-
-    def instantaneous_forward_rate(self, ttm: FloatArrayLike) -> FloatArrayLike:
-        arr = np.asarray(ttm, dtype=float)
-        return np.zeros_like(arr) if arr.ndim > 0 else 0.0
-
-    def discount_factor(self, ttm: FloatArrayLike) -> FloatArrayLike:
-        arr = np.asarray(ttm, dtype=float)
-        return np.ones_like(arr) if arr.ndim > 0 else 1.0
-
-    @classmethod
-    def calibrate(cls, ttm: ArrayLike, rates: ArrayLike) -> Self:
-        return cls()

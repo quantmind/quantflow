@@ -7,7 +7,7 @@ import numpy as np
 from numpy.typing import ArrayLike
 from pydantic import Field
 from scipy.optimize import Bounds, minimize_scalar
-from typing_extensions import Annotated, Doc, Self
+from typing_extensions import Annotated, Doc
 
 from quantflow.utils.types import FloatArray, FloatArrayLike, maybe_float
 
@@ -106,59 +106,6 @@ class NelsonSiegel(YieldCurve):
             ]
         )
 
-    @classmethod
-    def calibrate(
-        cls,
-        ttm: Annotated[
-            ArrayLike,
-            Doc("times to maturity in years (1-D, length >= 3)"),
-        ],
-        rates: Annotated[
-            ArrayLike, Doc("observed continuously compounded rates, same length as ttm")
-        ],
-        lambda_bounds: Annotated[
-            tuple[float, float],
-            Doc("search bounds for the decay parameter $\\lambda$"),
-        ] = (0.01, 10.0),
-    ) -> Self:
-        r"""Fit a Nelson-Siegel curve to observed continuously compounded rates.
-
-        Uses a profile OLS approach: for each candidate $\lambda$ the betas are
-        solved exactly via least squares, so only a 1-D scalar minimisation over
-        $\lambda$ is needed.
-
-        Observations whose rates deviate by more than 3 robust standard deviations
-        (MAD-scaled) from the median are excluded before fitting, making the result
-        robust to a small number of bad parity observations.
-        """
-        ttm_arr = np.asarray(ttm, dtype=float)
-        rates_arr = np.asarray(rates, dtype=float)
-        mask = _mad_filter(rates_arr)
-        fit_ttm = ttm_arr[mask] if mask.sum() >= 3 else ttm_arr
-        fit_rates = rates_arr[mask] if mask.sum() >= 3 else rates_arr
-        # Grid search to avoid local minima, then refine with bounded minimisation
-        lo, hi = lambda_bounds
-        grid = np.linspace(lo, hi, 50)
-        rss_values = [_rss(lam, fit_ttm, fit_rates) for lam in grid]
-        best_idx = int(np.argmin(rss_values))
-        # Refine around the best grid point
-        refine_lo = grid[max(best_idx - 1, 0)]
-        refine_hi = grid[min(best_idx + 1, len(grid) - 1)]
-        result = minimize_scalar(
-            _rss,
-            bounds=(refine_lo, refine_hi),
-            method="bounded",
-            args=(fit_ttm, fit_rates),
-        )
-        lam: float = result.x
-        b1, b2, b3 = _ols_betas(fit_ttm, fit_rates, lam)
-        return cls(
-            beta1=Decimal(str(round(b1, 10))),
-            beta2=Decimal(str(round(b2, 10))),
-            beta3=Decimal(str(round(b3, 10))),
-            lambda_=Decimal(str(round(lam, 10))),
-        )
-
 
 class NelsonSiegelCalibration(YieldCurveCalibration[NelsonSiegel]):
     """Calibration wrapper for a Nelson-Siegel yield curve."""
@@ -168,7 +115,7 @@ class NelsonSiegelCalibration(YieldCurveCalibration[NelsonSiegel]):
         description="Lower and upper bounds for beta parameters",
     )
     lambda_bounds: tuple[float, float] = Field(
-        default=(0.01, 10.0),
+        default=(0.01, 50.0),
         description="Lower and upper bounds for the decay parameter",
     )
 
@@ -193,23 +140,37 @@ class NelsonSiegelCalibration(YieldCurveCalibration[NelsonSiegel]):
     def calibrate(
         self,
         ttm: Annotated[ArrayLike, Doc("Times to maturity in years.")],
-        target: Annotated[
-            ArrayLike, Doc("Target discount factors, same length as ttm.")
+        rates: Annotated[
+            ArrayLike, Doc("Continuously compounded rates, same length as ttm.")
         ],
     ) -> NelsonSiegel:
         """Fit the curve using the fast profile-OLS solver.
 
-        Drop times to maturity <= 1 day (if any) before fitting, as these are often
-        dominated by noise and can cause instability in the fit.
+        Drops times to maturity below 1 day, which are often dominated by noise.
         """
         ttm_ = np.asarray(ttm, dtype=float)
+        rates_ = np.asarray(rates, dtype=float)
         mask = ttm_ >= 1 / 365
-        rates = -np.log(np.asarray(target, dtype=float)[mask]) / ttm_[mask]
-        ns = NelsonSiegel.calibrate(ttm_[mask], rates, lambda_bounds=self.lambda_bounds)
-        self.yield_curve.beta1 = ns.beta1
-        self.yield_curve.beta2 = ns.beta2
-        self.yield_curve.beta3 = ns.beta3
-        self.yield_curve.lambda_ = ns.lambda_
+        ttm_arr = ttm_[mask]
+        rates_arr = rates_[mask]
+        lo, hi = self.lambda_bounds
+        grid = np.linspace(lo, hi, 100)
+        rss_values = [_rss(lam, ttm_arr, rates_arr) for lam in grid]
+        best_idx = int(np.argmin(rss_values))
+        refine_lo = grid[max(best_idx - 1, 0)]
+        refine_hi = grid[min(best_idx + 1, len(grid) - 1)]
+        result = minimize_scalar(
+            _rss,
+            bounds=(refine_lo, refine_hi),
+            method="bounded",
+            args=(ttm_arr, rates_arr),
+        )
+        lam: float = result.x
+        b1, b2, b3 = _ols_betas(ttm_arr, rates_arr, lam)
+        self.yield_curve.beta1 = Decimal(str(round(b1, 10)))
+        self.yield_curve.beta2 = Decimal(str(round(b2, 10)))
+        self.yield_curve.beta3 = Decimal(str(round(b3, 10)))
+        self.yield_curve.lambda_ = Decimal(str(round(lam, 10)))
         return self.yield_curve
 
 
@@ -228,11 +189,3 @@ def _ols_betas(ttm: np.ndarray, rates: np.ndarray, lam: float) -> np.ndarray:
 def _rss(lam: float, ttm: np.ndarray, rates: np.ndarray) -> float:
     residuals = rates - _design_matrix(ttm, lam) @ _ols_betas(ttm, rates, lam)
     return float(np.dot(residuals, residuals))
-
-
-def _mad_filter(rates: np.ndarray, k: float = 3.0) -> np.ndarray:
-    """Boolean mask: True for observations within k standard deviations (MAD-scaled)."""
-    med = np.median(rates)
-    mad = np.median(np.abs(rates - med))
-    scale = max(mad / 0.6745, 1e-12)
-    return np.abs(rates - med) <= k * scale

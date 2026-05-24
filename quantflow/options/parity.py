@@ -122,6 +122,21 @@ class PutCallParities(BaseModel, frozen=True):
             return None
         return DiscountPair(asset_discount=da, quote_discount=dq)
 
+    def implied_forward(
+        self,
+        dq: float | None = None,
+        da: float | None = None,
+    ) -> float | None:
+        """Implied forward price from put-call parity regression.
+
+        Fits asset and quote discount factors from the put-call parity data and
+        returns `spot * Da / Dq`. Returns None if the fit is invalid.
+        """
+        discounts = self.fit_discounts(dq=dq, da=da)
+        if discounts is None:
+            return None
+        return float(self.spot) * discounts.asset_discount / discounts.quote_discount
+
     def plot(
         self,
         dq: float | None = None,

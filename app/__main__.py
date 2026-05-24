@@ -83,4 +83,6 @@ if __name__ == "__main__":
 
     PORT = int(os.environ.get("MICRO_SERVICE_PORT", "8001"))
     HOST = os.environ.get("MICRO_SERVICE_HOST", "0.0.0.0")
-    uvicorn.run(crate_app(), host=HOST, port=PORT)
+    uvicorn.run(
+        crate_app(), host=HOST, port=PORT, proxy_headers=True, forwarded_allow_ips="*"
+    )
