@@ -15,7 +15,7 @@ from quantflow.utils.text import snake_case
 from quantflow.utils.types import FloatArray, FloatArrayLike, maybe_float
 
 if TYPE_CHECKING:
-    from .options import YieldCurveCalibration
+    from .calibration import YieldCurveCalibration
 
 
 _CURVE_TYPES: dict[str, type[YieldCurve]] = {}

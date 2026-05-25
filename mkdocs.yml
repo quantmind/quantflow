@@ -99,10 +99,10 @@ nav:
           - Supersmoother: api/ta/supersmoother.md
       - Rates:
           - api/rates/index.md
+          - Calibration: api/rates/calibration.md
           - CIR Curve: api/rates/cir.md
           - Interest Rate: api/rates/interest_rate.md
           - Nelson Siegel Curve: api/rates/nelson_siegel.md
-          - Options Discounting: api/rates/options.md
           - Vasicek Curve: api/rates/vasicek.md
           - Yield Curve: api/rates/yield_curve.md
       - Utilities:

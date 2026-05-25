@@ -5,8 +5,8 @@ from decimal import Decimal
 import numpy as np
 import pytest
 
+from quantflow.rates.calibration import OptionsDiscountingCalibration
 from quantflow.rates.nelson_siegel import NelsonSiegel
-from quantflow.rates.options import OptionsDiscountingCalibration
 
 
 def _ttm_strikes_cp(

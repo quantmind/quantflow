@@ -61,6 +61,15 @@ applyTo: '/**'
 * Always document Pydantic fields with `Field(description=...)`, never use a docstring below a field assignment
 * Split long description strings across lines using implicit string concatenation rather than shortening the text
 * When a docstring line exceeds the line length limit, split it across multiple lines rather than shortening the text
+* Put Pydantic config options directly in the class definition, not as a `model_config = ConfigDict(...)` class variable:
+  ```python
+  # correct
+  class Foo(BaseModel, arbitrary_types_allowed=True): ...
+
+  # wrong
+  class Foo(BaseModel):
+      model_config = ConfigDict(arbitrary_types_allowed=True)
+  ```
 
 ## Package structure
 
