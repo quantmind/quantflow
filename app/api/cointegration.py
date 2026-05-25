@@ -5,6 +5,7 @@ from fastapi import APIRouter, Query
 from pydantic import BaseModel, Field
 from statsmodels.tsa.vector_ar.vecm import coint_johansen
 
+from app.api.docs import load_description
 from quantflow.data.fmp import FMP
 
 from .deps import FMPDep, RedisCache, RedisDep
@@ -20,13 +21,17 @@ class CointegrationResponse(BaseModel):
     )
 
 
-@cointegration_router.get("/cointegration")
+@cointegration_router.get(
+    "/cointegration",
+    summary="BTC/ETH/SOL cointegration",
+    description=load_description("cointegration.md"),
+)
 async def cointegration(
     fmp: FMPDep,
     redis: RedisDep,
     frequency: FMP.freq = Query(
         FMP.freq.daily,
-        description="Price frequency",
+        description="Price sampling frequency.",
     ),
 ) -> CointegrationResponse:
     cache = RedisCache(

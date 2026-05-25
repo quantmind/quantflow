@@ -4,6 +4,7 @@ import numpy as np
 from fastapi import APIRouter, Query
 from pydantic import BaseModel, Field
 
+from app.api.docs import load_description
 from quantflow.rates import AnyYieldCurve, YieldCurve
 
 rates_router = APIRouter()
@@ -17,7 +18,11 @@ class YieldCurveResponse(BaseModel):
     rates: list[float] = Field(description="List of rates for the fitted curve")
 
 
-@rates_router.get("/yield-curve")
+@rates_router.get(
+    "/yield-curve",
+    summary="Fit and interpolate a yield curve",
+    description=load_description("yield_curve.md"),
+)
 async def yield_curve(
     ttm: list[float] = Query(
         ..., description="List of time to maturities corresponding to the rates"

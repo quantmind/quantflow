@@ -3,6 +3,7 @@ from fastapi import APIRouter, Query
 from pydantic import BaseModel, Field
 from scipy.stats import chisquare, ks_1samp
 
+from app.api.docs import load_description
 from quantflow.sp.ou import Vasicek
 from quantflow.sp.poisson import PoissonProcess
 from quantflow.ta.paths import Paths
@@ -35,7 +36,11 @@ class DoubleExponentialResponse(SamplingResponse):
     char_y: list[float] = Field(description="Y values from characteristic function")
 
 
-@sampling_router.get("/gaussian-sampling")
+@sampling_router.get(
+    "/gaussian-sampling",
+    summary="Gaussian process sampling vs analytical PDF",
+    description=load_description("gaussian_sampling.md"),
+)
 async def gaussian_sampling(
     kappa: float = Query(1.0, description="Mean reversion speed", ge=0.1, le=5.0),
     samples: int = Query(1000, description="Number of sample paths", ge=100, le=10000),
@@ -61,7 +66,11 @@ async def gaussian_sampling(
     )
 
 
-@sampling_router.get("/poisson-sampling")
+@sampling_router.get(
+    "/poisson-sampling",
+    summary="Poisson process sampling vs analytical PMF",
+    description=load_description("poisson_sampling.md"),
+)
 async def poisson_sampling(
     intensity: float = Query(2.0, description="Poisson intensity", ge=2.0, le=20.0),
     samples: int = Query(1000, description="Number of sample paths", ge=100, le=10000),
@@ -94,7 +103,11 @@ async def poisson_sampling(
     )
 
 
-@sampling_router.get("/double-exponential-sampling")
+@sampling_router.get(
+    "/double-exponential-sampling",
+    summary="Double exponential sampling vs analytical PDF",
+    description=load_description("double_exponential_sampling.md"),
+)
 async def double_exponential_sampling(
     log_kappa: float = Query(
         0.1, description="Log of asymmetry parameter", ge=-2.0, le=2.0

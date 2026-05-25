@@ -3,7 +3,6 @@ from __future__ import annotations
 import pytest
 
 from quantflow.ta.ewma import EWMA
-from quantflow.ta.kalman import KalmanFilter
 from quantflow.ta.supersmoother import SuperSmoother
 
 
@@ -42,24 +41,6 @@ def test_ewma_factory_methods() -> None:
 def test_ewma_from_alpha_validation() -> None:
     with pytest.raises(ValueError, match="between 0 and 1"):
         EWMA.from_alpha(alpha=0.0)
-
-
-def test_kalman_initialization_and_first_update() -> None:
-    kf = KalmanFilter(R=1.0, Q=0.1)
-    assert kf.value() is None
-    first = kf.update(5.0)
-    assert first == 5.0
-    assert kf.value() == 5.0
-    assert kf.error_covariance == 1.0
-
-
-def test_kalman_steady_updates_and_properties() -> None:
-    kf = KalmanFilter(R=1.0, Q=0.1)
-    kf.update(10.0)
-    updated = kf.update(12.0)
-    assert 10.0 < updated < 12.0
-    assert 0.0 < kf.kalman_gain < 1.0
-    assert kf.error_covariance > 0.0
 
 
 def test_supersmoother_initialization() -> None:

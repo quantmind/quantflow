@@ -154,7 +154,6 @@ and signature changes were made along the way: see **Breaking changes** below.
 
 - New logo set (favicon, lockup, marks, social banners) under
   `docs/assets/logos/`. ([#53](https://github.com/quantmind/quantflow/pull/53))
-- New `docs/mcp.md` page covering the MCP server.
 - Bibliography rebuilt from BibTeX via `docs/bib2md.py`; glossary expanded;
   mathjax tweaks for inline rendering.
   ([#47](https://github.com/quantmind/quantflow/pull/47),

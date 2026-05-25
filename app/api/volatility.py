@@ -5,6 +5,7 @@ import numpy as np
 from fastapi import APIRouter, Query
 from pydantic import BaseModel, Field
 
+from app.api.docs import load_description
 from quantflow.data.deribit import Deribit
 from quantflow.data.yahoo import Yahoo
 from quantflow.options.inputs import VolSurfaceInputs
@@ -54,7 +55,11 @@ class VolSurfaceResponse(BaseModel):
     )
 
 
-@volatility_router.get("/volatility-surface")
+@volatility_router.get(
+    "/volatility-surface",
+    summary="Live implied volatility surface",
+    description=load_description("volatility_surface.md"),
+)
 async def volatility_surface(
     redis: RedisDep,
     asset: str = Query(

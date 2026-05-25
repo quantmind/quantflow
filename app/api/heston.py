@@ -2,6 +2,7 @@ import numpy as np
 from fastapi import APIRouter, Query
 from pydantic import BaseModel, Field
 
+from app.api.docs import load_description
 from quantflow.options.pricer import OptionPricer
 from quantflow.sp.heston import HestonJ
 from quantflow.sp.jump_diffusion import JumpDiffusion
@@ -18,7 +19,11 @@ class VolSurfaceGridResponse(BaseModel):
     )
 
 
-@heston_router.get("/heston-vol-surface")
+@heston_router.get(
+    "/heston-vol-surface",
+    summary="Theoretical implied volatility surface",
+    description=load_description("heston_vol_surface.md"),
+)
 async def heston_vol_surface(
     model: str = Query(
         "jd",

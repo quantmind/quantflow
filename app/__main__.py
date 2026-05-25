@@ -8,7 +8,6 @@ from fastapi.responses import HTMLResponse
 from fastapi.staticfiles import StaticFiles
 from fluid.utils import log
 
-from app.api.mcp import create_mcp as _create_mcp
 from app.utils.paths import APP_PATH
 from quantflow import __version__
 
@@ -56,17 +55,15 @@ def crate_app() -> FastAPI:
             title="Quantflow API",
         )
 
-    api.include_router(cointegration_router)
-    api.include_router(heston_router)
-    api.include_router(hurst_router)
-    api.include_router(rates_router)
-    api.include_router(sampling_router)
-    api.include_router(smoother_router)
-    api.include_router(volatility_router)
+    api.include_router(cointegration_router, tags=["timeseries"])
+    api.include_router(heston_router, tags=["pricing"])
+    api.include_router(hurst_router, tags=["statistics"])
+    api.include_router(rates_router, tags=["pricing"])
+    api.include_router(sampling_router, tags=["statistics"])
+    api.include_router(smoother_router, tags=["timeseries"])
+    api.include_router(volatility_router, tags=["pricing"])
     app.include_router(api)
     app.include_router(status_router, include_in_schema=False)
-    if _create_mcp is not None:
-        api.mount("/mcp", _create_mcp().streamable_http_app())
     examples_dir = APP_PATH / "examples"
     if examples_dir.is_dir():
         app.mount(
