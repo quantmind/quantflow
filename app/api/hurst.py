@@ -7,6 +7,7 @@ import pandas as pd
 from fastapi import APIRouter, Query
 from pydantic import BaseModel, Field
 
+from app.api.docs import load_description
 from quantflow.sp.ou import Vasicek
 from quantflow.sp.wiener import WienerProcess
 from quantflow.ta.ohlc import OHLC
@@ -86,7 +87,11 @@ def _ohlc_hurst(df: pd.DataFrame, serie: str, periods: tuple) -> dict[str, float
     return result
 
 
-@hurst_router.get("/hurst-wiener")
+@hurst_router.get(
+    "/hurst-wiener",
+    summary="Hurst exponent of a Wiener process",
+    description=load_description("hurst_wiener.md"),
+)
 async def hurst_wiener(
     sigma: float = Query(2.0, description="Wiener process volatility", ge=0.1, le=10),
 ) -> HurstWienerResponse:
@@ -138,7 +143,11 @@ async def hurst_wiener(
     )
 
 
-@hurst_router.get("/hurst-vasicek")
+@hurst_router.get(
+    "/hurst-vasicek",
+    summary="Hurst exponent of a Vasicek process",
+    description=load_description("hurst_vasicek.md"),
+)
 async def hurst_vasicek(
     kappa: float = Query(10.0, description="Mean reversion speed", ge=1.0, le=500.0),
 ) -> HurstVasicekResponse:

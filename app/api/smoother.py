@@ -4,6 +4,7 @@ from functools import partial
 from fastapi import APIRouter, Query
 from pydantic import BaseModel, Field
 
+from app.api.docs import load_description
 from quantflow.ta.ewma import EWMA
 from quantflow.ta.supersmoother import SuperSmoother
 
@@ -23,7 +24,12 @@ class SmootherResponse(BaseModel):
     data: list[SmootherPoint] = Field(description="Time series with smoothed values")
 
 
-@smoother_router.get("/supersmoother")
+@smoother_router.get(
+    "/supersmoother",
+    summary="SuperSmoother and EWMA price filter",
+    description=load_description("supersmoother.md"),
+    response_model=SmootherResponse,
+)
 async def supersmoother(
     redis: RedisDep,
     fmp: FMPDep,

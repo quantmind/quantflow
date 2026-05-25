@@ -53,7 +53,6 @@ Time series filters and indicators for financial data.
 | Module | Description |
 |---|---|
 | [EWMA](ta/ewma.md) | Exponentially weighted moving average |
-| [Kalman Filter](ta/kalman.md) | Kalman filter for state estimation |
 | [Supersmoother](ta/supersmoother.md) | Ehlers two-pole supersmoother filter |
 | [OHLC](ta/ohlc.md) | OHLC bar utilities and resampling |
 | [Paths](ta/paths.md) | Simulated path containers and statistics |

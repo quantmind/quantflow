@@ -94,7 +94,6 @@ nav:
       - Timeseries Analysis:
           - api/ta/index.md
           - EWMA: api/ta/ewma.md
-          - Kalman Filter: api/ta/kalman.md
           - OHLC: api/ta/ohlc.md
           - Paths: api/ta/paths.md
           - Supersmoother: api/ta/supersmoother.md
@@ -132,7 +131,6 @@ nav:
       - Lévy Process: theory/levy.md
       - Option Pricing: theory/option_pricing.md
   - Live Examples: https://quantflow.quantmind.com/examples
-  - MCP Server: mcp.md
   - Glossary: glossary.md
   - Contributing: contributing.md
   - Bibliography: bibliography.md
