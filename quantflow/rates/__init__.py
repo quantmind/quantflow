@@ -2,11 +2,11 @@ from typing import Annotated, Union
 
 from pydantic import Field
 
+from .calibration import YieldCurveCalibration
 from .cir import CIRCurve
 from .interest_rate import Rate
 from .nelson_siegel import NelsonSiegel
 from .no_discount import NoDiscount
-from .options import YieldCurveCalibration
 from .vasicek import VasicekCurve
 from .yield_curve import YieldCurve
 

@@ -133,6 +133,20 @@ The Hurst exponent is a measure of the long-term memory of time series. The Hurs
 
 Check this study on the [Hurst exponent with OHLC data](../applications/hurst).
 
+
+## Kalman Filter
+
+A recursive algorithm that estimates the latent state of a linear-Gaussian
+[state-space model](#state-space-model) from noisy observations. Introduced in
+[Kalman (1960)](bibliography.md#kalman). Given an
+initial prior, the filter alternates between a *predict* step (advancing the
+state through the linear dynamics) and an *update* step (incorporating a new
+observation by Bayes' rule). Both steps preserve the Gaussian form, so the
+filtering distribution is fully characterised by its mean and covariance.
+When the observation noise covariance is a scaled identity and the observation
+matrix is a column vector, the update can be accelerated via the
+[Sherman-Morrison identity](#sherman-morrison-identity).
+Implementation: [KalmanFilter][quantflow.ta.kalman.KalmanFilter].
 ## Log-Strike
 
 Log-strike, or log strike/forward ratio, is used in the context of option pricing and it is defined as
@@ -215,6 +229,41 @@ reads:
 
 where $k$ is the [log-strike](#log-strike).
 
+
+## Sherman-Morrison Identity
+
+A formula that computes the inverse of a matrix perturbed by a rank-1 outer
+product in $O(n^2)$ time:
+
+\begin{equation}
+(A + u v^\top)^{-1} = A^{-1} - \frac{A^{-1} u v^\top A^{-1}}{1 + v^\top A^{-1} u}
+\end{equation}
+
+Used in the Kalman filter when the observation noise covariance is a scaled
+identity $h^2 I$ and the observation matrix is a column vector $c$. The
+innovation covariance $S = h^2 I + P\,c c^\top$ is then a rank-1 update to a
+scaled identity, avoiding a full $O(n_y^3)$ solve.
+
+## State-Space Model
+
+A mathematical framework describing the joint evolution of an unobserved
+(latent) state process $x_t$ and an observation process $y_t$ that depends on
+the latent state:
+
+\begin{equation}
+\begin{aligned}
+    x_t &\sim p(x_t \mid x_{t-1}) \\
+    y_t &\sim p(y_t \mid x_t)
+\end{aligned}
+\end{equation}
+
+See [Durbin & Koopman (2012)](bibliography.md#durbin_koopman) for a
+comprehensive treatment.
+
+Quantflow provides the abstract base
+[StateSpaceModel][quantflow.ta.kalman.StateSpaceModel] and the concrete
+[LinearGaussianModel][quantflow.ta.kalman.LinearGaussianModel] for the
+linear-Gaussian case.
 ## Time To Maturity (TTM)
 
 Time to maturity is the time remaining until an option or forward contract expires,
@@ -226,3 +275,16 @@ $$\tau = \text{dcf}(t_0, T)$$
 
 where $\text{dcf}$ is the day count fraction function (Act/Act by default in quantflow).
 TTM is denoted $\tau$ throughout the pricing and calibration formulas.
+
+
+## Unscented Kalman Filter (UKF)
+
+An extension of the Kalman filter, introduced by
+[Julier & Uhlmann (1997)](bibliography.md#julier_uhlmann), that uses the
+[unscented transform](#unscented-transform) (a set of deterministically chosen
+sigma points) to propagate distributions through non-linear transition
+functions while maintaining a Gaussian approximation. The UKF generates $2n_x + 1$
+sigma points around the current state mean, passes each through the model's
+[transition_function][quantflow.ta.kalman.StateSpaceModel.transition_function],
+and recomputes the predicted mean and covariance from the propagated points.
+Implementation: [UnscentedKalmanFilter][quantflow.ta.kalman.UnscentedKalmanFilter].

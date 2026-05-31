@@ -163,7 +163,13 @@ def convert(bib_path: Path, out_path: Path) -> None:
 
     entries.sort(key=lambda e: e["key"].lower())
 
-    lines = ["# Bibliography\n", "\n---\n"]
+    lines = [
+        "# Bibliography\n",
+        "\n",
+        "The raw BibTeX source for all entries is available in"
+        " [references.bib](references.bib).\n",
+        "\n---\n",
+    ]
     for entry in entries:
         lines.append("\n")
         lines.append(format_entry(entry))

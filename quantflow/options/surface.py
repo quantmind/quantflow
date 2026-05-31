@@ -19,7 +19,7 @@ from quantflow.rates import (
     YieldCurve,
     YieldCurveCalibration,
 )
-from quantflow.rates.options import OptionsDiscountingCalibration
+from quantflow.rates.calibration import OptionsDiscountingCalibration
 from quantflow.utils import plot
 from quantflow.utils.dates import utcnow
 from quantflow.utils.numbers import (

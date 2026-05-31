@@ -46,17 +46,14 @@ Documentation = "https://quantflow.quantmind.com"
 Issues = "https://github.com/quantmind/quantflow/issues"
 
 [project.optional-dependencies]
-book = [
-    "altair>=6.0.0",
-    "autodocsumm>=0.2.14",
-    "duckdb>=1.4.4",
-    "marimo>=0.23.7",
-    "plotly>=6.2.0",
-    "sympy>=1.12",
-]
 data = [
     "aio-fluid[http]>=2.2.6",
 ]
+ml = [
+    "torch>=2.10.0",
+]
+
+[dependency-groups]
 dev = [
     "black>=26.3.1",
     "ghp-import>=2.0.2",
@@ -83,8 +80,8 @@ docs = [
     "pyarrow>=19.0.0",
     "python-dotenv>=1.0.1",
 ]
-ml = [
-    "torch>=2.10.0",
+research = [
+    "ipython>=9.14.0",
 ]
 
 [build-system]

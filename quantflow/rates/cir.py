@@ -13,7 +13,7 @@ from quantflow.sp.cir import CIR
 from quantflow.utils.numbers import ZERO, DecimalNumber
 from quantflow.utils.types import FloatArray, FloatArrayLike, maybe_float
 
-from .options import YieldCurveCalibration
+from .calibration import YieldCurveCalibration
 from .yield_curve import YieldCurve
 
 
