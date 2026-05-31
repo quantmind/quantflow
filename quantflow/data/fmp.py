@@ -5,10 +5,10 @@ from decimal import Decimal
 from enum import StrEnum
 from typing import Any, Iterator, Self, cast
 
-import inflection
 import pandas as pd
 from fluid.utils.data import compact_dict
 from fluid.utils.http_client import AioHttpClient
+from fluid.utils.text import snake_case
 from typing_extensions import Annotated, Doc
 
 from quantflow.utils.dates import to_date_iso
@@ -309,7 +309,7 @@ def nice_sector_performance(d: dict) -> Iterator[tuple[str, Any]]:
         if k == "date":
             yield k, date.fromisoformat(v)
         else:
-            kk = " ".join(w.title() for w in inflection.underscore(k).split("_")[:-2])
+            kk = " ".join(w.title() for w in snake_case(k).split("_")[:-2])
             yield kk, v
 
 

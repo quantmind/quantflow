@@ -12,26 +12,25 @@ resolution-markers = [
 
 [[package]]
 name = "aio-fluid"
-version = "2.2.6"
+version = "2.3.1"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "fastapi" },
-    { name = "inflection" },
     { name = "pydantic" },
     { name = "redis", extra = ["hiredis"] },
     { name = "typing-extensions" },
     { name = "uvicorn" },
     { name = "yarl" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/bb/bd/6cdaccadf4420c33ff14e19bb4bb438972f277724344f18b2d2e2b4fdb6d/aio_fluid-2.2.6.tar.gz", hash = "sha256:b761ecefc065c786f8f110b164aa68ef54b65e4d7d5b271576c0e7601bc973d5", size = 760678, upload-time = "2026-05-12T19:03:46.541Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/7a/16/d64b9af73252d5609170aff96b0351ca1f617a28e59d8b4700e36eba2470/aio_fluid-2.3.1.tar.gz", hash = "sha256:a21833495b2e59d8663a5dcf6b7a8e53eac38f84e222b69d1285ce3f4f39a102", size = 675994, upload-time = "2026-05-31T22:17:18.749Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/d9/4e/bf1e42031be775bca007419cd5ddd4c4fd2c227a577096eee95b32ff2492/aio_fluid-2.2.6-py3-none-any.whl", hash = "sha256:4f83861edcc3e93a91024cc2ceff3cddf7580f3859bd1783b096361a17be5279", size = 67836, upload-time = "2026-05-12T19:03:45.404Z" },
+    { url = "https://files.pythonhosted.org/packages/de/3b/4e602c1454f27f6b2b754bfd7c5775b88f6216ed6c18fdf4bdb2def70296/aio_fluid-2.3.1-py3-none-any.whl", hash = "sha256:623abd63038647e3ccd412dd5ffba665121bd6d7490836d41fb53ed546d3b764", size = 67874, upload-time = "2026-05-31T22:17:17.355Z" },
 ]
 
 [package.optional-dependencies]
 http = [
     { name = "aiohttp" },
-    { name = "httpx" },
+    { name = "httpx2" },
     { name = "prometheus-client" },
     { name = "python-slugify" },
 ]
@@ -954,31 +953,31 @@ wheels = [
 ]
 
 [[package]]
-name = "httpcore"
-version = "1.0.9"
+name = "httpcore2"
+version = "2.0.0"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "certifi" },
     { name = "h11" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/06/94/82699a10bca87a5556c9c59b5963f2d039dbd239f25bc2a63907a05a14cb/httpcore-1.0.9.tar.gz", hash = "sha256:6e34463af53fd2ab5d807f399a9b45ea31c3dfa2276f15a2c3f00afff6e176e8", size = 85484, upload-time = "2025-04-24T22:06:22.219Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/c5/18/e51f5729684acaaab4d1cfca0777ac0f86440c65d2814992442ed5ef02e1/httpcore2-2.0.0.tar.gz", hash = "sha256:403692e0a0e8ea6de90993cdea815b2454d2ff5426e61d2a244846c12506af76", size = 63864, upload-time = "2026-05-12T17:59:22.073Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/7e/f5/f66802a942d491edb555dd61e3a9961140fd64c90bce1eafd741609d334d/httpcore-1.0.9-py3-none-any.whl", hash = "sha256:2d400746a40668fc9dec9810239072b40b4484b640a8c38fd654a024c7a1bf55", size = 78784, upload-time = "2025-04-24T22:06:20.566Z" },
+    { url = "https://files.pythonhosted.org/packages/ae/67/784fd58a5b4dbe8b2aee0cafc6959cb8b53c1b7e9d6e4281f8a4c6935c10/httpcore2-2.0.0-py3-none-any.whl", hash = "sha256:4bd78675c48edafd522c5224a18e3a5f6e71dbe95a73497177d432072a7b6b43", size = 79673, upload-time = "2026-05-12T17:59:18.996Z" },
 ]
 
 [[package]]
-name = "httpx"
-version = "0.28.1"
+name = "httpx2"
+version = "2.0.0"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "anyio" },
     { name = "certifi" },
-    { name = "httpcore" },
+    { name = "httpcore2" },
     { name = "idna" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/b1/df/48c586a5fe32a0f01324ee087459e112ebb7224f646c0b5023f5e79e9956/httpx-0.28.1.tar.gz", hash = "sha256:75e98c5f16b0f35b567856f597f06ff2270a374470a5c2392242528e3e3e42fc", size = 141406, upload-time = "2024-12-06T15:37:23.222Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/70/95/868b3df4aa6f9cecb42aaf82a55a5a2c8ef40df76d709b812e1553d6a928/httpx2-2.0.0.tar.gz", hash = "sha256:f354249d2a9edce26e08fd2ad2276e98317b5763f673bb0d90f3ce9382cc2aed", size = 79506, upload-time = "2026-05-12T17:59:23.174Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/2a/39/e50c7c3a983047577ee07d2a9e53faf5a69493943ec3f6a384bdc792deb2/httpx-0.28.1-py3-none-any.whl", hash = "sha256:d909fcccc110f8c7faf814ca82a9a4d816bc5a6dbfea25d6591d6985b8ba59ad", size = 73517, upload-time = "2024-12-06T15:37:21.509Z" },
+    { url = "https://files.pythonhosted.org/packages/e9/25/66215a750faeb79b698286c0d0b94894482cfae10371ae4968ef6e165a28/httpx2-2.0.0-py3-none-any.whl", hash = "sha256:dfb5ae245f3985681296a000453f1e5fffee322eb531feabcdaf1557ad978b6a", size = 73424, upload-time = "2026-05-12T17:59:20.403Z" },
 ]
 
 [[package]]
@@ -1000,15 +999,6 @@ source = { registry = "https://pypi.org/simple" }
 sdist = { url = "https://files.pythonhosted.org/packages/b9/28/99c51f664567218d824af024c0251650fb27e4ca066df188dab0769c5b91/idna-3.17.tar.gz", hash = "sha256:5eb0cb53bc467c12eadcf6de83163ad8527cec9416f44b9b61b19caedad2b87f", size = 196048, upload-time = "2026-05-28T14:32:38.55Z" }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/de/a7/f76514cc40ad6234098ecdebda08732d75964776c51a42845b7da10649e2/idna-3.17-py3-none-any.whl", hash = "sha256:466e48829084efe2548012b855df21540b96f2e20e51bd124c851536556a592c", size = 65316, upload-time = "2026-05-28T14:32:37.035Z" },
-]
-
-[[package]]
-name = "inflection"
-version = "0.5.1"
-source = { registry = "https://pypi.org/simple" }
-sdist = { url = "https://files.pythonhosted.org/packages/e1/7e/691d061b7329bc8d54edbf0ec22fbfb2afe61facb681f9aaa9bff7a27d04/inflection-0.5.1.tar.gz", hash = "sha256:1a29730d366e996aaacffb2f1f1cb9593dc38e2ddd30c91250c6dde09ea9b417", size = 15091, upload-time = "2020-08-22T08:16:29.139Z" }
-wheels = [
-    { url = "https://files.pythonhosted.org/packages/59/91/aa6bde563e0085a02a435aa99b49ef75b0a4b062635e606dab23ce18d720/inflection-0.5.1-py2.py3-none-any.whl", hash = "sha256:f38b2b640938a4f35ade69ac3d053042959b62a0f1076a5bbaa1b9526605a8a2", size = 9454, upload-time = "2020-08-22T08:16:27.816Z" },
 ]
 
 [[package]]
@@ -2792,13 +2782,13 @@ research = [
 
 [package.metadata]
 requires-dist = [
-    { name = "aio-fluid", extras = ["http"], marker = "extra == 'data'", specifier = ">=2.2.6" },
+    { name = "aio-fluid", extras = ["http"], marker = "extra == 'data'", specifier = ">=2.3.1" },
     { name = "ccy", specifier = ">=2.0.0" },
     { name = "pandas", specifier = ">=2.0.0" },
     { name = "pydantic", specifier = ">=2.0.2" },
     { name = "scipy", specifier = ">=1.14.1" },
     { name = "statsmodels", specifier = ">=0.14.6,<0.15.0" },
-    { name = "torch", marker = "extra == 'ml'", specifier = ">=2.10.0", index = "https://download.pytorch.org/whl/cu126" },
+    { name = "torch", marker = "extra == 'ml'", specifier = ">=2.12.0", index = "https://download.pytorch.org/whl/cu126" },
 ]
 provides-extras = ["data", "ml"]
 
@@ -2816,7 +2806,7 @@ dev = [
     { name = "types-python-dateutil", specifier = ">=2.9.0.20251115" },
 ]
 docs = [
-    { name = "aio-fluid", extras = ["http", "log", "k8s"], specifier = ">=2.2.6" },
+    { name = "aio-fluid", extras = ["http", "log", "k8s"], specifier = ">=2.3.1" },
     { name = "fastapi", specifier = ">=0.136.3" },
     { name = "griffe-pydantic", specifier = ">=1.1.0" },
     { name = "griffe-typingdoc", specifier = ">=0.2.7" },
