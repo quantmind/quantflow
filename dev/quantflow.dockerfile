@@ -16,7 +16,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 COPY pyproject.toml uv.lock readme.md ./
 
 # Install dependencies (no root package, with needed extras)
-RUN uv sync --frozen --no-install-project --extra docs --extra data
+RUN uv sync --frozen --no-install-project --group docs --extra data
 
 # Copy source, generate example outputs and images, then build docs
 COPY mkdocs.yml ./
