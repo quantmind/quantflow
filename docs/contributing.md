@@ -18,7 +18,3 @@ make install-dev
 ```
 make tests
 ```
-* Run the [marimo](https://marimo.io/) server during development
-```
-make marimo
-```

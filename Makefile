@@ -48,10 +48,6 @@ lint:				## Lint and fix
 lint-check:			## Lint check only
 	@uv run ./dev/lint
 
-.PHONY: marimo
-marimo:				## Run marimo for editing notebooks
-	@./dev/marimo edit
-
 .PHONY: outdated
 outdated:			## Show outdated packages
 	uv tree --outdated

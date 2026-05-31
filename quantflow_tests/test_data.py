@@ -2,6 +2,7 @@ from datetime import date
 from typing import AsyncIterator
 from unittest.mock import AsyncMock
 
+import pandas as pd
 import pytest
 
 from quantflow.data.fed import FederalReserve
@@ -42,7 +43,8 @@ async def test_fed_yc() -> None:
         df = await fed.yield_curves()
         assert df is not None
         assert df.shape[0] > 0
-        assert df.shape[1] == 12
+        assert df.shape[1] == 11
+        assert isinstance(df.index, pd.DatetimeIndex)
 
 
 @skip_network_issue

@@ -20,9 +20,8 @@ include = [
 keys = [
     "project.optional-dependencies",
     "project.optional-dependencies.ai",
-    "project.optional-dependencies.book",
     "project.optional-dependencies.data",
-    "project.optional-dependencies.dev",
-    "project.optional-dependencies.docs",
     "project.optional-dependencies.ml",
+    "dependency-groups.dev",
+    "dependency-groups.docs",
 ]

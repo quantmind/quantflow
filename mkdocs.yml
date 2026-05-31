@@ -69,6 +69,8 @@ nav:
           - Financial Modeling Prep: api/data/fmp.md
           - FRED: api/data/fred.md
           - Yahoo: api/data/yahoo.md
+      - Distributions:
+          - api/dists/index.md
       - Options:
           - api/options/index.md
           - Black-Scholes: api/options/black.md
@@ -94,6 +96,7 @@ nav:
       - Timeseries Analysis:
           - api/ta/index.md
           - EWMA: api/ta/ewma.md
+          - Kalman Filter & UKF: api/ta/kalman.md
           - OHLC: api/ta/ohlc.md
           - Paths: api/ta/paths.md
           - Supersmoother: api/ta/supersmoother.md
@@ -121,6 +124,7 @@ nav:
       - Option Pricing: tutorials/option_pricing.md
       - Pricing Method Comparison: tutorials/pricing_method_comparison.md
       - SPX Volatility Surface: tutorials/spx_vol_surface.md
+      - Vasicek Calibration from Rates: tutorials/rates_kalman.md
       - Volatility Surface: tutorials/volatility_surface.md
   - Theory:
       - theory/index.md
@@ -128,6 +132,7 @@ nav:
       - Convexity Correction: theory/convexity_correction.md
       - Forwards and Discount Factors: theory/forwards.md
       - Inversion: theory/inversion.md
+      - Kalman Filter: theory/kalman.md
       - Lévy Process: theory/levy.md
       - Option Pricing: theory/option_pricing.md
   - Live Examples: https://quantflow.quantmind.com/examples

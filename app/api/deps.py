@@ -9,7 +9,7 @@ from fastapi import Depends, FastAPI, Request
 from fluid.utils import log
 from fluid.utils.redis import FluidRedis
 from pydantic import BaseModel
-from redis import Redis
+from redis.asyncio import Redis
 
 from quantflow.data.fmp import FMP
 
@@ -77,8 +77,9 @@ class RedisDataframe:
         value = await self.redis.get(self.key)
         if value is None:
             return await self.set_cache(await loader())
+        data = value.encode() if isinstance(value, str) else value
         try:
-            return pd.read_parquet(io.BytesIO(value))
+            return pd.read_parquet(io.BytesIO(data))
         except Exception:
             logger.exception(f"Failed to decode cache value for key {self.key}")
             return await self.set_cache(await loader())

@@ -5,14 +5,15 @@ from typing import Literal
 
 import numpy as np
 from numpy.typing import ArrayLike
-from pydantic import Field
+from pydantic import Field, PrivateAttr
 from scipy.optimize import Bounds, least_squares, minimize
 from typing_extensions import Annotated, Doc
 
 from quantflow.sp.ou import Vasicek
 from quantflow.sp.wiener import WienerProcess
+from quantflow.ta.kalman import KalmanFilter, LinearGaussianModel, MeanAndCov
 from quantflow.utils.numbers import ZERO, DecimalNumber
-from quantflow.utils.types import FloatArray, FloatArrayLike
+from quantflow.utils.types import FloatArray, FloatArrayLike, maybe_float
 
 from .calibration import YieldCurveCalibration
 from .yield_curve import YieldCurve
@@ -91,19 +92,12 @@ class VasicekCurve(YieldCurve):
     def discount_factor(self, ttm: FloatArrayLike) -> FloatArrayLike:
         r"""Calculate the discount factor using the Vasicek closed-form solution.
 
-        The discount factor is:
-
         \begin{equation}
             D(\tau) = e^{A(\tau) - B(\tau)\, r_0}
         \end{equation}
 
-        where:
-
-        \begin{equation}
-            A(\tau) = \left(\theta - \frac{\sigma^2}{2\kappa^2}\right)
-                \bigl(B(\tau) - \tau\bigr)
-                + \frac{\sigma^2 B(\tau)^2}{4\kappa}
-        \end{equation}
+        where $A(\tau)$ and $B(\tau)$ are the affine coefficients given by
+        [affine_coefficients][.affine_coefficients].
         """
         arr = np.asarray(ttm, dtype=float)
         ttma = np.maximum(arr, 0.0)
@@ -118,6 +112,40 @@ class VasicekCurve(YieldCurve):
         )
         df = np.exp(a - rate * b)
         return df if df.ndim > 0 else float(df)
+
+    def affine_coefficients(
+        self, ttm: FloatArrayLike
+    ) -> tuple[FloatArrayLike, FloatArrayLike]:
+        r"""Return the affine coefficients $A(\tau)$ and $B(\tau)$
+        of the log discount factor.
+
+        \begin{equation}
+            \log D(\tau) = A(\tau) - B(\tau)\, r_0
+        \end{equation}
+
+        where
+
+        \begin{equation}
+        \begin{aligned}
+            B(\tau) &= \frac{1 - e^{-\kappa\tau}}{\kappa}, \\
+            A(\tau) &= \left(\theta - \frac{\sigma^2}{2\kappa^2}\right)
+                \bigl(B(\tau) - \tau\bigr)
+                + \frac{\sigma^2 B(\tau)^2}{4\kappa}.
+        \end{aligned}
+        \end{equation}
+        """
+        arr = np.asarray(ttm, dtype=float)
+        ttma = np.maximum(arr, 0.0)
+        kappa = float(self.kappa)
+        theta = float(self.theta)
+        sigma = float(self.sigma)
+        s2 = sigma * sigma
+        et = np.exp(-kappa * ttma)
+        b = (1.0 - et) / kappa
+        a = (theta - s2 / (2.0 * kappa * kappa)) * (b - ttma) + s2 * b * b / (
+            4.0 * kappa
+        )
+        return maybe_float(a), maybe_float(b)
 
     def jacobian(self, ttm: FloatArrayLike) -> FloatArray | None:
         r"""Analytical Jacobian of discount factors w.r.t.
@@ -137,10 +165,10 @@ class VasicekCurve(YieldCurve):
         )
         d = np.exp(a - rate * b)
 
-        # ∂D/∂r0
+        # \partial D/\partial r0
         d_rate = -b * d
 
-        # ∂D/∂κ
+        # \partial D/\partial \kappa
         db_k = (ttma * et * kappa - (1.0 - et)) / (kappa * kappa)
         da_k = (
             s2 / (kappa**3) * (b - ttma)
@@ -150,10 +178,10 @@ class VasicekCurve(YieldCurve):
         )
         d_kappa = d * (da_k - rate * db_k)
 
-        # ∂D/∂θ
+        # \partial D/\partial \theta
         d_theta = d * (b - ttma)
 
-        # ∂D/∂σ
+        # \partial D/\partial \sigma
         da_s = (-sigma / (kappa * kappa)) * (b - ttma) + sigma * b * b / (2.0 * kappa)
         d_sigma = d * da_s
 
@@ -162,6 +190,19 @@ class VasicekCurve(YieldCurve):
 
 class VasicekCurveCalibration(YieldCurveCalibration[VasicekCurve]):
     """Calibration wrapper for a [VasicekCurve][..VasicekCurve] yield curve."""
+
+    _filtered_short_rate: FloatArray | None = PrivateAttr(default=None)
+
+    @property
+    def filtered_short_rate(self) -> FloatArray:
+        """Kalman-filtered short rate at each observation date.
+
+        Populated by [calibrate_historical_rates][.calibrate_historical_rates];
+        accessing it before a historical fit raises an error.
+        """
+        if self._filtered_short_rate is None:
+            raise AttributeError("run calibrate_historical_rates first")
+        return self._filtered_short_rate
 
     def get_params(self) -> FloatArray:
         c = self.yield_curve
@@ -211,30 +252,84 @@ class VasicekCurveCalibration(YieldCurveCalibration[VasicekCurve]):
 
     def calibrate_historical_rates(
         self,
-        ttm: FloatArray,
-        rates: FloatArray,
-        dt: FloatArray,
+        ttm: Annotated[FloatArray, Doc("Times to maturity in years, shape (n,).")],
+        rates: Annotated[
+            FloatArray,
+            Doc("Continuously compounded rates, shape (T, n) (time by maturity)."),
+        ],
+        dt: Annotated[
+            FloatArray,
+            Doc("Per-step time increments in years, shape (T-1,); assumed uniform."),
+        ],
     ) -> VasicekCurve:
-        r"""Fit Vasicek by maximum likelihood via a Kalman filter on the panel.
+        r"""Fit Vasicek by maximum likelihood with a Kalman filter on the panel.
 
-        The short rate $r_t$ is treated as a latent state evolving under the
-        exact-discretization Vasicek dynamics; yields are linear in $r_t$ and
-        observed with i.i.d. Gaussian noise of variance $h^2$. The negative
-        log-likelihood is minimised over $(\kappa, \theta, \sigma, h)$, then
-        the curve's rate is set to the final filtered short rate.
+        The short rate $r_t$ is the latent state of a
+        [LinearGaussianModel][quantflow.ta.kalman.LinearGaussianModel]. Under a
+        uniform time step $\Delta t$ the exact discretization of the
+        Ornstein-Uhlenbeck dynamics is the Gaussian AR(1):
+
+        \begin{equation}
+            \begin{aligned}
+                r_t &= \theta(1 - \phi) + \phi\, r_{t-1} + \varepsilon_t \\
+                \phi &= e^{-\kappa \Delta t} \\
+                \varepsilon_t &\sim N\left(0,
+                    \tfrac{\sigma^2}{2\kappa}(1 - \phi^2)\right)
+            \end{aligned}
+        \end{equation}
+
+        Centring the state on $\theta$ (filtering $z_t = r_t - \theta$) cancels
+        the AR(1) drift, and the affine yields $y_i = (B_i r_t - A_i)/\tau_i$
+        become linear in $z_t$ once their constant part is subtracted. The plain
+        zero-intercept linear-Gaussian filter then applies.
+
+        The negative log-likelihood is minimised over
+        $(\kappa, \theta, \sigma, h)$, where $h$ is the observation noise
+        standard deviation, then the curve's rate is set to the final filtered
+        short rate.
         """
+        rates = np.asarray(rates, dtype=float)
+        ttm = np.asarray(ttm, dtype=float)
+        dt = np.asarray(dt, dtype=float)
+        if dt.size and not np.allclose(dt, dt[0], rtol=1e-2):
+            raise ValueError(
+                "calibrate_historical_rates assumes a uniform time step; "
+                "the observation dates are not equally spaced"
+            )
+        step = float(dt[0]) if dt.size else 1.0
+
+        def filtered(
+            kappa: float, theta: float, sigma: float, h: float
+        ) -> tuple[list[MeanAndCov], float]:
+            self.set_params(np.array([0.0, kappa, theta, sigma]))
+            a, b = self.yield_curve.affine_coefficients(ttm)
+            A, B = np.asarray(a, dtype=float), np.asarray(b, dtype=float)
+            phi = np.exp(-kappa * step)
+            q = sigma * sigma * (1.0 - phi * phi) / (2.0 * kappa)
+            offset = (B * theta - A) / ttm  # constant part of the affine yields
+            model = LinearGaussianModel(
+                F=np.array([[phi]]),
+                Q=np.array([[q]]),
+                H=B / ttm,
+                R=h * h * np.eye(len(ttm)),
+                mu0=np.zeros(1),
+                cov0=np.array([[sigma * sigma / (2.0 * kappa)]]),
+            )
+            return KalmanFilter(model=model, data=rates - offset).filter()
+
         theta0 = float(np.mean(rates))
-        short_idx = int(np.argmin(ttm))
-        short = rates[:, short_idx]
-        sigma0 = max(float(np.std(np.diff(short)) / np.sqrt(np.mean(dt))), 1e-4)
+        short = rates[:, int(np.argmin(ttm))]
+        sigma0 = max(float(np.std(np.diff(short)) / np.sqrt(step)), 1e-4)
         h0 = max(float(np.std(rates - rates.mean(axis=0))) / 10.0, 1e-4)
         x0 = np.array([np.log(0.5), theta0, np.log(sigma0), np.log(h0)])
 
         def neg_loglik(x: np.ndarray) -> float:
-            self.set_params(
-                np.array([0.0, float(np.exp(x[0])), float(x[1]), float(np.exp(x[2]))])
+            _, ll = filtered(
+                float(np.exp(x[0])),
+                float(x[1]),
+                float(np.exp(x[2])),
+                float(np.exp(x[3])),
             )
-            ll, _ = self.kalman_filter(ttm, rates, dt, float(np.exp(x[3])))
             return -ll
 
         result = minimize(neg_loglik, x0, method="Nelder-Mead")
@@ -242,85 +337,9 @@ class VasicekCurveCalibration(YieldCurveCalibration[VasicekCurve]):
         theta = float(result.x[1])
         sigma = float(np.exp(result.x[2]))
         h = float(np.exp(result.x[3]))
-        self.set_params(np.array([0.0, kappa, theta, sigma]))
-        _, r_last = self.kalman_filter(ttm, rates, dt, h)
-        self.set_params(np.array([r_last, kappa, theta, sigma]))
+        states, _ = filtered(kappa, theta, sigma, h)
+        # filtered short rate path: z_t + theta
+        short_rate = theta + np.array([float(s.mean.item()) for s in states])
+        self._filtered_short_rate = short_rate
+        self.set_params(np.array([float(short_rate[-1]), kappa, theta, sigma]))
         return self.yield_curve
-
-    def kalman_filter(
-        self,
-        ttm: FloatArray,
-        rates: FloatArray,
-        dt: FloatArray,
-        h: float,
-    ) -> tuple[float, float]:
-        r"""Kalman log-likelihood and final filtered short rate at the
-        current ``yield_curve`` parameters.
-
-        The Vasicek discount factor (see
-        [discount_factor][...VasicekCurve.discount_factor]) is affine in
-        the short rate,
-
-        \begin{equation}
-            \log D(\tau) = A(\tau) - B(\tau)\, r_t,
-        \end{equation}
-
-        so $A(\tau)$ and $B(\tau)$ are recovered with two evaluations of
-        [discount_factor][...VasicekCurve.discount_factor]:
-
-        \begin{equation}
-            A(\tau) = \log D(\tau)\big|_{r_t = 0},
-            \qquad
-            B(\tau) = A(\tau) - \log D(\tau)\big|_{r_t = 1}.
-        \end{equation}
-
-        The observation map is then $y(\tau) = (B(\tau)\, r_t - A(\tau))/\tau$.
-
-        Latent-state dynamics come from the underlying
-        [Vasicek][quantflow.sp.ou.Vasicek] process. Observation noise is
-        i.i.d. Gaussian across maturities with variance $h^2$, so the
-        rank-1 innovation covariance
-
-        \begin{equation}
-            F = h^2 I + P \, (B/\tau)(B/\tau)^\top
-        \end{equation}
-
-        is inverted in closed form via Sherman-Morrison.
-        """
-        curve = self.yield_curve
-        saved_rate = curve.rate
-        curve.rate = Decimal(0)
-        log_d_at_zero = np.log(np.asarray(curve.discount_factor(ttm), dtype=float))
-        curve.rate = Decimal(1)
-        log_d_at_one = np.log(np.asarray(curve.discount_factor(ttm), dtype=float))
-        curve.rate = saved_rate
-        A = log_d_at_zero
-        B = log_d_at_zero - log_d_at_one
-        coef = B / ttm
-
-        process = curve.process()
-        theta = process.theta
-        phi = np.exp(-process.kappa * dt)
-        q = np.asarray(process.analytical_variance(dt), dtype=float)
-        drift = theta * (1.0 - phi)
-
-        cc = float(coef @ coef)
-        var_obs = h * h
-        r = theta
-        p = process.bdlp.sigma**2 / (2.0 * process.kappa)
-        n_obs, n_mat = rates.shape
-        log_lik = -0.5 * n_obs * n_mat * np.log(2.0 * np.pi)
-        for t in range(n_obs):
-            if t > 0:
-                phi_t = float(phi[t - 1])
-                r = phi_t * r + float(drift[t - 1])
-                p = phi_t * phi_t * p + float(q[t - 1])
-            innov = rates[t] - (B * r - A) / ttm
-            cv = float(coef @ innov)
-            denom = var_obs + p * cc
-            log_det = (n_mat - 1) * np.log(var_obs) + np.log(denom)
-            quad = (float(innov @ innov) - p * cv * cv / denom) / var_obs
-            log_lik -= 0.5 * (log_det + quad)
-            r = r + p * cv / denom
-            p = p * var_obs / denom
-        return log_lik, r

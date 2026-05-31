@@ -14,6 +14,8 @@ DecimalNumber = Annotated[Decimal, WithJsonSchema({"type": "number"})]
 
 @unique
 class Rounding(IntEnum):
+    """Rounding method for rounding to a step."""
+
     ZERO = auto()
     UP = auto()
     DOWN = auto()

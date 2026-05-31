@@ -36,6 +36,10 @@ F. Fang, K. Oosterlee. (2008) [A Novel Pricing Method for European Options Based
 
 Unknown. (2017) [Doubly Stochastic Poisson Processes with Affine Intensities](https://editorialexpress.com/cgi-bin/conference/download.cgi?db_name=sbe35&paper_id=179){target="_blank" rel="noopener"}, internet
 
+#### durbin_koopman
+
+J. Durbin, S. J. Koopman. (2012) Time Series Analysis by State Space Methods, Oxford University Press
+
 #### ekf
 
 Wang X., He X., Zhao Y., Zuo Z. (2017) [Parameter Estimations of Heston Model Based on Consistent Extended Kalman Filter](https://www.sciencedirect.com/science/article/pii/S2405896317324758){target="_blank" rel="noopener"}, internet
@@ -51,6 +55,14 @@ Milan Mrázek, Jan Pospíšil. (2017) [Calibration and simulation of Heston mode
 #### heston-simulation
 
 Leif B.G. Andersen. (2008) [Efficient Simulation of the Heston Stochastic Volatility Model](https://papers.ssrn.com/sol3/papers.cfm?abstract_id=946405){target="_blank" rel="noopener"}, Journal of Computational Finance, 11(3)
+
+#### julier_uhlmann
+
+S. J. Julier, J. K. Uhlmann. (1997) [New extension of the Kalman filter to nonlinear systems](https://doi.org/10.1117/12.280797){target="_blank" rel="noopener"}, Proceedings of SPIE, 3068:182-193
+
+#### kalman
+
+R. E. Kalman. (1960) [A New Approach to Linear Filtering and Prediction Problems](https://doi.org/10.1115/1.3662552){target="_blank" rel="noopener"}, Journal of Basic Engineering, 82(1):35-45
 
 #### lee_option
 
