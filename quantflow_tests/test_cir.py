@@ -55,3 +55,13 @@ def test_cir_pdf_neg(cir_neg: CIR):
     # skip x=0 where the analytical pdf diverges for q<0
     mask = pdf.x > 0
     np.testing.assert_array_almost_equal(pdf.y[mask], m.pdf(pdf.x[mask]), 1e-1)
+
+
+def test_cir_equilibrium(cir: CIR) -> None:
+    assert cir.equilibrium_mean == cir.theta
+    assert cir.equilibrium_variance == pytest.approx(
+        cir.sigma2 * cir.theta / (2.0 * cir.kappa)
+    )
+    # the equilibrium moments are the t -> infinity limit of the conditional ones
+    assert cir.analytical_mean(1e4) == pytest.approx(cir.equilibrium_mean)
+    assert cir.analytical_variance(1e4) == pytest.approx(cir.equilibrium_variance)
