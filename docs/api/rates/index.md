@@ -6,7 +6,7 @@ The central concept is the [discount factor](../../glossary.md#discount-factor) 
 
 **[Rate](interest_rate.md)** represents a spot or forward interest rate with a chosen compounding frequency (continuous by default) and day count convention. It supports continuous and periodic compounding and can be bootstrapped directly from a spot/forward pair.
 
-**[YieldCurve](yield_curve.md)** is the abstract base for term-structure models. It defines the interface via `discount_factor` and `instantaneous_forward_rate`, with the two quantities linked by
+**[YieldCurve](yield_curve.md)** is the abstract base for term-structure models. It defines the interface via [discount_factor][quantflow.rates.yield_curve.YieldCurve.discount_factor] and [instantaneous_forward_rate][quantflow.rates.yield_curve.YieldCurve.instantaneous_forward_rate], with the two quantities linked by
 
 \begin{equation}
     f(\tau) = -\frac{\partial \ln D_\tau}{\partial \tau}
@@ -18,4 +18,4 @@ The central concept is the [discount factor](../../glossary.md#discount-factor) 
 
 **[VasicekCurve](vasicek.md)** is a Gaussian mean-reverting short-rate model with analytical formulas for discount factors and instantaneous forward rates.
 
-**[Options Discounting](options.md)** provides `YieldCurveCalibration`, the base class for fitting a yield curve to discount factors, and `OptionsDiscountingCalibration`, which bootstraps asset and quote curves from put-call parity observations.
+**[Calibration](calibration.md)** provides [YieldCurveCalibration][quantflow.rates.calibration.YieldCurveCalibration], the base class for fitting a yield curve to discount factors, and [OptionsDiscountingCalibration][quantflow.rates.calibration.OptionsDiscountingCalibration], which bootstraps asset and quote curves from put-call parity observations.

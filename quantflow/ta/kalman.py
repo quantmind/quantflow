@@ -199,6 +199,28 @@ class LinearGaussianModel(StateSpaceModel, arbitrary_types_allowed=True):
 # ---------------------------------------------------------------------------
 
 
+def isotropic_noise(
+    R: Annotated[FloatArray, Doc("Observation noise covariance of shape (n_y, n_y).")],
+) -> float | None:
+    r"""Detect isotropic observation noise of the form $R = h^2 I$.
+
+    Returns the scalar variance $h^2$ when every diagonal entry equals $h^2$
+    and all off-diagonal entries are zero, otherwise returns ``None``.
+
+    This is the precondition for the Sherman-Morrison fast path in the Kalman
+    update: when the noise is isotropic and the state is one-dimensional, the
+    innovation covariance is a rank-1 update to a scaled identity and can be
+    inverted in $O(n_y)$ instead of $O(n_y^3)$.
+    """
+    n = R.shape[0]
+    h2 = float(R[0, 0])
+    if h2 <= 0.0:
+        return None
+    if n > 1 and not np.allclose(R, h2 * np.eye(n)):
+        return None
+    return h2
+
+
 class KalmanFilter(BaseModel, arbitrary_types_allowed=True):
     r"""Kalman filter for a [LinearGaussianModel][..LinearGaussianModel].
 
@@ -240,6 +262,23 @@ class KalmanFilter(BaseModel, arbitrary_types_allowed=True):
             n_y \log 2\pi + \log\det S_t + e_t^\top S_t^{-1} e_t
         \right).
     \end{equation}
+
+    When the state is one-dimensional and the observation noise is isotropic
+    ($R = h^2 I$), the innovation covariance $S_t = h^2 I + P_{t \mid t-1}\, c c^\top$
+    is a rank-1 update to a scaled identity, where $c = H$ is a column vector.
+
+    The [Sherman-Morrison identity](../../glossary.md#sherman-morrison-identity)
+    inverts it in $O(n_y)$ instead of $O(n_y^3)$:
+
+    \begin{equation}
+        S_t^{-1} = \frac{1}{h^2}\left(
+            I - \frac{P_{t \mid t-1}\, c c^\top}{h^2 + P_{t \mid t-1}\, c^\top c}
+        \right).
+    \end{equation}
+
+    The update detects this case automatically (see
+    [isotropic_noise][..isotropic_noise]) and applies the fast path; otherwise
+    it falls back to a dense Cholesky solve.
     """
 
     model: LinearGaussianModel = Field(description="Linear-Gaussian state-space model.")
@@ -334,6 +373,9 @@ class KalmanFilter(BaseModel, arbitrary_types_allowed=True):
         H = model.H[:, None] if model.H.ndim == 1 else model.H
         obs = np.atleast_1d(np.asarray(y, dtype=float))
         innov = obs - H @ pred.mean
+        h2 = isotropic_noise(model.R)
+        if h2 is not None and model.n_x == 1:
+            return self._update_isotropic(pred, H[:, 0], innov, h2)
         S = H @ pred.cov @ H.T + model.R
         sign, log_det = np.linalg.slogdet(S)
         if sign <= 0:
@@ -343,6 +385,32 @@ class KalmanFilter(BaseModel, arbitrary_types_allowed=True):
         gain = linalg.solve(S, H @ pred.cov, assume_a="pos").T  # P H^T S^{-1}
         mean = pred.mean + gain @ innov
         cov = pred.cov - gain @ H @ pred.cov
+        return MeanAndCov(mean=mean, cov=cov), log_lik
+
+    def _update_isotropic(
+        self,
+        pred: MeanAndCov,
+        c: FloatArray,
+        innov: FloatArray,
+        h2: float,
+    ) -> tuple[MeanAndCov, float]:
+        """Sherman-Morrison fast path of [update][..update] for a 1d state with
+        isotropic noise.
+
+        Equivalent to the dense path but inverts the rank-1 innovation
+        covariance in closed form. See the class docstring and the theory docs
+        for the derivation.
+        """
+        n_y = innov.shape[0]
+        p = float(pred.cov[0, 0])
+        d = h2 + p * float(c @ c)  # h^2 + P c^T c
+        ce = float(c @ innov)  # c^T e_t
+        log_det = (n_y - 1) * np.log(h2) + np.log(d)
+        quad = (float(innov @ innov) - p * ce * ce / d) / h2
+        log_lik = -0.5 * (n_y * np.log(2.0 * np.pi) + log_det + quad)
+        gain = (p / d) * c  # K_t = (P / d) c^T, shape (n_y,)
+        mean = pred.mean + gain @ innov
+        cov = np.array([[p * h2 / d]])
         return MeanAndCov(mean=mean, cov=cov), log_lik
 
 
