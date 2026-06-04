@@ -109,7 +109,7 @@ class YieldCurve(BaseModel, ABC, extra="forbid"):
         )
         return maybe_float(result)
 
-    def rate(
+    def rates(
         self,
         ttm: Annotated[ArrayLike, Doc("Time to maturity in years")],
         frequency: Annotated[

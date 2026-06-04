@@ -1,5 +1,6 @@
 import asyncio
 from datetime import timedelta
+from decimal import Decimal
 
 import numpy as np
 import pandas as pd
@@ -46,9 +47,9 @@ cir_short = cir_cal.filtered_short_rate
 va_model = np.zeros((len(va_short), len(ttm)))
 cir_model = np.zeros((len(cir_short), len(ttm)))
 for t in range(len(va_short)):
-    vasicek.rate = float(va_short[t])
+    vasicek.rate = Decimal(str(float(va_short[t])))
     va_model[t] = np.asarray(vasicek.rates(ttm), dtype=float)
-    cir.rate = float(cir_short[t])
+    cir.rate = Decimal(str(float(cir_short[t])))
     cir_model[t] = np.asarray(cir.rates(ttm), dtype=float)
 
 # observed (par -> continuous) and both model yields per tenor, over time
