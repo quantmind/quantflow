@@ -27,7 +27,7 @@ class CIR(IntensityProcess):
     \end{equation}
 
     where $w_t$ is a standard Wiener process. The process stays strictly positive
-    (Feller condition) when
+    when the [Feller condition](../../../glossary#feller-condition) holds:
 
     \begin{equation}
         2\kappa\theta \geq \sigma^2
@@ -56,6 +56,26 @@ class CIR(IntensityProcess):
         """True if the Feller condition holds, guaranteeing
         the process stays strictly positive."""
         return self.feller_condition >= 0.0
+
+    @property
+    def equilibrium_mean(self) -> float:
+        r"""Mean of the stationary (equilibrium) distribution of the process.
+
+        \begin{equation}
+            \lim_{t \to \infty} E[x_t] = \theta
+        \end{equation}
+        """
+        return self.theta
+
+    @property
+    def equilibrium_variance(self) -> float:
+        r"""Variance of the stationary (equilibrium) distribution of the process.
+
+        \begin{equation}
+            \lim_{t \to \infty} \mathrm{Var}(x_t) = \frac{\sigma^2 \theta}{2\kappa}
+        \end{equation}
+        """
+        return self.sigma2 * self.theta / (2.0 * self.kappa)
 
     def sample(
         self,
@@ -152,15 +172,17 @@ class CIR(IntensityProcess):
         r"""Log-Laplace transform of the time-integrated CIR process.
 
         \begin{equation}
-            \phi(t, u) = \log E\!\left[e^{-u \int_0^t x_s\, ds}\right]
-            = \frac{2\kappa\theta}{\sigma^2}
-              \log\!\left(\frac{2\gamma\, e^{(\gamma+\kappa)t/2}}{D}\right)
-            - \frac{2u(e^{\gamma t}-1)}{D}\, x_0
+            \begin{aligned}
+                \phi(t, u) &= \log E\!\left[e^{-u \int_0^t x_s\, ds}\right] \\
+                &= \frac{2\kappa\theta}{\sigma^2}
+                \log\!\left(\frac{2\gamma\, e^{(\gamma+\kappa)t/2}}{D}\right)
+                - \frac{2u(e^{\gamma t}-1)}{D}\, x_0 \\
+                \gamma &= \sqrt{\kappa^2 + 2u\sigma^2} \\
+                D &= 2\gamma + (\gamma+\kappa)(e^{\gamma t}-1)
+            \end{aligned}
         \end{equation}
 
-        where $\gamma = \sqrt{\kappa^2 + 2u\sigma^2}$,
-        $D = 2\gamma + (\gamma+\kappa)(e^{\gamma t}-1)$, and $x_0$ is
-        the initial rate.
+        where $x_0$ is the initial rate.
         """
         kappa = self.kappa
         sigma2 = self.sigma2

@@ -1,5 +1,6 @@
 import asyncio
 from datetime import timedelta
+from decimal import Decimal
 
 import numpy as np
 import pandas as pd
@@ -9,6 +10,7 @@ from plotly.subplots import make_subplots
 from docs.examples._utils import assets_path, cached_df
 from quantflow.data.fed import FederalReserve
 from quantflow.rates.calibration import tenor_to_years
+from quantflow.rates.cir import CIRCurve
 from quantflow.rates.vasicek import VasicekCurve
 
 
@@ -25,50 +27,56 @@ def fed_yield_curves() -> pd.DataFrame:
 df = fed_yield_curves()
 # weekly panel (uniform 7-day step) using the average yield over each week
 weekly = df.resample("W-WED").mean().dropna()
-
-# calibrate the Vasicek short-rate model to the panel by Kalman-filter MLE
-calibrator = VasicekCurve().calibrator()
-curve = calibrator.calibrate_historical_rates_dataframe(weekly, frequency=2)
-print(curve.model_dump_json(indent=2, exclude={"ref_date"}))
-
-# rebuild model-implied yields from the filtered short rate path: y = (B r - A) / tau
 ttm = np.array([tenor_to_years(c) for c in weekly.columns])
-a, b = curve.affine_coefficients(ttm)
-A, B = np.asarray(a, dtype=float), np.asarray(b, dtype=float)
-short_rate = calibrator.filtered_short_rate  # one value per observation date
 
-# observed (par -> continuous) and model yields per tenor, over time
+# Vasicek: linear-Gaussian, fitted with the exact Kalman filter
+vasicek_cal = VasicekCurve().calibrator()
+vasicek = vasicek_cal.calibrate_historical_rates_dataframe(weekly, frequency=2)
+print("Vasicek (Kalman filter)")
+print(vasicek.model_dump_json(indent=2, exclude={"ref_date"}))
+
+# CIR: state-dependent variance, fitted with the unscented Kalman filter
+cir_cal = CIRCurve().calibrator()
+cir = cir_cal.calibrate_historical_rates_dataframe(weekly, frequency=2)
+print("CIR (unscented Kalman filter)")
+print(cir.model_dump_json(indent=2, exclude={"ref_date"}))
+
+# model-implied semi-annual rates at each date from the filtered short rate paths
+va_short = vasicek_cal.filtered_short_rate
+cir_short = cir_cal.filtered_short_rate
+va_model = np.zeros((len(va_short), len(ttm)))
+cir_model = np.zeros((len(cir_short), len(ttm)))
+for t in range(len(va_short)):
+    vasicek.rate = Decimal(str(float(va_short[t])))
+    va_model[t] = np.asarray(vasicek.rates(ttm), dtype=float)
+    cir.rate = Decimal(str(float(cir_short[t])))
+    cir_model[t] = np.asarray(cir.rates(ttm), dtype=float)
+
+# observed (par -> continuous) and both model yields per tenor, over time
 tenors = ["1Y", "2Y", "5Y", "10Y"]
+colours = dict(observed="#636efa", Vasicek="#ef553b", CIR="#00cc96")
 fig = make_subplots(rows=2, cols=2, subplot_titles=tenors)
 for k, tenor in enumerate(tenors):
     i = weekly.columns.get_loc(tenor)
-    observed = 2.0 * np.log1p(weekly[tenor].to_numpy() / 2.0) * 100
-    model = (B[i] * short_rate - A[i]) / ttm[i] * 100
     row, col = k // 2 + 1, k % 2 + 1
-    fig.add_trace(
-        go.Scatter(
-            x=weekly.index,
-            y=observed,
-            name="observed",
-            legendgroup="observed",
-            showlegend=k == 0,
-            line=dict(color="#636efa"),
-        ),
-        row=row,
-        col=col,
-    )
-    fig.add_trace(
-        go.Scatter(
-            x=weekly.index,
-            y=model,
-            name="model",
-            legendgroup="model",
-            showlegend=k == 0,
-            line=dict(color="#ef553b"),
-        ),
-        row=row,
-        col=col,
-    )
-fig.update_layout(title="Observed vs Vasicek model yields")
+    series = {
+        "observed": 2.0 * np.log1p(weekly[tenor].to_numpy() / 2.0) * 100,
+        "Vasicek": va_model[:, i] * 100,
+        "CIR": cir_model[:, i] * 100,
+    }
+    for name, values in series.items():
+        fig.add_trace(
+            go.Scatter(
+                x=weekly.index,
+                y=values,
+                name=name,
+                legendgroup=name,
+                showlegend=k == 0,
+                line=dict(color=colours[name]),
+            ),
+            row=row,
+            col=col,
+        )
+fig.update_layout(title="Observed vs Vasicek and CIR model yields")
 fig.update_yaxes(title_text="yield (%)")
 fig.write_image(assets_path("rates_kalman.png"), width=1600, height=800)

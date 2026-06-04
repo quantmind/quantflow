@@ -15,8 +15,6 @@ A state-space model separates a time series into two layers:
 See the [kalman filter](../../theory/kalman.md) theory page for more details
 on the algorithms and their applications.
 
-::: quantflow.ta.kalman.MeanAndCov
-
 ::: quantflow.ta.kalman.StateSpaceModel
 
 ::: quantflow.ta.kalman.LinearGaussianModel

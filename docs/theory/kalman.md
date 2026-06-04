@@ -239,9 +239,11 @@ without user intervention.
 When the transition $f(x, \Delta t)$ is non-linear the Kalman predict step
 is no longer exact. The unscented Kalman filter (UKF), introduced by
 [Julier & Uhlmann (1997)](../bibliography.md#julier_uhlmann), replaces it
-with a **sigma-point** propagation. The observation update is unchanged: it
-reuses the Kalman update step described above, so the UKF inherits the
-Sherman-Morrison optimisation when applicable.
+with a **sigma-point** propagation. The observation update follows the same
+structure, but builds the innovation covariance $S_t$ and the cross covariance
+$C_t$ from the propagated sigma points and solves the gain $K_t = C_t S_t^{-1}$
+with a dense Cholesky factorisation. The Sherman-Morrison fast path is specific
+to the exact linear filter and is not used here.
 
 ### Sigma-Point Predict
 

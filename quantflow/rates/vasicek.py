@@ -11,7 +11,7 @@ from typing_extensions import Annotated, Doc
 
 from quantflow.sp.ou import Vasicek
 from quantflow.sp.wiener import WienerProcess
-from quantflow.ta.kalman import KalmanFilter, LinearGaussianModel, MeanAndCov
+from quantflow.ta.kalman import KalmanFilter, LinearGaussianModel
 from quantflow.utils.numbers import ZERO, DecimalNumber
 from quantflow.utils.types import FloatArray, FloatArrayLike, maybe_float
 
@@ -299,8 +299,11 @@ class VasicekCurveCalibration(YieldCurveCalibration[VasicekCurve]):
         step = float(dt[0]) if dt.size else 1.0
 
         def filtered(
-            kappa: float, theta: float, sigma: float, h: float
-        ) -> tuple[list[MeanAndCov], float]:
+            kappa: float,
+            theta: float,
+            sigma: float,
+            h: float,
+        ) -> KalmanFilter:
             self.set_params(np.array([0.0, kappa, theta, sigma]))
             a, b = self.yield_curve.affine_coefficients(ttm)
             A, B = np.asarray(a, dtype=float), np.asarray(b, dtype=float)
@@ -315,7 +318,7 @@ class VasicekCurveCalibration(YieldCurveCalibration[VasicekCurve]):
                 mu0=np.zeros(1),
                 cov0=np.array([[sigma * sigma / (2.0 * kappa)]]),
             )
-            return KalmanFilter(model=model, data=rates - offset).filter()
+            return model.kalman_filter(rates - offset)
 
         theta0 = float(np.mean(rates))
         short = rates[:, int(np.argmin(ttm))]
@@ -324,20 +327,21 @@ class VasicekCurveCalibration(YieldCurveCalibration[VasicekCurve]):
         x0 = np.array([np.log(0.5), theta0, np.log(sigma0), np.log(h0)])
 
         def neg_loglik(x: np.ndarray) -> float:
-            _, ll = filtered(
+            return -filtered(
                 float(np.exp(x[0])),
                 float(x[1]),
                 float(np.exp(x[2])),
                 float(np.exp(x[3])),
-            )
-            return -ll
+            ).filter()
 
         result = minimize(neg_loglik, x0, method="Nelder-Mead")
         kappa = float(np.exp(result.x[0]))
         theta = float(result.x[1])
         sigma = float(np.exp(result.x[2]))
         h = float(np.exp(result.x[3]))
-        states, _ = filtered(kappa, theta, sigma, h)
+        kf = filtered(kappa, theta, sigma, h)
+        kf.filter()
+        states = kf.states
         # filtered short rate path: z_t + theta
         short_rate = theta + np.array([float(s.mean.item()) for s in states])
         self._filtered_short_rate = short_rate

@@ -109,6 +109,34 @@ class YieldCurve(BaseModel, ABC, extra="forbid"):
         )
         return maybe_float(result)
 
+    def rates(
+        self,
+        ttm: Annotated[ArrayLike, Doc("Time to maturity in years")],
+        frequency: Annotated[
+            int,
+            Doc(
+                "Compounding periods per year (e.g. 2 for semi-annual). "
+                "Pass 0 for continuously compounded."
+            ),
+        ] = 2,
+    ) -> FloatArrayLike:
+        r"""Calculate zero rates compounded at the given frequency.
+
+        The continuously compounded rate $r_c(\tau)$ is converted to a
+        rate compounded $m$ times per year via:
+
+        \begin{equation}
+            r_m(\tau) = m\,(e^{r_c(\tau)/m} - 1)
+        \end{equation}
+
+        When ``frequency=0`` the result is continuously compounded (same as
+        [continuously_compounded_rate][..continuously_compounded_rate]).
+        """
+        rc = self.continuously_compounded_rate(ttm)
+        if frequency <= 0:
+            return rc
+        return frequency * np.expm1(rc / frequency)
+
     def plot(
         self,
         ttm_max: Annotated[float, Doc("Maximum time to maturity in years")] = 10.0,
