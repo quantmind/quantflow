@@ -40,13 +40,16 @@ cir = cir_cal.calibrate_historical_rates_dataframe(weekly, frequency=2)
 print("CIR (unscented Kalman filter)")
 print(cir.model_dump_json(indent=2, exclude={"ref_date"}))
 
-# rebuild model-implied yields from each filtered short rate path: y = (B r - A) / tau
-va_a, va_b = vasicek.affine_coefficients(ttm)
-va_A, va_B = np.asarray(va_a, dtype=float), np.asarray(va_b, dtype=float)
+# model-implied semi-annual rates at each date from the filtered short rate paths
 va_short = vasicek_cal.filtered_short_rate
-cir_a, cir_b = cir.affine_coefficients(ttm)
-cir_A, cir_B = np.asarray(cir_a, dtype=float), np.asarray(cir_b, dtype=float)
 cir_short = cir_cal.filtered_short_rate
+va_model = np.zeros((len(va_short), len(ttm)))
+cir_model = np.zeros((len(cir_short), len(ttm)))
+for t in range(len(va_short)):
+    vasicek.rate = float(va_short[t])
+    va_model[t] = np.asarray(vasicek.rates(ttm), dtype=float)
+    cir.rate = float(cir_short[t])
+    cir_model[t] = np.asarray(cir.rates(ttm), dtype=float)
 
 # observed (par -> continuous) and both model yields per tenor, over time
 tenors = ["1Y", "2Y", "5Y", "10Y"]
@@ -57,8 +60,8 @@ for k, tenor in enumerate(tenors):
     row, col = k // 2 + 1, k % 2 + 1
     series = {
         "observed": 2.0 * np.log1p(weekly[tenor].to_numpy() / 2.0) * 100,
-        "Vasicek": (va_B[i] * va_short - va_A[i]) / ttm[i] * 100,
-        "CIR": (cir_B[i] * cir_short - cir_A[i]) / ttm[i] * 100,
+        "Vasicek": va_model[:, i] * 100,
+        "CIR": cir_model[:, i] * 100,
     }
     for name, values in series.items():
         fig.add_trace(
