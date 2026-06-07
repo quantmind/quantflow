@@ -103,7 +103,7 @@ class ModelOptionPrice(BaseModel, frozen=True):
         For a put option, the intrinsic value is non-negative when the moneyness
         is positive, i.e. when the strike is above the forward price.
         """
-        if self.option_type == OptionType.call:
+        if self.option_type == OptionType.CALL:
             return max(0.0, self.parity)
         else:
             return max(0.0, -self.parity)
@@ -118,7 +118,7 @@ class ModelOptionPrice(BaseModel, frozen=True):
         """Convert the option price to the given option type via put-call parity."""
         if self.option_type == option_type:
             return self
-        if self.option_type == OptionType.call:
+        if self.option_type == OptionType.CALL:
             new_price = self.price - self.parity
             new_delta = self.delta - 1.0
         else:
@@ -161,7 +161,7 @@ class MaturityPricer(BaseModel, arbitrary_types_allowed=True):
         log_strike = float((strike_ / forward_).ln())
         result = self.pricing.call_greeks(log_strike)
         return ModelOptionPrice(
-            option_type=OptionType.call,
+            option_type=OptionType.CALL,
             strike=strike_,
             forward=forward_,
             log_strike=log_strike,

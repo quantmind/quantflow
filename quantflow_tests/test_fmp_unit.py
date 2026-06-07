@@ -9,9 +9,9 @@ from quantflow.data.fmp import FMP, nice_sector_performance, summary_sector_perf
 
 
 def test_freq_crate_and_join_and_params() -> None:
-    assert FMP.freq.crate(None) == FMP.freq.daily
-    assert FMP.freq.crate("1hour") == FMP.freq.one_hour
-    assert FMP.freq.crate("bad") == FMP.freq.daily
+    assert FMP.freq.crate(None) == FMP.freq.DAILY
+    assert FMP.freq.crate("1hour") == FMP.freq.ONE_HOUR
+    assert FMP.freq.crate("bad") == FMP.freq.DAILY
 
     fmp = FMP(key="k")
     assert fmp.join("AAPL", "MSFT") == "AAPL,MSFT"

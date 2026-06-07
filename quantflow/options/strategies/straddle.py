@@ -28,7 +28,7 @@ class Straddle(Strategy, frozen=True):
             legs=(
                 StrategyLeg(
                     meta=OptionMetadata(
-                        option_type=OptionType.call,
+                        option_type=OptionType.CALL,
                         strike=strike_,
                         maturity=maturity,
                     ),
@@ -36,7 +36,7 @@ class Straddle(Strategy, frozen=True):
                 ),
                 StrategyLeg(
                     meta=OptionMetadata(
-                        option_type=OptionType.put,
+                        option_type=OptionType.PUT,
                         strike=strike_,
                         maturity=maturity,
                     ),

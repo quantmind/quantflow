@@ -31,7 +31,7 @@ def _make_option(
     strike: float,
     iv_mid: float,
     iv_spread_fraction: float,
-    option_type: OptionType = OptionType.call,
+    option_type: OptionType = OptionType.CALL,
 ) -> OptionPrices[DefaultVolSecurity]:
     iv_bid = iv_mid * (1 - iv_spread_fraction / 2)
     iv_ask = iv_mid * (1 + iv_spread_fraction / 2)
@@ -47,7 +47,7 @@ def _make_option(
         forward=FORWARD,
         ttm=TTM,
         iv=iv_bid,
-        side=Side.bid,
+        side=Side.BID,
         converged=True,
     )
     ask = OptionPrice(
@@ -56,7 +56,7 @@ def _make_option(
         forward=FORWARD,
         ttm=TTM,
         iv=iv_ask,
-        side=Side.ask,
+        side=Side.ASK,
         converged=True,
     )
     return OptionPrices(security=SECURITY, meta=meta, bid=bid, ask=ask)

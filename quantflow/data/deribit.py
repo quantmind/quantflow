@@ -31,11 +31,11 @@ def parse_maturity(v: str) -> datetime:
 class InstrumentKind(enum.StrEnum):
     """Instrument kind for Deribit API."""
 
-    future = enum.auto()
-    option = enum.auto()
-    spot = enum.auto()
-    future_combo = enum.auto()
-    option_combo = enum.auto()
+    FUTURE = enum.auto()
+    OPTION = enum.auto()
+    SPOT = enum.auto()
+    FUTURE_COMBO = enum.auto()
+    OPTION_COMBO = enum.auto()
 
 
 @dataclass
@@ -158,18 +158,18 @@ class Deribit(AioHttpClient):
         )
         if inverse:
             futures = await self.get_book_summary_by_currency(
-                currency=currency, kind=InstrumentKind.future
+                currency=currency, kind=InstrumentKind.FUTURE
             )
             options = await self.get_book_summary_by_currency(
-                currency=currency, kind=InstrumentKind.option
+                currency=currency, kind=InstrumentKind.OPTION
             )
             instruments = await self.get_instruments(currency=currency)
         else:
             futures = await self.get_book_summary_by_currency(
-                currency="usdc", kind=InstrumentKind.future, base=currency
+                currency="usdc", kind=InstrumentKind.FUTURE, base=currency
             )
             options = await self.get_book_summary_by_currency(
-                currency="usdc", kind=InstrumentKind.option, base=currency
+                currency="usdc", kind=InstrumentKind.OPTION, base=currency
             )
             instruments = await self.get_instruments(currency="usdc", base=currency)
         instrument_map = {i["instrument_name"]: i for i in instruments}
@@ -226,9 +226,9 @@ class Deribit(AioHttpClient):
                         utc=True,
                     ).to_pydatetime(),
                     option_type=(
-                        OptionType.call
+                        OptionType.CALL
                         if meta["option_type"] == "call"
-                        else OptionType.put
+                        else OptionType.PUT
                     ),
                     bid=round_to_step(bid_, tick_size),
                     ask=round_to_step(ask_, tick_size),

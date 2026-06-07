@@ -38,7 +38,7 @@ def _make_option(
     forward: float,
     *,
     price: Decimal = Decimal(0),
-    option_type: OptionType = OptionType.call,
+    option_type: OptionType = OptionType.CALL,
     ref_date: datetime | None = None,
     maturity: datetime | None = None,
 ) -> OptionPrice:
@@ -200,7 +200,7 @@ def test_call_put_parity():
     option = _make_option(100, 100).calculate_price()
     assert option.log_strike == 0
     assert option.price == option.call_price
-    option2 = _make_option(100, 100, option_type=OptionType.put).calculate_price()
+    option2 = _make_option(100, 100, option_type=OptionType.PUT).calculate_price()
     assert option2.price == option2.put_price
     assert option2.price == option.put_price
     assert option2.call_price == option.price
@@ -210,7 +210,7 @@ def test_call_put_parity_otm():
     option = _make_option(105, 100).calculate_price()
     assert option.log_strike > 0
     assert option.price == option.call_price
-    option2 = _make_option(105, 100, option_type=OptionType.put).calculate_price()
+    option2 = _make_option(105, 100, option_type=OptionType.PUT).calculate_price()
     assert option2.price == option2.put_price
     assert option2.price == pytest.approx(option.put_price)
     assert option2.call_price == pytest.approx(option.price)

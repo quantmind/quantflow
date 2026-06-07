@@ -30,7 +30,7 @@ async def cointegration(
     fmp: FMPDep,
     redis: RedisDep,
     frequency: FMP.freq = Query(
-        FMP.freq.daily,
+        FMP.freq.DAILY,
         description="Price sampling frequency.",
     ),
 ) -> CointegrationResponse:

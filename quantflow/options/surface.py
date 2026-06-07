@@ -68,18 +68,18 @@ class OptionSelection(enum.Enum):
     for calculating implied volatility and other operations
     """
 
-    best = enum.auto()
+    BEST = enum.auto()
     """Select the OTM option but blend call and put implied volatilities
     near the money. The blending weight transitions linearly from 50/50
     at moneyness 0 to pure OTM at the moneyness threshold."""
-    otm = enum.auto()
+    OTM = enum.auto()
     """Select Out of the Money options only, where their
     intrinsic value is zero"""
-    call = enum.auto()
+    CALL = enum.auto()
     """Select the call options only"""
-    put = enum.auto()
+    PUT = enum.auto()
     """Select the put options only"""
-    all = enum.auto()
+    ALL = enum.auto()
     """Select all options regardless of their moneyness"""
 
 
@@ -146,7 +146,7 @@ class OptionPrice(BaseModel):
     ttm: float = Field(default=0, description="Time to maturity in years")
     iv: float = Field(default=0, description="Implied volatility of the option")
     side: Side = Field(
-        default=Side.bid, description="Side of the market for the option price"
+        default=Side.BID, description="Side of the market for the option price"
     )
     converged: bool = Field(
         default=False,
@@ -464,7 +464,7 @@ class Strike(BaseModel, Generic[S]):
         *,
         select: Annotated[
             OptionSelection, Doc("Option selection method")
-        ] = OptionSelection.all,
+        ] = OptionSelection.ALL,
     ) -> Iterator[OptionPrices[S]]:
         """Iterator over option prices for the strike
 
@@ -474,23 +474,23 @@ class Strike(BaseModel, Generic[S]):
         case only the Out of the Money options are included in the iteration.
         """
         match select:
-            case OptionSelection.otm:
+            case OptionSelection.OTM:
                 if self.call and not self.call.is_in_the_money(forward):
                     yield self.call
                 elif self.put and not self.put.is_in_the_money(forward):
                     yield self.put
-            case OptionSelection.best:
+            case OptionSelection.BEST:
                 if self.call and not self.call.is_in_the_money(forward):
                     yield self.call
                 elif self.put and not self.put.is_in_the_money(forward):
                     yield self.put
-            case OptionSelection.call:
+            case OptionSelection.CALL:
                 if self.call:
                     yield self.call
-            case OptionSelection.put:
+            case OptionSelection.PUT:
                 if self.put:
                     yield self.put
-            case OptionSelection.all:
+            case OptionSelection.ALL:
                 if self.call:
                     yield self.call
                 if self.put:
@@ -503,7 +503,7 @@ class Strike(BaseModel, Generic[S]):
         *,
         select: Annotated[
             OptionSelection, Doc("Option selection method")
-        ] = OptionSelection.all,
+        ] = OptionSelection.ALL,
         converged: Annotated[
             bool,
             Doc(
@@ -524,7 +524,7 @@ class Strike(BaseModel, Generic[S]):
         *,
         select: Annotated[
             OptionSelection, Doc("Option selection method")
-        ] = OptionSelection.best,
+        ] = OptionSelection.BEST,
         initial_vol: Annotated[
             float, Doc("Initial volatility for the root finding algorithm")
         ] = INITIAL_VOL,
@@ -599,7 +599,7 @@ class VolCrossSection(BaseModel, Generic[S]):
         *,
         select: Annotated[
             OptionSelection, Doc("Option selection method")
-        ] = OptionSelection.best,
+        ] = OptionSelection.BEST,
         initial_vol: Annotated[
             float, Doc("Initial volatility for the root finding algorithm")
         ] = INITIAL_VOL,
@@ -622,7 +622,7 @@ class VolCrossSection(BaseModel, Generic[S]):
         *,
         select: Annotated[
             OptionSelection, Doc("Option selection method")
-        ] = OptionSelection.all,
+        ] = OptionSelection.ALL,
         converged: Annotated[
             bool,
             Doc(
@@ -641,7 +641,7 @@ class VolCrossSection(BaseModel, Generic[S]):
         *,
         select: Annotated[
             OptionSelection, Doc("Option selection method")
-        ] = OptionSelection.all,
+        ] = OptionSelection.ALL,
         converged: Annotated[
             bool,
             Doc(
@@ -839,7 +839,7 @@ class VolSurface(ForwardPricer[S]):
         *,
         select: Annotated[
             OptionSelection, Doc("Option selection method")
-        ] = OptionSelection.all,
+        ] = OptionSelection.ALL,
         index: Annotated[
             int | None, Doc("Index of the cross section to use, if None use all")
         ] = None,
@@ -868,7 +868,7 @@ class VolSurface(ForwardPricer[S]):
         *,
         select: Annotated[
             OptionSelection, Doc("Option selection method")
-        ] = OptionSelection.all,
+        ] = OptionSelection.ALL,
         index: Annotated[
             int | None, Doc("Index of the cross section to use, if None use all")
         ] = None,
@@ -914,7 +914,7 @@ class VolSurface(ForwardPricer[S]):
         *,
         select: Annotated[
             OptionSelection, Doc("Option selection method")
-        ] = OptionSelection.best,
+        ] = OptionSelection.BEST,
         index: Annotated[
             int | None, Doc("Index of the cross section to use, if None use all")
         ] = None,
@@ -955,7 +955,7 @@ class VolSurface(ForwardPricer[S]):
         *,
         select: Annotated[
             OptionSelection, Doc("Option selection method")
-        ] = OptionSelection.best,
+        ] = OptionSelection.BEST,
         index: Annotated[
             int | None, Doc("Index of the cross section to use, if None use all")
         ] = None,
@@ -976,7 +976,7 @@ class VolSurface(ForwardPricer[S]):
         *,
         select: Annotated[
             OptionSelection, Doc("Option selection method")
-        ] = OptionSelection.best,
+        ] = OptionSelection.BEST,
         index: Annotated[
             int | None, Doc("Index of the cross section to use, if None use all")
         ] = None,
@@ -1015,7 +1015,7 @@ class VolSurface(ForwardPricer[S]):
         *,
         select: Annotated[
             OptionSelection, Doc("Option selection method")
-        ] = OptionSelection.best,
+        ] = OptionSelection.BEST,
         index: Annotated[
             int | None, Doc("Index of the cross section to use, if None use all")
         ] = None,
@@ -1033,7 +1033,7 @@ class VolSurface(ForwardPricer[S]):
         *,
         select: Annotated[
             OptionSelection, Doc("Option selection method")
-        ] = OptionSelection.best,
+        ] = OptionSelection.BEST,
         index: Annotated[
             int | None, Doc("Index of the cross section to use, if None use all")
         ] = None,
@@ -1058,7 +1058,7 @@ class VolSurface(ForwardPricer[S]):
         *,
         select: Annotated[
             OptionSelection, Doc("Option selection method")
-        ] = OptionSelection.best,
+        ] = OptionSelection.BEST,
         index: Annotated[
             int | None, Doc("Index of the cross section to use, if None use all")
         ] = None,
@@ -1110,7 +1110,7 @@ class VolSurface(ForwardPricer[S]):
 
     def reset_convergence(self) -> None:
         """Reset the convergence flag for all options in the surface"""
-        for option in self.option_prices(select=OptionSelection.all):
+        for option in self.option_prices(select=OptionSelection.ALL):
             option.converged = False
 
     def disable_outliers(
@@ -1160,7 +1160,7 @@ class VolSurface(ForwardPricer[S]):
         ] = None,
         select: Annotated[
             OptionSelection, Doc("Option selection method")
-        ] = OptionSelection.best,
+        ] = OptionSelection.BEST,
         **kwargs: Any,
     ) -> Any:
         """Plot the volatility surface"""
@@ -1172,7 +1172,7 @@ class VolSurface(ForwardPricer[S]):
         *,
         select: Annotated[
             OptionSelection, Doc("Option selection method")
-        ] = OptionSelection.best,
+        ] = OptionSelection.BEST,
         index: Annotated[
             int | None, Doc("Index of the cross section to use, if None use all")
         ] = None,
@@ -1230,8 +1230,8 @@ class VolCrossSectionLoader(BaseModel, Generic[S]):
         option = OptionPrices(
             security=security,
             meta=meta,
-            bid=OptionPrice(price=normalize_decimal(bid), meta=meta, side=Side.bid),
-            ask=OptionPrice(price=normalize_decimal(ask), meta=meta, side=Side.ask),
+            bid=OptionPrice(price=normalize_decimal(bid), meta=meta, side=Side.BID),
+            ask=OptionPrice(price=normalize_decimal(ask), meta=meta, side=Side.ASK),
             open_interest=normalize_decimal(open_interest),
             volume=normalize_decimal(volume),
         )
@@ -1332,7 +1332,7 @@ class GenericVolSurfaceLoader(ForwardPricer[S], arbitrary_types_allowed=True):
         volume: Annotated[Decimal, Doc("Volume for the spot")] = ZERO,
     ) -> None:
         """Add a spot to the volatility surface loader"""
-        if security.vol_surface_type() != VolSecurityType.spot:
+        if security.vol_surface_type() != VolSecurityType.SPOT:
             raise ValueError("Security is not a spot")
         self.spot = SpotPrice(
             security=security,
@@ -1352,7 +1352,7 @@ class GenericVolSurfaceLoader(ForwardPricer[S], arbitrary_types_allowed=True):
         volume: Annotated[Decimal, Doc("Volume for the forward")] = ZERO,
     ) -> None:
         """Add a forward to the volatility surface loader"""
-        if security.vol_surface_type() != VolSecurityType.forward:
+        if security.vol_surface_type() != VolSecurityType.FORWARD:
             raise ValueError("Security is not a forward")
         self.get_or_create_maturity(maturity=maturity).forward = FwdPrice(
             security=security,
@@ -1376,7 +1376,7 @@ class GenericVolSurfaceLoader(ForwardPricer[S], arbitrary_types_allowed=True):
         inverse: Annotated[bool, Doc("Whether the option is an inverse option")] = True,
     ) -> None:
         """Add an option to the volatility surface loader"""
-        if security.vol_surface_type() != VolSecurityType.option:
+        if security.vol_surface_type() != VolSecurityType.OPTION:
             raise ValueError("Security is not an option")
         if self.exclude_volume is not None and volume <= self.exclude_volume:
             return

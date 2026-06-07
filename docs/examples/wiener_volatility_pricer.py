@@ -8,7 +8,7 @@ pricer = OptionPricer(model=WienerProcess(sigma=0.3))
 
 # Price an ATM call option at time to maturity 1.0
 price = pricer.price(
-    option_type=OptionType.call,
+    option_type=OptionType.CALL,
     strike=100.0,
     forward=100.0,
     ttm=1.0,

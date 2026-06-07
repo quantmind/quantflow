@@ -17,7 +17,7 @@ def _option_type_for_log_strike(mid_log_strike: float) -> OptionType:
 
     Calls for body above ATM, puts for body below ATM, calls at ATM.
     """
-    return OptionType.put if mid_log_strike < 0 else OptionType.call
+    return OptionType.PUT if mid_log_strike < 0 else OptionType.CALL
 
 
 class Butterfly(Strategy, frozen=True):

@@ -62,17 +62,17 @@ class Yahoo(HttpxClient):
     class freq(StrEnum):
         """Yahoo Finance chart intervals"""
 
-        one_min = "1m"
-        two_min = "2m"
-        five_min = "5m"
-        fifteen_min = "15m"
-        thirty_min = "30m"
-        one_hour = "1h"
-        one_day = "1d"
-        five_day = "5d"
-        one_week = "1wk"
-        one_month = "1mo"
-        three_month = "3mo"
+        ONE_MIN = "1m"
+        TWO_MIN = "2m"
+        FIVE_MIN = "5m"
+        FIFTEEN_MIN = "15m"
+        THIRTY_MIN = "30m"
+        ONE_HOUR = "1h"
+        ONE_DAY = "1d"
+        FIVE_DAY = "5d"
+        ONE_WEEK = "1wk"
+        ONE_MONTH = "1mo"
+        THREE_MONTH = "3mo"
 
     async def option_chain(
         self,
@@ -160,8 +160,8 @@ class Yahoo(HttpxClient):
                 .replace(hour=20, tzinfo=timezone.utc)
             )
             for option_type, contracts in (
-                (OptionType.call, expiry.get("calls", [])),
-                (OptionType.put, expiry.get("puts", [])),
+                (OptionType.CALL, expiry.get("calls", [])),
+                (OptionType.PUT, expiry.get("puts", [])),
             ):
                 for c in contracts:
                     bid_ = c.get("bid")
@@ -187,7 +187,7 @@ class Yahoo(HttpxClient):
         *,
         interval: Annotated[
             str | freq, Doc("Bar interval — use Yahoo.freq members or a raw string")
-        ] = freq.one_day,
+        ] = freq.ONE_DAY,
         from_date: Annotated[date | None, Doc("Start date (inclusive)")] = None,
         to_date: Annotated[date | None, Doc("End date (inclusive)")] = None,
         range: Annotated[

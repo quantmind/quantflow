@@ -39,7 +39,7 @@ class Spread(Strategy, frozen=True):
             legs=(
                 StrategyLeg(
                     meta=OptionMetadata(
-                        option_type=OptionType.call,
+                        option_type=OptionType.CALL,
                         strike=low,
                         maturity=maturity,
                     ),
@@ -47,7 +47,7 @@ class Spread(Strategy, frozen=True):
                 ),
                 StrategyLeg(
                     meta=OptionMetadata(
-                        option_type=OptionType.call,
+                        option_type=OptionType.CALL,
                         strike=high,
                         maturity=maturity,
                     ),
@@ -74,7 +74,7 @@ class Spread(Strategy, frozen=True):
             legs=(
                 StrategyLeg(
                     meta=OptionMetadata(
-                        option_type=OptionType.put,
+                        option_type=OptionType.PUT,
                         strike=high,
                         maturity=maturity,
                     ),
@@ -82,7 +82,7 @@ class Spread(Strategy, frozen=True):
                 ),
                 StrategyLeg(
                     meta=OptionMetadata(
-                        option_type=OptionType.put,
+                        option_type=OptionType.PUT,
                         strike=low,
                         maturity=maturity,
                     ),

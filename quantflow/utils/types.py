@@ -4,7 +4,7 @@ from typing import Annotated, Any
 import numpy as np
 import numpy.typing as npt
 import pandas as pd
-from pydantic import PlainSerializer
+from pydantic import BeforeValidator, PlainSerializer
 from typing_extensions import TypeAlias
 
 Number = Decimal
@@ -14,6 +14,7 @@ NumberType = float | int | str | Number
 Vector: TypeAlias = int | float | complex | np.ndarray | pd.Series
 FloatArray = Annotated[
     npt.NDArray[np.floating[Any]],
+    BeforeValidator(lambda x: np.asarray(x, dtype=float)),
     PlainSerializer(lambda x: x.tolist(), return_type=list),
 ]
 IntArray = npt.NDArray[np.signedinteger[Any]]
