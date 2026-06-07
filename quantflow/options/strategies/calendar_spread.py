@@ -68,7 +68,7 @@ class CalendarSpread(Strategy, frozen=True):
         quantity: Number = 1.0,
     ) -> Self:
         return cls.create(
-            strike, near_maturity, far_maturity, OptionType.call, quantity
+            strike, near_maturity, far_maturity, OptionType.CALL, quantity
         )
 
     @classmethod
@@ -79,4 +79,4 @@ class CalendarSpread(Strategy, frozen=True):
         far_maturity: datetime,
         quantity: Number = 1.0,
     ) -> Self:
-        return cls.create(strike, near_maturity, far_maturity, OptionType.put, quantity)
+        return cls.create(strike, near_maturity, far_maturity, OptionType.PUT, quantity)

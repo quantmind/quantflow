@@ -18,25 +18,25 @@ P = TypeVar("P")
 class Side(enum.StrEnum):
     """Side of the market"""
 
-    bid = enum.auto()
-    ask = enum.auto()
+    BID = enum.auto()
+    ASK = enum.auto()
 
 
 class OptionType(enum.StrEnum):
     """Type of option"""
 
-    call = enum.auto()
-    put = enum.auto()
+    CALL = enum.auto()
+    PUT = enum.auto()
 
     def is_call(self) -> bool:
-        return self is OptionType.call
+        return self is OptionType.CALL
 
     def is_put(self) -> bool:
-        return self is OptionType.put
+        return self is OptionType.PUT
 
     def call_put(self) -> int:
         """Return 1 for call options and -1 for put options"""
-        return 1 if self is OptionType.call else -1
+        return 1 if self is OptionType.CALL else -1
 
 
 class OptionMetadata(BaseModel):
@@ -65,9 +65,9 @@ class OptionMetadata(BaseModel):
 class VolSecurityType(enum.StrEnum):
     """Type of security for the volatility surface"""
 
-    spot = enum.auto()
-    forward = enum.auto()
-    option = enum.auto()
+    SPOT = enum.auto()
+    FORWARD = enum.auto()
+    OPTION = enum.auto()
 
 
 class VolSurfaceSecurity(BaseModel):
@@ -84,7 +84,7 @@ class VolSurfaceSecurity(BaseModel):
 
 class DefaultVolSecurity(VolSurfaceSecurity):
     security_type: VolSecurityType = Field(
-        default=VolSecurityType.spot,
+        default=VolSecurityType.SPOT,
         description="Type of security for the volatility surface",
     )
 
@@ -93,22 +93,22 @@ class DefaultVolSecurity(VolSurfaceSecurity):
 
     @classmethod
     def spot(cls) -> Self:
-        return cls(security_type=VolSecurityType.spot)
+        return cls(security_type=VolSecurityType.SPOT)
 
     @classmethod
     def forward(cls) -> Self:
-        return cls(security_type=VolSecurityType.forward)
+        return cls(security_type=VolSecurityType.FORWARD)
 
     @classmethod
     def option(cls) -> Self:
-        return cls(security_type=VolSecurityType.option)
+        return cls(security_type=VolSecurityType.OPTION)
 
 
 class SpotInput(PriceVolume):
     """Input data for a spot contract in the volatility surface"""
 
     security_type: VolSecurityType = Field(
-        default=VolSecurityType.spot,
+        default=VolSecurityType.SPOT,
         description="Type of security for the volatility surface",
     )
 
@@ -118,7 +118,7 @@ class ForwardInput(PriceVolume):
 
     maturity: datetime = Field(description="Expiry date of the forward contract")
     security_type: VolSecurityType = Field(
-        default=VolSecurityType.forward,
+        default=VolSecurityType.FORWARD,
         description="Type of security for the volatility surface",
     )
 
@@ -127,7 +127,7 @@ class OptionInput(PriceVolume, OptionMetadata):
     """Input data for an option in the volatility surface"""
 
     security_type: VolSecurityType = Field(
-        default=VolSecurityType.option,
+        default=VolSecurityType.OPTION,
         description="Type of security for the volatility surface",
     )
     iv_bid: DecimalNumber | None = Field(

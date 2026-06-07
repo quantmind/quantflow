@@ -25,22 +25,22 @@ class FMP(AioHttpClient):
     class freq(StrEnum):
         """FMP historical frequencies"""
 
-        one_min = "1min"
-        five_min = "5min"
-        fifteen_min = "15min"
-        thirty_min = "30min"
-        one_hour = "1hour"
-        four_hour = "4hour"
-        daily = "daily"
+        ONE_MIN = "1min"
+        FIVE_MIN = "5min"
+        FIFTEEN_MIN = "15min"
+        THIRTY_MIN = "30min"
+        ONE_HOUR = "1hour"
+        FOUR_HOUR = "4hour"
+        DAILY = "daily"
 
         @classmethod
         def crate(cls, s: str | None) -> Self:
             if s is None:
-                return cls.daily
+                return cls.DAILY
             try:
                 return cls(s)
             except ValueError:
-                return cls.daily
+                return cls.DAILY
 
     async def market_risk_premium(self) -> list[dict]:
         """Market risk premium"""
@@ -204,7 +204,7 @@ class FMP(AioHttpClient):
         freq = self.freq.crate(frequency)
         path = (
             "historical-price-eod/full"
-            if freq is self.freq.daily
+            if freq is self.freq.DAILY
             else f"historical-chart/{freq}"
         )
         data = await self.get_path(

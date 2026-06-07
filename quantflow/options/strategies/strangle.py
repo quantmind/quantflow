@@ -37,7 +37,7 @@ class Strangle(Strategy, frozen=True):
             legs=(
                 StrategyLeg(
                     meta=OptionMetadata(
-                        option_type=OptionType.put,
+                        option_type=OptionType.PUT,
                         strike=put,
                         maturity=maturity,
                     ),
@@ -45,7 +45,7 @@ class Strangle(Strategy, frozen=True):
                 ),
                 StrategyLeg(
                     meta=OptionMetadata(
-                        option_type=OptionType.call,
+                        option_type=OptionType.CALL,
                         strike=call,
                         maturity=maturity,
                     ),

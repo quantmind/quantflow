@@ -47,8 +47,8 @@ def _build_loader(ttm: float) -> VolSurfaceLoader:
     )
     for strike in STRIKES:
         for option_type, call_put in (
-            (OptionType.call, 1),
-            (OptionType.put, -1),
+            (OptionType.CALL, 1),
+            (OptionType.PUT, -1),
         ):
             mid = _black_mid_usd(strike, call_put, ttm)
             loader.add_option(

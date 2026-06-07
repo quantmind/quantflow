@@ -22,13 +22,13 @@ class Fred(AioHttpClient):
     class freq(StrEnum):
         """Fred historical frequencies"""
 
-        d = "d"
-        w = "w"
-        bw = "bw"
-        m = "m"
-        q = "q"
-        sa = "sa"
-        a = "a"
+        D = "d"
+        W = "w"
+        BW = "bw"
+        M = "m"
+        Q = "q"
+        SA = "sa"
+        A = "a"
 
     async def categiories(self, **kw: Any) -> dict:
         """Get categories"""
