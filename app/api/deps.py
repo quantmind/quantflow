@@ -64,7 +64,7 @@ class RedisCache(Generic[M]):
             return await self.set_cache(await loader())
         try:
             return self.Model.model_validate_json(value)
-        except json.JSONDecodeError:    # pragma: no cover
+        except json.JSONDecodeError:  # pragma: no cover
             logger.exception(f"Failed to decode cache value for key {self.key}")
             return await self.set_cache(await loader())
 
@@ -77,7 +77,7 @@ class RedisCache(Generic[M]):
     @classmethod
     async def clear(cls, redis: Redis) -> int:
         """Delete all cache entries under the prefix"""
-        cache = cls(redis=redis, Model=BaseModel, key="*")
+        cache = cls(redis=redis, Model=cast(type[M], BaseModel), key="*")
         keys = [key async for key in cache.redis.scan_iter(f"{cache.prefix}:*")]
         if not keys:
             return 0

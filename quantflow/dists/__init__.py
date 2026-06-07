@@ -5,7 +5,6 @@ from .marginal1d import (
     OptionPricingCosResult,
     OptionPricingMethod,
     OptionPricingResult,
-    default_bounds,
 )
 from .mv_normal import MvNormal
 
@@ -18,7 +17,6 @@ __all__ = [
     "OptionPricingCosResult",
     "OptionPricingMethod",
     "OptionPricingResult",
-    "default_bounds",
     "Exponential",
     "Distribution1D",
     "Normal",

@@ -10,8 +10,12 @@ from fastapi import FastAPI
 from fastapi.testclient import TestClient
 from fluid.utils.redis import FluidRedis
 
+import app.api.volatility as volatility
 from app.__main__ import crate_app
 from app.api.deps import RedisCache
+from quantflow.options.inputs import VolSurfaceInputs
+from quantflow.options.surface import VolSurfaceLoader
+from quantflow_tests.utils import load_fixture_dict
 
 
 @pytest.fixture
@@ -55,6 +59,32 @@ def clear_cache() -> None:
 def client(app: FastAPI, clear_cache: None) -> Iterator[TestClient]:
     with TestClient(app) as test_client:
         yield test_client
+
+
+@pytest.fixture
+def vol_surface_loader() -> VolSurfaceLoader:
+    inputs = VolSurfaceInputs(**load_fixture_dict("volsurface_eth.json"))
+    loader = VolSurfaceLoader(
+        asset=inputs.asset,
+        quote_curve=inputs.quote_curve,
+        asset_curve=inputs.asset_curve,
+    )
+    for input in inputs.inputs:
+        loader.add(input)
+    return loader
+
+
+@pytest.fixture
+def mock_surface(vol_surface_loader: VolSurfaceLoader) -> Iterator[AsyncMock]:
+    # Patch _load_surface so the endpoint runs offline against the fixture
+    # loader instead of hitting Deribit/Yahoo.
+    load = AsyncMock(return_value=vol_surface_loader)
+    original = volatility._load_surface
+    volatility._load_surface = load
+    try:
+        yield load
+    finally:
+        volatility._load_surface = original
 
 
 def test_status(client: TestClient) -> None:
@@ -174,6 +204,33 @@ def test_yield_curve(client: TestClient) -> None:
     assert "curve" in data
     assert "ttm" in data
     assert "rates" in data
+
+
+def test_volatility_surface(client: TestClient, mock_surface: AsyncMock) -> None:
+    response = client.get("/.api/volatility-surface?asset=ETH")
+    assert response.status_code == 200
+    data = response.json()
+    assert "inputs" in data
+    assert "options" in data
+    assert len(data["options"]) > 0
+    assert "rates" in data["quote_curve"]
+    assert "rates" in data["asset_curve"]
+    assert "forward" in data["forward_curve"]
+    assert len(data["forward_curve"]["ttm"]) == len(data["forward_curve"]["forward"])
+    assert isinstance(data["pcp_forwards"], list)
+    option = data["options"][0]
+    assert "ttm" in option
+    assert mock_surface.await_count == 1
+
+
+def test_volatility_surface_cached(client: TestClient, mock_surface: AsyncMock) -> None:
+    response = client.get("/.api/volatility-surface?asset=ETH")
+    cached_response = client.get("/.api/volatility-surface?asset=ETH")
+    assert response.status_code == 200
+    assert cached_response.status_code == 200
+    assert cached_response.json() == response.json()
+    # second call served from redis, so the loader is built only once
+    assert mock_surface.await_count == 1
 
 
 def test_cointegration_endpoint(app: FastAPI, client: TestClient) -> None:
