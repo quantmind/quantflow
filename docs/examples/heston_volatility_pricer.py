@@ -1,7 +1,7 @@
+from quantflow.dists.distributions1d import DoubleExponential
 from quantflow.options.inputs import OptionType
 from quantflow.options.pricer import OptionPricer
 from quantflow.sp.heston import HestonJ
-from quantflow.utils.distributions import DoubleExponential
 
 pricer = OptionPricer(
     model=HestonJ.create(

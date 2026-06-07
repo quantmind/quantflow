@@ -6,6 +6,7 @@ import numpy as np
 import pytest
 from ccy.core.daycounter import DayCounter
 
+from quantflow.dists.distributions1d import DoubleExponential
 from quantflow.options import bs
 from quantflow.options.calibration import (
     DoubleHestonCalibration,
@@ -26,7 +27,6 @@ from quantflow.options.surface import (
 )
 from quantflow.sp.heston import DoubleHeston, DoubleHestonJ, Heston, HestonJ
 from quantflow.utils.dates import utcnow
-from quantflow.utils.distributions import DoubleExponential
 from quantflow_tests.utils import has_plotly
 
 a = np.asarray

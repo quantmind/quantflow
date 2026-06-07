@@ -48,7 +48,7 @@ The marginal PDF has two independent routes to the same result:
 * **Analytical**: the [scaled non-central chi-squared][quantflow.sp.cir.CIR.analytical_pdf]
   transition density in closed form.
 * **Characteristic function**: numerical inversion of $\Phi = e^{-\phi}$ via
-  [pdf_from_characteristic][quantflow.utils.marginal.Marginal1D.pdf_from_characteristic].
+  [pdf_from_characteristic][quantflow.dists.Marginal1D.pdf_from_characteristic].
 
 The charts below overlay both for a CIR process with
 $\kappa=1$, $\theta=0.5$, $\sigma=0.8$, $x_0=3$, starting well above the long-run mean

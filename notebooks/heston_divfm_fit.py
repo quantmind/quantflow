@@ -29,7 +29,7 @@ def _():
     from quantflow.options.divfm.trainer import DayData, DIVFMTrainer
     from quantflow.options.pricer import OptionPricer
     from quantflow.sp.heston import HestonJ
-    from quantflow.utils.distributions import DoubleExponential
+    from quantflow.dists.distributions1d import DoubleExponential
 
     # ---------------------------------------------------------------------------
     # Grid settings
@@ -245,9 +245,9 @@ def _(mo, net, np, torch):
     for i in range(1, 5):
         # Reshape the 1D factor output back into the 2D grid shape
         Z = factors_pred[:, i].reshape(M.shape)
-    
+
         fig = go.Figure(data=[go.Surface(x=M, y=T, z=Z, colorscale='Viridis')])
-    
+
         fig.update_layout(
             title=f"DIVFM Learned Factor {i}",
             scene=dict(
@@ -259,7 +259,7 @@ def _(mo, net, np, torch):
             ),
             margin=dict(l=0, r=0, b=0, t=40)
         )
-    
+
         tabs_dict[f"Factor {i}"] = fig
 
     # 4. Display them in an interactive tabbed interface

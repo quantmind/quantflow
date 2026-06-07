@@ -31,6 +31,16 @@ Option pricing, volatility surface construction, and model calibration.
 | [Calibration](options/calibration.md) | Calibrate Heston and Heston-jump-diffusion models to a surface |
 | [Deep IV Factor Model](options/divfm.md) | Neural-network option pricing via the DIVFM architecture |
 
+### [Distributions](dists/index.md)
+
+Probability distributions: parametric laws and the marginals implied by a stochastic process via its characteristic function.
+
+| Module | Description |
+|---|---|
+| [Distributions](dists/distributions.md) | Base classes ([Distribution][quantflow.dists.Distribution], [MvDistribution][quantflow.dists.MvDistribution]) and the multivariate normal |
+| [1D Distributions](dists/distributions1d.md) | Parametric 1D laws (Normal, Exponential, DoubleExponential) |
+| [Marginal 1D](dists/marginal1d.md) | Marginal distribution via characteristic function inversion, with Fourier-based option pricing |
+
 ### [Stochastic Processes](sp/index.md)
 
 Continuous-time stochastic processes used as underlying models for option pricing and simulation.
@@ -68,7 +78,7 @@ Interest rate models and curve construction tools for discounting and term-struc
 | [CIR Curve](rates/cir.md) | Cox-Ingersoll-Ross short-rate term-structure model |
 | [Nelson Siegel Curve](rates/nelson_siegel.md) | Parametric yield curve with level, slope, and curvature factors |
 | [Vasicek Curve](rates/vasicek.md) | Gaussian mean-reverting short-rate term-structure model |
-| [Options Discounting](rates/options.md) | Curve calibration from discount factors and put-call parity data |
+| [Calibration](rates/calibration.md) | Curve calibration from discount factors and put-call parity data |
 
 ### [Utilities](utils/index.md)
 
@@ -76,8 +86,6 @@ Low-level building blocks used throughout the library.
 
 | Module | Description |
 |---|---|
-| [Distributions](utils/distributions.md) | Jump-size distributions (Normal, DoubleExponential) |
-| [Marginal 1D](utils/marginal1d.md) | Marginal distribution via characteristic function inversion |
 | [Bins](utils/bins.md) | Histogram binning helpers |
 | [Numbers](utils/numbers.md) | Decimal and float numeric utilities |
 | [Types](utils/types.md) | Shared type aliases |

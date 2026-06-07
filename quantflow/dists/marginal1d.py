@@ -10,8 +10,10 @@ from pydantic import BaseModel, Field
 from scipy.optimize import Bounds
 from typing_extensions import Annotated, Doc, NamedTuple
 
-from .transforms import Transform, TransformResult, default_bounds
-from .types import FloatArray, FloatArrayLike, Vector
+from quantflow.utils.transforms import Transform, TransformResult, default_bounds
+from quantflow.utils.types import FloatArray, FloatArrayLike, Vector
+
+from .base import Distribution
 
 
 class OptionPricingMethod(enum.StrEnum):
@@ -124,8 +126,8 @@ class OptionPricingCosResult(OptionPricingResult, arbitrary_types_allowed=True):
         )
 
 
-class Marginal1D(BaseModel, ABC, extra="forbid"):
-    r"""Abstract 1D marginal distribution with Fourier-based option pricing.
+class Marginal1D(Distribution, extra="forbid"):
+    r"""Abstract 1D distribution with Fourier-based option pricing.
 
     This class represents the marginal distribution.
     It provides methods to compute the pdf, cdf, and option
@@ -327,9 +329,9 @@ class Marginal1D(BaseModel, ABC, extra="forbid"):
         The $e^k$ factor converts from strike-normalised to forward-space pricing.
 
         Returns an
-        [OptionPricingCosResult][quantflow.utils.marginal.OptionPricingCosResult]
+        [OptionPricingCosResult][quantflow.dists.OptionPricingCosResult]
         with the precomputed coefficient vector. Use
-        [call_price][quantflow.utils.marginal.OptionPricingCosResult.call_price]
+        [call_price][quantflow.dists.OptionPricingCosResult.call_price]
         to evaluate at arbitrary log-strikes in $O(N)$ per strike.
         """
         n = n or 128
@@ -425,8 +427,33 @@ class Marginal1D(BaseModel, ABC, extra="forbid"):
             ),
         ],
     ) -> FloatArrayLike:
+        """Compute the cumulative distribution function.
+
+        It returns the [cdf_analytical][..cdf_analytical]
+        when available, otherwise it interpolates the cdf obtained from the
+        characteristic function via
+        [cdf_from_characteristic][..cdf_from_characteristic].
         """
-        Compute the cumulative distribution function
+        try:
+            return self.cdf_analytical(x)
+        except NotImplementedError:
+            result = self.cdf_from_characteristic()
+            return np.interp(x, result.x, result.y)
+
+    def cdf_analytical(
+        self,
+        x: Annotated[
+            FloatArrayLike,
+            Doc(
+                "Location in the stochastic process domain space. If a numpy array,"
+                " the output should have the same shape as the input."
+            ),
+        ],
+    ) -> FloatArrayLike:
+        """Analytical cumulative distribution function.
+
+        Optional to implement; raises ``NotImplementedError`` if not available,
+        in which case [cdf][..cdf] falls back to the characteristic function.
         """
         raise NotImplementedError("Analytical CDF not available")
 
@@ -455,7 +482,25 @@ class Marginal1D(BaseModel, ABC, extra="forbid"):
             Doc("Number of points for the frequency grid. Overrides n if provided."),
         ] = None,
     ) -> TransformResult:
-        raise NotImplementedError("CDF not available")
+        """Compute the cumulative distribution function from the characteristic
+        function.
+
+        The density from [pdf_from_characteristic][..pdf_from_characteristic] is
+        cumulatively integrated over the space grid and normalised to one.
+        """
+        density = self.pdf_from_characteristic(
+            n,
+            max_frequency=max_frequency,
+            simpson_rule=simpson_rule,
+            use_fft=use_fft,
+            frequency_n=frequency_n,
+        )
+        x = density.x
+        pdf = np.clip(np.real(density.y), 0.0, None)
+        cdf = np.concatenate(
+            ([0.0], np.cumsum(0.5 * (pdf[1:] + pdf[:-1]) * np.diff(x)))
+        )
+        return TransformResult(x=x, y=cdf / cdf[-1])
 
     def cdf_jacobian(
         self,
@@ -688,13 +733,33 @@ class Marginal1D(BaseModel, ABC, extra="forbid"):
             ),
         ],
     ) -> FloatArrayLike:
-        """
-        Computes the probability density (or mass) function of the process.
+        """Compute the probability density (or mass) function.
 
-        It has a base implementation that computes the pdf from the
-        [cdf][quantflow.utils.marginal.Marginal1D.cdf] method, but a subclass should
-        overload this method if a
-        more optimized way of computing it is available.
+        It returns the analytical pdf from [pdf_analytical][..pdf_analytical]
+        when available, otherwise it interpolates the pdf obtained from the
+        characteristic function via
+        [pdf_from_characteristic][..pdf_from_characteristic].
+        """
+        try:
+            return self.pdf_analytical(x)
+        except NotImplementedError:
+            density = self.pdf_from_characteristic()
+            return np.interp(x, density.x, np.real(density.y))
+
+    def pdf_analytical(
+        self,
+        x: Annotated[
+            FloatArrayLike,
+            Doc(
+                "Location in the stochastic process domain space. If a numpy array,"
+                " the output should have the same shape as the input."
+            ),
+        ],
+    ) -> FloatArrayLike:
+        """Analytical probability density (or mass) function.
+
+        Optional to implement; raises ``NotImplementedError`` if not available,
+        in which case [pdf][..pdf] falls back to the characteristic function.
         """
         raise NotImplementedError("Analytical PDF not available")
 
@@ -713,7 +778,7 @@ class Marginal1D(BaseModel, ABC, extra="forbid"):
             Doc(
                 "The maximum frequency to use in the transform. If not provided,"
                 " the value from the [frequency_range]"
-                "[quantflow.utils.marginal.Marginal1D.frequency_range] method is used."
+                "[..frequency_range] method is used."
                 " Only needed for special cases/testing."
             ),
         ] = None,
@@ -750,11 +815,26 @@ class Marginal1D(BaseModel, ABC, extra="forbid"):
         """
         Jacobian of the pdf with respect to the parameters of the process.
         It has a base implementation that computes it from the
-        [cdf_jacobian][quantflow.utils.marginal.Marginal1D.cdf_jacobian] method,
+        [cdf_jacobian][..cdf_jacobian] method,
         but a subclass should overload this method if a
         more optimized way of computing it is available.
         """
         return self.cdf_jacobian(x) - self.cdf_jacobian(x - 1)
+
+    def sample(
+        self,
+        size: Annotated[int, Doc("Number of samples to draw.")] = 1,
+    ) -> FloatArray:
+        """Draw samples by inverse-transform sampling of the CDF.
+
+        The [cdf][..cdf] is evaluated on the [support][..support] grid and
+        inverted by interpolation against uniform draws.
+
+        Subclasses with a closed-form sampler should override this.
+        """
+        x = self.support()
+        cdf = np.asarray(self.cdf(x), dtype=float)
+        return cast(FloatArray, np.interp(np.random.uniform(size=size), cdf, x))
 
     def std(self) -> FloatArrayLike:
         """Standard deviation at a time horizon"""

@@ -25,14 +25,8 @@ class Distribution(BaseModel, ABC):
         """Draw random samples from the distribution."""
         ...
 
-    @abstractmethod
-    def log_pdf(
-        self,
-        x: Annotated[FloatArray, Doc("Point at which to evaluate the log-density.")],
-    ) -> FloatArray:
-        """Log probability density at $x$."""
-        ...
 
+class MvDistribution(Distribution):
     @abstractmethod
     def mean_and_cov(self) -> MeanAndCov:
         """Mean vector and covariance matrix of the distribution."""

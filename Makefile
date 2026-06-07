@@ -13,7 +13,7 @@ app-serve:			## serve app
 docs:				## build documentation
 	@cp docs/index.md readme.md
 	@uv run ./dev/build-examples
-	@uv run mkdocs build
+	@uv run mkdocs build --strict
 
 .PHONY: docs-bib
 docs-bib:			## Regenerate docs bibliography

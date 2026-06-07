@@ -4,12 +4,12 @@ from abc import ABC, abstractmethod
 from typing import Generic, TypeVar
 
 import numpy as np
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, Field
 from scipy.optimize import Bounds
 from typing_extensions import Annotated, Doc
 
+from quantflow.dists.marginal1d import Marginal1D, default_bounds
 from quantflow.ta.paths import Paths
-from quantflow.utils.marginal import Marginal1D, default_bounds
 from quantflow.utils.numbers import sigfig
 from quantflow.utils.transforms import bound_from_any
 from quantflow.utils.types import FloatArray, FloatArrayLike, Vector
@@ -140,8 +140,7 @@ class StochasticProcess1D(StochasticProcess):
 P = TypeVar("P", bound=StochasticProcess1D)
 
 
-class StochasticProcess1DMarginal(Marginal1D, Generic[P]):
-    model_config = ConfigDict(arbitrary_types_allowed=True)
+class StochasticProcess1DMarginal(Marginal1D, Generic[P], arbitrary_types_allowed=True):
     process: P
     t: FloatArrayLike
 
@@ -159,10 +158,10 @@ class StochasticProcess1DMarginal(Marginal1D, Generic[P]):
         std = float(np.min(self.std()))
         return self.process.frequency_range(std, max_frequency=max_frequency)
 
-    def pdf(self, x: FloatArrayLike) -> FloatArrayLike:
+    def pdf_analytical(self, x: FloatArrayLike) -> FloatArrayLike:
         return self.process.analytical_pdf(self.t, x)
 
-    def cdf(self, x: FloatArrayLike) -> FloatArrayLike:
+    def cdf_analytical(self, x: FloatArrayLike) -> FloatArrayLike:
         return self.process.analytical_cdf(self.t, x)
 
     def mean(self) -> FloatArrayLike:

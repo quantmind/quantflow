@@ -209,7 +209,7 @@ class HestonJ(Heston, Generic[D]):
     distributions **D**.
 
     The Bates model is obtained by using the
-    [Normal][quantflow.utils.distributions.Normal] distribution for the jump sizes.
+    [Normal][quantflow.dists.Normal] distribution for the jump sizes.
     """
 
     jumps: CompoundPoissonProcess[D] = Field(description="Jump process")
@@ -221,8 +221,8 @@ class HestonJ(Heston, Generic[D]):
             type[D],
             Doc(
                 "The distribution of jump size (currently only"
-                " [Normal][quantflow.utils.distributions.Normal] and"
-                " [DoubleExponential][quantflow.utils.distributions.DoubleExponential]"
+                " [Normal][quantflow.dists.Normal] and"
+                " [DoubleExponential][quantflow.dists.DoubleExponential]"
                 " are supported)"
             ),
         ],
@@ -267,7 +267,7 @@ class HestonJ(Heston, Generic[D]):
         ] = 0.0,
     ) -> HestonJ[D]:
         r"""Create an Heston model with
-        [DoubleExponential][quantflow.utils.distributions.DoubleExponential] jumps.
+        [DoubleExponential][quantflow.dists.DoubleExponential] jumps.
 
         To understand the parameters lets introduce the following notation:
 

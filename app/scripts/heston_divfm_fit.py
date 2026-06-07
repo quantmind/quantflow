@@ -20,7 +20,7 @@ from quantflow.options.divfm.network import DIVFMNetwork
 from quantflow.options.divfm.trainer import DayData, DIVFMTrainer
 from quantflow.options.pricer import OptionPricer
 from quantflow.sp.heston import HestonJ
-from quantflow.utils.distributions import DoubleExponential
+from quantflow.dists.distributions1d import DoubleExponential
 
 # ---------------------------------------------------------------------------
 # Grid settings

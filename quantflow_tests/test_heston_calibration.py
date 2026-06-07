@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import numpy as np
 
+from quantflow.dists.distributions1d import DoubleExponential
 from quantflow.options.calibration import (
     DoubleHestonCalibration,
     DoubleHestonJCalibration,
@@ -10,7 +11,6 @@ from quantflow.options.calibration import (
 )
 from quantflow.options.pricer import OptionPricer
 from quantflow.sp.heston import DoubleHeston, DoubleHestonJ, Heston, HestonJ
-from quantflow.utils.distributions import DoubleExponential
 
 
 def test_heston_calibration_get_set_and_penalize(vol_surface) -> None:

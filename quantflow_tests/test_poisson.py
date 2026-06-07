@@ -3,10 +3,10 @@ import math
 import numpy as np
 import pytest
 
+from quantflow.dists.distributions1d import DoubleExponential, Exponential, Normal
 from quantflow.sp.dsp import DSP
 from quantflow.sp.ou import GammaOU
 from quantflow.sp.poisson import CompoundPoissonProcess, PoissonProcess
-from quantflow.utils.distributions import DoubleExponential, Exponential, Normal
 from quantflow_tests.utils import analytical_tests, characteristic_tests
 
 

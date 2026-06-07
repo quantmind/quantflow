@@ -1,12 +1,13 @@
 import io
 import json
+import logging
+import os
 from collections.abc import Awaitable, Callable
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from typing import Annotated, Generic, TypeVar, cast
 
 import pandas as pd
 from fastapi import Depends, FastAPI, Request
-from fluid.utils import log
 from fluid.utils.redis import FluidRedis
 from pydantic import BaseModel
 from redis.asyncio import Redis
@@ -14,7 +15,7 @@ from redis.asyncio import Redis
 from quantflow.data.fmp import FMP
 
 M = TypeVar("M", bound=BaseModel)
-logger = log.get_logger(__name__)
+logger = logging.getLogger(__name__)
 
 
 def instrument_app(app: FastAPI) -> None:
@@ -44,7 +45,17 @@ class RedisCache(Generic[M]):
     redis: Redis
     Model: type[M]
     key: str
-    ttl: int = 60
+    prefix: str = field(
+        default_factory=lambda: os.getenv(
+            "QUANTFLOW_REDIS_CACHE_PREFIX", "quantflow:cache"
+        )
+    )
+    ttl: int = field(
+        default_factory=lambda: int(os.getenv("QUANTFLOW_REDIS_CACHE_TTL", "60"))
+    )
+
+    def __post_init__(self) -> None:
+        self.key = f"{self.prefix}:{self.key}"
 
     async def from_cache(self, loader: Callable[[], Awaitable[M]]) -> M:
         """Get a value from the cache"""
@@ -53,7 +64,7 @@ class RedisCache(Generic[M]):
             return await self.set_cache(await loader())
         try:
             return self.Model.model_validate_json(value)
-        except json.JSONDecodeError:
+        except json.JSONDecodeError:    # pragma: no cover
             logger.exception(f"Failed to decode cache value for key {self.key}")
             return await self.set_cache(await loader())
 
@@ -62,6 +73,15 @@ class RedisCache(Generic[M]):
         payload = value.model_dump_json()
         await self.redis.set(self.key, payload, ex=self.ttl)
         return value
+
+    @classmethod
+    async def clear(cls, redis: Redis) -> int:
+        """Delete all cache entries under the prefix"""
+        cache = cls(redis=redis, Model=BaseModel, key="*")
+        keys = [key async for key in cache.redis.scan_iter(f"{cache.prefix}:*")]
+        if not keys:
+            return 0
+        return await cache.redis.delete(*keys)
 
 
 @dataclass

@@ -71,6 +71,9 @@ nav:
           - Yahoo: api/data/yahoo.md
       - Distributions:
           - api/dists/index.md
+          - Distributions: api/dists/distributions.md
+          - 1D Distributions: api/dists/distributions1d.md
+          - Marginal 1D: api/dists/marginal1d.md
       - Options:
           - api/options/index.md
           - Black-Scholes: api/options/black.md
@@ -111,8 +114,6 @@ nav:
       - Utilities:
           - api/utils/index.md
           - Bins: api/utils/bins.md
-          - Distributions: api/utils/distributions.md
-          - Marginal 1D: api/utils/marginal1d.md
           - Numbers: api/utils/numbers.md
           - Price: api/utils/price.md
           - Types: api/utils/types.md

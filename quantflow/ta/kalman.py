@@ -7,7 +7,7 @@ from pydantic import BaseModel, Field
 from scipy import linalg
 from typing_extensions import Annotated, Doc
 
-from quantflow.dists import Distribution, MeanAndCov, MvNormal
+from quantflow.dists import MeanAndCov, MvDistribution, MvNormal
 from quantflow.utils.types import FloatArray
 
 # ---------------------------------------------------------------------------
@@ -30,7 +30,7 @@ class StateSpaceModel(BaseModel, ABC):
     """
 
     @abstractmethod
-    def get_px0(self) -> Distribution:
+    def get_px0(self) -> MvDistribution:
         r"""Distribution $p_x(x_0)$ of the initial state $x_0$."""
 
     @abstractmethod
@@ -38,7 +38,7 @@ class StateSpaceModel(BaseModel, ABC):
         self,
         t: Annotated[int, Doc("Time index $t$.")],
         xp: Annotated[FloatArray, Doc("State at time $t-1$.")],
-    ) -> Distribution:
+    ) -> MvDistribution:
         r"""Distribution $p_x\left(x_t \mid x_{t-1}\right)$
         of $x_t$ given $x_{t-1} = x_p$."""
 
@@ -48,7 +48,7 @@ class StateSpaceModel(BaseModel, ABC):
         t: Annotated[int, Doc("Time index $t$.")],
         xp: Annotated[FloatArray, Doc("State at time $t-1$.")],
         x: Annotated[FloatArray, Doc("State at time $t$.")],
-    ) -> Distribution:
+    ) -> MvDistribution:
         r"""Distribution of $y_t$ given $x_{t-1}=x_p$ and $x_t=x$."""
 
     # -- Simulation helpers ----------------------------------------------

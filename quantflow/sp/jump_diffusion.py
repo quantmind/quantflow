@@ -78,8 +78,8 @@ class JumpDiffusion(StochasticProcess1D, Generic[D]):
             type[D],
             Doc(
                 "The distribution of jump sizes. Currently "
-                "[Normal][quantflow.utils.distributions.Normal] and "
-                "[DoubleExponential][quantflow.utils.distributions.DoubleExponential] "
+                "[Normal][quantflow.dists.Normal] and "
+                "[DoubleExponential][quantflow.dists.DoubleExponential] "
                 "are supported. If the jump distribution is set to the Normal "
                 "distribution, the model reduces to a Merton jump-diffusion."
             ),

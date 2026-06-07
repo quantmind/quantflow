@@ -306,7 +306,7 @@ exposes a distribution-level API that mirrors the
 These methods return [Distribution](../api/dists/index.md) objects and are
 intended for particle-filter algorithms (sequential Monte Carlo). They are
 abstract on the base class; [LinearGaussianModel](../api/ta/kalman.md#quantflow.ta.kalman.LinearGaussianModel)
-implements them by returning [MvNormal](../api/dists/index.md#quantflow.dists.MvNormal)
+implements them by returning [MvNormal](../api/dists/distributions.md#quantflow.dists.MvNormal)
 instances.
 
 | Method | Signature | Returns |

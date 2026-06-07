@@ -6,14 +6,14 @@ from plotly.subplots import make_subplots
 from pydantic import BaseModel, Field
 
 from docs.examples._utils import assets_path
-from quantflow.options.bs import implied_black_volatility
-from quantflow.sp.base import StochasticProcess1D
-from quantflow.sp.heston import Heston
-from quantflow.utils.marginal import (
+from quantflow.dists.marginal1d import (
     OptionPricingCosResult,
     OptionPricingMethod,
     OptionPricingResult,
 )
+from quantflow.options.bs import implied_black_volatility
+from quantflow.sp.base import StochasticProcess1D
+from quantflow.sp.heston import Heston
 
 
 class ChartProps(BaseModel):
