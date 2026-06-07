@@ -14,8 +14,10 @@ from quantflow.rates import AnyYieldCurve, InterpolatedYieldCurve, Interpolation
 
 _REF = datetime(2026, 6, 7, tzinfo=timezone.utc)
 _TTM = np.array([0.25, 1.0, 2.0, 5.0, 10.0])
-_RATES = [0.02, 0.025, 0.03, 0.035, 0.04]
+_RATES = [Decimal(r) for r in ("0.02", "0.025", "0.03", "0.035", "0.04")]
+_RATES_F = np.array([float(r) for r in _RATES])
 _YEAR = 365.0 * 86400.0
+_ADAPTER: TypeAdapter[AnyYieldCurve] = TypeAdapter(AnyYieldCurve)
 
 
 def _dates(ttm: np.ndarray = _TTM) -> list[datetime]:
@@ -24,7 +26,7 @@ def _dates(ttm: np.ndarray = _TTM) -> list[datetime]:
 
 def _curve(
     interpolation_type: InterpolationType = InterpolationType.MONOTONE_CUBIC,
-    rates: list[float] = _RATES,
+    rates: list[Decimal] = _RATES,
 ) -> InterpolatedYieldCurve:
     return InterpolatedYieldCurve(
         ref_date=_REF,
@@ -58,9 +60,8 @@ def test_anchor_rates_coerced_to_decimal() -> None:
 
 def test_private_attrs_populated() -> None:
     curve = _curve()
-    rf = np.array(_RATES)
     assert curve._ttm == pytest.approx(_TTM)
-    assert curve._log_discount == pytest.approx(-rf * _TTM)
+    assert curve._log_discount == pytest.approx(-_RATES_F * _TTM)
 
 
 # ---------------------------------------------------------------------------
@@ -76,14 +77,14 @@ def test_discount_factor_at_zero_is_one(interpolation_type: InterpolationType) -
 def test_reprices_nodes_exactly(interpolation_type: InterpolationType) -> None:
     curve = _curve(interpolation_type)
     fitted = curve.continuously_compounded_rate(_TTM)
-    assert np.asarray(fitted) == pytest.approx(np.array(_RATES))
+    assert np.asarray(fitted) == pytest.approx(_RATES_F)
 
 
 def test_discount_factor_matches_node_rates(
     interpolation_type: InterpolationType,
 ) -> None:
     curve = _curve(interpolation_type)
-    for t, r in zip(_TTM, _RATES):
+    for t, r in zip(_TTM, _RATES_F):
         assert float(curve.discount_factor(t)) == pytest.approx(math.exp(-r * t))
 
 
@@ -119,11 +120,12 @@ def test_discount_factor_monotone_decreasing(
 
 def test_monotone_cubic_introduces_no_new_extrema() -> None:
     # a non-monotone forward profile that would make a natural cubic overshoot
-    rates = [0.05, 0.01, 0.05, 0.01, 0.05]
+    rates = [Decimal(r) for r in ("0.05", "0.01", "0.05", "0.01", "0.05")]
     curve = _curve(InterpolationType.MONOTONE_CUBIC, rates=rates)
     g = np.log(np.asarray(curve.discount_factor(np.linspace(0.0, 10.0, 500))))
     # log discount factor must stay within the envelope of the node values
-    node_g = np.concatenate([[0.0], -np.array(rates) * _TTM])
+    rates_f = np.array([float(r) for r in rates])
+    node_g = np.concatenate([[0.0], -rates_f * _TTM])
     assert g.min() >= node_g.min() - 1e-9
     assert g.max() <= node_g.max() + 1e-9
 
@@ -167,8 +169,7 @@ def test_forward_rate_consistent_with_discount_factor(
 
 def test_json_round_trip_via_union(interpolation_type: InterpolationType) -> None:
     curve = _curve(interpolation_type)
-    adapter = TypeAdapter(AnyYieldCurve)
-    restored = adapter.validate_json(adapter.dump_json(curve))
+    restored = _ADAPTER.validate_json(_ADAPTER.dump_json(curve))
     assert type(restored) is InterpolatedYieldCurve
     assert restored.interpolation_type is interpolation_type
     assert restored._ttm == pytest.approx(_TTM)
@@ -199,7 +200,7 @@ def test_non_increasing_dates_raise() -> None:
 def test_anchor_before_ref_date_raises() -> None:
     with pytest.raises((ValidationError, ValueError)):
         InterpolatedYieldCurve(
-            ref_date=_REF, anchor_dates=[_REF], anchor_rates=[0.02]
+            ref_date=_REF, anchor_dates=[_REF], anchor_rates=[Decimal("0.02")]
         )
 
 
@@ -209,7 +210,7 @@ def test_anchor_before_ref_date_raises() -> None:
 
 
 def test_calibrate_from_ttm_reprices_exactly() -> None:
-    target = np.array(_RATES) * 1.1
+    target = _RATES_F * 1.1
     curve = _curve().calibrator().calibrate(_TTM, target)
     assert np.asarray(curve.continuously_compounded_rate(_TTM)) == pytest.approx(target)
     assert all(isinstance(r, Decimal) for r in curve.anchor_rates)
@@ -218,7 +219,7 @@ def test_calibrate_from_ttm_reprices_exactly() -> None:
 def test_set_params_updates_log_discount() -> None:
     curve = _curve()
     calibrator = curve.calibrator()
-    new_rates = np.array(_RATES) * 0.5
+    new_rates = _RATES_F * 0.5
     calibrator.set_params(new_rates)
     assert curve._log_discount == pytest.approx(-new_rates * _TTM)
     assert np.asarray(curve.continuously_compounded_rate(_TTM)) == pytest.approx(
