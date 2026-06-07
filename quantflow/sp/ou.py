@@ -8,8 +8,8 @@ from pydantic import Field
 from scipy.stats import gamma, norm
 from typing_extensions import Annotated, Doc
 
+from ..dists.distributions1d import Exponential
 from ..ta.paths import Paths
-from ..utils.distributions import Exponential
 from ..utils.types import Float, FloatArrayLike, Vector
 from .base import IntensityProcess, StochasticProcess1D
 from .poisson import CompoundPoissonProcess, D
@@ -212,7 +212,7 @@ class GammaOU(NGOU[Exponential]):
         \end{equation}
 
         Derivation. The characteristic function of the
-        [Exponential][quantflow.utils.distributions.Exponential.characteristic]
+        [Exponential][quantflow.dists.Exponential.characteristic]
         jumps is
 
         \begin{equation}

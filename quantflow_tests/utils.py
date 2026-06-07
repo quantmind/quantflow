@@ -7,8 +7,8 @@ import pytest
 from aiohttp.client_exceptions import ClientError
 
 from docs.examples._utils import FIXTURES
+from quantflow.dists.marginal1d import Marginal1D
 from quantflow.sp.base import StochasticProcess1D
-from quantflow.utils.marginal import Marginal1D
 from quantflow.utils.plot import check_plotly
 
 try:

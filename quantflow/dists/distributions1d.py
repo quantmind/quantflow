@@ -1,4 +1,3 @@
-from abc import abstractmethod
 from typing import Self
 
 import numpy as np
@@ -6,18 +5,14 @@ from pydantic import Field
 from scipy import stats
 from typing_extensions import Annotated, Doc
 
-from .marginal import Marginal1D
-from .types import FloatArray, FloatArrayLike, Vector
+from ..utils.types import FloatArray, FloatArrayLike, Vector
+from .marginal1d import Marginal1D
 
 
 class Distribution1D(Marginal1D):
     """Base class for 1D distributions to be used as
     jump distributions in [CompoundPoisson][quantflow.sp.poisson.CompoundPoissonProcess]
     """
-
-    @abstractmethod
-    def sample(self, n: Annotated[int, Doc("Number of samples to draw")]) -> np.ndarray:
-        """Sample from the distribution"""
 
     @classmethod
     def from_variance_and_asymmetry(cls, variance: float, asymmetry: float) -> Self:
@@ -44,9 +39,9 @@ class Exponential(Distribution1D):
 
     It is a special case of the gamma distribution and is given by
 
-    $$
-    f(x) = \lambda e^{-\lambda x}\ \ \forall x \geq 0
-    $$
+    \begin{equation}
+        f(x) = \lambda e^{-\lambda x}\ \ \forall x \geq 0
+    \end{equation}
     """
 
     decay: float = Field(
@@ -59,7 +54,7 @@ class Exponential(Distribution1D):
         return 1 / self.decay
 
     @property
-    def scale2(self) -> float:
+    def _scale2(self) -> float:
         return self.scale**2
 
     def characteristic(self, u: Vector) -> Vector:
@@ -75,24 +70,28 @@ class Exponential(Distribution1D):
         return self.scale
 
     def variance(self) -> float:
-        return self.scale2
+        return self._scale2
 
-    def sample(self, n: int) -> np.ndarray:
-        return np.random.exponential(scale=self.scale, size=n)
+    def sample(
+        self,
+        size: Annotated[int, Doc("Number of samples to draw.")] = 1,
+    ) -> FloatArray:
+        """Draw random samples from the exponential distribution."""
+        return np.random.exponential(scale=self.scale, size=size)
 
     def support(self, points: int = 100, *, std_mult: float = 4) -> FloatArray:
         return np.linspace(0, std_mult * np.max(self.std()), points)
 
-    def pdf(self, x: FloatArrayLike) -> FloatArrayLike:
+    def pdf_analytical(self, x: FloatArrayLike) -> FloatArrayLike:
         """The analytical PDF of the exponential distribution as defined above"""
         return self.decay * np.exp(-self.decay * x)
 
-    def cdf(self, x: FloatArrayLike) -> FloatArrayLike:
+    def cdf_analytical(self, x: FloatArrayLike) -> FloatArrayLike:
         r"""The analytical CDF of the exponential distribution
 
-        $$
-        F(x) = 1 - e^{-\lambda x}\ \ \forall x \geq 0
-        $$
+        \begin{equation}
+            F(x) = 1 - e^{-\lambda x}\ \ \forall x \geq 0
+        \end{equation}
         """
         return 1.0 - np.exp(-self.decay * x)
 
@@ -129,8 +128,12 @@ class Normal(Distribution1D):
     def variance(self) -> float:
         return self.sigma2
 
-    def sample(self, n: int) -> np.ndarray:
-        return np.random.normal(loc=self.mu, scale=self.sigma, size=n)
+    def sample(
+        self,
+        size: Annotated[int, Doc("Number of samples to draw.")] = 1,
+    ) -> FloatArray:
+        """Draw random samples from the normal distribution."""
+        return np.random.normal(loc=self.mu, scale=self.sigma, size=size)
 
     def support(self, points: int = 100, *, std_mult: float = 4) -> FloatArray:
         return np.linspace(
@@ -139,12 +142,20 @@ class Normal(Distribution1D):
             points,
         )
 
+    def pdf_analytical(self, x: FloatArrayLike) -> FloatArrayLike:
+        """The analytical PDF of the normal distribution as defined above"""
+        return stats.norm.pdf(x, loc=self.mu, scale=self.sigma)
+
+    def cdf_analytical(self, x: FloatArrayLike) -> FloatArrayLike:
+        """The analytical CDF of the normal distribution"""
+        return stats.norm.cdf(x, loc=self.mu, scale=self.sigma)
+
     def set_variance(self, variance: float) -> None:
         """Set the variance of the distribution"""
         self.sigma = np.sqrt(variance)
 
 
-class DoubleExponential(Exponential):
+class DoubleExponential(Distribution1D):
     r"""The generalized double exponential distribution
 
     This is also know as the Asymmetric Laplace distribution which is
@@ -181,9 +192,14 @@ class DoubleExponential(Exponential):
     )
 
     @property
+    def scale(self) -> float:
+        """The scale parameter, the inverse of the `decay` rate"""
+        return 1 / self.decay
+
+    @property
     def log_kappa(self) -> float:
         """The log of the
-        [kappa][quantflow.utils.distributions.DoubleExponential.kappa] parameter"""
+        [kappa][..kappa] parameter"""
         return np.log(self.kappa)
 
     @classmethod
@@ -226,16 +242,25 @@ class DoubleExponential(Exponential):
     def variance(self) -> float:
         return stats.laplace_asymmetric.var(self.kappa, loc=self.loc, scale=self.scale)
 
-    def pdf(self, x: FloatArrayLike) -> FloatArrayLike:
+    def pdf_analytical(self, x: FloatArrayLike) -> FloatArrayLike:
         """The analytical PDF as defined above"""
         return stats.laplace_asymmetric.pdf(
             x, self.kappa, loc=self.loc, scale=self.scale
         )
 
-    def sample(self, n: int) -> np.ndarray:
+    def cdf_analytical(self, x: FloatArrayLike) -> FloatArrayLike:
+        """The analytical CDF of the double exponential distribution"""
+        return stats.laplace_asymmetric.cdf(
+            x, self.kappa, loc=self.loc, scale=self.scale
+        )
+
+    def sample(
+        self,
+        size: Annotated[int, Doc("Number of samples to draw.")] = 1,
+    ) -> FloatArray:
         """Sample from the double exponential distribution"""
         return stats.laplace_asymmetric.rvs(
-            self.kappa, loc=self.loc, scale=self.scale, size=n
+            self.kappa, loc=self.loc, scale=self.scale, size=size
         )
 
     def support(self, points: int = 100, *, std_mult: float = 4) -> FloatArray:

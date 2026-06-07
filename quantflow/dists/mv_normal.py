@@ -5,10 +5,10 @@ from typing_extensions import Annotated
 
 from quantflow.utils.types import FloatArray
 
-from .base import Distribution, MeanAndCov
+from .base import MeanAndCov, MvDistribution
 
 
-class MvNormal(Distribution, arbitrary_types_allowed=True):
+class MvNormal(MvDistribution, arbitrary_types_allowed=True):
     r"""Multivariate normal distribution $\mathcal{N}(\mu, \Sigma)$."""
 
     mean: Annotated[

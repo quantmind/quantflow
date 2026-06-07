@@ -32,6 +32,16 @@ def test_sampling(wiener: WienerProcess) -> None:
     assert std[0] == 0
 
 
+def test_marginal_sample(wiener: WienerProcess) -> None:
+    np.random.seed(42)
+    marginal = wiener.marginal(1)
+    samples = marginal.sample(50000)
+    assert samples.shape == (50000,)
+    # inverse-transform sampling of the normal CDF recovers mean and std
+    assert samples.mean() == pytest.approx(0, abs=1e-2)
+    assert samples.std() == pytest.approx(float(marginal.std()), rel=5e-2)
+
+
 def test_support(wiener: WienerProcess) -> None:
     m = wiener.marginal(0.01)
     pdf = m.pdf_from_characteristic(32)

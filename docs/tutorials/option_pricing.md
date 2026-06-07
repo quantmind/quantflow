@@ -25,7 +25,7 @@ The first example shows how to price an option using the Black-Scholes model and
 
 The underlying model is [HestonJ][quantflow.sp.heston.HestonJ], a Heston stochastic
 volatility model extended with jumps drawn from a
-[DoubleExponential][quantflow.utils.distributions.DoubleExponential] distribution.
+[DoubleExponential][quantflow.dists.DoubleExponential] distribution.
 
 ```python
 --8<-- "docs/examples/heston_volatility_pricer.py"

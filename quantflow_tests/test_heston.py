@@ -1,8 +1,8 @@
 import numpy as np
 import pytest
 
+from quantflow.dists.distributions1d import DoubleExponential
 from quantflow.sp.heston import DoubleHeston, DoubleHestonJ, Heston, HestonJ
-from quantflow.utils.distributions import DoubleExponential
 from quantflow_tests.utils import characteristic_tests
 
 

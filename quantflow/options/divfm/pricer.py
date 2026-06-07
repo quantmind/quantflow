@@ -3,7 +3,7 @@ from __future__ import annotations
 import numpy as np
 from pydantic import Field
 
-from quantflow.utils.marginal import Greeks, OptionPricingResult
+from quantflow.dists.marginal1d import Greeks, OptionPricingResult
 from quantflow.utils.types import FloatArray, FloatArrayLike
 
 from ..bs import black_call

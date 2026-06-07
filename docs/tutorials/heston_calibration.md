@@ -92,7 +92,7 @@ the motivation for the Heston jump-diffusion model described in the next section
 [HestonJCalibration][quantflow.options.calibration.heston.HestonJCalibration] extends the
 Heston calibration with a compound Poisson jump component via the
 [HestonJ][quantflow.sp.heston.HestonJ] model. Jumps are drawn from a
-[DoubleExponential][quantflow.utils.distributions.DoubleExponential] distribution,
+[DoubleExponential][quantflow.dists.DoubleExponential] distribution,
 which captures asymmetric jump behaviour common in equity and crypto markets.
 
 ```python
@@ -126,7 +126,7 @@ whole surface, so short maturities — with fewer strikes — are outvoted and t
 systematically sacrificed.
 
 **The jump distribution is not rich enough.** The short-term smile in crypto is driven
-by large, rare, asymmetric events. A [DoubleExponential][quantflow.utils.distributions.DoubleExponential]
+by large, rare, asymmetric events. A [DoubleExponential][quantflow.dists.DoubleExponential]
 with fixed parameters cannot simultaneously match the wing curvature at short and long
 maturities.
 
@@ -149,4 +149,4 @@ The calibrated parameter vector for the jump-diffusion model is:
 | `rho` | Spot-variance correlation |
 | `jump intensity` | Jump arrival rate (jumps per year) |
 | `jump variance` | Variance of a single jump |
-| `jump asymmetry` | Asymmetry of the jump distribution ([DoubleExponential][quantflow.utils.distributions.DoubleExponential]) |
+| `jump asymmetry` | Asymmetry of the jump distribution ([DoubleExponential][quantflow.dists.DoubleExponential]) |

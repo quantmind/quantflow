@@ -2,10 +2,10 @@ from decimal import Decimal
 
 import pytest
 
+from quantflow.dists.distributions1d import DoubleExponential
 from quantflow.options.pricer import OptionPricer, OptionType
 from quantflow.sp.heston import Heston, HestonJ
 from quantflow.sp.wiener import WienerProcess
-from quantflow.utils.distributions import DoubleExponential
 from quantflow_tests.utils import has_plotly
 
 

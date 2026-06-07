@@ -5,7 +5,7 @@ import numpy as np
 import pandas as pd
 from scipy.stats import norm
 
-from .marginal import Marginal1D
+from ..dists.marginal1d import Marginal1D
 from .types import FloatArray
 
 if TYPE_CHECKING:

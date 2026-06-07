@@ -3,10 +3,10 @@ from fastapi import APIRouter, Query
 from pydantic import BaseModel, Field
 
 from app.api.docs import load_description
+from quantflow.dists.distributions1d import DoubleExponential
 from quantflow.options.pricer import OptionPricer
 from quantflow.sp.heston import HestonJ
 from quantflow.sp.jump_diffusion import JumpDiffusion
-from quantflow.utils.distributions import DoubleExponential
 
 heston_router = APIRouter()
 

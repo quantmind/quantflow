@@ -4,11 +4,11 @@ from pydantic import BaseModel, Field
 from scipy.stats import chisquare, ks_1samp
 
 from app.api.docs import load_description
+from quantflow.dists.distributions1d import DoubleExponential
 from quantflow.sp.ou import Vasicek
 from quantflow.sp.poisson import PoissonProcess
 from quantflow.ta.paths import Paths
 from quantflow.utils import bins
-from quantflow.utils.distributions import DoubleExponential
 
 sampling_router = APIRouter()
 

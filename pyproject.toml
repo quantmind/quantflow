@@ -131,7 +131,7 @@ exclude_also = [
     "pragma: no cover",
     "raise NotImplementedError",
     "if TYPE_CHECKING:",
-    "@abstract",
+    "@abstractmethod",
 ]
 
 [tool.coverage.html]

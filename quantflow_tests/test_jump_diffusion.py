@@ -2,8 +2,8 @@ import numpy as np
 import pytest
 from scipy.stats import norm, poisson
 
+from quantflow.dists.distributions1d import Normal
 from quantflow.sp.jump_diffusion import JumpDiffusion
-from quantflow.utils.distributions import Normal
 
 
 @pytest.fixture

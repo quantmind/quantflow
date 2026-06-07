@@ -2,9 +2,9 @@ import numpy as np
 import pytest
 from scipy.integrate import cumulative_trapezoid
 
+from quantflow.dists.distributions1d import Exponential
 from quantflow.sp.ou import GammaOU, Vasicek
 from quantflow.sp.poisson import CompoundPoissonProcess
-from quantflow.utils.distributions import Exponential
 from quantflow_tests.utils import analytical_tests, characteristic_tests
 
 

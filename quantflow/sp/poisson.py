@@ -10,8 +10,8 @@ from scipy.optimize import Bounds
 from scipy.stats import poisson
 from typing_extensions import Annotated, Doc
 
+from quantflow.dists.distributions1d import Distribution1D
 from quantflow.ta.paths import Paths
-from quantflow.utils.distributions import Distribution1D
 from quantflow.utils.functions import factorial
 from quantflow.utils.transforms import TransformResult
 from quantflow.utils.types import FloatArray, FloatArrayLike, Vector
@@ -218,8 +218,8 @@ class CompoundPoissonProcess(PoissonBase, Generic[D]):
             type[D],
             Doc(
                 "The distribution of jump size (currently only"
-                " [Normal][quantflow.utils.distributions.Normal] and"
-                " [DoubleExponential][quantflow.utils.distributions.DoubleExponential]"
+                " [Normal][quantflow.dists.Normal] and"
+                " [DoubleExponential][quantflow.dists.DoubleExponential]"
                 " are supported)"
             ),
         ],

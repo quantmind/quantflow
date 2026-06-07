@@ -9,9 +9,9 @@ import pandas as pd
 from pydantic import BaseModel, Field, computed_field
 from typing_extensions import Annotated, Doc
 
+from quantflow.dists.marginal1d import OptionPricingMethod, OptionPricingResult
 from quantflow.sp.base import StochasticProcess1D
 from quantflow.utils import plot
-from quantflow.utils.marginal import OptionPricingMethod, OptionPricingResult
 from quantflow.utils.numbers import DecimalNumber, to_decimal
 
 from ..utils.types import FloatArray, FloatArrayLike

@@ -1,7 +1,7 @@
 import numpy as np
 import pytest
 
-from quantflow.utils.distributions import DoubleExponential
+from quantflow.dists.distributions1d import DoubleExponential
 
 
 def test_double_exponential():
