@@ -11,7 +11,6 @@ from typing_extensions import Annotated, Doc
 
 from quantflow.utils import plot
 from quantflow.utils.dates import utcnow
-from quantflow.utils.text import snake_case
 from quantflow.utils.types import FloatArray, FloatArrayLike, maybe_float
 
 if TYPE_CHECKING:
@@ -151,9 +150,17 @@ class YieldCurve(BaseModel, ABC, extra="forbid"):
 
     @classmethod
     def register_curve_types(cls, *curve_classes: type[YieldCurve]) -> None:
-        """Register a yield curve subclass for deserialization."""
+        """Register a yield curve subclass for deserialization.
+
+        The registry key is the ``curve_type`` discriminator value rather than
+        the class name, so the two can be named independently.
+        """
         for curve_cls in curve_classes:
-            name = snake_case(curve_cls.__name__)
+            name = curve_cls.model_fields["curve_type"].default
+            if not isinstance(name, str):
+                raise TypeError(
+                    f"{curve_cls.__name__} must define a string curve_type default"
+                )
             if current_type := _CURVE_TYPES.pop(name, None):
                 _TYPES_TO_NAMES.pop(current_type, None)
             _CURVE_TYPES[name] = curve_cls

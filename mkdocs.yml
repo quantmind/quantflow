@@ -108,6 +108,7 @@ nav:
           - Calibration: api/rates/calibration.md
           - CIR Curve: api/rates/cir.md
           - Interest Rate: api/rates/interest_rate.md
+          - Interpolated Curves: api/rates/interpolated.md
           - Nelson Siegel Curve: api/rates/nelson_siegel.md
           - Vasicek Curve: api/rates/vasicek.md
           - Yield Curve: api/rates/yield_curve.md

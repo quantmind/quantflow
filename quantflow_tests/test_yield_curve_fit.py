@@ -5,7 +5,7 @@ from __future__ import annotations
 import numpy as np
 
 from quantflow.rates.cir import CIRCurve
-from quantflow.rates.nelson_siegel import NelsonSiegel
+from quantflow.rates.nelson_siegel import NelsonSiegelCurve
 from quantflow.rates.vasicek import VasicekCurve
 
 _TTM = [
@@ -50,7 +50,7 @@ def _rmse(curve, ttm, rates) -> float:
 
 
 def test_nelson_siegel_fit() -> None:
-    ns = NelsonSiegel().calibrator().calibrate(_TTM, _RATES)
+    ns = NelsonSiegelCurve().calibrator().calibrate(_TTM, _RATES)
     rmse = _rmse(ns, _TTM, _RATES)
     assert rmse < 0.005, f"NS RMSE too large: {rmse:.6f}"
 

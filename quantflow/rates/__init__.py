@@ -6,32 +6,46 @@ from .calibration import YieldCurveCalibration
 from .cir import CIRCurve
 from .interest_rate import Rate
 from .interpolated import (
+    InterpolatedLinearCurve,
+    InterpolatedMonotonicCubicCurve,
     InterpolatedYieldCurve,
-    InterpolationType,
 )
-from .nelson_siegel import NelsonSiegel
-from .no_discount import NoDiscount
+from .nelson_siegel import NelsonSiegelCurve
+from .no_discount import NoDiscountCurve
 from .vasicek import VasicekCurve
 from .yield_curve import YieldCurve
 
 __all__ = [
     "YieldCurve",
     "YieldCurveCalibration",
-    "NoDiscount",
+    "NoDiscountCurve",
     "CIRCurve",
     "InterpolatedYieldCurve",
-    "InterpolationType",
-    "NelsonSiegel",
+    "InterpolatedLinearCurve",
+    "InterpolatedMonotonicCubicCurve",
+    "NelsonSiegelCurve",
     "VasicekCurve",
     "AnyYieldCurve",
     "Rate",
 ]
 
 AnyYieldCurve = Annotated[
-    Union[NoDiscount, CIRCurve, InterpolatedYieldCurve, NelsonSiegel, VasicekCurve],
+    Union[
+        NoDiscountCurve,
+        CIRCurve,
+        InterpolatedLinearCurve,
+        InterpolatedMonotonicCubicCurve,
+        NelsonSiegelCurve,
+        VasicekCurve,
+    ],
     Field(discriminator="curve_type"),
 ]
 
 YieldCurve.register_curve_types(
-    NoDiscount, CIRCurve, InterpolatedYieldCurve, NelsonSiegel, VasicekCurve
+    NoDiscountCurve,
+    CIRCurve,
+    InterpolatedLinearCurve,
+    InterpolatedMonotonicCubicCurve,
+    NelsonSiegelCurve,
+    VasicekCurve,
 )

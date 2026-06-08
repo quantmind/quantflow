@@ -7,7 +7,7 @@ import pandas as pd
 import pytest
 
 from quantflow.rates.calibration import tenor_to_years
-from quantflow.rates.no_discount import NoDiscount
+from quantflow.rates.no_discount import NoDiscountCurve
 from quantflow.rates.vasicek import VasicekCurve
 
 
@@ -141,4 +141,4 @@ def test_calibrate_historical_rates_not_implemented_on_no_discount() -> None:
         columns=tenors,
     )
     with pytest.raises(NotImplementedError):
-        NoDiscount().calibrator().calibrate_historical_rates_dataframe(panel)
+        NoDiscountCurve().calibrator().calibrate_historical_rates_dataframe(panel)

@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-import enum
+from abc import abstractmethod
 from datetime import datetime, timedelta
 from decimal import Decimal
 from typing import Literal
@@ -22,65 +22,61 @@ from .yield_curve import YieldCurve
 _YEAR = 365.0 * 86400.0
 
 
-class InterpolationType(enum.StrEnum):
-    """Interpolation method for the log discount factor"""
-
-    LINEAR = enum.auto()
-    """Piecewise linear in the log discount factor (piecewise constant forwards)."""
-
-    MONOTONE_CUBIC = enum.auto()
-    """Shape-preserving cubic Hermite spline (PCHIP, Fritsch-Carlson) that never
-    introduces a new local maximum or minimum between two nodes."""
-
-
 class InterpolatedYieldCurve(YieldCurve, arbitrary_types_allowed=True):
-    r"""Yield curve built by interpolating the log discount factor on a set of nodes.
+    r"""Base class for yield curves built by interpolating the zero rate.
 
     The curve is defined by continuously compounded zero rates $r_i$ at a set of
-    anchor dates. Times to maturity $\tau_i$ are measured from
-    [ref_date][..ref_date] on an ACT/365 basis, and the log discount factor at
-    each node is $g_i = -r_i \tau_i$. The curve interpolates $g(\tau) = \ln
-    D(\tau)$ between the nodes, which keeps the instantaneous forward rate
-    $f(\tau) = -g'(\tau)$ simple: piecewise constant for linear interpolation and
-    smooth for cubic interpolation.
+    anchor dates with times to maturity $\tau_i$ measured from
+    [ref_date][.ref_date] on an ACT/365 basis. The zero rate is interpolated
+    between the nodes and the discount factor follows directly:
 
-    The node $\tau = 0$ with $g = 0$ (i.e. $D(0) = 1$) is added automatically.
-    Beyond the last node the instantaneous forward rate is held flat (constant
-    forward extrapolation).
+    \begin{equation}
+        D(\tau) = e^{-r(\tau)\,\tau}
+    \end{equation}
+
+    The instantaneous forward rate is then $f(\tau) = r(\tau) + \tau\,r'(\tau)$.
+    Outside the node range the zero rate is held flat (the first node value below
+    $\tau_1$ and the last node value beyond $\tau_N$).
+
+    Subclasses choose how the zero rate is interpolated between nodes:
+    [InterpolatedLinearCurve][..InterpolatedLinearCurve] (piecewise linear) or
+    [InterpolatedMonotonicCubicCurve][..InterpolatedMonotonicCubicCurve]
+    (shape-preserving PCHIP spline).
+
+    The anchor lists default to empty, leaving the curve uncalibrated until its
+    [calibrator][.calibrator] fills in the nodes.
     """
 
-    curve_type: Literal["interpolated_yield_curve"] = "interpolated_yield_curve"
     anchor_dates: list[datetime] = Field(
+        default_factory=list,
         description="Maturity dates of the interpolation nodes, strictly after the "
-        "reference date and in increasing order"
+        "reference date and in increasing order",
     )
     anchor_rates: list[DecimalNumber] = Field(
+        default_factory=list,
         description="Continuously compounded zero rates at each anchor date "
-        "(0.05 means 5%), same length as anchor_dates"
-    )
-    interpolation_type: InterpolationType = Field(
-        default=InterpolationType.LINEAR,
-        description="Interpolation method for the log discount factor: "
-        "LINEAR or MONOTONE_CUBIC (PCHIP)",
+        "(0.05 means 5%), same length as anchor_dates",
     )
 
     _ttm: FloatArray = PrivateAttr(default_factory=lambda: np.empty(0))
-    _log_discount: FloatArray = PrivateAttr(default_factory=lambda: np.empty(0))
+    _rates: FloatArray = PrivateAttr(default_factory=lambda: np.empty(0))
 
     def model_post_init(self, context: object) -> None:
-        """Cache the times to maturity and log discount factors at the nodes."""
+        """Cache the times to maturity and zero rates at the nodes."""
         if len(self.anchor_dates) != len(self.anchor_rates):
             raise ValueError("anchor_dates and anchor_rates must have equal length")
         if not self.anchor_dates:
-            raise ValueError("at least one anchor is required")
+            # uncalibrated curve: nodes are filled in by the calibrator
+            self._ttm = np.empty(0)
+            self._rates = np.empty(0)
+            return
         ttm = self._year_fractions()
         if np.any(ttm <= 0):
             raise ValueError("anchor_dates must be strictly after the reference date")
         if np.any(np.diff(ttm) <= 0):
             raise ValueError("anchor_dates must be strictly increasing")
-        rates = np.array([float(r) for r in self.anchor_rates], dtype=float)
         self._ttm = ttm
-        self._log_discount = -rates * ttm
+        self._rates = np.array([float(r) for r in self.anchor_rates], dtype=float)
 
     def _year_fractions(self) -> FloatArray:
         """Times to maturity in years from ref_date, ACT/365."""
@@ -95,45 +91,79 @@ class InterpolatedYieldCurve(YieldCurve, arbitrary_types_allowed=True):
         ...InterpolatedYieldCurveCalibration] wrapping this curve."""
         return InterpolatedYieldCurveCalibration(yield_curve=self)
 
-    def _nodes(self) -> tuple[FloatArray, FloatArray]:
-        """Node times and log discount factors, with the origin pinned to (0, 0)."""
-        t = np.concatenate([[0.0], self._ttm])
-        g = np.concatenate([[0.0], self._log_discount])
-        return t, g
+    @abstractmethod
+    def _zero_rate(
+        self, tau: Annotated[FloatArray, Doc("Times to maturity, clamped to >= 0.")]
+    ) -> FloatArray:
+        """Interpolated zero rate, held flat outside the node range."""
+
+    @abstractmethod
+    def _zero_rate_derivative(
+        self, tau: Annotated[FloatArray, Doc("Times to maturity, clamped to >= 0.")]
+    ) -> FloatArray:
+        """Derivative of the zero rate, zero outside the node range."""
 
     def instantaneous_forward_rate(self, ttm: FloatArrayLike) -> FloatArrayLike:
-        t, g = self._nodes()
         tau = np.maximum(np.asarray(ttm, dtype=float), 0.0)
-        tmax = t[-1]
-        if self.interpolation_type is InterpolationType.LINEAR:
-            slope = np.diff(g) / np.diff(t)
-            idx = np.clip(
-                np.searchsorted(t, np.minimum(tau, tmax), side="right") - 1,
-                0,
-                slope.size - 1,
-            )
-            f = -slope[idx]
-        else:
-            dg = PchipInterpolator(t, g).derivative()
-            f = -dg(np.minimum(tau, tmax))
-        return maybe_float(f)
+        r = self._zero_rate(tau)
+        dr = self._zero_rate_derivative(tau)
+        return maybe_float(r + tau * dr)
 
     def discount_factor(self, ttm: FloatArrayLike) -> FloatArrayLike:
-        t, g = self._nodes()
         tau = np.maximum(np.asarray(ttm, dtype=float), 0.0)
-        tmax = t[-1]
-        inside = np.minimum(tau, tmax)
-        if self.interpolation_type is InterpolationType.LINEAR:
-            slope = np.diff(g) / np.diff(t)
-            gi = np.interp(inside, t, g)
-            f_last = -slope[-1]
-        else:
-            pch = PchipInterpolator(t, g)
-            gi = pch(inside)
-            f_last = -float(pch.derivative()(tmax))
-        # constant forward rate extrapolation beyond the last node
-        gi = np.where(tau > tmax, g[-1] - f_last * (tau - tmax), gi)
-        return maybe_float(np.exp(gi))
+        r = self._zero_rate(tau)
+        return maybe_float(np.exp(-r * tau))
+
+
+class InterpolatedLinearCurve(InterpolatedYieldCurve):
+    r"""Yield curve interpolating the zero rate piecewise linearly.
+
+    The zero rate $r(\tau)$ is linear between adjacent nodes, so the
+    instantaneous forward rate is linear on each segment.
+    """
+
+    curve_type: Literal["interpolated_linear_curve"] = "interpolated_linear_curve"
+
+    def _zero_rate(self, tau: FloatArray) -> FloatArray:
+        return np.interp(tau, self._ttm, self._rates)
+
+    def _zero_rate_derivative(self, tau: FloatArray) -> FloatArray:
+        t, r = self._ttm, self._rates
+        if t.size < 2:
+            return np.zeros_like(tau)
+        slope = np.diff(r) / np.diff(t)
+        idx = np.clip(np.searchsorted(t, tau, side="right") - 1, 0, slope.size - 1)
+        inside = (tau >= t[0]) & (tau <= t[-1])
+        return np.where(inside, slope[idx], 0.0)
+
+
+class InterpolatedMonotonicCubicCurve(InterpolatedYieldCurve):
+    r"""Yield curve interpolating the zero rate with a monotone cubic spline.
+
+    The zero rate $r(\tau)$ is interpolated with a shape-preserving cubic Hermite
+    spline (PCHIP, Fritsch-Carlson) that never introduces a new local maximum or
+    minimum between two nodes, giving a smooth zero rate and forward rate.
+    """
+
+    curve_type: Literal["interpolated_monotonic_cubic_curve"] = (
+        "interpolated_monotonic_cubic_curve"
+    )
+
+    def _zero_rate(self, tau: FloatArray) -> FloatArray:
+        t, r = self._ttm, self._rates
+        if t.size < 2:
+            return np.full(np.shape(tau), r[0]) if r.size else np.zeros_like(tau)
+        clamped = np.clip(tau, t[0], t[-1])
+        return PchipInterpolator(t, r)(clamped)
+
+    def _zero_rate_derivative(self, tau: FloatArray) -> FloatArray:
+        t, r = self._ttm, self._rates
+        if t.size < 2:
+            return np.zeros_like(tau)
+        clamped = np.clip(tau, t[0], t[-1])
+        inside = (tau >= t[0]) & (tau <= t[-1])
+        dr = PchipInterpolator(t, r).derivative()(clamped)
+        return np.where(inside, dr, 0.0)
 
 
 class InterpolatedYieldCurveCalibration(YieldCurveCalibration[InterpolatedYieldCurve]):
@@ -151,7 +181,7 @@ class InterpolatedYieldCurveCalibration(YieldCurveCalibration[InterpolatedYieldC
         curve = self.yield_curve
         rates = np.asarray(params, dtype=float)
         curve.anchor_rates = [Decimal(str(round(float(r), 10))) for r in rates]
-        curve._log_discount = -rates * curve._ttm
+        curve._rates = rates
 
     def get_bounds(self) -> Bounds:
         n = len(self.yield_curve.anchor_rates)
@@ -167,7 +197,8 @@ class InterpolatedYieldCurveCalibration(YieldCurveCalibration[InterpolatedYieldC
         """Set the curve nodes so it reprices the given rates exactly.
 
         Maturity dates are reconstructed from the times to maturity relative to
-        [ref_date][..ref_date] on an ACT/365 basis.
+        [ref_date][quantflow.rates.yield_curve.YieldCurve.ref_date] on an
+        ACT/365 basis.
         """
         ttm_ = np.asarray(ttm, dtype=float)
         rates_ = np.asarray(rates, dtype=float)
@@ -179,5 +210,5 @@ class InterpolatedYieldCurveCalibration(YieldCurveCalibration[InterpolatedYieldC
         ]
         curve.anchor_rates = [Decimal(str(round(float(r), 10))) for r in rates_[order]]
         curve._ttm = ttm_[order]
-        curve._log_discount = -rates_[order] * ttm_[order]
+        curve._rates = rates_[order]
         return curve

@@ -11,7 +11,7 @@ from quantflow.data.yahoo import Yahoo
 from quantflow.options.inputs import VolSurfaceInputs
 from quantflow.options.surface import OptionInfo, VolSurfaceLoader
 from quantflow.rates.cir import CIRCurve
-from quantflow.rates.nelson_siegel import NelsonSiegel
+from quantflow.rates.nelson_siegel import NelsonSiegelCurve
 
 from .deps import RedisCache, RedisDep
 from .rates import YieldCurveResponse
@@ -86,13 +86,13 @@ async def _load_surface(asset: str) -> VolSurfaceLoader:
     if asset in DERIBIT_ASSETS:
         async with Deribit() as cli:
             loader = await cli.volatility_surface_loader(asset.lower(), inverse=True)
-        loader.calibrate_curves(quote_curve=CIRCurve, asset_curve=NelsonSiegel)
+        loader.calibrate_curves(quote_curve=CIRCurve, asset_curve=NelsonSiegelCurve)
         return loader
     else:
         async with Yahoo() as cli:
             loader = await cli.volatility_surface_loader(asset)
         loader.calibrate_spot()
-        loader.calibrate_curves(quote_curve=CIRCurve, asset_curve=NelsonSiegel)
+        loader.calibrate_curves(quote_curve=CIRCurve, asset_curve=NelsonSiegelCurve)
         return loader
 
 

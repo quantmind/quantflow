@@ -13,10 +13,10 @@ from .calibration import YieldCurveCalibration
 from .yield_curve import YieldCurve
 
 
-class NoDiscount(YieldCurve):
+class NoDiscountCurve(YieldCurve):
     """Flat yield curve with zero rates (discount factor is always 1)."""
 
-    curve_type: Literal["no_discount"] = "no_discount"
+    curve_type: Literal["no_discount_curve"] = "no_discount_curve"
 
     def calibrator(self) -> NoDiscountCalibration:
         """Return a [NoDiscountCalibration][.NoDiscountCalibration] wrapping
@@ -32,8 +32,8 @@ class NoDiscount(YieldCurve):
         return np.ones_like(arr) if arr.ndim > 0 else 1.0
 
 
-class NoDiscountCalibration(YieldCurveCalibration[NoDiscount]):
-    """No-op calibration wrapper for NoDiscount (no parameters to fit)."""
+class NoDiscountCalibration(YieldCurveCalibration[NoDiscountCurve]):
+    """No-op calibration wrapper for NoDiscountCurve (no parameters to fit)."""
 
     def get_params(self) -> FloatArray:
         return np.array([], dtype=float)
@@ -50,6 +50,6 @@ class NoDiscountCalibration(YieldCurveCalibration[NoDiscount]):
         rates: Annotated[
             ArrayLike, Doc("Continuously compounded rates, same length as ttm.")
         ],
-    ) -> NoDiscount:
-        """No-op: NoDiscount has no parameters to calibrate."""
+    ) -> NoDiscountCurve:
+        """No-op: NoDiscountCurve has no parameters to calibrate."""
         return self.yield_curve

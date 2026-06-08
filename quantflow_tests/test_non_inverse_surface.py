@@ -17,7 +17,7 @@ import pytest
 from quantflow.options.bs import black_price
 from quantflow.options.inputs import DefaultVolSecurity, OptionType
 from quantflow.options.surface import VolSurfaceLoader
-from quantflow.rates.no_discount import NoDiscount
+from quantflow.rates.no_discount import NoDiscountCurve
 
 REF_DATE = datetime(2026, 1, 1, tzinfo=timezone.utc)
 MATURITY = datetime(2026, 7, 2, tzinfo=timezone.utc)  # roughly 0.5y
@@ -37,8 +37,8 @@ def _black_mid_usd(strike: float, call_put: int, ttm: float) -> Decimal:
 def _build_loader(ttm: float) -> VolSurfaceLoader:
     loader = VolSurfaceLoader(
         asset="TEST",
-        quote_curve=NoDiscount(ref_date=REF_DATE),
-        asset_curve=NoDiscount(ref_date=REF_DATE),
+        quote_curve=NoDiscountCurve(ref_date=REF_DATE),
+        asset_curve=NoDiscountCurve(ref_date=REF_DATE),
     )
     loader.add_spot(
         DefaultVolSecurity.spot(),

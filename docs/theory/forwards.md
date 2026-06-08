@@ -8,7 +8,7 @@ one unit of currency delivered at time $\tau$.
 In quantflow, discount factors are provided by a
 [YieldCurve][quantflow.rates.yield_curve.YieldCurve]. Different implementations capture
 different term structures: a flat zero-rate curve, a fitted
-[Nelson-Siegel][quantflow.rates.nelson_siegel.NelsonSiegel] curve, or any custom term
+[Nelson-Siegel][quantflow.rates.nelson_siegel.NelsonSiegelCurve] curve, or any custom term
 structure.
 
 ## Forward Price

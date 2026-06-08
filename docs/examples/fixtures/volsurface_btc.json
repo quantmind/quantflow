@@ -2,11 +2,11 @@
   "asset": "btc",
   "asset_curve": {
     "ref_date": "2026-05-21T10:04:10.269985Z",
-    "curve_type": "no_discount"
+    "curve_type": "no_discount_curve"
   },
   "quote_curve": {
     "ref_date": "2026-05-21T10:04:10.269985Z",
-    "curve_type": "nelson_siegel",
+    "curve_type": "nelson_siegel_curve",
     "beta1": "-1.3242608183",
     "beta2": "1.3324170039",
     "beta3": "1.6559934427",

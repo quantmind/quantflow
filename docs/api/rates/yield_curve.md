@@ -4,4 +4,4 @@
 ::: quantflow.rates.yield_curve.YieldCurve
 
 
-::: quantflow.rates.no_discount.NoDiscount
+::: quantflow.rates.no_discount.NoDiscountCurve

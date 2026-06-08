@@ -6,11 +6,11 @@ from decimal import Decimal
 import numpy as np
 import pytest
 
-from quantflow.rates.nelson_siegel import NelsonSiegel
+from quantflow.rates.nelson_siegel import NelsonSiegelCurve
 
 
-def _flat_curve(level: float = 0.05) -> NelsonSiegel:
-    return NelsonSiegel(
+def _flat_curve(level: float = 0.05) -> NelsonSiegelCurve:
+    return NelsonSiegelCurve(
         beta1=Decimal(str(level)),
         beta2=Decimal("0"),
         beta3=Decimal("0"),
@@ -18,8 +18,8 @@ def _flat_curve(level: float = 0.05) -> NelsonSiegel:
     )
 
 
-def _true_curve() -> NelsonSiegel:
-    return NelsonSiegel(
+def _true_curve() -> NelsonSiegelCurve:
+    return NelsonSiegelCurve(
         beta1=Decimal("0.04"),
         beta2=Decimal("-0.02"),
         beta3=Decimal("0.03"),
@@ -63,7 +63,7 @@ def test_discount_factor_decreases_with_ttm() -> None:
 
 
 def test_instantaneous_forward_rate_at_zero() -> None:
-    ns = NelsonSiegel(
+    ns = NelsonSiegelCurve(
         beta1=Decimal("0.04"),
         beta2=Decimal("0.02"),
         beta3=Decimal("0.01"),
@@ -73,7 +73,7 @@ def test_instantaneous_forward_rate_at_zero() -> None:
 
 
 def test_instantaneous_forward_rate_large_ttm() -> None:
-    ns = NelsonSiegel(
+    ns = NelsonSiegelCurve(
         beta1=Decimal("0.04"),
         beta2=Decimal("0.02"),
         beta3=Decimal("0.01"),
@@ -83,7 +83,7 @@ def test_instantaneous_forward_rate_large_ttm() -> None:
 
 
 def test_consistency_forward_and_discount() -> None:
-    ns = NelsonSiegel(
+    ns = NelsonSiegelCurve(
         beta1=Decimal("0.04"),
         beta2=Decimal("0.015"),
         beta3=Decimal("0.008"),
@@ -137,7 +137,7 @@ def test_calibrate_recovers_curve_noiseless() -> None:
     ns_true = _true_curve()
     ttm = np.linspace(0.25, 10.0, 20)
     rates = -np.log([float(ns_true.discount_factor(t)) for t in ttm]) / ttm
-    ns_fit = NelsonSiegel().calibrator().calibrate(ttm, rates)
+    ns_fit = NelsonSiegelCurve().calibrator().calibrate(ttm, rates)
     for t in [1.0, 2.0, 5.0]:
         assert float(ns_fit.discount_factor(t)) == pytest.approx(
             float(ns_true.discount_factor(t)), rel=1e-4
@@ -147,7 +147,7 @@ def test_calibrate_recovers_curve_noiseless() -> None:
 def test_calibrate_flat_curve() -> None:
     ttm = np.array([0.5, 1.0, 2.0, 5.0, 10.0])
     rates = np.full_like(ttm, 0.05)
-    ns = NelsonSiegel().calibrator().calibrate(ttm, rates)
+    ns = NelsonSiegelCurve().calibrator().calibrate(ttm, rates)
     for t in ttm:
         assert float(ns.discount_factor(t)) == pytest.approx(
             math.exp(-0.05 * t), rel=1e-4
@@ -162,11 +162,13 @@ def test_calibrate_flat_curve() -> None:
 _CRYPTO_TTMS = np.array([1 / 52, 2 / 52, 1 / 12, 2 / 12, 3 / 12, 6 / 12, 1.0, 2.0])
 
 
-def _true_rates(ns: NelsonSiegel, ttm: np.ndarray) -> np.ndarray:
+def _true_rates(ns: NelsonSiegelCurve, ttm: np.ndarray) -> np.ndarray:
     return -np.log([float(ns.discount_factor(t)) for t in ttm]) / ttm
 
 
-def _df_rmse(ns_fit: NelsonSiegel, ns_true: NelsonSiegel, ttm: np.ndarray) -> float:
+def _df_rmse(
+    ns_fit: NelsonSiegelCurve, ns_true: NelsonSiegelCurve, ttm: np.ndarray
+) -> float:
     fitted = np.array([float(ns_fit.discount_factor(t)) for t in ttm])
     true = np.array([float(ns_true.discount_factor(t)) for t in ttm])
     return float(np.sqrt(np.mean((fitted - true) ** 2)))
@@ -175,7 +177,7 @@ def _df_rmse(ns_fit: NelsonSiegel, ns_true: NelsonSiegel, ttm: np.ndarray) -> fl
 def test_calibrate_crypto_ttms_noiseless() -> None:
     ns_true = _true_curve()
     rates = _true_rates(ns_true, _CRYPTO_TTMS)
-    ns_fit = NelsonSiegel().calibrator().calibrate(_CRYPTO_TTMS, rates)
+    ns_fit = NelsonSiegelCurve().calibrator().calibrate(_CRYPTO_TTMS, rates)
     assert _df_rmse(ns_fit, ns_true, _CRYPTO_TTMS) < 1e-4
 
 
@@ -184,5 +186,5 @@ def test_calibrate_with_gaussian_noise() -> None:
     ns_true = _true_curve()
     rates = _true_rates(ns_true, _CRYPTO_TTMS)
     noisy = rates + rng.normal(0, 0.002, size=len(rates))
-    ns_fit = NelsonSiegel().calibrator().calibrate(_CRYPTO_TTMS, noisy)
+    ns_fit = NelsonSiegelCurve().calibrator().calibrate(_CRYPTO_TTMS, noisy)
     assert _df_rmse(ns_fit, ns_true, _CRYPTO_TTMS) < 0.005

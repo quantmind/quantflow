@@ -13,7 +13,7 @@ from typing_extensions import Annotated, Doc
 
 from quantflow.options.inputs import DefaultVolSecurity, OptionType
 from quantflow.options.surface import VolSurfaceLoader
-from quantflow.rates.no_discount import NoDiscount
+from quantflow.rates.no_discount import NoDiscountCurve
 from quantflow.utils.dates import as_utc, utcnow
 from quantflow.utils.numbers import to_decimal
 
@@ -141,8 +141,8 @@ class Yahoo(HttpxClient):
             exclude_open_interest=(
                 to_decimal(exclude_open_interest) if exclude_open_interest else None
             ),
-            quote_curve=NoDiscount(ref_date=ref),
-            asset_curve=NoDiscount(ref_date=ref),
+            quote_curve=NoDiscountCurve(ref_date=ref),
+            asset_curve=NoDiscountCurve(ref_date=ref),
         )
         quote = chain.get("quote") or {}
         bid = quote.get("bid") or quote.get("regularMarketPrice")

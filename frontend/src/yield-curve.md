@@ -13,7 +13,11 @@ import * as d3 from "npm:d3";
 ```
 
 ```js
-const curveType = view(Inputs.select(["nelson_siegel", "vasicek_curve", "cir_curve"], {label: "Curve type"}));
+const curveType = view(Inputs.select(["nelson_siegel_curve", "vasicek_curve", "cir_curve", "interpolated_linear_curve", "interpolated_monotonic_cubic_curve"], {label: "Curve type"}));
+```
+
+```js
+const xScaleType = view(Inputs.radio(["log", "linear"], {label: "Time axis", value: "log"}));
 ```
 
 ```js
@@ -85,8 +89,9 @@ const padding = Math.max((rateMax - rateMin) * 0.2, 0.005);
 const yMin = rateMin - padding;
 const yMax = rateMax + padding;
 
-const x = d3.scaleLog()
-  .domain([1/365, 32])
+const x = (xScaleType === "linear"
+  ? d3.scaleLinear().domain([0, 32])
+  : d3.scaleLog().domain([1/365, 32]))
   .range([marginLeft, width - marginRight]);
 
 const y = d3.scaleLinear()
@@ -102,8 +107,10 @@ const svg = d3.create("svg")
 svg.append("g")
   .attr("transform", `translate(0,${height - marginBottom})`)
   .call(d3.axisBottom(x)
-    .tickValues([1/365, 1/52, 1/12, 0.25, 0.5, 1, 2, 5, 10, 30])
-    .tickFormat(d => d < 1/12 ? `${Math.round(d*365)}d` : d < 1 ? `${Math.round(d*12)}m` : `${d}y`)
+    .tickValues(xScaleType === "linear"
+      ? [0, 1, 2, 5, 10, 15, 20, 25, 30]
+      : [1/365, 1/52, 1/12, 0.25, 0.5, 1, 2, 5, 10, 30])
+    .tickFormat(d => d === 0 ? "0" : d < 1/12 ? `${Math.round(d*365)}d` : d < 1 ? `${Math.round(d*12)}m` : `${d}y`)
   )
   .append("text")
   .attr("x", width / 2)

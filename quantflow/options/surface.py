@@ -14,7 +14,7 @@ from typing_extensions import Annotated, Doc
 
 from quantflow.rates import (
     AnyYieldCurve,
-    NoDiscount,
+    NoDiscountCurve,
     Rate,
     YieldCurve,
     YieldCurveCalibration,
@@ -745,11 +745,11 @@ class ForwardPricer(BaseModel, Generic[S]):
         description="Spot price of the underlying asset",
     )
     quote_curve: AnyYieldCurve = Field(
-        default_factory=NoDiscount,
+        default_factory=NoDiscountCurve,
         description="Discount curve for the quote",
     )
     asset_curve: AnyYieldCurve = Field(
-        default_factory=NoDiscount,
+        default_factory=NoDiscountCurve,
         description="Discount curve for the asset",
     )
     tick_size_forwards: DecimalNumber | None = Field(

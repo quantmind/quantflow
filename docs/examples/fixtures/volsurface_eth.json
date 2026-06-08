@@ -2,11 +2,11 @@
   "asset": "eth",
   "asset_curve": {
     "ref_date": "2026-05-21T10:08:42.397057Z",
-    "curve_type": "no_discount"
+    "curve_type": "no_discount_curve"
   },
   "quote_curve": {
     "ref_date": "2026-05-21T10:08:42.397057Z",
-    "curve_type": "nelson_siegel",
+    "curve_type": "nelson_siegel_curve",
     "beta1": "0.0430852145",
     "beta2": "-0.0189909065",
     "beta3": "-0.0679762918",

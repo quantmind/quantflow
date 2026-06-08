@@ -31,7 +31,7 @@ async def yield_curve(
         ..., description="List of rates to fit the Nelson-Siegel model"
     ),
     curve_type: str = Query(
-        "nelson_siegel",
+        "nelson_siegel_curve",
         description="Type of curve to fit",
         enum=list(YieldCurve.curve_types()),
     ),

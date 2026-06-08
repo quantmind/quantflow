@@ -14,7 +14,7 @@ from typing_extensions import Annotated, Doc
 
 from quantflow.options.inputs import DefaultVolSecurity, OptionType
 from quantflow.options.surface import VolSurfaceLoader
-from quantflow.rates.no_discount import NoDiscount
+from quantflow.rates.no_discount import NoDiscountCurve
 from quantflow.utils.dates import utcnow
 from quantflow.utils.numbers import (
     Number,
@@ -153,8 +153,8 @@ class Deribit(AioHttpClient):
             asset=currency,
             exclude_open_interest=to_decimal_or_none(exclude_open_interest),
             exclude_volume=to_decimal_or_none(exclude_volume),
-            quote_curve=NoDiscount(ref_date=ref),
-            asset_curve=NoDiscount(ref_date=ref),
+            quote_curve=NoDiscountCurve(ref_date=ref),
+            asset_curve=NoDiscountCurve(ref_date=ref),
         )
         if inverse:
             futures = await self.get_book_summary_by_currency(

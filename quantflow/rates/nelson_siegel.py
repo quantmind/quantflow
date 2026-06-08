@@ -15,7 +15,7 @@ from .calibration import YieldCurveCalibration
 from .yield_curve import YieldCurve
 
 
-class NelsonSiegel(YieldCurve):
+class NelsonSiegelCurve(YieldCurve):
     r"""Class representing a Nelson-Siegel yield curve
 
     The Nelson-Siegel model is a popular parametric model for fitting
@@ -32,7 +32,7 @@ class NelsonSiegel(YieldCurve):
     $\beta_3$ is the curvature parameter and $\lambda$ is the decay factor.
     """
 
-    curve_type: Literal["nelson_siegel"] = "nelson_siegel"
+    curve_type: Literal["nelson_siegel_curve"] = "nelson_siegel_curve"
     beta1: Decimal = Field(default=Decimal(0), description="Level parameter")
     beta2: Decimal = Field(default=Decimal(0), description="Slope parameter")
     beta3: Decimal = Field(default=Decimal(0), description="Curvature parameter")
@@ -107,7 +107,7 @@ class NelsonSiegel(YieldCurve):
         )
 
 
-class NelsonSiegelCalibration(YieldCurveCalibration[NelsonSiegel]):
+class NelsonSiegelCalibration(YieldCurveCalibration[NelsonSiegelCurve]):
     """Calibration wrapper for a Nelson-Siegel yield curve."""
 
     beta_bounds: tuple[float, float] = Field(
@@ -143,7 +143,7 @@ class NelsonSiegelCalibration(YieldCurveCalibration[NelsonSiegel]):
         rates: Annotated[
             ArrayLike, Doc("Continuously compounded rates, same length as ttm.")
         ],
-    ) -> NelsonSiegel:
+    ) -> NelsonSiegelCurve:
         """Fit the curve using the fast profile-OLS solver.
 
         Drops times to maturity below 1 day, which are often dominated by noise.

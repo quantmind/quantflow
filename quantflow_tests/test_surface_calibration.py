@@ -14,7 +14,7 @@ import pytest
 
 from quantflow.data.yahoo import Yahoo
 from quantflow.options.surface import VolSurfaceLoader
-from quantflow.rates.nelson_siegel import NelsonSiegel
+from quantflow.rates.nelson_siegel import NelsonSiegelCurve
 from quantflow_tests.utils import load_fixture_dict
 
 
@@ -74,19 +74,21 @@ async def test_calibrate_spot_no_short_maturities_returns_none(
 
 
 async def test_calibrate_curves_asset_only(loader: VolSurfaceLoader) -> None:
-    loader.calibrate_curves(asset_curve=NelsonSiegel)
-    assert isinstance(loader.asset_curve, NelsonSiegel)
+    loader.calibrate_curves(asset_curve=NelsonSiegelCurve)
+    assert isinstance(loader.asset_curve, NelsonSiegelCurve)
 
 
 async def test_calibrate_curves_quote_only(loader: VolSurfaceLoader) -> None:
-    loader.calibrate_curves(quote_curve=NelsonSiegel)
-    assert isinstance(loader.quote_curve, NelsonSiegel)
+    loader.calibrate_curves(quote_curve=NelsonSiegelCurve)
+    assert isinstance(loader.quote_curve, NelsonSiegelCurve)
 
 
 async def test_calibrate_curves_joint(loader: VolSurfaceLoader) -> None:
-    loader.calibrate_curves(asset_curve=NelsonSiegel, quote_curve=NelsonSiegel)
-    assert isinstance(loader.asset_curve, NelsonSiegel)
-    assert isinstance(loader.quote_curve, NelsonSiegel)
+    loader.calibrate_curves(
+        asset_curve=NelsonSiegelCurve, quote_curve=NelsonSiegelCurve
+    )
+    assert isinstance(loader.asset_curve, NelsonSiegelCurve)
+    assert isinstance(loader.quote_curve, NelsonSiegelCurve)
 
 
 async def test_calibrate_curves_both_none_is_noop(loader: VolSurfaceLoader) -> None:
