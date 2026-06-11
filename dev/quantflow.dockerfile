@@ -4,10 +4,8 @@ FROM ghcr.io/astral-sh/uv:python3.14-bookworm-slim AS builder
 
 WORKDIR /build
 
-# Install Chromium for kaleido (Plotly static image export used by docs examples)
 # Install Node.js for Observable Framework frontend build
 RUN apt-get update && apt-get install -y --no-install-recommends \
-    chromium \
     nodejs \
     npm \
     && rm -rf /var/lib/apt/lists/*
@@ -18,7 +16,9 @@ COPY pyproject.toml uv.lock readme.md ./
 # Install dependencies (no root package, with needed extras)
 RUN uv sync --frozen --no-install-project --group docs --extra data
 
-# Copy source, generate example outputs and images, then build docs
+# Copy source and build docs
+# Example outputs and images must be prebuilt in the build context
+# (run `uv run ./dev/build-examples` locally, or the build-examples CI job)
 COPY mkdocs.yml ./
 COPY dev/ ./dev/
 COPY docs/ ./docs/
@@ -27,7 +27,6 @@ COPY frontend/ ./frontend/
 COPY app/ ./app/
 RUN npm --prefix frontend install
 RUN npm --prefix frontend run build
-RUN uv run ./dev/build-examples
 RUN uv run mkdocs build
 
 # Stage 2: Runtime stage

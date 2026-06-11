@@ -1,0 +1,37 @@
+name: examples
+
+on:
+  workflow_call:
+    inputs:
+      upload:
+        description: Upload the generated outputs as an artifact
+        type: boolean
+        default: true
+
+jobs:
+  build-examples:
+    runs-on: ubuntu-latest
+    env:
+      GITHUB_TOKEN: ${{ github.token }}
+
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.14"
+      - name: Install uv
+        run: pip install -U pip uv
+      - name: Install dependencies
+        run: uv sync --frozen --no-install-project --group docs --extra data
+      - name: build examples
+        run: uv run ./dev/build-examples
+      - name: upload examples output
+        if: inputs.upload
+        uses: actions/upload-artifact@v4
+        with:
+          name: examples-output
+          path: |
+            docs/assets/examples/
+            docs/examples/output/
+          if-no-files-found: error
