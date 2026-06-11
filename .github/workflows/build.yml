@@ -3,7 +3,7 @@ name: build
 on:
   push:
     branches-ignore:
-      - deploy
+      - main
     tags-ignore:
       - v*
 
@@ -55,30 +55,6 @@ jobs:
           files: ./build/coverage.xml
 
   examples:
-    if: github.ref != 'refs/heads/main'
     uses: ./.github/workflows/examples.yml
     with:
       upload: false
-
-  image:
-    if: github.ref == 'refs/heads/main'
-    uses: ./.github/workflows/docker-multiarch.yml
-    needs: build
-    with:
-      image-name: quantflow
-
-  deploy:
-    name: Create Deployment
-    if: github.ref == 'refs/heads/main'
-    runs-on: ubuntu-latest
-    permissions:
-      deployments: write
-    needs: image
-    steps:
-      - uses: chrnorm/deployment-action@v2
-        name: Create GitHub deployment
-        id: deployment
-        with:
-          token: "${{ secrets.TOKEN_DEPLOYMENT }}"
-          environment: prod
-          payload: '{"tag": "main-${{ github.sha }}"}'
