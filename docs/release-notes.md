@@ -6,6 +6,77 @@ below maps to a tagged release on
 pushed, the matching section is extracted by
 `.github/workflows/release.yml` and published as the GitHub Release body.
 
+## v1.0.0
+
+First major release, consolidating the API for the 1.x series: a new
+distributions package, a rewritten Kalman filtering module, an expanded
+interest-rate toolkit and leaner naming across the options API. Several
+modules were renamed, reworked or removed: see **Breaking changes** before
+upgrading.
+
+### Breaking changes
+
+- New `quantflow.dists` package: `Marginal1D` moved there from
+  `quantflow.utils.marginal`, and the 1D distributions from
+  `quantflow.utils.distributions`; update imports accordingly
+  ([#80](https://github.com/quantmind/quantflow/pull/80)).
+- `implied_vol`/`implied_vols` fields and arguments renamed to `iv` across the
+  options surface, calibration and plotting APIs
+  ([#67](https://github.com/quantmind/quantflow/pull/67)).
+- Kalman filtering rewritten: the old `quantflow.ta.kalman` module was removed
+  and replaced by a state-space API with `LinearGaussianModel`, `KalmanFilter`
+  and `UnscentedKalmanFilter`
+  ([#76](https://github.com/quantmind/quantflow/pull/76),
+  [#79](https://github.com/quantmind/quantflow/pull/79)).
+- Options inputs and strategies reworked, with moneyness utilities moved into
+  the new `quantflow.options.moneyness` module
+  ([#68](https://github.com/quantmind/quantflow/pull/68)).
+- Interest-rate package overhaul: CIR and Vasicek models expanded,
+  Nelson-Siegel slimmed down, new no-discount curve
+  ([#74](https://github.com/quantmind/quantflow/pull/74)).
+- The `quantflow.ai` package was removed
+  ([#75](https://github.com/quantmind/quantflow/pull/75)).
+- EWMA alpha/period conversion corrected; results change for code relying on
+  the previous formula
+  ([#73](https://github.com/quantmind/quantflow/pull/73)).
+
+### New features
+
+- Interpolated yield curves
+  ([#81](https://github.com/quantmind/quantflow/pull/81)).
+- Historical calibration of interest-rate models
+  ([#77](https://github.com/quantmind/quantflow/pull/77)).
+- Yield-curve fitting of forward and discount factors
+  ([#63](https://github.com/quantmind/quantflow/pull/63)).
+- Yahoo Finance volatility-surface loader
+  ([#61](https://github.com/quantmind/quantflow/pull/61)).
+
+### Improvements and fixes
+
+- Increased test coverage across the package, the app and the CIR curves
+  ([#69](https://github.com/quantmind/quantflow/pull/69),
+  [#70](https://github.com/quantmind/quantflow/pull/70),
+  [#71](https://github.com/quantmind/quantflow/pull/71)).
+- Documentation examples are now built once in CI and shared by the
+  multi-arch image builds
+  ([#82](https://github.com/quantmind/quantflow/pull/82)).
+- Dependency updates, including aio-fluid
+  ([#78](https://github.com/quantmind/quantflow/pull/78)).
+
+### Documentation and assets
+
+- Docs improvements: plotly charts, example fixtures relocated, frontend
+  moved, CIR and Vasicek rates API pages
+  ([#62](https://github.com/quantmind/quantflow/pull/62),
+  [#64](https://github.com/quantmind/quantflow/pull/64),
+  [#65](https://github.com/quantmind/quantflow/pull/65),
+  [#66](https://github.com/quantmind/quantflow/pull/66),
+  [#72](https://github.com/quantmind/quantflow/pull/72)).
+- Code of conduct added
+  ([#83](https://github.com/quantmind/quantflow/pull/83)).
+
+[Full changelog](https://github.com/quantmind/quantflow/compare/v0.9.0...v1.0.0)
+
 ## v0.9.0
 
 Pricing-engine and calibration overhaul. `MaturityPricer` now evaluates call
