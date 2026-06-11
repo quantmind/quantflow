@@ -1,0 +1,27 @@
+name: main
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  image:
+    uses: ./.github/workflows/docker-multiarch.yml
+    with:
+      image-name: quantflow
+
+  deploy:
+    name: Create Deployment
+    runs-on: ubuntu-latest
+    permissions:
+      deployments: write
+    needs: image
+    steps:
+      - uses: chrnorm/deployment-action@v2
+        name: Create GitHub deployment
+        id: deployment
+        with:
+          token: "${{ secrets.TOKEN_DEPLOYMENT }}"
+          environment: prod
+          payload: '{"tag": "main-${{ github.sha }}"}'
