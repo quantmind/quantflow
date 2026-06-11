@@ -14,6 +14,8 @@ applyTo: '/**'
 * Never edit `readme.md` directly — it is generated from `docs/index.md` via `make docs`
 * To install all dependencies (including all optional extras) run `make install-dev`
 * Do not modify code unless the developer explicitly asks for a code change.
+* Never run `git commit` (or `git push`) unless the developer explicitly asks for it.
+  Preparing changes in the working tree is the deliverable; committing is the developer's action.
 * Never change code that works unless you have been asked by the developer to do so,
   or you have a good reason to believe the code is wrong.
 * Concentrate on fixing the problem, not on making the code look nice unless you are

@@ -54,6 +54,12 @@ jobs:
           token: ${{ secrets.CODECOV_TOKEN }}
           files: ./build/coverage.xml
 
+  examples:
+    if: github.ref != 'refs/heads/main'
+    uses: ./.github/workflows/examples.yml
+    with:
+      upload: false
+
   image:
     if: github.ref == 'refs/heads/main'
     uses: ./.github/workflows/docker-multiarch.yml
