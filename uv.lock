@@ -2819,7 +2819,7 @@ research = [
 
 [package.metadata]
 requires-dist = [
-    { name = "aio-fluid", extras = ["http"], marker = "extra == 'data'", specifier = ">=2.3.1" },
+    { name = "aio-fluid", extras = ["http"], marker = "extra == 'data'", specifier = ">=2.4.0" },
     { name = "ccy", specifier = ">=2.0.0" },
     { name = "pandas", specifier = ">=2.0.0" },
     { name = "pydantic", specifier = ">=2.0.2" },
@@ -2843,7 +2843,7 @@ dev = [
     { name = "types-python-dateutil", specifier = ">=2.9.0.20251115" },
 ]
 docs = [
-    { name = "aio-fluid", extras = ["http", "log", "k8s"], specifier = ">=2.3.1" },
+    { name = "aio-fluid", extras = ["http", "log", "k8s"], specifier = ">=2.4.0" },
     { name = "fastapi", specifier = ">=0.136.3" },
     { name = "griffe-pydantic", specifier = ">=1.1.0" },
     { name = "griffe-typingdoc", specifier = ">=0.2.7" },
