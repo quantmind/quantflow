@@ -34,6 +34,10 @@ pip install quantflow
 
 * **JSON Serializable**: all models and pricers are built on [Pydantic](https://docs.pydantic.dev), making them fully serializable to and from JSON.
 
+## Contributing
+
+Contributions are welcome! See the [contributing guide](https://quantflow.quantmind.com/contributing/) for how to get started, including documentation contributions, which are a great entry point.
+
 ## Citation
 
 If you use Quantflow in your research, please cite it using the metadata in [CITATION.cff](https://github.com/quantmind/quantflow/blob/main/CITATION.cff).
