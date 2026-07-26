@@ -119,7 +119,7 @@ async def _volatility_surface(asset: str) -> VolSurfaceResponse:
     options = [op.info() for op in surface.option_prices(converged=True)]
 
     max_ttm = max(float(op.ttm) for op in options) if options else 1.0
-    ttm_grid = list(np.linspace(1 / 365, max_ttm, 50))
+    ttm_grid = [float(t) for t in np.linspace(1 / 365, max_ttm, 50)]
 
     return VolSurfaceResponse(
         inputs=inputs,

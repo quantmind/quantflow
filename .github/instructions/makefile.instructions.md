@@ -1,3 +1,7 @@
+---
+applyTo: 'Makefile'
+---
+
 # Makefile Conventions
 
 - Keep all targets sorted alphabetically.

@@ -41,7 +41,7 @@ Example scripts can be rebuilt with `make docs-examples`.
 
 AI assisted contributions are welcome: using AI tools to draft, review, or improve documentation is perfectly fine.
 
-However, you are the author of your PR. You must understand every change you submit, be able to explain it, and respond to review feedback yourself. Please do not submit unreviewed AI output: if you cannot vouch for the content, do not open the PR.
+However, you are the author of your PR. You must understand every change you submit, be able to explain it, and respond to review feedback yourself. Please do not submit unreviewed AI output: if you cannot take responsibility for the content, do not open the PR.
 
 ## Code of Conduct
 
