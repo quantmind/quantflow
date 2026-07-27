@@ -155,6 +155,11 @@ const ssviSmile = selectedMaturity === null
 
 const xLabel = {moneyness: "Moneyness (log(K/F) / √T)", log_strike: "Log Strike (log K/F)", strike: "Strike"}[xAxis];
 
+const ivValues = smileData.map(d => d.iv).filter(v => v > 0);
+const ivMin = ivValues.length ? d3.min(ivValues) : 0;
+const ivMax = ivValues.length ? d3.max(ivValues) : 1;
+const ivPad = (ivMax - ivMin) * 0.1 || 0.05;
+
 display(Plot.plot({
   width: 800,
   height: 450,
@@ -162,7 +167,7 @@ display(Plot.plot({
   marginBottom: 50,
   style: {background: "transparent"},
   x: {label: xLabel},
-  y: {label: "Implied Volatility", percent: true},
+  y: {label: "Implied Volatility", tickFormat: d3.format(".0%"), domain: [Math.max(0, ivMin - ivPad), ivMax + ivPad]},
   color: {
     type: "ordinal",
     domain: maturities,
@@ -188,7 +193,6 @@ display(Plot.plot({
       stroke: "maturity",
       strokeWidth: 1
     }),
-    Plot.ruleY([0]),
     ...(xAxis === "moneyness" ? [Plot.ruleX([0], {stroke: "var(--theme-foreground-muted)", strokeDasharray: "4,4"})] : [])
   ]
 }));
