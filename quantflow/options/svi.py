@@ -13,23 +13,17 @@ from quantflow.utils.numbers import ONE, ZERO, to_decimal
 
 class SVI(BaseModel, extra="forbid"):
     r"""Gatheral's Stochastic Volatility Inspired (SVI) parametrisation of the
-    implied volatility smile.
+    implied volatility smile, introduced in
+    [Gatheral (2004)](../../bibliography.md#gatheral_svi) and further analysed
+    in [Gatheral and Jacquier (2014)](../../bibliography.md#gatheral_jacquier).
 
     The raw SVI parametrisation expresses the total implied variance
-    $w(k) = \sigma^2(k) \cdot \tau$ as a function of log-strike
-    $k = \log(K/F)$:
+    $w(k) = \sigma^2(k) \cdot \tau$ as a function of
+    [log-strike](../../glossary.md#log-strike) $k = \log(K/F)$:
 
     \begin{equation}
         w(k) = a + b \left[\rho (k - m) + \sqrt{(k - m)^2 + \theta^2}\right]
     \end{equation}
-
-    References:
-        Gatheral, J. (2004). A parsimonious arbitrage-free implied volatility
-        parametrization with application to the valuation of volatility
-        derivatives. Global Derivatives, Madrid.
-
-        Gatheral, J. and Jacquier, A. (2014). Arbitrage-free SVI volatility
-        surfaces. Quantitative Finance, 14(1), 59-71.
     """
 
     a: Decimal = Field(

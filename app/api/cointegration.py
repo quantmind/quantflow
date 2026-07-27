@@ -1,3 +1,4 @@
+import warnings
 from functools import partial
 
 import numpy as np
@@ -62,8 +63,12 @@ async def _cointegration(fmp: FMP, frequency: FMP.freq) -> CointegrationResponse
     log_prices_3 = np.log(prices_3)
     std = log_prices_3.std()
     scaled = log_prices_3 / std
-    johansen_result = coint_johansen(scaled, det_order=0, k_ar_diff=1)
-    deltas = johansen_result.evec[:, 0] / std.values
+    with warnings.catch_warnings():
+        # statsmodels assigns complex eigenvalue statistics into real arrays,
+        # discarding noise-level imaginary parts
+        warnings.simplefilter("ignore", np.exceptions.ComplexWarning)
+        johansen_result = coint_johansen(scaled, det_order=0, k_ar_diff=1)
+    deltas = np.real(johansen_result.evec[:, 0]) / std.values
     deltas = deltas / np.linalg.norm(deltas)
 
     residuals = log_prices_3.dot(deltas)

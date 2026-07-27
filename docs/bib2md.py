@@ -147,7 +147,7 @@ def format_entry(entry: dict[str, str]) -> str:
     if suffix:
         body = f"{body}, {suffix}"
 
-    return f"#### {key}\n\n{body}\n"
+    return f'<div class="bib-entry" markdown>\n\n#### {key}\n\n{body}\n\n</div>\n'
 
 
 # ---------------------------------------------------------------------------

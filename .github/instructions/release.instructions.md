@@ -1,3 +1,7 @@
+---
+applyTo: 'pyproject.toml,docs/release-notes.md,.github/workflows/release.yml,Makefile'
+---
+
 # Release Instructions
 
 Releases are driven by `v*` git tags. Pushing a tag triggers

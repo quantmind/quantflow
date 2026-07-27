@@ -33,7 +33,7 @@ readme = "readme.md"
 requires-python = ">=3.11,<3.15"
 dependencies = [
     "scipy>=1.14.1",
-    "pandas>=2.0.0",
+    "pandas>=2.3.0",
     "pydantic>=2.0.2",
     "ccy>=2.0.0",
     "statsmodels>=0.14.6,<0.15.0",
@@ -59,11 +59,11 @@ dev = [
     "ghp-import>=2.0.2",
     "hypothesis>=6.152.2",
     "isort>=8.0.0",
-    "mypy>=1.14.1",
+    "mypy>=2.3.0",
     "pytest-asyncio>=1.0.0",
     "pytest-cov>=7.0.0",
     "python-dotenv>=1.0.1",
-    "ruff>=0.15.4",
+    "ruff>=0.16.0",
     "types-python-dateutil>=2.9.0.20251115",
 ]
 docs = [

@@ -1,4 +1,5 @@
 site_name: QuantFlow
+site_description: Quantitative analysis and pricing tools.
 site_url: https://quantflow.quantmind.com
 site_dir: app/docs
 repo_name: quantmind/quantflow
@@ -82,6 +83,7 @@ nav:
           - Moneyness: api/options/moneyness.md
           - Put-Call Parity: api/options/parity.md
           - Pricer: api/options/pricer.md
+          - SSVI Surface: api/options/ssvi.md
           - SVI Smile: api/options/svi.md
           - Volatility Surface: api/options/vol_surface.md
       - Stochastic Processes:
@@ -145,6 +147,7 @@ nav:
 markdown_extensions:
   - admonition
   - attr_list
+  - md_in_html
   - tables
   - pymdownx.arithmatex:
       generic: true
@@ -157,6 +160,9 @@ markdown_extensions:
   - pymdownx.superfences
   - toc:
       permalink: true
+
+extra_css:
+  - stylesheets/bibliography.css
 
 extra_javascript:
   - javascripts/mathjax.js

@@ -142,7 +142,7 @@ class Paths(BaseModel, arbitrary_types_allowed=True):
         ts = self.time_steps // 2
         n = min(steps or ts, 100)
         lags = []
-        tau = []
+        tau: list[float] = []
         for lag in range(2, n):
             variances = np.var(self.data[lag:, :] - self.data[:-lag, :], axis=0)
             tau.extend(variances)

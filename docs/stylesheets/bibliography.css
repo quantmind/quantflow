@@ -1,0 +1,17 @@
+/* Highlight the whole bibliography entry (title and body) when its
+   anchor is the URL fragment, e.g. /bibliography/#carr_madan */
+.bib-entry {
+  display: flow-root;
+  padding: 0 0.6rem;
+  margin: 0 -0.6rem;
+  border-radius: 0.2rem;
+  border-bottom: 1px solid var(--md-default-fg-color--lightest);
+}
+
+.bib-entry:last-of-type {
+  border-bottom: none;
+}
+
+.bib-entry:has(:target) {
+  background-color: var(--md-accent-fg-color--transparent);
+}

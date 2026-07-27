@@ -96,12 +96,69 @@ display(html`<div style="display: flex; gap: 1rem; align-items: end; flex-wrap: 
 
 ## Volatility Smile
 
+The dots are the market implied volatilities of the bid and offer option quotes at each strike.
+
+The solid lines are the fitted [SSVI](https://quantflow.quantmind.com/api/options/ssvi/) model, sharing ${tex`\rho`}, ${tex`\eta`} and ${tex`\gamma`} across maturities with a monotone ATM variance curve.
+
+```js
+// SSVI model fitted to the surface (rho, eta, gamma shared, theta per maturity)
+const ssvi = {
+  rho: parseFloat(data.ssvi.rho),
+  eta: parseFloat(data.ssvi.eta),
+  gamma: parseFloat(data.ssvi.gamma),
+  ttm: data.ssvi.variance_curve.ttm.map(parseFloat),
+  theta: data.ssvi.variance_curve.theta.map(parseFloat)
+};
+
+// Total ATM variance at the fitted node closest to tau (nodes coincide with maturities)
+function ssviTheta(tau) {
+  let best = 0;
+  for (let i = 1; i < ssvi.ttm.length; ++i) {
+    if (Math.abs(ssvi.ttm[i] - tau) < Math.abs(ssvi.ttm[best] - tau)) best = i;
+  }
+  return ssvi.theta[best];
+}
+
+// SSVI implied volatility at log-strike k = log(K/F) and maturity tau
+function ssviIv(k, tau) {
+  const theta = ssviTheta(tau);
+  const phi = ssvi.eta / (Math.pow(theta, ssvi.gamma) * Math.pow(1 + theta, 1 - ssvi.gamma));
+  const pk = phi * k;
+  const w = 0.5 * theta * (1 + ssvi.rho * pk + Math.sqrt((pk + ssvi.rho) ** 2 + 1 - ssvi.rho ** 2));
+  return Math.sqrt(w / tau);
+}
+
+// Smooth SSVI smile per maturity across the observed log-strike range
+const ssviData = maturities.flatMap(m => {
+  const slice = enriched.filter(d => d.maturity === m);
+  if (!slice.length) return [];
+  const tau = slice[0].ttm;
+  const forward = slice[0].forward;
+  const ks = slice.map(d => d.log_strike);
+  const kmin = Math.min(...ks), kmax = Math.max(...ks);
+  const n = 80;
+  return d3.range(n + 1).map(i => {
+    const k = kmin + ((kmax - kmin) * i) / n;
+    return {maturity: m, log_strike: k, moneyness: k / Math.sqrt(tau), strike: forward * Math.exp(k), iv: ssviIv(k, tau)};
+  });
+});
+```
+
 ```js
 const smileData = selectedMaturity === null
   ? enriched
   : enriched.filter(d => d.maturity === selectedMaturity);
 
+const ssviSmile = selectedMaturity === null
+  ? ssviData
+  : ssviData.filter(d => d.maturity === selectedMaturity);
+
 const xLabel = {moneyness: "Moneyness (log(K/F) / √T)", log_strike: "Log Strike (log K/F)", strike: "Strike"}[xAxis];
+
+const ivValues = smileData.map(d => d.iv).filter(v => v > 0);
+const ivMin = ivValues.length ? d3.min(ivValues) : 0;
+const ivMax = ivValues.length ? d3.max(ivValues) : 1;
+const ivPad = (ivMax - ivMin) * 0.1 || 0.05;
 
 display(Plot.plot({
   width: 800,
@@ -110,7 +167,7 @@ display(Plot.plot({
   marginBottom: 50,
   style: {background: "transparent"},
   x: {label: xLabel},
-  y: {label: "Implied Volatility", percent: true},
+  y: {label: "Implied Volatility", tickFormat: d3.format(".0%"), domain: [Math.max(0, ivMin - ivPad), ivMax + ivPad]},
   color: {
     type: "ordinal",
     domain: maturities,
@@ -129,7 +186,13 @@ display(Plot.plot({
       opacity: 0.8,
       tip: true
     }),
-    Plot.ruleY([0]),
+    Plot.line(ssviSmile, {
+      x: xAxis,
+      y: "iv",
+      z: "maturity",
+      stroke: "maturity",
+      strokeWidth: 1
+    }),
     ...(xAxis === "moneyness" ? [Plot.ruleX([0], {stroke: "var(--theme-foreground-muted)", strokeDasharray: "4,4"})] : [])
   ]
 }));

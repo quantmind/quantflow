@@ -235,12 +235,14 @@ class OptionPrice(BaseModel):
     def calculate_price(self) -> Self:
         price = Decimal(
             sigfig(
-                black_price(
-                    np.asarray(self.log_strike),
-                    self.iv,
-                    self.ttm,
-                    1 if self.option_type.is_call() else -1,
-                ).sum(),
+                float(
+                    black_price(
+                        np.asarray(self.log_strike),
+                        self.iv,
+                        self.ttm,
+                        1 if self.option_type.is_call() else -1,
+                    ).sum()
+                ),
                 8,
             )
         )
