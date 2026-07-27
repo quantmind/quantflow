@@ -68,7 +68,7 @@ async def _cointegration(fmp: FMP, frequency: FMP.freq) -> CointegrationResponse
         # discarding noise-level imaginary parts
         warnings.simplefilter("ignore", np.exceptions.ComplexWarning)
         johansen_result = coint_johansen(scaled, det_order=0, k_ar_diff=1)
-    deltas = np.real_if_close(johansen_result.evec[:, 0]).real / std.values
+    deltas = np.real(johansen_result.evec[:, 0]) / std.values
     deltas = deltas / np.linalg.norm(deltas)
 
     residuals = log_prices_3.dot(deltas)

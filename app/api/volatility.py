@@ -9,6 +9,7 @@ from app.api.docs import load_description
 from quantflow.data.deribit import Deribit
 from quantflow.data.yahoo import Yahoo
 from quantflow.options.inputs import VolSurfaceInputs
+from quantflow.options.ssvi import SSVI
 from quantflow.options.surface import OptionInfo, VolSurfaceLoader
 from quantflow.rates.cir import CIRCurve
 from quantflow.rates.nelson_siegel import NelsonSiegelCurve
@@ -37,6 +38,7 @@ class ForwardCurveResponse(BaseModel):
 
 
 class VolSurfaceResponse(BaseModel):
+    ssvi: SSVI = Field(description="SSVI model fitted to the volatility surface")
     inputs: VolSurfaceInputs = Field(description="Volatility surface inputs")
     options: list[OptionInfo] = Field(
         description="List of option info with implied volatilities"
@@ -122,6 +124,7 @@ async def _volatility_surface(asset: str) -> VolSurfaceResponse:
     ttm_grid = [float(t) for t in np.linspace(1 / 365, max_ttm, 50)]
 
     return VolSurfaceResponse(
+        ssvi=SSVI.fit_vol_surface(surface),
         inputs=inputs,
         options=options,
         quote_curve=_curve_response(surface.quote_curve, max_ttm),

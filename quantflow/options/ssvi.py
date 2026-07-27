@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from collections.abc import Sequence
 from decimal import Decimal
-from typing import Self
+from typing import Any, Self
 
 import numpy as np
 from numpy.typing import ArrayLike
@@ -11,6 +11,7 @@ from scipy.interpolate import PchipInterpolator
 from scipy.optimize import least_squares
 from typing_extensions import Annotated, Doc
 
+from quantflow.options.surface import VolSurface
 from quantflow.utils.numbers import ONE, ZERO, DecimalNumber, to_decimal
 from quantflow.utils.types import FloatArray, FloatArrayLike, maybe_float
 
@@ -122,9 +123,9 @@ class SSVI(BaseModel, extra="forbid"):
     $\theta(\tau)$. A single maturity slice is represented by a one node
     [VarianceCurve][.VarianceCurve].
 
-    Use [fit][.fit] to calibrate a single slice, or [fit_surface][.fit_surface]
-    to jointly calibrate the global parameters and variance curve across
-    several maturities. A surface built this way is free of static arbitrage
+    Use [fit_surface][.fit_surface] to jointly calibrate the global parameters
+    and variance curve across several maturities. A surface built this way is
+    free of static arbitrage
     provided each slice satisfies
     [no_butterfly_arbitrage][.no_butterfly_arbitrage] and the ATM variance
     curve is non decreasing in maturity, $d\theta / d\tau \geq 0$.
@@ -243,60 +244,6 @@ class SSVI(BaseModel, extra="forbid"):
         return self.variance_curve.is_non_decreasing() and self.no_butterfly_arbitrage()
 
     @classmethod
-    def fit(
-        cls,
-        k: Annotated[ArrayLike, Doc("Log-moneyness log(K/F) for each option")],
-        iv: Annotated[ArrayLike, Doc("Observed implied volatilities")],
-        ttm: Annotated[float, Doc("Time to maturity in years")],
-        gamma: Annotated[
-            float,
-            Doc(
-                "Fixed power law exponent. A single slice only identifies the "
-                "value of the shape function, not the split between eta and "
-                "gamma, so gamma is held fixed"
-            ),
-        ] = 0.5,
-    ) -> Self:
-        """Fit an SSVI slice to observed implied volatilities via non-linear
-        least squares.
-
-        Minimises the sum of squared differences between observed and model
-        total variances, fitting rho, eta and theta with gamma held fixed.
-        """
-        k_arr = np.asarray(k, dtype=float)
-        iv_arr = np.asarray(iv, dtype=float)
-        w_obs = iv_arr**2 * ttm
-
-        atm_var = float(np.interp(0.0, k_arr, w_obs)) if k_arr.size else w_obs.mean()
-        x0 = [0.0, 1.0, max(atm_var, 1e-4)]
-
-        def residuals(x: list[float]) -> np.ndarray:
-            rho, eta, theta = x
-            phi = eta / (theta**gamma * (1 + theta) ** (1 - gamma))
-            pk = phi * k_arr
-            w_fit = 0.5 * theta * (1 + rho * pk + np.sqrt((pk + rho) ** 2 + 1 - rho**2))
-            return w_fit - w_obs
-
-        result = least_squares(
-            residuals,
-            x0,
-            bounds=(
-                [-1.0 + 1e-6, 1e-6, 1e-8],
-                [1.0 - 1e-6, np.inf, np.inf],
-            ),
-        )
-        rho, eta, theta = result.x
-        return cls(
-            rho=to_decimal(round(rho, 10)),
-            eta=to_decimal(round(eta, 10)),
-            gamma=to_decimal(round(gamma, 10)),
-            variance_curve=VarianceCurve(
-                ttm=[to_decimal(round(ttm, 10))],
-                theta=[to_decimal(round(theta, 10))],
-            ),
-        )
-
-    @classmethod
     def fit_surface(
         cls,
         slices: Annotated[
@@ -324,9 +271,13 @@ class SSVI(BaseModel, extra="forbid"):
         for k, iv, ttm in slices:
             k_arr = np.asarray(k, dtype=float)
             iv_arr = np.asarray(iv, dtype=float)
+            if k_arr.size == 0 or iv_arr.size == 0:
+                raise ValueError("k and iv must contain at least one quote")
+            if k_arr.shape != iv_arr.shape:
+                raise ValueError("k and iv must have the same shape")
             w_obs = iv_arr**2 * ttm
             data.append((k_arr, w_obs, float(ttm)))
-            atm = float(np.interp(0.0, k_arr, w_obs)) if k_arr.size else w_obs.mean()
+            atm = float(np.interp(0.0, k_arr, w_obs))
             thetas0.append(max(atm, 1e-4))
         order = np.argsort([ttm for _, _, ttm in data])
         data = [data[i] for i in order]
@@ -348,13 +299,16 @@ class SSVI(BaseModel, extra="forbid"):
             rho, eta, gamma = x[0], x[1], x[2]
             theta_nodes = theta_from_params(x)
             res = []
-            for (k_arr, w_obs, _), theta in zip(data, theta_nodes):
+            for (k_arr, w_obs, ttm), theta in zip(data, theta_nodes):
                 phi = eta / (theta**gamma * (1 + theta) ** (1 - gamma))
                 pk = phi * k_arr
                 w_fit = (
                     0.5 * theta * (1 + rho * pk + np.sqrt((pk + rho) ** 2 + 1 - rho**2))
                 )
-                res.append(w_fit - w_obs)
+                # normalise by ttm so residuals are in variance (sigma^2) space,
+                # otherwise short maturities carry tiny total variance and are
+                # outvoted by long maturities in the joint least squares
+                res.append((w_fit - w_obs) / ttm)
             return np.concatenate(res)
 
         n = len(data)
@@ -366,6 +320,7 @@ class SSVI(BaseModel, extra="forbid"):
                 [1.0 - 1e-6, np.inf, 1.0, np.inf] + [np.inf] * (n - 1),
             ),
         )
+
         rho, eta, gamma = result.x[:3]
         theta = theta_from_params(result.x)
         return cls(
@@ -377,3 +332,31 @@ class SSVI(BaseModel, extra="forbid"):
                 theta=[to_decimal(round(value, 10)) for value in theta],
             ),
         )
+
+    @classmethod
+    def fit_vol_surface(
+        cls,
+        surface: Annotated[
+            VolSurface[Any],
+            Doc(
+                "Volatility surface with calculated implied volatilities and "
+                "converged options"
+            ),
+        ],
+    ) -> Self:
+        """Fit an SSVI model to a volatility surface."""
+        slices = []
+        for index, maturity in enumerate(surface.maturities):
+            options = list(surface.option_prices(index=index, converged=True))
+            if not options:
+                continue
+            log_strike = np.array([option.log_strike for option in options])
+            order = np.argsort(log_strike)
+            slices.append(
+                (
+                    log_strike[order],
+                    np.array([option.iv for option in options])[order],
+                    maturity.ttm(surface.ref_date),
+                )
+            )
+        return cls.fit_surface(slices)

@@ -149,52 +149,6 @@ def test_butterfly_arbitrage_violated_for_large_eta() -> None:
 
 
 # ---------------------------------------------------------------------------
-# fit
-# ---------------------------------------------------------------------------
-
-
-def test_fit_recovers_parameters() -> None:
-    true_ssvi = make_ssvi(rho=-0.2, eta=0.8, gamma=0.5, theta=0.05)
-    iv_obs = true_ssvi.iv(K, TTM)
-    fitted = SSVI.fit(K, iv_obs, TTM)
-    assert float(fitted.rho) == pytest.approx(float(true_ssvi.rho), abs=1e-4)
-    assert float(fitted.eta) == pytest.approx(float(true_ssvi.eta), abs=1e-4)
-    assert float(fitted.theta) == pytest.approx(float(true_ssvi.theta), abs=1e-4)
-
-
-def test_fit_reproduces_ivs() -> None:
-    true_ssvi = make_ssvi()
-    iv_obs = true_ssvi.iv(K, TTM)
-    fitted = SSVI.fit(K, iv_obs, TTM)
-    iv_fit = fitted.iv(K, TTM)
-    assert np.allclose(iv_fit, iv_obs, atol=1e-5)
-
-
-def test_fit_respects_bounds() -> None:
-    true_ssvi = make_ssvi()
-    iv_obs = true_ssvi.iv(K, TTM)
-    fitted = SSVI.fit(K, iv_obs, TTM)
-    assert -1 < float(fitted.rho) < 1
-    assert float(fitted.eta) > 0
-    assert float(fitted.theta) > 0
-
-
-def test_fit_fixed_gamma() -> None:
-    true_ssvi = make_ssvi()
-    iv_obs = true_ssvi.iv(K, TTM)
-    fitted = SSVI.fit(K, iv_obs, TTM, gamma=0.4)
-    assert float(fitted.gamma) == pytest.approx(0.4)
-
-
-def test_fit_skewed_smile() -> None:
-    true_ssvi = make_ssvi(rho=-0.6)
-    iv_obs = true_ssvi.iv(K, TTM)
-    fitted = SSVI.fit(K, iv_obs, TTM)
-    iv_fit = fitted.iv(K, TTM)
-    assert np.allclose(iv_fit, iv_obs, atol=1e-5)
-
-
-# ---------------------------------------------------------------------------
 # fit_surface
 # ---------------------------------------------------------------------------
 
@@ -253,3 +207,18 @@ def test_fit_surface_enforces_monotone_variance_curve() -> None:
     fitted = SSVI.fit_surface(slices)
     thetas = [float(theta) for theta in fitted.variance_curve.theta]
     assert thetas == sorted(thetas)
+
+
+def test_fit_surface_requires_slices() -> None:
+    with pytest.raises(ValueError, match="at least one maturity slice"):
+        SSVI.fit_surface([])
+
+
+def test_fit_surface_rejects_empty_slice() -> None:
+    with pytest.raises(ValueError, match="at least one quote"):
+        SSVI.fit_surface([(np.array([]), np.array([]), 0.5)])
+
+
+def test_fit_surface_rejects_shape_mismatch() -> None:
+    with pytest.raises(ValueError, match="same shape"):
+        SSVI.fit_surface([(K, np.zeros(len(K) + 1), 0.5)])
