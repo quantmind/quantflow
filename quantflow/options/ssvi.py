@@ -2,44 +2,132 @@ from __future__ import annotations
 
 from collections.abc import Sequence
 from decimal import Decimal
+from typing import Self
 
 import numpy as np
 from numpy.typing import ArrayLike
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, PrivateAttr
+from scipy.interpolate import PchipInterpolator
 from scipy.optimize import least_squares
 from typing_extensions import Annotated, Doc
 
-from quantflow.utils.numbers import ONE, ZERO, to_decimal
+from quantflow.utils.numbers import ONE, ZERO, DecimalNumber, to_decimal
+from quantflow.utils.types import FloatArray, FloatArrayLike, maybe_float
+
+
+class VarianceCurve(BaseModel, extra="forbid"):
+    r"""Monotone interpolated total ATM variance curve.
+
+    The curve stores total ATM variances $\theta_i = w(0, \tau_i)$ at strictly
+    increasing maturities $\tau_i$. Static arbitrage requires the total ATM
+    variance curve to be non decreasing:
+
+    \begin{equation}
+        \frac{d\theta}{d\tau} \geq 0
+    \end{equation}
+
+    The nodes are validated to satisfy this condition, then interpolated with a
+    shape preserving cubic Hermite spline (PCHIP). For non decreasing nodes,
+    PCHIP is monotone between nodes and therefore preserves the condition.
+    """
+
+    ttm: list[DecimalNumber] = Field(
+        description="Times to maturity in years, strictly increasing",
+    )
+    theta: list[DecimalNumber] = Field(
+        description=(
+            "Total ATM variances at each maturity, same length as ttm, positive "
+            "and non decreasing"
+        ),
+    )
+
+    _ttm: FloatArray = PrivateAttr(default_factory=lambda: np.empty(0))
+    _theta: FloatArray = PrivateAttr(default_factory=lambda: np.empty(0))
+
+    def model_post_init(self, context: object) -> None:
+        """Cache nodes and validate the no calendar arbitrage condition."""
+        if len(self.ttm) != len(self.theta):
+            raise ValueError("ttm and theta must have equal length")
+        if not self.ttm:
+            raise ValueError("at least one variance curve node is required")
+        ttm = np.array([float(t) for t in self.ttm], dtype=float)
+        theta = np.array([float(t) for t in self.theta], dtype=float)
+        if np.any(ttm <= 0):
+            raise ValueError("ttm nodes must be strictly positive")
+        if np.any(np.diff(ttm) <= 0):
+            raise ValueError("ttm nodes must be strictly increasing")
+        if np.any(theta <= 0):
+            raise ValueError("theta nodes must be strictly positive")
+        if np.any(np.diff(theta) < 0):
+            raise ValueError("theta nodes must be non decreasing")
+        self._ttm = ttm
+        self._theta = theta
+
+    def total_variance(
+        self,
+        ttm: Annotated[ArrayLike, Doc("Time to maturity in years, scalar or array")],
+    ) -> FloatArrayLike:
+        r"""Interpolated total ATM variance $\theta(\tau)$."""
+        tau = np.maximum(np.asarray(ttm, dtype=float), 0.0)
+        if self._ttm.size < 2:
+            theta = np.full(np.shape(tau), self._theta[0])
+        else:
+            clamped = np.clip(tau, self._ttm[0], self._ttm[-1])
+            theta = PchipInterpolator(self._ttm, self._theta)(clamped)
+        return maybe_float(np.asarray(theta, dtype=float))
+
+    def derivative(
+        self,
+        ttm: Annotated[ArrayLike, Doc("Time to maturity in years, scalar or array")],
+    ) -> FloatArrayLike:
+        r"""Derivative $d\theta / d\tau$ of the interpolated variance curve."""
+        tau = np.maximum(np.asarray(ttm, dtype=float), 0.0)
+        if self._ttm.size < 2:
+            derivative = np.zeros_like(tau)
+        else:
+            clamped = np.clip(tau, self._ttm[0], self._ttm[-1])
+            inside = (tau >= self._ttm[0]) & (tau <= self._ttm[-1])
+            derivative = PchipInterpolator(self._ttm, self._theta).derivative()(clamped)
+            derivative = np.where(inside, derivative, 0.0)
+        return maybe_float(np.asarray(derivative, dtype=float))
+
+    def is_non_decreasing(self) -> bool:
+        r"""True if the variance nodes satisfy $d\theta / d\tau \geq 0$."""
+        return bool(np.all(np.diff(self._theta) >= 0))
 
 
 class SSVI(BaseModel, extra="forbid"):
-    r"""Surface SVI (SSVI) parametrisation of the implied volatility smile,
+    r"""Surface SVI (SSVI) parametrisation of the implied volatility surface,
     introduced by
     [Gatheral and Jacquier (2014)](../../bibliography.md#gatheral_jacquier).
 
     The SSVI parametrisation expresses the total implied variance
     $w(k) = \sigma^2(k) \cdot \tau$ as a function of log-strike
-    $k = \log(K/F)$ and the at-the-money total variance $\theta$:
+    $k = \log(K/F)$ and the total ATM variance $\theta_\tau = w(0, \tau)$:
 
     \begin{equation}
-        w(k) = \frac{\theta}{2}\left[1 + \rho \varphi(\theta) k
-        + \sqrt{\left(\varphi(\theta) k + \rho\right)^2 + 1 - \rho^2}\right]
+        w(k, \tau) = \frac{\theta_\tau}{2}\left[1 + \rho \varphi(\theta_\tau) k
+        + \sqrt{\left(\varphi(\theta_\tau) k + \rho\right)^2 + 1 - \rho^2}\right]
     \end{equation}
 
     The shape function $\varphi$ uses the power law form:
 
     \begin{equation}
-        \varphi(\theta) = \frac{\eta}{\theta^\gamma (1 + \theta)^{1 - \gamma}}
+        \varphi(\theta_\tau) =
+        \frac{\eta}{\theta_\tau^\gamma (1 + \theta_\tau)^{1 - \gamma}}
     \end{equation}
 
-    Each instance represents a single maturity slice through its $\theta$
-    parameter, while $\rho$, $\eta$ and $\gamma$ are global parameters shared
-    across the whole surface.
+    Each instance represents the surface through shared parameters $\rho$,
+    $\eta$ and $\gamma$ together with a monotone total ATM variance curve
+    $\theta(\tau)$. A single maturity slice is represented by a one node
+    [VarianceCurve][.VarianceCurve].
 
     Use [fit][.fit] to calibrate a single slice, or [fit_surface][.fit_surface]
-    to jointly calibrate the global parameters across several maturities. A
-    surface built this way is free of calendar spread arbitrage provided the
-    fitted $\theta$ are non decreasing in maturity.
+    to jointly calibrate the global parameters and variance curve across
+    several maturities. A surface built this way is free of static arbitrage
+    provided each slice satisfies
+    [no_butterfly_arbitrage][.no_butterfly_arbitrage] and the ATM variance
+    curve is non decreasing in maturity, $d\theta / d\tau \geq 0$.
     """
 
     rho: Decimal = Field(
@@ -68,51 +156,66 @@ class SSVI(BaseModel, extra="forbid"):
             "grows. Must lie in $(0, 1]$."
         ),
     )
-    theta: Decimal = Field(
-        gt=ZERO,
+    variance_curve: VarianceCurve = Field(
         description=(
-            "At-the-money total implied variance of the slice, "
-            "$\\theta = \\sigma_{ATM}^2 \\cdot \\tau$. This is the only "
-            "maturity-dependent parameter. Must be strictly positive."
+            "Monotone interpolated total ATM variance curve "
+            "$\\theta(\\tau) = \\sigma_{ATM}^2 \\cdot \\tau$."
         ),
     )
 
-    def phi(self) -> float:
-        r"""Power law shape function $\varphi(\theta)$ evaluated at the slice
-        at-the-money total variance $\theta$."""
-        theta = float(self.theta)
+    @property
+    def theta(self) -> Decimal:
+        """Total ATM variance of the first curve node."""
+        return self.variance_curve.theta[0]
+
+    def phi(
+        self,
+        ttm: Annotated[ArrayLike, Doc("Time to maturity in years, scalar or array")],
+    ) -> FloatArrayLike:
+        r"""Power law shape function $\varphi(\theta(\tau))$."""
+        theta = np.asarray(self.variance_curve.total_variance(ttm), dtype=float)
         eta = float(self.eta)
         gamma = float(self.gamma)
-        return eta / (theta**gamma * (1 + theta) ** (1 - gamma))
+        phi = eta / (theta**gamma * (1 + theta) ** (1 - gamma))
+        return maybe_float(np.asarray(phi, dtype=float))
 
     def total_variance(
         self,
         k: Annotated[ArrayLike, Doc("Log-moneyness log(K/F), scalar or array")],
-    ) -> np.ndarray:
-        r"""Total implied variance $w(k)$.
+        ttm: Annotated[ArrayLike, Doc("Time to maturity in years, scalar or array")],
+    ) -> FloatArrayLike:
+        r"""Total implied variance $w(k, \tau)$.
 
-        Returns an array of the same shape as $k$.
+        Returns an array broadcast from the shapes of $k$ and $\tau$.
         """
         k_arr = np.asarray(k, dtype=float)
-        theta = float(self.theta)
+        theta = np.asarray(self.variance_curve.total_variance(ttm), dtype=float)
         rho = float(self.rho)
-        phi = self.phi()
+        phi = np.asarray(self.phi(ttm), dtype=float)
         pk = phi * k_arr
-        return 0.5 * theta * (1 + rho * pk + np.sqrt((pk + rho) ** 2 + 1 - rho**2))
+        w = 0.5 * theta * (1 + rho * pk + np.sqrt((pk + rho) ** 2 + 1 - rho**2))
+        return maybe_float(np.asarray(w, dtype=float))
 
     def iv(
         self,
         k: Annotated[ArrayLike, Doc("Log-moneyness log(K/F), scalar or array")],
-        ttm: Annotated[float, Doc("Time to maturity in years")],
-    ) -> np.ndarray:
-        r"""Implied volatility $\sigma(k) = \sqrt{w(k) / \tau}$.
+        ttm: Annotated[ArrayLike, Doc("Time to maturity in years, scalar or array")],
+    ) -> FloatArrayLike:
+        r"""Implied volatility $\sigma(k, \tau) = \sqrt{w(k, \tau) / \tau}$.
 
         Returns an array of the same shape as $k$. The SSVI total variance is
         strictly positive for $|\rho| < 1$, so no clipping is required.
         """
-        return np.sqrt(self.total_variance(k) / ttm)
+        tau = np.asarray(ttm, dtype=float)
+        return maybe_float(np.asarray(np.sqrt(self.total_variance(k, ttm) / tau)))
 
-    def no_butterfly_arbitrage(self) -> bool:
+    def no_butterfly_arbitrage(
+        self,
+        ttm: Annotated[
+            float | None,
+            Doc("Optional maturity to check. All curve nodes are checked when omitted"),
+        ] = None,
+    ) -> bool:
         r"""True if the slice satisfies the sufficient conditions for absence
         of butterfly arbitrage.
 
@@ -126,10 +229,18 @@ class SSVI(BaseModel, extra="forbid"):
         \end{aligned}
         \end{equation}
         """
-        theta = float(self.theta)
         rho = abs(float(self.rho))
-        phi = self.phi()
-        return theta * phi * (1 + rho) < 4 and theta * phi * phi * (1 + rho) <= 4
+        ttms = [ttm] if ttm is not None else [float(t) for t in self.variance_curve.ttm]
+        for tau in ttms:
+            theta = float(self.variance_curve.total_variance(tau))
+            phi = float(self.phi(tau))
+            if not (theta * phi * (1 + rho) < 4 and theta * phi * phi * (1 + rho) <= 4):
+                return False
+        return True
+
+    def no_static_arbitrage(self) -> bool:
+        """True if the surface satisfies the implemented static checks."""
+        return self.variance_curve.is_non_decreasing() and self.no_butterfly_arbitrage()
 
     @classmethod
     def fit(
@@ -145,7 +256,7 @@ class SSVI(BaseModel, extra="forbid"):
                 "gamma, so gamma is held fixed"
             ),
         ] = 0.5,
-    ) -> SSVI:
+    ) -> Self:
         """Fit an SSVI slice to observed implied volatilities via non-linear
         least squares.
 
@@ -179,7 +290,10 @@ class SSVI(BaseModel, extra="forbid"):
             rho=to_decimal(round(rho, 10)),
             eta=to_decimal(round(eta, 10)),
             gamma=to_decimal(round(gamma, 10)),
-            theta=to_decimal(round(theta, 10)),
+            variance_curve=VarianceCurve(
+                ttm=[to_decimal(round(ttm, 10))],
+                theta=[to_decimal(round(theta, 10))],
+            ),
         )
 
     @classmethod
@@ -192,31 +306,49 @@ class SSVI(BaseModel, extra="forbid"):
                 "tuple per maturity slice"
             ),
         ],
-    ) -> list[SSVI]:
-        """Jointly fit the SSVI surface to several maturity slices via
+    ) -> Self:
+        r"""Jointly fit the SSVI surface to several maturity slices via
         non-linear least squares.
 
         The global parameters rho, eta and gamma are shared across all slices,
-        while each slice has its own at-the-money total variance theta.
-        Returns one [SSVI][quantflow.options.ssvi.SSVI] instance per input
-        slice, in the same order.
+        while the maturity dependent total ATM variance is represented by a
+        monotone [VarianceCurve][quantflow.options.ssvi.VarianceCurve]. The
+        fitted variables are the shared parameters $\rho$, $\eta$ and $\gamma$,
+        plus positive increments for the total ATM variance curve. The
+        increment parameterisation guarantees $d\theta / d\tau \geq 0$.
         """
+        if not slices:
+            raise ValueError("at least one maturity slice is required")
         data = []
         thetas0 = []
         for k, iv, ttm in slices:
             k_arr = np.asarray(k, dtype=float)
             iv_arr = np.asarray(iv, dtype=float)
             w_obs = iv_arr**2 * ttm
-            data.append((k_arr, w_obs))
+            data.append((k_arr, w_obs, float(ttm)))
             atm = float(np.interp(0.0, k_arr, w_obs)) if k_arr.size else w_obs.mean()
             thetas0.append(max(atm, 1e-4))
+        order = np.argsort([ttm for _, _, ttm in data])
+        data = [data[i] for i in order]
+        theta_nodes = np.array([thetas0[i] for i in order], dtype=float)
+        theta0 = theta_nodes[0]
+        increments0 = np.maximum(np.diff(theta_nodes), 0.0)
+        ttms = [data[i][2] for i in range(len(data))]
 
-        x0 = [0.0, 1.0, 0.5, *thetas0]
+        x0 = [0.0, 1.0, 0.5, theta0, *increments0]
+
+        def theta_from_params(x: np.ndarray) -> np.ndarray:
+            theta = np.empty(len(data), dtype=float)
+            theta[0] = x[3]
+            if theta.size > 1:
+                theta[1:] = theta[0] + np.cumsum(x[4:])
+            return theta
 
         def residuals(x: np.ndarray) -> np.ndarray:
             rho, eta, gamma = x[0], x[1], x[2]
+            theta_nodes = theta_from_params(x)
             res = []
-            for (k_arr, w_obs), theta in zip(data, x[3:]):
+            for (k_arr, w_obs, _), theta in zip(data, theta_nodes):
                 phi = eta / (theta**gamma * (1 + theta) ** (1 - gamma))
                 pk = phi * k_arr
                 w_fit = (
@@ -230,17 +362,18 @@ class SSVI(BaseModel, extra="forbid"):
             residuals,
             x0,
             bounds=(
-                [-1.0 + 1e-6, 1e-6, 1e-6] + [1e-8] * n,
-                [1.0 - 1e-6, np.inf, 1.0] + [np.inf] * n,
+                [-1.0 + 1e-6, 1e-6, 1e-6, 1e-8] + [0.0] * (n - 1),
+                [1.0 - 1e-6, np.inf, 1.0, np.inf] + [np.inf] * (n - 1),
             ),
         )
         rho, eta, gamma = result.x[:3]
-        return [
-            cls(
-                rho=to_decimal(round(rho, 10)),
-                eta=to_decimal(round(eta, 10)),
-                gamma=to_decimal(round(gamma, 10)),
-                theta=to_decimal(round(theta, 10)),
-            )
-            for theta in result.x[3:]
-        ]
+        theta = theta_from_params(result.x)
+        return cls(
+            rho=to_decimal(round(rho, 10)),
+            eta=to_decimal(round(eta, 10)),
+            gamma=to_decimal(round(gamma, 10)),
+            variance_curve=VarianceCurve(
+                ttm=[to_decimal(round(ttm, 10)) for ttm in ttms],
+                theta=[to_decimal(round(value, 10)) for value in theta],
+            ),
+        )

@@ -4,8 +4,9 @@ from decimal import Decimal
 
 import numpy as np
 import pytest
+from pydantic import ValidationError
 
-from quantflow.options.ssvi import SSVI
+from quantflow.options.ssvi import SSVI, VarianceCurve
 
 TTM = 1.0
 K = np.linspace(-0.5, 0.5, 21)
@@ -14,7 +15,14 @@ K = np.linspace(-0.5, 0.5, 21)
 def make_ssvi(**kwargs: float) -> SSVI:
     defaults = dict(rho=-0.3, eta=1.0, gamma=0.5, theta=0.04)
     defaults.update(kwargs)
-    return SSVI(**{k: Decimal(str(v)) for k, v in defaults.items()})
+    theta = defaults.pop("theta")
+    return SSVI(
+        **{k: Decimal(str(v)) for k, v in defaults.items()},
+        variance_curve=VarianceCurve(
+            ttm=[Decimal(str(TTM))],
+            theta=[Decimal(str(theta))],
+        ),
+    )
 
 
 # ---------------------------------------------------------------------------
@@ -25,13 +33,45 @@ def make_ssvi(**kwargs: float) -> SSVI:
 def test_phi_power_law() -> None:
     ssvi = make_ssvi(eta=1.0, gamma=0.5, theta=0.04)
     expected = 1.0 / (0.04**0.5 * 1.04**0.5)
-    assert ssvi.phi() == pytest.approx(expected)
+    assert ssvi.phi(TTM) == pytest.approx(expected)
 
 
 def test_phi_decreases_with_theta() -> None:
-    phi_short = make_ssvi(theta=0.01).phi()
-    phi_long = make_ssvi(theta=0.25).phi()
+    phi_short = make_ssvi(theta=0.01).phi(TTM)
+    phi_long = make_ssvi(theta=0.25).phi(TTM)
     assert phi_short > phi_long
+
+
+# ---------------------------------------------------------------------------
+# variance curve
+# ---------------------------------------------------------------------------
+
+
+def test_variance_curve_interpolates_nodes() -> None:
+    curve = VarianceCurve(
+        ttm=[Decimal("0.25"), Decimal("0.5"), Decimal("1.0")],
+        theta=[Decimal("0.02"), Decimal("0.05"), Decimal("0.09")],
+    )
+    assert curve.total_variance(0.5) == pytest.approx(0.05)
+
+
+def test_variance_curve_is_monotone_between_nodes() -> None:
+    curve = VarianceCurve(
+        ttm=[Decimal("0.25"), Decimal("0.5"), Decimal("1.0")],
+        theta=[Decimal("0.02"), Decimal("0.05"), Decimal("0.09")],
+    )
+    grid = np.linspace(0.25, 1.0, 101)
+    theta = np.asarray(curve.total_variance(grid), dtype=float)
+    assert np.all(np.diff(theta) >= 0)
+    assert np.all(np.asarray(curve.derivative(grid), dtype=float) >= -1e-12)
+
+
+def test_variance_curve_rejects_decreasing_theta() -> None:
+    with pytest.raises(ValidationError):
+        VarianceCurve(
+            ttm=[Decimal("0.25"), Decimal("0.5"), Decimal("1.0")],
+            theta=[Decimal("0.02"), Decimal("0.05"), Decimal("0.04")],
+        )
 
 
 # ---------------------------------------------------------------------------
@@ -41,32 +81,32 @@ def test_phi_decreases_with_theta() -> None:
 
 def test_total_variance_is_positive() -> None:
     ssvi = make_ssvi()
-    w = ssvi.total_variance(K)
+    w = ssvi.total_variance(K, TTM)
     assert np.all(w > 0)
 
 
 def test_total_variance_atm_equals_theta() -> None:
     ssvi = make_ssvi()
-    assert ssvi.total_variance(0.0) == pytest.approx(float(ssvi.theta))
+    assert ssvi.total_variance(0.0, TTM) == pytest.approx(float(ssvi.theta))
 
 
 def test_total_variance_symmetric_when_rho_zero() -> None:
     ssvi = make_ssvi(rho=0.0)
-    w = ssvi.total_variance(K)
+    w = np.asarray(ssvi.total_variance(K, TTM), dtype=float)
     assert np.allclose(w, w[::-1])
 
 
 def test_total_variance_skew_sign() -> None:
     # negative rho => put wing (k < 0) above call wing (k > 0)
     ssvi = make_ssvi(rho=-0.5)
-    w = ssvi.total_variance(K)
+    w = np.asarray(ssvi.total_variance(K, TTM), dtype=float)
     assert w[0] > w[-1]
 
 
 def test_total_variance_scalar_input() -> None:
     ssvi = make_ssvi()
-    w = ssvi.total_variance(0.0)
-    assert w.shape == (1,) or w.ndim == 0
+    w = ssvi.total_variance(0.0, TTM)
+    assert isinstance(w, float)
 
 
 # ---------------------------------------------------------------------------
@@ -83,7 +123,7 @@ def test_iv_positive() -> None:
 def test_iv_consistent_with_total_variance() -> None:
     ssvi = make_ssvi()
     iv = ssvi.iv(K, TTM)
-    w = ssvi.total_variance(K)
+    w = ssvi.total_variance(K, TTM)
     assert np.allclose(iv**2 * TTM, w)
 
 
@@ -165,7 +205,7 @@ def _synthetic_surface(
     slices = []
     for theta, ttm in zip(thetas, ttms):
         ssvi = make_ssvi(rho=rho, eta=eta, gamma=gamma, theta=theta)
-        slices.append((K, ssvi.iv(K, ttm), ttm))
+        slices.append((K, np.asarray(ssvi.iv(K, ttm), dtype=float), ttm))
     return slices
 
 
@@ -174,35 +214,42 @@ def test_fit_surface_recovers_parameters() -> None:
     ttms = [0.25, 0.5, 1.0]
     slices = _synthetic_surface(-0.3, 0.9, 0.45, thetas, ttms)
     fitted = SSVI.fit_surface(slices)
-    assert len(fitted) == len(slices)
-    for ssvi in fitted:
-        assert float(ssvi.rho) == pytest.approx(-0.3, abs=1e-3)
-        assert float(ssvi.eta) == pytest.approx(0.9, abs=1e-2)
-        assert float(ssvi.gamma) == pytest.approx(0.45, abs=1e-2)
-    for ssvi, theta in zip(fitted, thetas):
-        assert float(ssvi.theta) == pytest.approx(theta, abs=1e-4)
+    assert float(fitted.rho) == pytest.approx(-0.3, abs=1e-3)
+    assert float(fitted.eta) == pytest.approx(0.9, abs=1e-2)
+    assert float(fitted.gamma) == pytest.approx(0.45, abs=1e-2)
+    for ttm, theta in zip(ttms, thetas):
+        assert fitted.variance_curve.total_variance(ttm) == pytest.approx(
+            theta, abs=1e-4
+        )
 
 
 def test_fit_surface_shares_global_parameters() -> None:
     slices = _synthetic_surface(-0.2, 1.1, 0.5, [0.03, 0.06], [0.5, 1.0])
     fitted = SSVI.fit_surface(slices)
-    assert fitted[0].rho == fitted[1].rho
-    assert fitted[0].eta == fitted[1].eta
-    assert fitted[0].gamma == fitted[1].gamma
+    assert len(set(fitted.variance_curve.theta)) == 2
+    assert float(fitted.rho) == pytest.approx(-0.2, abs=1e-3)
+    assert float(fitted.eta) == pytest.approx(1.1, abs=1e-2)
+    assert float(fitted.gamma) == pytest.approx(0.5, abs=1e-2)
 
 
 def test_fit_surface_reproduces_ivs() -> None:
     slices = _synthetic_surface(-0.4, 0.8, 0.5, [0.02, 0.05, 0.09], [0.25, 0.5, 1.0])
     fitted = SSVI.fit_surface(slices)
-    for ssvi, (k, iv_obs, ttm) in zip(fitted, slices):
-        assert np.allclose(ssvi.iv(k, ttm), iv_obs, atol=1e-5)
+    for k, iv_obs, ttm in slices:
+        assert np.allclose(fitted.iv(k, ttm), iv_obs, atol=1e-5)
 
 
 def test_fit_surface_thetas_increasing() -> None:
     # increasing ATM total variance => no calendar spread arbitrage
     slices = _synthetic_surface(-0.3, 0.9, 0.5, [0.02, 0.05, 0.09], [0.25, 0.5, 1.0])
     fitted = SSVI.fit_surface(slices)
-    thetas = [float(ssvi.theta) for ssvi in fitted]
+    thetas = [float(theta) for theta in fitted.variance_curve.theta]
     assert thetas == sorted(thetas)
-    for ssvi in fitted:
-        assert ssvi.no_butterfly_arbitrage()
+    assert fitted.no_static_arbitrage()
+
+
+def test_fit_surface_enforces_monotone_variance_curve() -> None:
+    slices = _synthetic_surface(-0.3, 0.9, 0.5, [0.02, 0.015, 0.09], [0.25, 0.5, 1.0])
+    fitted = SSVI.fit_surface(slices)
+    thetas = [float(theta) for theta in fitted.variance_curve.theta]
+    assert thetas == sorted(thetas)

@@ -18,8 +18,8 @@ class SVI(BaseModel, extra="forbid"):
     in [Gatheral and Jacquier (2014)](../../bibliography.md#gatheral_jacquier).
 
     The raw SVI parametrisation expresses the total implied variance
-    $w(k) = \sigma^2(k) \cdot \tau$ as a function of log-strike
-    $k = \log(K/F)$:
+    $w(k) = \sigma^2(k) \cdot \tau$ as a function of
+    [log-strike](../../glossary.md#log-strike) $k = \log(K/F)$:
 
     \begin{equation}
         w(k) = a + b \left[\rho (k - m) + \sqrt{(k - m)^2 + \theta^2}\right]
