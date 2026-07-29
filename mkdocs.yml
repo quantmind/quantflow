@@ -96,6 +96,7 @@ nav:
           - Jump Diffusion: api/sp/jump_diffusion.md
           - Ornstein-Uhlenbeck: api/sp/ou.md
           - Poisson Process: api/sp/poisson.md
+          - Rough Heston Model: api/sp/rough_heston.md
           - Wiener Process: api/sp/wiener.md
           - Copulas: api/sp/copula.md
       - Timeseries Analysis:

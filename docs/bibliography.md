@@ -86,6 +86,14 @@ Wang X., He X., Zhao Y., Zuo Z. (2017) [Parameter Estimations of Heston Model Ba
 
 <div class="bib-entry" markdown>
 
+#### eleuch_rosenbaum
+
+Omar El Euch, Mathieu Rosenbaum. (2019) [The characteristic function of rough Heston models](https://doi.org/10.1111/mafi.12173){target="_blank" rel="noopener"}, Mathematical Finance, 29(1):3-38
+
+</div>
+
+<div class="bib-entry" markdown>
+
 #### gamma-ou
 
 P. Sabino, C. Petroni. (2021) [Gamma Related Ornstein-Uhlenbeck Processes and their Simulation](https://doi.org/10.1080/00949655.2020.1842408){target="_blank" rel="noopener"}, Journal of Statistical Computation and Simulation, 91(6)
@@ -97,6 +105,14 @@ P. Sabino, C. Petroni. (2021) [Gamma Related Ornstein-Uhlenbeck Processes and th
 #### gatheral_jacquier
 
 Jim Gatheral, Antoine Jacquier. (2014) [Arbitrage-free SVI volatility surfaces](https://doi.org/10.1080/14697688.2013.819986){target="_blank" rel="noopener"}, Quantitative Finance, 14(1):59-71
+
+</div>
+
+<div class="bib-entry" markdown>
+
+#### gatheral_jaisson_rosenbaum
+
+Jim Gatheral, Thibault Jaisson, Mathieu Rosenbaum. (2018) [Volatility is rough](https://doi.org/10.1080/14697688.2017.1393551){target="_blank" rel="noopener"}, Quantitative Finance, 18(6):933-949
 
 </div>
 
