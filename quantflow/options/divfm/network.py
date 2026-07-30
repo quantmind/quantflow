@@ -66,17 +66,17 @@ def _extract_subnet(subnet: nn.Sequential) -> SubnetWeights:
 class DIVFMNetwork(nn.Module):
     r"""Neural network implementing the latent factor functions
 
-    $$
-    f_p\left(m, \tau, X; \theta\right)
-    $$
+    \begin{equation}
+    f_i\left(M, \tau, X; \theta\right) \qquad i = 1, \dots, p
+    \end{equation}
 
-    Produces $P$ factor functions with the following structural constraints
+    Produces $p$ factor functions with the following structural constraints
     (as in [gauthier](../../bibliography.md#gauthier)):
 
     - $f_1 = 1$ constant, not learned
-    - $f_2(\tau, X)$ depends only on time-to-maturity and optional extra features X
-    - $f_3(m)$ depends only on time-scaled moneyness
-    - $f_4, ..., f_p (m, \tau, X)$ unrestricted
+    - $f_2(\tau, X)$ depends only on time to maturity and optional extra features $X$
+    - $f_3(M)$ depends only on time-scaled moneyness
+    - $f_4, \dots, f_p(M, \tau, X)$ unrestricted
 
     These structural constraints improve interpretability by associating each
     factor with a specific dimension of the implied volatility surface.
@@ -91,7 +91,7 @@ class DIVFMNetwork(nn.Module):
         num_factors: Annotated[
             int,
             Doc(
-                "Total number of factors p (including the constant $f_1$). "
+                "Total number of factors $p$ (including the constant $f_1$). "
                 "Must be greater or equal 3 to satisfy the structural constraints"
             ),
         ] = 5,
@@ -101,13 +101,13 @@ class DIVFMNetwork(nn.Module):
         ] = 32,
         num_hidden_layers: Annotated[
             int,
-            Doc("Number of hidden layers L - 2 (default 3 gives L=5 total)"),
+            Doc("Number of hidden layers $L - 2$ (default 3 gives $L = 5$ total)"),
         ] = 3,
         extra_features: Annotated[
             int,
             Doc(
-                "Number of additional observable features X beyond (M, tau),"
-                " e.g. time-to-earnings-announcement"
+                r"Number of additional observable features $X$ beyond ($M$, $\tau$),"
+                " e.g. time to earnings announcement"
             ),
         ] = 0,
     ) -> None:

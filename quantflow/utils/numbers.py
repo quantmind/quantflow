@@ -10,6 +10,7 @@ ZERO = Decimal(0)
 ONE = Decimal(1)
 
 DecimalNumber = Annotated[Decimal, WithJsonSchema({"type": "number"})]
+"""Add typing number to Pydantic serialization"""
 
 
 @unique

@@ -23,6 +23,7 @@ This page gives an overview of all stochastic processes available in the library
 
 | Process | Description |
 |---|---|
+| [PoissonBase][quantflow.sp.poisson.PoissonBase] | Abstract base for Poisson-style jump processes |
 | [PoissonProcess][quantflow.sp.poisson.PoissonProcess] | Homogeneous Poisson process |
 | [CompoundPoissonProcess][quantflow.sp.poisson.CompoundPoissonProcess] | Poisson process with random jump sizes |
 | [DSP][quantflow.sp.dsp.DSP] | Doubly stochastic (Cox) Poisson process |

@@ -4,6 +4,7 @@ import {fileURLToPath} from "node:url";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const apiOrigin = process.env.QUANTFLOW_API_ORIGIN || "";
+const mkdocsOrigin = process.env.QUANTFLOW_MKDOCS_ORIGIN || "https://quantflow.quantmind.com";
 const headSnippet = readFileSync(resolve(__dirname, "../docs/assets/logos/head-snippet.html"), "utf-8")
   .trim()
   .replace(/href="\//g, 'href="https://quantflow.quantmind.com/');
@@ -14,6 +15,7 @@ export default {
   output: "../app/examples",
   base: "/examples",
   head: `<meta name="quantflow-api-origin" content="${apiOrigin}">
+<meta name="quantflow-mkdocs-origin" content="${mkdocsOrigin}">
 <script async src="https://www.googletagmanager.com/gtag/js?id=G-CM0DR45HDR"></script>
 <script>window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag('js',new Date());gtag('config','G-CM0DR45HDR');</script>
 ${headSnippet}`,
@@ -21,8 +23,8 @@ ${headSnippet}`,
   pages: [{name: "Volatility Surface", path: "/volatility-surface"}, {name: "Yield Curve", path: "/yield-curve"}, {name: "Sampling", path: "/sampling"}, {name: "SuperSmoother", path: "/supersmoother"}, {name: "Cointegration", path: "/cointegration"}, {name: "Hurst Exponent", path: "/hurst"}, {name: "Heston Vol Surface", path: "/heston-vol-surface"}],
   header: `
     <nav class="qf-header-inner">
-      <a href="https://quantflow.quantmind.com" class="qf-header-logo" title="QuantFlow">
-        <img src="https://quantflow.quantmind.com/assets/logos/quantflow-mark-dark.svg" alt="logo">
+      <a href="${mkdocsOrigin}" class="qf-header-logo" title="QuantFlow">
+        <img src="${mkdocsOrigin}/assets/logos/quantflow-mark-dark.svg" alt="logo">
         <span class="qf-header-title">QuantFlow</span>
       </a>
       <div class="qf-header-spacer"></div>
@@ -47,5 +49,5 @@ ${headSnippet}`,
       })();
     </script>
   `,
-  footer: 'Quantflow live examples · <a href="https://quantflow.quantmind.com/.api/redoc">API Reference</a>'
+  footer: `Quantflow live examples · <a href="${apiOrigin || "https://quantflow.quantmind.com"}/.api/redoc">API Reference</a>`
 };

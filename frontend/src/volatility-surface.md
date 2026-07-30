@@ -98,33 +98,33 @@ display(html`<div style="display: flex; gap: 1rem; align-items: end; flex-wrap: 
 
 The dots are the market implied volatilities of the bid and offer option quotes at each strike.
 
-The solid lines are the fitted [SSVI](https://quantflow.quantmind.com/api/options/ssvi/) model, sharing ${tex`\rho`}, ${tex`\eta`} and ${tex`\gamma`} across maturities with a monotone ATM variance curve.
+The solid lines are the fitted [eSSVI](https://quantflow.quantmind.com/api/options/ssvi/) model: each maturity has its own ATM total variance ${tex`\theta`}, curvature ${tex`\psi`} and correlation ${tex`\rho`}, calibrated slice by slice so the surface is free of static arbitrage by construction.
 
 ```js
-// SSVI model fitted to the surface (rho, eta, gamma shared, theta per maturity)
+// eSSVI model fitted to the surface (theta, psi and rho per maturity)
 const ssvi = {
-  rho: parseFloat(data.ssvi.rho),
-  eta: parseFloat(data.ssvi.eta),
-  gamma: parseFloat(data.ssvi.gamma),
-  ttm: data.ssvi.variance_curve.ttm.map(parseFloat),
-  theta: data.ssvi.variance_curve.theta.map(parseFloat)
+  ttm: data.ssvi.ttm.map(parseFloat),
+  theta: data.ssvi.theta.map(parseFloat),
+  psi: data.ssvi.psi.map(parseFloat),
+  rho: data.ssvi.rho.map(parseFloat)
 };
 
-// Total ATM variance at the fitted node closest to tau (nodes coincide with maturities)
-function ssviTheta(tau) {
+// Fitted node closest to tau (nodes coincide with maturities)
+function ssviNode(tau) {
   let best = 0;
   for (let i = 1; i < ssvi.ttm.length; ++i) {
     if (Math.abs(ssvi.ttm[i] - tau) < Math.abs(ssvi.ttm[best] - tau)) best = i;
   }
-  return ssvi.theta[best];
+  return best;
 }
 
-// SSVI implied volatility at log-strike k = log(K/F) and maturity tau
+// eSSVI implied volatility at log-strike k = log(K/F) and maturity tau
 function ssviIv(k, tau) {
-  const theta = ssviTheta(tau);
-  const phi = ssvi.eta / (Math.pow(theta, ssvi.gamma) * Math.pow(1 + theta, 1 - ssvi.gamma));
-  const pk = phi * k;
-  const w = 0.5 * theta * (1 + ssvi.rho * pk + Math.sqrt((pk + ssvi.rho) ** 2 + 1 - ssvi.rho ** 2));
+  const node = ssviNode(tau);
+  const theta = ssvi.theta[node];
+  const rho = ssvi.rho[node];
+  const pk = (ssvi.psi[node] / theta) * k;
+  const w = 0.5 * theta * (1 + rho * pk + Math.sqrt((pk + rho) ** 2 + 1 - rho ** 2));
   return Math.sqrt(w / tau);
 }
 
@@ -198,14 +198,49 @@ display(Plot.plot({
 }));
 ```
 
-## Volatility Term Structure
+## eSSVI Parameters
+
+The calibrated parameter term structure at each maturity node. The curvature is shown in standard deviation units, ${tex`\psi_\tau / 2\sqrt{\theta_\tau}`}, the ATM slope scale of the total standard deviation smile ${tex`s(k) = \sqrt{w(k)}`}: unlike the raw ${tex`\psi_\tau`}, which grows mechanically with the total variance, it is comparable across maturities. The correlation ${tex`\rho_\tau`} tilts the smile (negative values produce the put skew); the ATM slope of the std dev smile is their product.
 
 ```js
-// ATM vol per maturity (closest to moneyness = 0)
+const ssviParams = ssvi.ttm.flatMap((t, i) => [
+  {ttm: t, value: ssvi.psi[i] / (2 * Math.sqrt(ssvi.theta[i])), param: "Std dev curvature ψ/2√θ"},
+  {ttm: t, value: ssvi.rho[i], param: "Correlation ρ"}
+]);
+
+display(Plot.plot({
+  width: 800,
+  height: 350,
+  marginLeft: 60,
+  marginBottom: 50,
+  style: {background: "transparent"},
+  x: {label: "Time to Maturity (years)", grid: true},
+  y: {label: "Parameter value", grid: true},
+  color: {
+    legend: true,
+    domain: ["Std dev curvature ψ/2√θ", "Correlation ρ"],
+    range: ["var(--qf-accent)", "var(--qf-primary)"]
+  },
+  marks: [
+    Plot.line(ssviParams, {x: "ttm", y: "value", stroke: "param", strokeWidth: 2}),
+    Plot.dot(ssviParams, {x: "ttm", y: "value", fill: "param", r: 4, tip: true}),
+    Plot.ruleY([0], {stroke: "var(--theme-foreground-muted)", strokeDasharray: "4,4"})
+  ]
+}));
+```
+
+## Volatility Term Structure
+
+The dots are the market implied volatilities of the quotes closest to the money. The line is the fitted eSSVI ATM standard deviation ${tex`\sigma_{ATM}(\tau) = \sqrt{\theta_\tau / \tau}`}, which should track the market points closely.
+
+```js
+// ATM vol per maturity (closest to moneyness = 0) and the eSSVI ATM vol
 const atmByMaturity = maturities.map(m => {
   const slice = enriched.filter(d => d.maturity === m);
   const atm = slice.reduce((best, d) => Math.abs(d.moneyness) < Math.abs(best.moneyness) ? d : best);
-  return {maturity: m, iv: atm.iv};
+  const tau = slice[0].ttm;
+  const node = ssviNode(tau);
+  return {maturity: m, iv: atm.iv, model_iv: Math.sqrt(ssvi.theta[node] / tau)};
 });
 
 display(Plot.plot({
@@ -216,12 +251,17 @@ display(Plot.plot({
   style: {background: "transparent"},
   x: {label: "Maturity", type: "point"},
   y: {label: "ATM Implied Volatility", percent: true},
+  color: {
+    legend: true,
+    domain: ["Market ATM", "eSSVI √(θ/τ)"],
+    range: ["var(--qf-accent)", "var(--theme-foreground-focus)"]
+  },
   marks: [
-    Plot.line(atmByMaturity, {x: "maturity", y: "iv", stroke: "var(--theme-foreground-focus)", strokeWidth: 2}),
+    Plot.line(atmByMaturity, {x: "maturity", y: "model_iv", stroke: "var(--theme-foreground-focus)", strokeWidth: 2}),
     Plot.dot(atmByMaturity, {
       x: "maturity",
       y: "iv",
-      fill: "var(--theme-foreground-focus)",
+      fill: "var(--qf-accent)",
       r: 5,
       tip: true
     })

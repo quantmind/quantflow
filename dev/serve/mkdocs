@@ -1,0 +1,12 @@
+#!/usr/bin/env bash
+set -e
+
+QUANTFLOW_MKDOCS_PORT=${QUANTFLOW_MKDOCS_PORT:-8000}
+
+echo "Documentation: http://127.0.0.1:${QUANTFLOW_MKDOCS_PORT}"
+
+uv run mkdocs serve \
+    --dev-addr 127.0.0.1:${QUANTFLOW_MKDOCS_PORT} \
+    --livereload \
+    --watch quantflow \
+    --watch docs

@@ -169,15 +169,27 @@ Moneyness is used in the context of option pricing in order to compare options w
 where $K$ is the strike, $F$ is the Forward price, and $\tau$ is the time to maturity. It is used to compare options with different maturities by scaling the [log-strike](#log-strike) by the square root of time to maturity. This is because the price of the underlying asset is subject to random fluctuations, if these fluctuations follow a Brownian motion than the standard deviation of the price movement will increase with the square root of time.
 
 
+## Moneyness Convexity Adjusted
+
+The convexity-adjusted moneyness, often called standardized moneyness in the literature, extends the [vol-adjusted moneyness](#moneyness-vol-adjusted) with the convexity correction of the lognormal distribution. It is defined as
+
+\begin{equation}
+    m_c = \frac{1}{\sigma\sqrt{\tau}}\ln\frac{K}{F} + \frac{\sigma\sqrt{\tau}}{2} = m_\sigma + \frac{\sigma\sqrt{\tau}}{2} = -d_2
+\end{equation}
+
+where $K$ is the strike, $F$ is the Forward price, $\tau$ is the time to maturity, $\sigma$ is the implied Black volatility and $d_2$ is the standard argument of the [Black formula](api/options/black.md#quantflow.options.bs.black_price).
+
+Unlike the [vol-adjusted moneyness](#moneyness-vol-adjusted), which is centered at the forward, this measure is zero at the median of the risk-neutral distribution, $K = F e^{-\sigma^2\tau/2}$.
+
 ## Moneyness Vol Adjusted
 
 The vol-adjusted moneyness is used in the context of option pricing in order to compare options with different maturities and different levels of volatility. It is defined as
 
 \begin{equation}
-    m_\sigma = \frac{1}{\sigma\sqrt{\tau}}\ln\frac{K}{F}
+    m_\sigma = \frac{1}{\sigma\sqrt{\tau}}\ln\frac{K}{F} = \frac{m}{\sigma}
 \end{equation}
 
-where $K$ is the strike, $F$ is the Forward price, $\tau$ is the time to maturity and $\sigma$ is the implied Black volatility.
+where $K$ is the strike, $F$ is the Forward price, $\tau$ is the time to maturity, $\sigma$ is the implied Black volatility and $m$ is the [moneyness](#moneyness).
 
 ## Parseval's Theorem
 
@@ -243,6 +255,22 @@ Used in the Kalman filter when the observation noise covariance is a scaled
 identity $h^2 I$ and the observation matrix is a column vector $c$. The
 innovation covariance $S = h^2 I + P\,c c^\top$ is then a rank-1 update to a
 scaled identity, avoiding a full $O(n_y^3)$ solve.
+
+## Standard Normal Distribution
+
+The normal distribution with zero mean and unit variance.
+Throughout the documentation, $N$ denotes its
+[CDF](#cumulative-distribution-function-cdf) and $n$ its
+[PDF](#probability-density-function-pdf):
+
+\begin{equation}
+\begin{aligned}
+    n(x) &= \frac{1}{\sqrt{2\pi}} e^{-\frac{x^2}{2}} \\
+    N(x) &= \int_{-\infty}^x n(s)\ ds
+\end{aligned}
+\end{equation}
+
+This notation is used by the [Black Pricing](api/options/black.md) formulas.
 
 ## State-Space Model
 

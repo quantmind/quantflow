@@ -1,0 +1,12 @@
+#!/usr/bin/env bash
+set -e
+
+QUANTFLOW_OBSERVABLE_PORT=${QUANTFLOW_OBSERVABLE_PORT:-8006}
+
+echo "Examples: http://127.0.0.1:${QUANTFLOW_OBSERVABLE_PORT}"
+
+npm --prefix frontend \
+    run dev \
+    -- \
+    --host 127.0.0.1 \
+    --port ${QUANTFLOW_OBSERVABLE_PORT}

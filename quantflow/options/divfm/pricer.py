@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import numpy as np
 from pydantic import Field
+from typing_extensions import Annotated, Doc
 
 from quantflow.dists.marginal1d import Greeks, OptionPricingResult
 from quantflow.utils.types import FloatArray, FloatArrayLike
@@ -56,12 +57,13 @@ class DIVFMPricer(OptionPricerBase, arbitrary_types_allowed=True):
     fixed latent functions learned by a neural network:
 
     \begin{equation}
-        \sigma_t\left(m, \tau\right) = f\left(m, \tau; theta\right) \dot \beta_t
+        \sigma_t\left(M, \tau\right) = f\left(M, \tau; \theta\right) \cdot \beta_t
     \end{equation}
 
-    where M = log(K/F) / sqrt(tau) is the time-scaled moneyness, f is
-    implemented by [DIVFMWeights][quantflow.options.divfm.weights.DIVFMWeights],
-    and beta_t are daily coefficients computed in closed form via OLS.
+    where $M$ is the time-scaled [moneyness](../../glossary.md#moneyness),
+    $f$ is implemented by
+    [DIVFMWeights][quantflow.options.divfm.weights.DIVFMWeights],
+    and $\beta_t$ are daily coefficients computed in closed form via OLS.
 
     Call prices are derived from the IV surface via Black-Scholes.
 
@@ -72,7 +74,7 @@ class DIVFMPricer(OptionPricerBase, arbitrary_types_allowed=True):
        [DIVFMWeights][quantflow.options.divfm.weights.DIVFMWeights] instance.
     2. Construct this pricer with those weights.
     3. Call [calibrate][quantflow.options.divfm.pricer.DIVFMPricer.calibrate]
-       with the day's observed implied volatilities to fit beta_t.
+       with the day's observed implied volatilities to fit $\beta_t$.
     4. Use [maturity][quantflow.options.pricer.OptionPricerBase.maturity],
        [price][quantflow.options.pricer.OptionPricerBase.price] etc. as normal.
     """
@@ -85,7 +87,7 @@ class DIVFMPricer(OptionPricerBase, arbitrary_types_allowed=True):
     )
     betas: FloatArray = Field(
         default_factory=lambda: np.zeros(5),
-        description="Daily OLS factor loadings beta_t, shape (num_factors,)",
+        description=r"Daily OLS factor loadings $\beta_t$, shape (num_factors,)",
     )
     extra: FloatArray | None = Field(
         default=None,
@@ -98,31 +100,35 @@ class DIVFMPricer(OptionPricerBase, arbitrary_types_allowed=True):
 
     def calibrate(
         self,
-        moneyness_ttm: FloatArray,
-        ttm: FloatArray,
-        ivs: FloatArray,
-        extra: FloatArray | None = None,
+        moneyness_ttm: Annotated[
+            FloatArray,
+            Doc(
+                "Shape (N,). Time-scaled"
+                " [moneyness](../../glossary.md#moneyness) $M$"
+            ),
+        ],
+        ttm: Annotated[
+            FloatArray, Doc(r"Shape (N,). Time to maturity $\tau$ in years")
+        ],
+        ivs: Annotated[FloatArray, Doc("Shape (N,). Observed implied volatilities")],
+        extra: Annotated[
+            FloatArray | None,
+            Doc(
+                "Shape (N, extra_features) or None. Additional features passed"
+                " to the network (e.g. time to earnings announcement)"
+            ),
+        ] = None,
     ) -> None:
-        """Fit daily OLS coefficients from observed implied volatilities.
+        r"""Fit daily OLS coefficients from observed implied volatilities.
 
         Given a set of options observed on a single day, computes the
         closed-form OLS estimate:
 
-            beta_t = (F^T F)^{-1} F^T IV_t
+        \begin{equation}
+            \beta_t = \left(F^T F\right)^{-1} F^T \mathrm{IV}_t
+        \end{equation}
 
-        where F is the (N, p) matrix of factor values from the network.
-
-        Parameters
-        ----------
-        moneyness_ttm:
-            Shape (N,). Time-scaled moneyness M = log(K/F) / sqrt(tau).
-        ttm:
-            Shape (N,). Time-to-maturity tau in years.
-        ivs:
-            Shape (N,). Observed implied volatilities.
-        extra:
-            Shape (N, extra_features) or None. Additional features passed to
-            the network (e.g. time-to-earnings-announcement).
+        where $F$ is the (N, p) matrix of factor values from the network.
         """
         extra_arr = np.asarray(extra, dtype=np.float32) if extra is not None else None
         F = self.weights.forward(

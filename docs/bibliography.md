@@ -110,6 +110,22 @@ Jim Gatheral. (2004) [A parsimonious arbitrage-free implied volatility parameter
 
 <div class="bib-entry" markdown>
 
+#### gauthier
+
+Geneviève Gauthier, Frédéric Godin, Sebastien Legros. (2025) [Deep Implied Volatility Factor Models for Stock Options](https://dx.doi.org/10.2139/ssrn.5283770){target="_blank" rel="noopener"}
+
+</div>
+
+<div class="bib-entry" markdown>
+
+#### hendriks_martini
+
+Sebas Hendriks, Claude Martini. (2019) [The extended SSVI volatility surface](https://dx.doi.org/10.2139/ssrn.2971502){target="_blank" rel="noopener"}, Journal of Computational Finance, 22(5):25-39
+
+</div>
+
+<div class="bib-entry" markdown>
+
 #### heston-calibration
 
 Milan Mrázek, Jan Pospíšil. (2017) [Calibration and simulation of Heston model](https://doi.org/10.1515/math-2017-0058){target="_blank" rel="noopener"}, Open Mathematics, 15(1):679-704
@@ -169,6 +185,14 @@ Peter Molnar. (2020) [Volatility modeling and forecasting: utilization of realiz
 #### saez
 
 G. K. G. Saez. (2014) [Fourier Transform Methods for Option Pricing: An Application to extended Heston-type Models](https://www.uv.es/bfc/TFM2014/008-014.pdf){target="_blank" rel="noopener"}, Universidad del Pais Vasco
+
+</div>
+
+<div class="bib-entry" markdown>
+
+#### ssvi_calibration
+
+Pierre Cohort, Jacopo Corbetta, Claude Martini, Ismail Laachir. (2019) [Robust calibration and arbitrage-free interpolation of SSVI slices](https://doi.org/10.48550/arXiv.1804.04924){target="_blank" rel="noopener"}, Decisions in Economics and Finance, 42(2)
 
 </div>
 

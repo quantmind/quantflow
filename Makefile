@@ -6,7 +6,7 @@ help:
 	@echo ================================================================================
 
 .PHONY: app-serve
-app-serve:			## serve app
+app-serve:			## serve python api app only
 	@MICRO_SERVICE_HOST=127.0.0.1 uv run python -m app
 
 .PHONY: docs
@@ -25,7 +25,7 @@ docs-examples:			## Regenerate docs examples
 
 .PHONY: docs-serve
 docs-serve:			## serve docs, examples, and API with auto-reload
-	@bash ./dev/docs-serve
+	@bash ./dev/serve/all
 
 .PHONY: frontend-build
 frontend-build:			## build Observable frontend examples
@@ -34,7 +34,7 @@ frontend-build:			## build Observable frontend examples
 
 .PHONY: frontend-serve
 frontend-serve:			## serve Observable frontend with auto-reload
-	@bash ./dev/frontend-serve
+	@bash ./dev/serve/observable
 
 .PHONY: install-dev
 install-dev:			## Install development dependencies
