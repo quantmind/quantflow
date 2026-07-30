@@ -802,13 +802,13 @@ class ForwardPricer(BaseModel, Generic[S]):
 
 
 class VolSurface(ForwardPricer[S]):
-    """Represents a volatility surface, which captures the implied volatility of an
-    option for different strikes and maturities.
+    """Represents a volatility surface, which captures the implied volatility of
+    options for different strikes and maturities.
 
-    Key Concepts:
+    ## Key Concepts
 
     * **Implied Volatility:** The market's expectation of future volatility, derived
-        from the price of an option using a pricing model (e.g., Black-Scholes).
+        from the price of an option using Black-Scholes.
     * **Strike Price:** The price at which the underlying asset can be bought
         (call option) or sold (put option) at the option's expiry.
     * **Time to Maturity:** The time remaining until the option's expiration date.

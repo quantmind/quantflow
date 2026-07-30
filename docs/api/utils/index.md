@@ -10,4 +10,5 @@ users who want to extend the library or understand its inner workings.
 |---|---|
 | [Bins](bins.md) | Histogram and event-density utilities |
 | [Numbers](numbers.md) | Decimal number helpers |
+| [Price](price.md) | Bid/ask price and price/volume containers |
 | [Types](types.md) | Shared type aliases (FloatArray, etc.) |

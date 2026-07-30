@@ -12,6 +12,8 @@ The central concept is the [discount factor](../../glossary.md#discount-factor) 
     f(\tau) = -\frac{\partial \ln D_\tau}{\partial \tau}
 \end{equation}
 
+The trivial [NoDiscountCurve][quantflow.rates.no_discount.NoDiscountCurve] implementation has zero rates, so its discount factor is always one.
+
 **[Interpolated Curves](interpolated.md)** build the term structure directly from observed zero rates at a set of anchor dates. [InterpolatedLinearCurve][quantflow.rates.interpolated.InterpolatedLinearCurve] interpolates the zero rate piecewise linearly, while [InterpolatedMonotonicCubicCurve][quantflow.rates.interpolated.InterpolatedMonotonicCubicCurve] uses a shape-preserving cubic spline.
 
 **[CIRCurve](cir.md)** is a short-rate term-structure model derived from the Cox-Ingersoll-Ross process, with positive-rate dynamics and closed-form discount factors.
@@ -21,3 +23,5 @@ The central concept is the [discount factor](../../glossary.md#discount-factor) 
 **[VasicekCurve](vasicek.md)** is a Gaussian mean-reverting short-rate model with analytical formulas for discount factors and instantaneous forward rates.
 
 **[Calibration](calibration.md)** provides [YieldCurveCalibration][quantflow.rates.calibration.YieldCurveCalibration], the base class for fitting a yield curve to discount factors, and [OptionsDiscountingCalibration][quantflow.rates.calibration.OptionsDiscountingCalibration], which bootstraps asset and quote curves from put-call parity observations.
+
+Each curve model provides its own calibration wrapper: [InterpolatedYieldCurveCalibration][quantflow.rates.interpolated.InterpolatedYieldCurveCalibration], [CIRCurveCalibration][quantflow.rates.cir.CIRCurveCalibration], [NelsonSiegelCalibration][quantflow.rates.nelson_siegel.NelsonSiegelCalibration] and [VasicekCurveCalibration][quantflow.rates.vasicek.VasicekCurveCalibration].

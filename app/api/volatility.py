@@ -38,7 +38,7 @@ class ForwardCurveResponse(BaseModel):
 
 
 class VolSurfaceResponse(BaseModel):
-    ssvi: SSVI = Field(description="SSVI model fitted to the volatility surface")
+    ssvi: SSVI = Field(description="eSSVI model fitted to the volatility surface")
     inputs: VolSurfaceInputs = Field(description="Volatility surface inputs")
     options: list[OptionInfo] = Field(
         description="List of option info with implied volatilities"

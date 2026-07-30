@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import numpy as np
 from pydantic import BaseModel, Field
+from typing_extensions import Annotated, Doc
 
 from quantflow.utils.types import FloatArray
 
@@ -38,14 +39,14 @@ class LayerWeights(BaseModel, arbitrary_types_allowed=True):
     bn_gamma: FloatArray | None = Field(
         default=None,
         description=(
-            "Batch norm learnable scale (gamma), shape (out,)."
+            r"Batch norm learnable scale ($\gamma$), shape (out,)."
             " None for fixed (affine=False) output normalization"
         ),
     )
     bn_beta: FloatArray | None = Field(
         default=None,
         description=(
-            "Batch norm learnable shift (beta), shape (out,)."
+            r"Batch norm learnable shift ($\beta$), shape (out,)."
             " None for fixed (affine=False) output normalization"
         ),
     )
@@ -86,47 +87,49 @@ class DIVFMWeights(BaseModel):
     """
 
     subnet_ttm: SubnetWeights = Field(
-        description="Weights for the time-to-maturity sub-network (f_2)"
+        description="Weights for the time to maturity sub-network ($f_2$)"
     )
     subnet_moneyness: SubnetWeights = Field(
-        description="Weights for the moneyness sub-network (f_3)"
+        description="Weights for the moneyness sub-network ($f_3$)"
     )
     subnet_joint: SubnetWeights | None = Field(
         default=None,
         description=(
-            "Weights for the joint (M, tau) sub-network (f_4 ... f_p)."
-            " None when num_factors == 3"
+            r"Weights for the joint ($M$, $\tau$) sub-network"
+            r" ($f_4, \dots, f_p$). None when num_factors == 3"
         ),
     )
     num_factors: int = Field(
-        description="Total number of factors p (including the constant f_1)"
+        description="Total number of factors $p$ (including the constant $f_1$)"
     )
     extra_features: int = Field(
         default=0,
-        description="Number of additional observable features X beyond (M, tau)",
+        description=(
+            r"Number of additional observable features $X$ beyond ($M$, $\tau$)"
+        ),
     )
 
     def forward(
         self,
-        moneyness_ttm: FloatArray,
-        ttm: FloatArray,
-        extra: FloatArray | None = None,
+        moneyness_ttm: Annotated[
+            FloatArray,
+            Doc(
+                "Shape (N,). Time-scaled"
+                " [moneyness](../../glossary.md#moneyness) $M$"
+            ),
+        ],
+        ttm: Annotated[
+            FloatArray, Doc(r"Shape (N,). Time to maturity $\tau$ in years")
+        ],
+        extra: Annotated[
+            FloatArray | None,
+            Doc("Shape (N, extra_features) or None. Additional observable features"),
+        ] = None,
     ) -> FloatArray:
-        """Compute factor values for a batch of options.
+        r"""Compute factor values for a batch of options.
 
-        Parameters
-        ----------
-        moneyness_ttm:
-            Shape (N,). Time-scaled moneyness M = log(K/F) / sqrt(tau).
-        ttm:
-            Shape (N,). Time-to-maturity tau in years.
-        extra:
-            Shape (N, extra_features) or None. Additional observable features.
-
-        Returns
-        -------
-        FloatArray
-            Shape (N, num_factors). Factor values [f_1, f_2, ..., f_p].
+        Returns an array of shape (N, num_factors) with the factor values
+        $f_1, f_2, \dots, f_p$.
         """
         N = len(moneyness_ttm)
 

@@ -47,7 +47,7 @@ class BlackSensitivities(BaseModel, frozen=True, arbitrary_types_allowed=True):
         description="Change in price per unit change in forward"
     )
     gamma: FloatArrayLike = Field(
-        description="Change in delta per unit change in forward"
+        description="Change in delta per unit relative change in forward"
     )
     vega: FloatArrayLike = Field(
         description="Change in price per unit change in volatility"
@@ -79,15 +79,32 @@ class BlackSensitivities(BaseModel, frozen=True, arbitrary_types_allowed=True):
         Either the implied volatility `iv` or the option `price` must be provided.
         If both are provided, the implied volatility will be used.
 
-        \begin{align}
-            d_1 &= \frac{-k + \frac{1}{2}\sigma^2 t}{\sigma\sqrt{t}} \\
-            \Delta &= N(d_1) - \frac{1-s}{2} \\
-            \Gamma &= \frac{N'(d_1)}{\sigma\sqrt{t}} \\
-            \nu &= N'(d_1)\sqrt{t} \\
-            \text{volga} &= \nu \cdot \frac{d_1 d_2}{\sigma\sqrt{t}} \\
-            \text{vanna} &= -\frac{N'(d_1) d_2}{\sigma\sqrt{t}} \\
-            \Theta &= -\frac{N'(d_1)\sigma}{2\sqrt{t}}
-        \end{align}
+        \begin{equation}
+        \begin{aligned}
+            \Delta &= \frac{\partial O_s}{\partial F}
+                = N(d_1) - \frac{1-s}{2} \\
+            \Gamma &= F \frac{\partial^2 O_s}{\partial F^2}
+                = \frac{n(d_1)}{\sigma\sqrt{\tau}} \\
+            \nu &= \frac{\partial o_s}{\partial \sigma}
+                = n(d_1)\sqrt{\tau} \\
+            \text{volga} &= \frac{\partial \nu}{\partial \sigma}
+                = \nu \cdot \frac{d_1 d_2}{\sigma} \\
+            \text{vanna} &= \frac{\partial \Delta}{\partial \sigma}
+                = -\frac{n(d_1) d_2}{\sigma} \\
+            \Theta &= -\frac{\partial o_s}{\partial \tau}
+                = -\frac{n(d_1)\sigma}{2\sqrt{\tau}}
+        \end{aligned}
+        \end{equation}
+
+        where $o_s$ is the option price in
+        [forward space](../../glossary.md#forward-space) indexed by the
+        call/put flag $s$ ($o_1 = c$ the call, $o_{-1} = p$ the put),
+        $O_s = F\, o_s$ is the undiscounted option price in currency units
+        for forward $F$, with the derivative in $\Delta$ taken at fixed
+        strike $K$.
+        $N$ and $n$ are the CDF and PDF of the
+        [standard normal distribution](../../glossary.md#standard-normal-distribution)
+        and $d_1$, $d_2$ are defined in [black_price][...black_price].
         """
         if iv is None:
             if price is None:
@@ -117,8 +134,8 @@ class BlackSensitivities(BaseModel, frozen=True, arbitrary_types_allowed=True):
             delta=nd1 - 0.5 * (1 - s),
             gamma=npd1 / sig,
             vega=vega,
-            volga=vega * d1 * d2 / sig,
-            vanna=-npd1 * d2 / sig,
+            volga=vega * d1 * d2 / iv,
+            vanna=-npd1 * d2 / iv,
             theta=-npd1 * iv / (2 * np.sqrt(ttm)),
         )
 
@@ -168,14 +185,17 @@ def black_price(
     r"""Calculate the undiscounted Black call/put option prices in forward terms
     from the following params
 
-    $$
-    \begin{align}
-        c &= \frac{C}{D_\tau F_\tau} = N(d1) - e^k N(d2) \\
-        p &= \frac{P}{D_\tau F_\tau} = -N(-d1) + e^k N(-d2) \\
-        d1 &= \frac{-k + \frac{\sigma^2 t}{2}}{\sigma \sqrt{t}} \\
-        d2 &= d1 - \sigma \sqrt{t}
-    \end{align}
-    $$
+    \begin{equation}
+    \begin{aligned}
+        c &= \frac{C}{D_\tau F_\tau} = N(d_1) - e^k N(d_2) \\
+        p &= \frac{P}{D_\tau F_\tau} = -N(-d_1) + e^k N(-d_2) \\
+        d_1 &= \frac{-k + \frac{\sigma^2 \tau}{2}}{\sigma \sqrt{\tau}} \\
+        d_2 &= d_1 - \sigma \sqrt{\tau}
+    \end{aligned}
+    \end{equation}
+
+    where $N$ is the CDF of the
+    [standard normal distribution](../../glossary.md#standard-normal-distribution).
 
     The results are option prices divided by the forward price also known as
     option prices in forward terms. These are non-dimensional prices
@@ -208,13 +228,17 @@ def black_vega(
     r"""Calculate the Black option vega from the log-strikes,
     volatility and time to maturity. The vega is the same for calls and puts.
 
-    $$
-    \begin{align}
+    \begin{equation}
+    \begin{aligned}
         \nu &= \frac{\partial c}{\partial \sigma} \\
             &= \frac{\partial p}{\partial \sigma}\\
-            &= N'(d1) \sqrt{t}
-    \end{align}
-    $$
+            &= n(d_1) \sqrt{\tau}
+    \end{aligned}
+    \end{equation}
+
+    where $n$ is the PDF of the
+    [standard normal distribution](../../glossary.md#standard-normal-distribution)
+    and $d_1$ is defined in [black_price][..black_price].
 
     Same formula for both calls and puts.
     """

@@ -21,11 +21,26 @@ which accepts price inputs incrementally and builds the surface through its `sur
 The lower-level [GenericVolSurfaceLoader][quantflow.options.surface.GenericVolSurfaceLoader]
 provides the same functionality with a user-defined security type.
 
+## Pricing
+
+| Class | Description |
+|---|---|
+| [black_price][quantflow.options.bs.black_price] | Undiscounted Black call/put prices in [forward space](../../glossary.md#forward-space) |
+| [BlackSensitivities][quantflow.options.bs.BlackSensitivities] | Black model sensitivities (Greeks) in forward space |
+| [implied_black_volatility][quantflow.options.bs.implied_black_volatility] | Implied Black volatility via Newton's method |
+| [SVI][quantflow.options.svi.SVI] | SVI parameterisation of a single-maturity volatility smile |
+| [SSVI][quantflow.options.ssvi.SSVI] | SSVI parameterisation of the full volatility surface |
+| [DIVFMPricer][quantflow.options.divfm.DIVFMPricer] | Deep Implied Volatility Factor Model pricer |
+| [OptionPricer][quantflow.options.pricer.OptionPricer] | Option pricing with stochastic process models |
+| [VolModelCalibration][quantflow.options.calibration.base.VolModelCalibration] | Base class for calibrating vol models (Heston and BNS variants) to a surface |
+| [PutCallParity][quantflow.options.parity.PutCallParity] | [Put-call parity](../../glossary.md#put-call-parity) relationships between calls, puts and forwards |
+| [moneyness][quantflow.options.moneyness] | Conversions between strike, log-strike and [moneyness](../../glossary.md#moneyness) |
+
 ## Price Classes
 
 | Class | Description |
 |---|---|
-| [Price][quantflow.options.surface.Price] | Base bid/ask price for any security |
+| [Price][quantflow.utils.price.Price] | Base bid/ask price for any security |
 | [SpotPrice][quantflow.options.surface.SpotPrice] | Spot bid/ask price of an underlying asset |
 | [FwdPrice][quantflow.options.surface.FwdPrice] | Forward bid/ask price at a specific maturity |
 | [OptionPrice][quantflow.options.surface.OptionPrice] | Single-sided option price with implied volatility and convergence flag |

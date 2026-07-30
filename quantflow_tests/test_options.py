@@ -103,6 +103,35 @@ def test_ditm_black_pricing():
     assert pytest.approx(result[0]) == 0.25
 
 
+@pytest.mark.parametrize("s", [1.0, -1.0])
+@pytest.mark.parametrize("ttm", [0.25, 0.8, 2.0])
+def test_black_sensitivities_finite_difference(s: float, ttm: float):
+    k = 0.1
+    iv = 0.35
+    greeks = bs.BlackSensitivities.calculate(k=k, ttm=ttm, s=s, iv=iv)
+    h = 1e-5
+
+    def price(forward: float = 1.0, sigma: float = iv, t: float = ttm) -> float:
+        return float(forward * bs.black_price(k - np.log(forward), sigma, t, s))
+
+    def delta_of(sigma: float) -> float:
+        return (price(1 + h, sigma) - price(1 - h, sigma)) / (2 * h)
+
+    delta = (price(1 + h) - price(1 - h)) / (2 * h)
+    gamma = (price(1 + h) - 2 * price() + price(1 - h)) / h**2
+    vega = (price(sigma=iv + h) - price(sigma=iv - h)) / (2 * h)
+    volga = (price(sigma=iv + h) - 2 * price() + price(sigma=iv - h)) / h**2
+    vanna = (delta_of(iv + h) - delta_of(iv - h)) / (2 * h)
+    theta = -(price(t=ttm + h) - price(t=ttm - h)) / (2 * h)
+
+    assert greeks.delta == pytest.approx(delta, rel=1e-4)
+    assert greeks.gamma == pytest.approx(gamma, rel=1e-3)
+    assert greeks.vega == pytest.approx(vega, rel=1e-4)
+    assert greeks.volga == pytest.approx(volga, rel=1e-3)
+    assert greeks.vanna == pytest.approx(vanna, rel=1e-3)
+    assert greeks.theta == pytest.approx(theta, rel=1e-4)
+
+
 @pytest.mark.skip(reason="Failing test, needs investigation")
 def test_vol_surface(vol_surface: VolSurface):
     assert vol_surface.ref_date

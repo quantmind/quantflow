@@ -139,7 +139,7 @@ nav:
       - Kalman Filter: theory/kalman.md
       - Lévy Process: theory/levy.md
       - Option Pricing: theory/option_pricing.md
-  - Live Examples: https://quantflow.quantmind.com/examples
+  - Live Examples: !ENV [QUANTFLOW_OBSERVABLE_URL, "https://quantflow.quantmind.com/examples"]
   - Glossary: glossary.md
   - Contributing: contributing.md
   - Bibliography: bibliography.md

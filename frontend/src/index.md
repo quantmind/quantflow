@@ -7,6 +7,13 @@ title: Quantflow examples
 Interactive examples are built as static Observable pages and use the Quantflow
 FastAPI service for Python computations and market data.
 
+For the full library
+reference, visit the ${html`<a href=${mkdocsOrigin()}>main documentation</a>`}.
+
+```js
+import {mkdocsOrigin} from "./lib/api.js";
+```
+
 <div class="grid cards">
   <a class="card" href="./volatility-surface">Volatility Surface</a>
   <a class="card" href="./yield-curve">Yield Curve</a>

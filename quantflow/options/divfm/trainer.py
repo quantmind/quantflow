@@ -22,13 +22,13 @@ class DayData:
     """
 
     moneyness_ttm: np.ndarray
-    """Shape (N,). Time-scaled moneyness M = log(K/F) / sqrt(tau)."""
+    """Shape (N,). Time-scaled [moneyness](../../glossary.md#moneyness) $M$."""
     ttm: np.ndarray
-    """Shape (N,). Time-to-maturity tau in years."""
+    r"""Shape (N,). Time to maturity $\tau$ in years."""
     ivs: np.ndarray
     """Shape (N,). Observed implied volatilities."""
     extra: np.ndarray | None = None
-    """Shape (N, extra_features) or None. Additional observable features X."""
+    """Shape (N, extra_features) or None. Additional observable features $X$."""
 
 
 def _day_loss(
@@ -62,15 +62,16 @@ def _day_loss(
 
 
 class DIVFMTrainer:
-    """Training loop for [DIVFMNetwork][quantflow.options.divfm.network.DIVFMNetwork].
+    r"""Training loop for [DIVFMNetwork][quantflow.options.divfm.network.DIVFMNetwork].
 
-    Implements the mini-batch procedure from Gauthier, Godin & Legros (2025):
+    Implements the mini-batch procedure from
+    [Gauthier, Godin & Legros (2025)](../../bibliography.md#gauthier):
     at each gradient step a random subset of days is sampled from the training
     set, OLS factor loadings are computed in closed form for each day, and the
-    network weights theta are updated to minimise the total IV residual.
+    network weights $\theta$ are updated to minimise the total IV residual.
 
     The OLS step is fully differentiable via the normal equations, so gradients
-    flow through beta_t back into the network parameters theta.
+    flow through $\beta_t$ back into the network parameters $\theta$.
     """
 
     def __init__(
