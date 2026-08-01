@@ -1441,9 +1441,10 @@ class GenericVolSurfaceLoader(ForwardPricer[S], arbitrary_types_allowed=True):
         """Calibrate the spot price from short-dated put-call parity.
 
         For short-dated options where discount factors are approximately 1,
-        put-call parity simplifies to C - P = S - K, so S = C - P + K.
+        put-call parity simplifies to `C - P = S - K`, so `S = C - P + K`.
+
         This method computes the median implied spot across all put-call pairs
-        with time to maturity at or below max_ttm and updates the spot price.
+        with time to maturity at or below `max_ttm` and updates the spot price.
 
         Returns the implied spot, or None if no maturities fall within max_ttm.
         """

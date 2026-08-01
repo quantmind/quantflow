@@ -20,8 +20,9 @@ class DiscountPair(BaseModel, frozen=True):
 
 
 class PutCallParity(BaseModel, frozen=True):
-    """A matched put-call parity at a single strike,
-    used for discount curve calibration."""
+    """A [put-call parity](../../glossary.md#put-call-parity) at a single strike
+
+    used for forward and discount curve calibration."""
 
     strike: Decimal = Field(description="Strike price")
     call: Price = Field(description="Call option bid/ask prices")
@@ -91,10 +92,15 @@ class PutCallParities(BaseModel, frozen=True):
         min_rate_q: float = 0.0,
         min_rate_a: float = 0.0,
     ) -> DiscountPair | None:
-        """Return the fitted discount factors, or None if the result is invalid.
+        r"""Return the fitted discount factors, or None if the result is invalid.
 
         Both direct and inverse options satisfy the same normalized equation
-        y = Da - (Dq/S) * K, where y = mid/S for direct and y = mid for inverse.
+
+        \begin{equation}
+            y = Da - K \frac{Dq}{S}
+        \end{equation}
+
+        where y = mid/S for direct and y = mid for inverse.
 
         When both known values are None a full OLS is run via constrained least squares.
         When one is provided the other is solved analytically as the mean over pairs.

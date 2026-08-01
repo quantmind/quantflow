@@ -101,13 +101,21 @@ surface2 = surface_from_inputs(inputs)    # VolSurfaceInputs -> VolSurface
 ## Extracting Forwards and Discount Factors
 
 Pricing an option requires two market inputs beyond the option price itself: the forward
-price $F$ of the underlying at expiry, and the discount factor $D$ for that maturity.
+price $F$ of the underlying at expiry, and the quote discount factor $D_q$ for that
+maturity, where the quote currency is usually USD.
 
 In liquid markets these quantities are directly observable. Futures and forward contracts
-give $F$ outright, and interest rate swaps or government bond strips give $D$. In many
-option markets, however, neither is quoted directly. Crypto options on Deribit are a
-clear example: there is no liquid term structure of interest rates and the forward for
-each expiry must be inferred from the options themselves.
+give $F$ outright, and interest rate swaps or government bond strips give $D_q$. In many
+option markets, however, neither is quoted directly.
+
+!!! note "Deribit Forward"
+
+    Crypto options on Deribit are a clear example. There is no liquid term structure
+    of interest rates, and while Deribit quotes futures for each expiry, they are
+    often illiquid, with wide bid-ask spreads and stale or outright wrong prices.
+
+    The forward for each expiry must therefore be inferred from the options
+    themselves.
 
 Even when forwards are available, the discount factor used to value options may differ
 from the rate implied by the forward-spot basis. For equity options the carry includes
@@ -115,10 +123,40 @@ dividends and repo costs that are not captured by a simple interest rate curve. 
 crypto inverse options the discount factor reflects funding in the underlying asset
 rather than in dollars.
 
-For these reasons, quantflow can extract $D_q$ and $D_a$ directly from the market prices
-of options using put-call parity. The
+For these reasons, quantflow extracts $D_q$ and $D_a$ directly from the market prices
+of options using [put-call parity](../glossary.md#put-call-parity).
+
+### Put-call parity and the implied forward
+
+For each maturity, the parity relationship is fitted in the normalized form:
+
+\begin{equation}
+\frac{C - P}{S} = D_a - D_q \frac{K}{S}
+\end{equation}
+
+where $S$ is the spot price and $D_a$ the asset discount factor. The same equation
+holds for inverse options with the left hand side replaced by $c - p$, the price
+difference in units of the underlying.
+
+The price difference is linear in the strike, so a regression across strikes
+identifies $D_a$ and $D_q$, and the line crosses zero exactly at the forward:
+
+\begin{equation}
+F = S \frac{D_a}{D_q}
+\end{equation}
+
+[put_call_parities][quantflow.options.surface.VolCrossSectionLoader.put_call_parities]
+collects the most liquid pairs at each maturity, ranked by the bid-ask spread of the
+parity price, and
+[implied_forward][quantflow.options.parity.PutCallParities.implied_forward] fits the
+regression and returns the implied forward.
+
+### Discount curve calibration
+
+The
 [calibrate_curves][quantflow.options.surface.GenericVolSurfaceLoader.calibrate_curves]
-method supports three modes:
+method fits smooth yield curves to the same put-call parity data across all
+maturities. It supports three modes:
 
 - **Both curves**: pass a [YieldCurve][quantflow.rates.yield_curve.YieldCurve] type for
   both `quote_curve` and `asset_curve`. A single OLS regression per maturity identifies

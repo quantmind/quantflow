@@ -18,7 +18,7 @@ RUN uv sync --frozen --no-install-project --group docs --extra data
 
 # Copy source and build docs
 # Example outputs and images must be prebuilt in the build context
-# (run `uv run ./dev/build-examples` locally, or the build-examples CI job)
+# (run `uv run python dev/tools/build_examples.py` locally, or the build-examples CI job)
 COPY mkdocs.yml ./
 COPY dev/ ./dev/
 COPY docs/ ./docs/

@@ -2,7 +2,7 @@
 """Convert docs/references.bib to docs/bibliography.md.
 
 Usage:
-    uv run python docs/bib2md.py [--bib PATH] [--out PATH]
+    uv run python dev/tools/bib2md.py [--bib PATH] [--out PATH]
 
 The BibTeX file is the source of truth; run this script whenever it changes.
 """
@@ -179,7 +179,7 @@ def convert(bib_path: Path, out_path: Path) -> None:
 
 
 def main() -> None:
-    docs = Path(__file__).parent
+    docs = Path(__file__).parent.parent.parent / "docs"
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument(
         "--bib",

@@ -56,7 +56,7 @@ applyTo: '/**'
 * Do not repeat concept definitions inline in tutorials or docstrings, link to the glossary instead using a relative markdown link (e.g. `[moneyness](../glossary.md#moneyness)`).
 * Use relative links for all mkdocs page links (e.g. `[Option Pricing](../theory/option_pricing.md)`) — prefer relative over absolute URLs to keep links shorter and portable.
 * Prefer mkdocstrings relative cross-references whenever the target is visible from the current scope: write `[label][.member]` (same class) or `[label][..Sibling]` (same module) instead of repeating the fully-qualified path. Use the full path only when the target lives in a different module than the current docstring.
-* To rebuild doc examples run `uv run ./dev/build-examples` — runs all scripts in `docs/examples/` and writes their output to `docs/examples/output/`
+* To rebuild doc examples run `uv run python dev/tools/build_examples.py` — runs all scripts in `docs/examples/` and writes their output to `docs/examples/output/`
 
 ## Pydantic models
 

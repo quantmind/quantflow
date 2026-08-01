@@ -108,7 +108,7 @@ the forward-space prices are
 
 Forward-space prices are dimensionless and depend only on the
 [log-strike](#log-strike) $k = \log(K/F)$, the implied volatility,
-and the time to maturity. They are the natural output of Fourier-based
+and the [time to maturity](#time-to-maturity-ttm). They are the natural output of Fourier-based
 pricers and of [Black pricing](api/options/black.md).
 
 The conversion to quote-currency prices is a single multiplication by $F$:
@@ -166,7 +166,7 @@ Moneyness is used in the context of option pricing in order to compare options w
     m = \frac{1}{\sqrt{\tau}}\ln{\frac{K}{F}} = \frac{k}{\sqrt{\tau}}
 \end{equation}
 
-where $K$ is the strike, $F$ is the Forward price, and $\tau$ is the time to maturity. It is used to compare options with different maturities by scaling the [log-strike](#log-strike) by the square root of time to maturity. This is because the price of the underlying asset is subject to random fluctuations, if these fluctuations follow a Brownian motion than the standard deviation of the price movement will increase with the square root of time.
+where $K$ is the strike, $F$ is the Forward price, and $\tau$ is the [time to maturity](#time-to-maturity-ttm). It is used to compare options with different maturities by scaling the [log-strike](#log-strike) by the square root of time to maturity. This is because the price of the underlying asset is subject to random fluctuations, if these fluctuations follow a Brownian motion then the standard deviation of the price movement will increase with the square root of time.
 
 
 ## Moneyness Convexity Adjusted
@@ -177,7 +177,7 @@ The convexity-adjusted moneyness, often called standardized moneyness in the lit
     m_c = \frac{1}{\sigma\sqrt{\tau}}\ln\frac{K}{F} + \frac{\sigma\sqrt{\tau}}{2} = m_\sigma + \frac{\sigma\sqrt{\tau}}{2} = -d_2
 \end{equation}
 
-where $K$ is the strike, $F$ is the Forward price, $\tau$ is the time to maturity, $\sigma$ is the implied Black volatility and $d_2$ is the standard argument of the [Black formula](api/options/black.md#quantflow.options.bs.black_price).
+where $K$ is the strike, $F$ is the Forward price, $\tau$ is the [time to maturity](#time-to-maturity-ttm), $\sigma$ is the implied Black volatility and $d_2$ is the standard argument of the [Black formula](api/options/black.md#quantflow.options.bs.black_price).
 
 Unlike the [vol-adjusted moneyness](#moneyness-vol-adjusted), which is centered at the forward, this measure is zero at the median of the risk-neutral distribution, $K = F e^{-\sigma^2\tau/2}$.
 
@@ -189,7 +189,7 @@ The vol-adjusted moneyness is used in the context of option pricing in order to 
     m_\sigma = \frac{1}{\sigma\sqrt{\tau}}\ln\frac{K}{F} = \frac{m}{\sigma}
 \end{equation}
 
-where $K$ is the strike, $F$ is the Forward price, $\tau$ is the time to maturity, $\sigma$ is the implied Black volatility and $m$ is the [moneyness](#moneyness).
+where $K$ is the strike, $F$ is the Forward price, $\tau$ is the [time to maturity](#time-to-maturity-ttm), $\sigma$ is the implied Black volatility and $m$ is the [moneyness](#moneyness).
 
 ## Parseval's Theorem
 
@@ -221,7 +221,7 @@ The [probability density function](https://en.wikipedia.org/wiki/Probability_den
 ## Put-Call Parity
 
 Put-call parity is a no-arbitrage relationship between the prices of European call
-and put options with the same strike $K$ and time to maturity.
+and put options with the same strike $K$ and [time to maturity](#time-to-maturity-ttm).
 
 \begin{equation}
     C - P = D_q \left(F - K\right)
@@ -231,9 +231,16 @@ where $D_q$ is the [discount factor](#discount-factor) of the quoting asset (gen
 at maturity and $F$ is the forward price
 of the underlying asset at maturity.
 
-Denoting forward-space prices
-$c = C/(D_q\ F)$ and $p = P/(D_q\ F)$ (see [Black Pricing](api/options/black.md)), the relationship
-reads:
+Denoting forward-space prices for calls and puts as:
+
+\begin{equation}
+\begin{aligned}
+    c &= \frac{C}{D_q\ F} \\
+    p &= \frac{P}{D_q\ F}
+\end{aligned}
+\end{equation}
+
+see [Black Pricing](api/options/black.md), the relationship reads:
 
 \begin{equation}
     c - p = 1 - \frac{K}{F} = 1 - e^k

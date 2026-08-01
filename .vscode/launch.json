@@ -3,6 +3,18 @@
     "configurations": [
 
         {
+            "name": "Record Fixtures",
+            "type": "debugpy",
+            "request": "launch",
+            "cwd": "${workspaceFolder}",
+            "console": "integratedTerminal",
+            "program": "dev/tools/record_fixtures.py",
+            "justMyCode": false,
+            "args": [
+                "--dry-run",
+            ]
+        },
+        {
             "name": "PyTest",
             "type": "debugpy",
             "request": "launch",
