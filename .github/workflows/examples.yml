@@ -25,7 +25,7 @@ jobs:
       - name: Install dependencies
         run: uv sync --frozen --no-install-project --group docs --extra data
       - name: build examples
-        run: uv run ./dev/build-examples
+        run: uv run python dev/tools/build_examples.py
       - name: upload examples output
         if: inputs.upload
         uses: actions/upload-artifact@v4

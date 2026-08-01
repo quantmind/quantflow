@@ -132,8 +132,15 @@ class Yahoo(HttpxClient):
         US equity options are non-inverse: prices are in the quote currency and
         the spot is taken from the underlying quote. Forwards are not provided
         by Yahoo, so they are recovered from put-call parity by the loader.
+
+        When ref_date is None and the underlying quote carries a
+        regularMarketTime entry, that time is used as the reference date for
+        the yield curves, falling back to the current time otherwise.
         """
         symbol = chain.get("underlyingSymbol", "")
+        quote = chain.get("quote") or {}
+        if ref_date is None and (market_time := quote.get("regularMarketTime")):
+            ref_date = datetime.fromtimestamp(market_time, tz=timezone.utc)
         ref = ref_date or utcnow()
         loader = VolSurfaceLoader(
             asset=symbol,
@@ -144,7 +151,6 @@ class Yahoo(HttpxClient):
             quote_curve=NoDiscountCurve(ref_date=ref),
             asset_curve=NoDiscountCurve(ref_date=ref),
         )
-        quote = chain.get("quote") or {}
         bid = quote.get("bid") or quote.get("regularMarketPrice")
         ask = quote.get("ask") or quote.get("regularMarketPrice")
         if bid and ask:

@@ -12,20 +12,24 @@ app-serve:			## serve python api app only
 .PHONY: docs
 docs:				## build documentation
 	@cp docs/index.md readme.md
-	@uv run ./dev/build-examples
+	@uv run python dev/tools/build_examples.py
 	@uv run mkdocs build --strict
 
 .PHONY: docs-bib
 docs-bib:			## Regenerate docs bibliography
-	@uv run ./docs/bib2md.py
+	@uv run python dev/tools/bib2md.py
 
 .PHONY: docs-examples
 docs-examples:			## Regenerate docs examples
-	@uv run ./dev/build-examples
+	@uv run python dev/tools/build_examples.py
 
 .PHONY: docs-serve
 docs-serve:			## serve docs, examples, and API with auto-reload
 	@bash ./dev/serve/all
+
+.PHONY: fixtures
+fixtures:			## Record market data fixtures from live sources
+	@uv run python dev/tools/record_fixtures.py
 
 .PHONY: frontend-build
 frontend-build:			## build Observable frontend examples
