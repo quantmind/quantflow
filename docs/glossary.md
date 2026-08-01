@@ -166,7 +166,7 @@ Moneyness is used in the context of option pricing in order to compare options w
     m = \frac{1}{\sqrt{\tau}}\ln{\frac{K}{F}} = \frac{k}{\sqrt{\tau}}
 \end{equation}
 
-where $K$ is the strike, $F$ is the Forward price, and $\tau$ is the [time to maturity](#time-to-maturity-ttm). It is used to compare options with different maturities by scaling the [log-strike](#log-strike) by the square root of time to maturity. This is because the price of the underlying asset is subject to random fluctuations, if these fluctuations follow a Brownian motion than the standard deviation of the price movement will increase with the square root of time.
+where $K$ is the strike, $F$ is the Forward price, and $\tau$ is the [time to maturity](#time-to-maturity-ttm). It is used to compare options with different maturities by scaling the [log-strike](#log-strike) by the square root of time to maturity. This is because the price of the underlying asset is subject to random fluctuations, if these fluctuations follow a Brownian motion then the standard deviation of the price movement will increase with the square root of time.
 
 
 ## Moneyness Convexity Adjusted
