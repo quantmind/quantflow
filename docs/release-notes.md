@@ -6,6 +6,42 @@ below maps to a tagged release on
 pushed, the matching section is extracted by
 `.github/workflows/release.yml` and published as the GitHub Release body.
 
+## v1.1.0
+
+This release introduces the eSSVI parametrisation of the implied volatility
+surface and the calibration of discount curves and forwards from put-call
+parity, together with a new tutorial and expanded reference documentation.
+There are no breaking changes.
+
+### New features
+
+- eSSVI (extended surface SVI) parametrisation of the implied volatility
+  surface, with an arbitrage-free calibration to market quotes. The
+  calibration is still experimental and will be refined in future releases
+  ([#86](https://github.com/quantmind/quantflow/pull/86),
+  [#88](https://github.com/quantmind/quantflow/pull/88),
+  [#90](https://github.com/quantmind/quantflow/pull/90)).
+- Calibration of forwards and discount curves from put-call parity, with
+  selectable curve models for the quote and asset legs in the volatility
+  surface API ([#90](https://github.com/quantmind/quantflow/pull/90)).
+
+### Improvements and fixes
+
+- A calibrated parity forward of zero is no longer treated as missing
+  ([#90](https://github.com/quantmind/quantflow/pull/90)).
+- Fixed a stale date in the volatility surface documentation
+  ([#89](https://github.com/quantmind/quantflow/pull/89)).
+
+### Documentation and assets
+
+- New tutorial on discount curves from option prices, backed by a recorded
+  Deribit BTC fixture and a fixture recording tool
+  ([#90](https://github.com/quantmind/quantflow/pull/90)).
+- Expanded API reference indexes, glossary and bibliography entries
+  ([#88](https://github.com/quantmind/quantflow/pull/88)).
+
+[Full changelog](https://github.com/quantmind/quantflow/compare/v1.0.0...v1.1.0)
+
 ## v1.0.0
 
 First major release, consolidating the API for the 1.x series: a new

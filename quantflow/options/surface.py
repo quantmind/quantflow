@@ -1646,7 +1646,9 @@ class GenericVolSurfaceLoader(ForwardPricer[S], arbitrary_types_allowed=True):
                 spot, ref_date=ref_date, max_pairs=max_pairs
             )
             forward = parities.calibrate_forward(band=band, min_pairs=min_pairs)
-            section.parity_forward = to_decimal(round(forward, 8)) if forward else None
+            section.parity_forward = (
+                to_decimal(round(forward, 8)) if forward is not None else None
+            )
             if section.parity_forward is not None:
                 results.append((maturity, ttm, section.parity_forward))
         return results
