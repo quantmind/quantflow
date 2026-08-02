@@ -60,6 +60,15 @@ class YieldCurveCalibration(BaseModel, Generic[Y]):
     def get_bounds(self) -> Bounds:
         """Parameter bounds for the optimiser"""
 
+    def prepare(
+        self, ttm: Annotated[FloatArray, Doc("Observation times to maturity in years")]
+    ) -> None:
+        """Hook called before optimisation with the observation times to maturity.
+
+        By default it does nothing. Curves whose parameters depend on the
+        observation grid, such as interpolated curves, use it to seed their
+        nodes."""
+
     def __call__(self, ttm: FloatArray) -> FloatArray:
         """Discount factors for the given TTMs evaluated at current params.
 
@@ -197,6 +206,8 @@ class OptionsDiscountingCalibration:
         quote_cal: YieldCurveCalibration,
     ) -> tuple[YieldCurve, YieldCurve]:
         """Calibrate both curves jointly from all parity observations."""
+        asset_cal.prepare(self.ttm)
+        quote_cal.prepare(self.ttm)
         pa = asset_cal.get_params()
         pq = quote_cal.get_params()
         has_jacobian = (

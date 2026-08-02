@@ -6,6 +6,8 @@ title: Volatility Surface
 
 Live implied volatility surface from market options data. Crypto assets (BTC, ETH) use the [Deribit volatility surface loader](https://quantflow.quantmind.com/api/data/deribit/#quantflow.data.deribit.Deribit.volatility_surface_loader); equities (SPY, AAPL, NVDA) use the [Yahoo Finance volatility surface loader](https://quantflow.quantmind.com/api/data/yahoo/#quantflow.data.yahoo.Yahoo.volatility_surface_loader).
 
+The forwards are calibrated from put call parity and price the options directly. The quote and asset discount curves are then derived from the calibrated forwards using the selected curve models: parametric (CIR, Nelson-Siegel, Vasicek), interpolated (no model, the curve passes through the observations), or no discounting at all.
+
 ```js
 import {fetchJson} from "./lib/api.js";
 import {observeScheme, palette1} from "./lib/palette.js";
@@ -14,16 +16,31 @@ import * as d3 from "npm:d3";
 ```
 
 ```js
+const curveOptions = new Map([
+  ["CIR", "cir"],
+  ["Nelson-Siegel", "nelson-siegel"],
+  ["Vasicek", "vasicek"],
+  ["Interpolated (linear)", "interpolated-linear"],
+  ["Interpolated (cubic)", "interpolated-cubic"],
+  ["No discount", "no-discount"],
+]);
+
 const assetInput = Inputs.select(["BTC", "ETH", "SPY", "AAPL", "NVDA"], {label: "Asset", value: "BTC"});
 const asset = Generators.input(assetInput);
+
+const quoteCurveInput = Inputs.select(curveOptions, {label: "Quote curve", value: "cir"});
+const quoteCurveModel = Generators.input(quoteCurveInput);
+
+const assetCurveInput = Inputs.select(curveOptions, {label: "Asset curve", value: "nelson-siegel"});
+const assetCurveModel = Generators.input(assetCurveInput);
 ```
 
 ```js
-display(assetInput);
+display(html`<div style="display: flex; gap: 1rem; align-items: end; flex-wrap: wrap">${assetInput}${quoteCurveInput}${assetCurveInput}</div>`);
 ```
 
 ```js
-const data = await fetchJson(`/.api/volatility-surface?asset=${asset}`);
+const data = await fetchJson(`/.api/volatility-surface?asset=${asset}&quote_curve=${quoteCurveModel}&asset_curve=${assetCurveModel}`);
 ```
 
 ```js
@@ -294,8 +311,18 @@ display(Plot.plot({
 ## Discount Curves
 
 ```js
-const quoteCurve = data.quote_curve.ttm.map((t, i) => ({ttm: t, rate: data.quote_curve.rates[i], curve: "Quote"}));
-const assetCurve = data.asset_curve.ttm.map((t, i) => ({ttm: t, rate: data.asset_curve.rates[i], curve: "Asset"}));
+const curveTypeLabels = {
+  cir_curve: "CIR",
+  nelson_siegel_curve: "Nelson-Siegel",
+  vasicek_curve: "Vasicek",
+  interpolated_linear_curve: "Interpolated (linear)",
+  interpolated_monotonic_cubic_curve: "Interpolated (cubic)",
+  no_discount_curve: "No discount",
+};
+const quoteLabel = `Quote - ${curveTypeLabels[data.quote_curve.curve.curve_type] ?? data.quote_curve.curve.curve_type}`;
+const assetLabel = `Asset - ${curveTypeLabels[data.asset_curve.curve.curve_type] ?? data.asset_curve.curve.curve_type}`;
+const quoteCurve = data.quote_curve.ttm.map((t, i) => ({ttm: t, rate: data.quote_curve.rates[i], curve: quoteLabel}));
+const assetCurve = data.asset_curve.ttm.map((t, i) => ({ttm: t, rate: data.asset_curve.rates[i], curve: assetLabel}));
 const curveData = [...quoteCurve, ...assetCurve];
 
 display(Plot.plot({

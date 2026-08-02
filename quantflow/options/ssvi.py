@@ -527,24 +527,41 @@ def _fit_slice(
 
     best: tuple[float, float, float] | None = None
     grid = np.linspace(-RHO_LIMIT, RHO_LIMIT, RHO_GRID_SIZE)
+    if prev is not None:
+        # when the ATM variance barely grows between slices the feasible
+        # rho band can be narrower than the grid step; the effective rho
+        # of the previous slice is feasible whenever its flat extrapolation
+        # is admissible, so seed the search with it
+        grid = np.append(grid, prev[2] / prev[1])
     for _ in range(RHO_REFINEMENTS + 1):
         for rho in grid:
             found = best_for_rho(float(rho))
             if found is not None and (best is None or found[0] < best[0]):
                 best = (found[0], found[1], float(rho))
         if best is None:
-            raise ValueError(
-                f"no arbitrage free eSSVI parameters for the slice at ttm={ttm}"
-            )
+            break
         step = float(grid[1] - grid[0])
         grid = np.linspace(
             max(-RHO_LIMIT, best[2] - step),
             min(RHO_LIMIT, best[2] + step),
             RHO_GRID_SIZE,
         )
-    assert best is not None
-    _, best_psi, best_rho = best
-    theta = theta_star - best_rho * best_psi * k_star
+    if best is not None:
+        best_error, best_psi, best_rho = best
+        theta = theta_star - best_rho * best_psi * k_star
+    elif prev is not None:
+        # the anchored parameterisation leaves no feasible correlation when
+        # the repaired ATM variance does not grow and the previous slice
+        # sits on its butterfly bound; continue the previous slice flat,
+        # the one point always admissible in the full parameter space
+        best_psi = prev[1]
+        best_rho = prev[2] / prev[1]
+        theta = theta_star
+        best_error = variance_error(theta, best_psi, best_rho)
+    else:
+        raise ValueError(
+            f"no arbitrage free eSSVI parameters for the slice at ttm={ttm}"
+        )
     # joint refinement releasing the ATM anchor, started from the feasible
     # star solution and kept only when it improves the objective
     refined = minimize(
@@ -553,6 +570,6 @@ def _fit_slice(
         method="Nelder-Mead",
         options={"maxiter": 2000, "xatol": 1e-8, "fatol": 1e-10},
     )
-    if np.isfinite(refined.fun) and refined.fun <= best[0]:
+    if np.isfinite(refined.fun) and refined.fun <= best_error:
         theta, best_psi, best_rho = (float(value) for value in refined.x)
     return theta, best_psi, best_rho

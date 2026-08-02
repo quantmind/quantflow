@@ -124,6 +124,7 @@ nav:
       - tutorials/index.md
       - BNS Volatility Model: tutorials/bns_calibration.md
       - CIR Process: tutorials/cir.md
+      - Discount Curves from Option Prices: tutorials/curve_calibration.md
       - Heston Volatility Model: tutorials/heston_calibration.md
       - Option Pricing: tutorials/option_pricing.md
       - Pricing Method Comparison: tutorials/pricing_method_comparison.md

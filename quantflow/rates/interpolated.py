@@ -187,6 +187,15 @@ class InterpolatedYieldCurveCalibration(YieldCurveCalibration[InterpolatedYieldC
         n = len(self.yield_curve.anchor_rates)
         return Bounds(np.full(n, -np.inf), np.full(n, np.inf))
 
+    def prepare(
+        self, ttm: Annotated[FloatArray, Doc("Observation times to maturity in years")]
+    ) -> None:
+        """Seed the curve nodes at zero rate from the observation grid.
+
+        Only when the curve has no nodes yet, existing nodes are preserved."""
+        if not self.yield_curve.anchor_dates:
+            self.calibrate(ttm, np.zeros(np.asarray(ttm, dtype=float).shape))
+
     def calibrate(
         self,
         ttm: Annotated[ArrayLike, Doc("Times to maturity in years.")],
@@ -196,19 +205,23 @@ class InterpolatedYieldCurveCalibration(YieldCurveCalibration[InterpolatedYieldC
     ) -> InterpolatedYieldCurve:
         """Set the curve nodes so it reprices the given rates exactly.
 
+        Rates sharing the same time to maturity are averaged into a single
+        node, since the interpolator requires strictly increasing nodes.
+
         Maturity dates are reconstructed from the times to maturity relative to
         [ref_date][quantflow.rates.yield_curve.YieldCurve.ref_date] on an
         ACT/365 basis.
         """
         ttm_ = np.asarray(ttm, dtype=float)
         rates_ = np.asarray(rates, dtype=float)
-        order = np.argsort(ttm_)
+        unique_ttm, inverse = np.unique(ttm_, return_inverse=True)
+        mean_rates = np.bincount(inverse, weights=rates_) / np.bincount(inverse)
         curve = self.yield_curve
         ref = curve.ref_date
         curve.anchor_dates = [
-            ref + timedelta(seconds=float(t) * _YEAR) for t in ttm_[order]
+            ref + timedelta(seconds=float(t) * _YEAR) for t in unique_ttm
         ]
-        curve.anchor_rates = [Decimal(str(round(float(r), 10))) for r in rates_[order]]
-        curve._ttm = ttm_[order]
-        curve._rates = rates_[order]
+        curve.anchor_rates = [Decimal(str(round(float(r), 10))) for r in mean_rates]
+        curve._ttm = unique_ttm
+        curve._rates = mean_rates
         return curve

@@ -147,15 +147,9 @@ class Deribit(AioHttpClient):
         ] = None,
     ) -> VolSurfaceLoader:
         """Create a [VolSurfaceLoader][quantflow.options.surface.VolSurfaceLoader]
-        for a given crypto-currency"""
-        ref = ref_date or utcnow()
-        loader = VolSurfaceLoader(
-            asset=currency,
-            exclude_open_interest=to_decimal_or_none(exclude_open_interest),
-            exclude_volume=to_decimal_or_none(exclude_volume),
-            quote_curve=NoDiscountCurve(ref_date=ref),
-            asset_curve=NoDiscountCurve(ref_date=ref),
-        )
+        for a given crypto-currency by fetching the book summaries and
+        instrument definitions and passing them to
+        [loader_from_book][quantflow.data.deribit.Deribit.loader_from_book]"""
         if inverse:
             futures = await self.get_book_summary_by_currency(
                 currency=currency, kind=InstrumentKind.FUTURE
@@ -172,6 +166,57 @@ class Deribit(AioHttpClient):
                 currency="usdc", kind=InstrumentKind.OPTION, base=currency
             )
             instruments = await self.get_instruments(currency="usdc", base=currency)
+        return self.loader_from_book(
+            futures,
+            options,
+            instruments,
+            currency=currency,
+            ref_date=ref_date,
+            inverse=inverse,
+            exclude_open_interest=exclude_open_interest,
+            exclude_volume=exclude_volume,
+        )
+
+    @classmethod
+    def loader_from_book(
+        cls,
+        futures: Annotated[list[dict], Doc("Futures book summary entries")],
+        options: Annotated[list[dict], Doc("Options book summary entries")],
+        instruments: Annotated[list[dict], Doc("Instrument definitions")],
+        *,
+        currency: Annotated[str, Doc("Currency")],
+        ref_date: Annotated[
+            datetime | None,
+            Doc("Reference date for the yield curves; defaults to now"),
+        ] = None,
+        inverse: Annotated[
+            bool,
+            Doc(
+                "Whether to use inverse or linear options. Inverse options are priced "
+                "in the base currency, while linear options are priced in USD."
+            ),
+        ] = True,
+        exclude_open_interest: Annotated[
+            Number | None,
+            Doc("Exclude options with open interest below this threshold"),
+        ] = None,
+        exclude_volume: Annotated[
+            Number | None, Doc("Exclude options with volume below this threshold")
+        ] = None,
+    ) -> VolSurfaceLoader:
+        """Build a [VolSurfaceLoader][quantflow.options.surface.VolSurfaceLoader]
+        from Deribit book summaries and instrument definitions.
+
+        Useful for rebuilding a loader from recorded data without network
+        access."""
+        ref = ref_date or utcnow()
+        loader = VolSurfaceLoader(
+            asset=currency,
+            exclude_open_interest=to_decimal_or_none(exclude_open_interest),
+            exclude_volume=to_decimal_or_none(exclude_volume),
+            quote_curve=NoDiscountCurve(ref_date=ref),
+            asset_curve=NoDiscountCurve(ref_date=ref),
+        )
         instrument_map = {i["instrument_name"]: i for i in instruments}
         min_tick_size = Decimal("inf")
         for entry in futures:
