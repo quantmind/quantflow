@@ -6,6 +6,7 @@ from typing import Any, Self
 import numpy as np
 from pydantic import BaseModel, Field
 from scipy.optimize import lsq_linear
+from typing_extensions import Annotated, Doc
 
 from quantflow.utils.numbers import ZERO, Number, to_decimal
 from quantflow.utils.price import Price
@@ -142,6 +143,131 @@ class PutCallParities(BaseModel, frozen=True):
         if discounts is None:
             return None
         return float(self.spot) * discounts.asset_discount / discounts.quote_discount
+
+    def weights(self) -> FloatArray:
+        """Inverse bid-ask spread weights for the put-call parity regression.
+
+        Pairs with a tighter parity spread receive a larger weight. A floor
+        of one tenth of the median positive spread avoids infinite weights on
+        zero spread pairs.
+        """
+        scale = Decimal(1) if self.inverse else self.spot
+        spreads = np.asarray([float(p.spread / scale) for p in self.parities])
+        positive = spreads[spreads > 0]
+        floor = 0.1 * float(np.median(positive)) if positive.size else 1e-9
+        return 1.0 / (spreads + max(floor, 1e-9))
+
+    def calibrate_forward(
+        self,
+        *,
+        band: Annotated[
+            float,
+            Doc(
+                "Initial half width of the pair selection band, in units of "
+                "convexity adjusted moneyness (standard deviations). "
+                "The band widens automatically when it contains fewer than "
+                "min_pairs pairs."
+            ),
+        ] = 1.0,
+        min_pairs: Annotated[
+            int, Doc("Minimum number of pairs; the band widens until reached")
+        ] = 3,
+        max_iterations: Annotated[
+            int, Doc("Maximum number of forward refinement iterations")
+        ] = 5,
+        tol: Annotated[
+            float, Doc("Relative tolerance on the forward for convergence")
+        ] = 1e-5,
+    ) -> float | None:
+        """Calibrate the forward price from put-call parity.
+
+        The forward is the zero crossing of the weighted parity regression.
+        Pairs far from the money contain one deep in the money option whose
+        quote carries little information, so the regression is restricted to
+        pairs within `band` units of convexity adjusted moneyness.
+
+        The moneyness requires the forward and the volatility, which are not
+        known upfront. The algorithm therefore iterates: fit the crossing with
+        all pairs, estimate the at the money volatility from the straddle
+        nearest the crossing, select the pairs inside the band, refit, and
+        repeat until the forward is stable.
+
+        Returns the forward price, or None when fewer than two pairs are
+        available or the regression is degenerate.
+        """
+        if len(self.parities) < 2:
+            return None
+        ys = self.regressand()
+        xs = self.regressor()
+        weights = self.weights()
+        ttm = float(self.ttm)
+        x0 = self._crossing(xs, ys, weights)
+        if x0 is None:
+            return None
+        for _ in range(max_iterations):
+            sigma_sqrt_ttm = self._straddle_vol(x0) * np.sqrt(ttm)
+            moneyness = np.log(xs / x0) / sigma_sqrt_ttm + 0.5 * sigma_sqrt_ttm
+            half_width = band
+            selected = np.abs(moneyness) < half_width
+            while selected.sum() < min(min_pairs, len(xs)):
+                half_width *= 2
+                selected = np.abs(moneyness) < half_width
+            x1 = self._crossing(xs[selected], ys[selected], weights[selected])
+            if x1 is None:
+                break
+            converged = abs(x1 - x0) <= tol * x0
+            x0 = x1
+            if converged:
+                break
+        return x0 * float(self.spot)
+
+    def quote_discount(
+        self,
+        forward: Annotated[float, Doc("Forward price divided by the spot price")],
+    ) -> float | None:
+        """Quote discount factor with the forward held fixed.
+
+        With the forward known, put-call parity has a single free parameter,
+        the quote discount factor $D_q$:
+
+        \\begin{equation}
+            y = D_q \\left(f - x\\right)
+        \\end{equation}
+
+        where $y$ is the normalized call put difference, $x$ the strike over
+        spot and $f$ the forward over spot. The parameter is estimated by
+        weighted least squares over all pairs, with the weights of
+        [weights][..weights]. Returns None when the estimate is not positive.
+        """
+        ys = self.regressand()
+        xs = self.regressor()
+        weights = self.weights()
+        zs = forward - xs
+        denominator = float(np.sum((weights * zs) ** 2))
+        if denominator <= 0:
+            return None
+        dq = float(np.sum(weights**2 * ys * zs) / denominator)
+        return dq if dq > 0 else None
+
+    def _crossing(
+        self, xs: FloatArray, ys: FloatArray, weights: FloatArray
+    ) -> float | None:
+        """Zero crossing of the weighted parity regression, or None when the
+        slope is not negative."""
+        slope, intercept = np.polyfit(xs, ys, 1, w=weights)
+        if slope >= 0:
+            return None
+        return float(-intercept / slope)
+
+    def _straddle_vol(self, x0: float) -> float:
+        """Rough at the money volatility from the straddle nearest the
+        crossing, used only to size the moneyness band."""
+        scale = Decimal(1) if self.inverse else self.spot
+        xs = self.regressor()
+        pair = self.parities[int(np.argmin(np.abs(xs - x0)))]
+        straddle = float((pair.call.mid + pair.put.mid) / scale)
+        sigma = straddle / (0.7979 * np.sqrt(float(self.ttm)))
+        return float(np.clip(sigma, 0.05, 5.0))
 
     def plot(
         self,

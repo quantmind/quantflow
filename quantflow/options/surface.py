@@ -19,7 +19,6 @@ from quantflow.rates import (
     YieldCurve,
     YieldCurveCalibration,
 )
-from quantflow.rates.calibration import OptionsDiscountingCalibration
 from quantflow.utils import plot
 from quantflow.utils.dates import utcnow
 from quantflow.utils.numbers import (
@@ -556,6 +555,15 @@ class VolCrossSection(BaseModel, Generic[S]):
             "Forward price of the underlying asset at the time " "of the cross section"
         )
     )
+    parity_forward: Decimal | None = Field(
+        default=None,
+        description=(
+            "Forward price calibrated from put-call parity, set by "
+            "GenericVolSurfaceLoader.calibrate_forwards. When available it "
+            "takes precedence over the curve implied and market forwards "
+            "for pricing options"
+        ),
+    )
     strikes: tuple[Strike[S], ...] = Field(
         description="Tuple of sorted strikes and their corresponding option prices"
     )
@@ -570,6 +578,17 @@ class VolCrossSection(BaseModel, Generic[S]):
     def ttm(self, ref_date: datetime) -> float:
         """Time to maturity in years"""
         return self.day_counter.dcf(ref_date, self.maturity)
+
+    @property
+    def pricing_forward(self) -> Decimal:
+        """Forward price used to price options at this cross section.
+
+        The parity calibrated forward takes precedence when available, since
+        it is the forward embedded in the option quotes themselves. Otherwise
+        the forward price of the cross section is used."""
+        if self.parity_forward is not None:
+            return self.parity_forward
+        return self.forward.mid
 
     def info_dict(
         self,
@@ -901,7 +920,7 @@ class VolSurface(ForwardPricer[S]):
         """Return the term structure of the volatility surface as a DataFrame"""
         spot = self.spot_price()
         return pd.DataFrame(
-            cross.info_dict(self.ref_date, spot, self.forward(cross.maturity))
+            cross.info_dict(self.ref_date, spot, cross.pricing_forward)
             for cross in self.maturities
         )
 
@@ -937,7 +956,7 @@ class VolSurface(ForwardPricer[S]):
             cross = self.maturities[index]
             yield from cross.option_prices(
                 self.ref_date,
-                self.forward(cross.maturity),
+                cross.pricing_forward,
                 select=select,
                 initial_vol=initial_vol,
                 converged=converged,
@@ -946,7 +965,7 @@ class VolSurface(ForwardPricer[S]):
             for cross in self.maturities:
                 yield from cross.option_prices(
                     self.ref_date,
-                    self.forward(cross.maturity),
+                    cross.pricing_forward,
                     select=select,
                     initial_vol=initial_vol,
                     converged=converged,
@@ -1196,6 +1215,13 @@ class VolCrossSectionLoader(BaseModel, Generic[S]):
             "Forward price of the underlying asset at the time of the cross section"
         ),
     )
+    parity_forward: Decimal | None = Field(
+        default=None,
+        description=(
+            "Forward price calibrated from put-call parity, set by "
+            "GenericVolSurfaceLoader.calibrate_forwards"
+        ),
+    )
     strikes: dict[Decimal, Strike[S]] = Field(
         default_factory=dict,
         description="Dictionary of strikes and their corresponding option prices",
@@ -1253,6 +1279,7 @@ class VolCrossSectionLoader(BaseModel, Generic[S]):
             VolCrossSection(
                 maturity=self.maturity,
                 forward=forward,
+                parity_forward=self.parity_forward,
                 strikes=tuple(strikes),
                 day_counter=self.day_counter,
             )
@@ -1481,68 +1508,159 @@ class GenericVolSurfaceLoader(ForwardPricer[S], arbitrary_types_allowed=True):
             type[YieldCurve] | YieldCurve | None,
             Doc(
                 "YieldCurve type or instance to fit the quote currency discount "
-                "curve $D_q$ from option prices. "
-                "When None the current quote_curve is unchanged."
+                "curve $D_q$. "
+                "When None the current quote_curve is kept and treated as known."
             ),
         ] = None,
         asset_curve: Annotated[
             type[YieldCurve] | YieldCurve | None,
             Doc(
-                "YieldCurve type or instance to fit the asset discount curve $D_a$ "
-                "from option prices. "
-                "When None the current asset_curve is unchanged."
+                "YieldCurve type or instance to fit the asset discount curve "
+                "$D_a$. "
+                "When None the current asset_curve is kept and treated as known."
             ),
         ] = None,
         max_pairs: Annotated[
             int, Doc("Maximum number of put-call pairs to use per maturity")
-        ] = 10,
+        ] = 100,
+        min_ttm: Annotated[
+            float,
+            Doc(
+                "Exclude maturities below this time to maturity (in years) "
+                "from the curve calibration. A discount factor error at a "
+                "short maturity explodes into a large zero rate error, so "
+                "very short maturities are excluded by default; their "
+                "discounting extrapolates from the first calibrated node. "
+                "Forwards are still calibrated at every maturity."
+            ),
+        ] = 1
+        / 26,
     ) -> None:
-        """Calibrate the quote and/or asset discount curves from option prices.
+        r"""Calibrate the discount curves from the parity forwards.
 
-        Three modes are supported:
+        The forwards are calibrated first with
+        [calibrate_forwards][..calibrate_forwards], unless already available,
+        and held fixed. For each maturity the quote discount factor is then
+        estimated with
+        [quote_discount][quantflow.options.parity.PutCallParities.quote_discount],
+        a one parameter regression with the forward held fixed, and the asset
+        discount factor follows from the forward formula:
 
-        Both curves: pass a curve type or instance for both curves.
-        A single OLS regression per maturity identifies $D_q$ and $D_a$ simultaneously.
+        \\begin{equation}
+            D_a = D_q \\frac{F}{S}
+        \\end{equation}
 
-        Asset only: pass a curve type or instance for `asset_curve`, leave
-        `quote_curve` as None.
-        The existing `quote_curve` is treated as known and $D_a$ is solved analytically.
+        The selected curve models are fitted to those discount factors: a
+        parametric model pools all maturities while an interpolated curve
+        passes through them. A curve without a calibrator, such as
+        [NoDiscountCurve][quantflow.rates.no_discount.NoDiscountCurve], or a
+        None argument is treated as known: the quote curve is used as given
+        and the asset discount factors are derived from it.
 
-        Quote only: pass a curve type or instance for `quote_curve`, leave
-        `asset_curve` as None.
-        The existing `asset_curve` is treated as known and $D_q$ is solved analytically.
+        The surface prices options off the parity forwards regardless of the
+        curves, which only provide discounting and rates.
         """
-        ttm, cp, strikes = self.collect_put_call_parities(max_pairs=max_pairs)
-        asset_curve_input = (
-            self._curve_calibrator(asset_curve) if asset_curve else self.asset_curve
-        )
-        quote_curve_input = (
+        if all(section.parity_forward is None for section in self.maturities.values()):
+            self.calibrate_forwards(max_pairs=max_pairs)
+        spot = self.spot_price()
+        ref_date = self.ref_date
+        ttms = []
+        quote_dfs = []
+        forwards = []
+        for maturity, section in sorted(self.maturities.items()):
+            if section.parity_forward is None:
+                continue
+            ttm = self.day_counter.dcf(ref_date, maturity)
+            if ttm <= 0 or ttm < min_ttm:
+                continue
+            parities = section.put_call_parities(
+                spot, ref_date=ref_date, max_pairs=max_pairs
+            )
+            forward = float(section.parity_forward / spot)
+            if (dq := parities.quote_discount(forward)) is None:
+                continue
+            ttms.append(ttm)
+            quote_dfs.append(dq)
+            forwards.append(forward)
+        if not ttms:
+            raise ValueError("No parity forwards available to calibrate curves")
+        ttm_arr = np.asarray(ttms)
+        quote_input = (
             self._curve_calibrator(quote_curve) if quote_curve else self.quote_curve
         )
-        calibration = OptionsDiscountingCalibration(
-            asset_curve=asset_curve_input,
-            quote_curve=quote_curve_input,
-            ttm=ttm,
-            cp=cp,
-            strikes=strikes,
+        if isinstance(quote_input, YieldCurveCalibration):
+            fitted_quote = quote_input.calibrate_df(ttm_arr, np.asarray(quote_dfs))
+        else:
+            fitted_quote = quote_input
+        asset_dfs = np.asarray(
+            fitted_quote.discount_factor(ttm_arr), dtype=float
+        ) * np.asarray(forwards)
+        asset_input = (
+            self._curve_calibrator(asset_curve) if asset_curve else self.asset_curve
         )
-        calibrated_asset_curve, calibrated_quote_curve = calibration.calibrate()
-        self.asset_curve = cast(AnyYieldCurve, calibrated_asset_curve)
-        self.quote_curve = cast(AnyYieldCurve, calibrated_quote_curve)
+        if isinstance(asset_input, YieldCurveCalibration):
+            fitted_asset = asset_input.calibrate_df(ttm_arr, asset_dfs)
+        else:
+            fitted_asset = asset_input
+        self.quote_curve = cast(AnyYieldCurve, fitted_quote)
+        self.asset_curve = cast(AnyYieldCurve, fitted_asset)
+
+    def calibrate_forwards(
+        self,
+        *,
+        band: Annotated[
+            float,
+            Doc(
+                "Initial half width of the pair selection band, in units of "
+                "convexity adjusted moneyness (standard deviations). "
+                "The band widens automatically when it contains fewer than "
+                "min_pairs pairs."
+            ),
+        ] = 1.0,
+        min_pairs: Annotated[
+            int, Doc("Minimum number of pairs; the band widens until reached")
+        ] = 3,
+        max_pairs: Annotated[
+            int, Doc("Maximum number of put-call pairs to use per maturity")
+        ] = 100,
+    ) -> list[tuple[datetime, float, Decimal]]:
+        """Calibrate the forward price of each maturity from put-call parity.
+
+        For each maturity the forward is estimated with
+        [calibrate_forward][quantflow.options.parity.PutCallParities.calibrate_forward]
+        and stored on the cross section loader, from where it flows into the
+        [pricing_forward][quantflow.options.surface.VolCrossSection.pricing_forward]
+        of the surface and takes precedence when pricing options.
+
+        Returns a list of (maturity, time to maturity, forward) tuples for
+        the maturities where the calibration succeeded.
+        """
+        spot = self.spot_price()
+        ref_date = self.ref_date
+        results = []
+        for maturity, section in sorted(self.maturities.items()):
+            ttm = self.day_counter.dcf(ref_date, maturity)
+            if ttm <= 0:
+                continue
+            parities = section.put_call_parities(
+                spot, ref_date=ref_date, max_pairs=max_pairs
+            )
+            forward = parities.calibrate_forward(band=band, min_pairs=min_pairs)
+            section.parity_forward = to_decimal(round(forward, 8)) if forward else None
+            if section.parity_forward is not None:
+                results.append((maturity, ttm, section.parity_forward))
+        return results
 
     def _curve_calibrator(
         self,
         curve_type: type[YieldCurve] | YieldCurve,
-    ) -> YieldCurveCalibration:
+    ) -> YieldCurve | YieldCurveCalibration:
         curve = (
             curve_type(ref_date=self.ref_date)
             if isinstance(curve_type, type)
             else curve_type
         )
-        calibrator = curve.calibrator()
-        if calibrator is None:
-            raise ValueError(f"{type(curve).__name__} does not support calibration")
-        return calibrator
+        return curve.calibrator() or curve
 
     def collect_put_call_parities(
         self,

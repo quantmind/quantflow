@@ -133,12 +133,5 @@ def test_vasicek_historical_rates_compounding_frequency() -> None:
     assert float(fitted_cc.kappa) == pytest.approx(float(fitted_annual.kappa), rel=1e-3)
 
 
-def test_calibrate_historical_rates_not_implemented_on_no_discount() -> None:
-    tenors = ["6m", "1y"]
-    panel = pd.DataFrame(
-        np.zeros((10, 2)),
-        index=pd.date_range("2020-01-01", periods=10, freq="W"),
-        columns=tenors,
-    )
-    with pytest.raises(NotImplementedError):
-        NoDiscountCurve().calibrator().calibrate_historical_rates_dataframe(panel)
+def test_no_discount_curve_has_no_calibrator() -> None:
+    assert NoDiscountCurve().calibrator() is None

@@ -1,19 +1,39 @@
+import gzip
+import json
 import subprocess
 import sys
 import time
 from collections.abc import Callable
-from datetime import timedelta
+from datetime import datetime, timedelta
 from functools import wraps
 from pathlib import Path
 
 import pandas as pd
 from pydantic import BaseModel
 
+from quantflow.data.deribit import Deribit
+from quantflow.options.surface import VolSurfaceLoader
+
 EXAMPLE_DIR = Path(__file__).parent
 FIXTURES = EXAMPLE_DIR / "fixtures"
 CACHE_DIR = EXAMPLE_DIR / "cache"
 OUT_DIR = EXAMPLE_DIR / "output"
 ASSET_DIR = EXAMPLE_DIR.parent / "assets" / "examples"
+
+
+def btc_surface_loader() -> VolSurfaceLoader:
+    """Rebuild the BTC Deribit volatility surface loader from the recorded
+    fixture, using the snapshot time as the reference date."""
+    bundle = json.loads(
+        gzip.decompress((FIXTURES / "deribit_btc.json.gz").read_bytes())
+    )
+    return Deribit.loader_from_book(
+        bundle["futures"],
+        bundle["options"],
+        bundle["instruments"],
+        currency="btc",
+        ref_date=datetime.fromisoformat(bundle["as_of"]),
+    )
 
 
 def cached_df(

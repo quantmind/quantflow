@@ -10,3 +10,4 @@ Step-by-step guides for common quantflow workflows.
 | [SPX Volatility Surface](spx_vol_surface.md) | Build a 3D implied volatility surface for the S&P 500 from a Yahoo Finance option chain |
 | [BNS Volatility Model](bns_calibration.md) | Calibrate the Barndorff-Nielsen and Shephard stochastic-volatility model to an implied volatility surface |
 | [Yield Curve Calibration from Rates](rates_kalman.md) | Fit the Vasicek (Kalman filter) and CIR (unscented Kalman filter) short-rate models to historical Treasury rates by maximum likelihood |
+| [Discount Curves from Option Prices](curve_calibration.md) | Calibrate discount curves and forwards from put-call parity, and understand why a wrong forward breaks the volatility smile |

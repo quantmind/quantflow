@@ -1,7 +1,7 @@
 import asyncio
 from datetime import date, timedelta
 from typing import Iterator
-from unittest.mock import AsyncMock
+from unittest.mock import AsyncMock, patch
 
 import numpy as np
 import pandas as pd
@@ -13,7 +13,7 @@ from fluid.utils.redis import FluidRedis
 import app.api.volatility as volatility
 from app.__main__ import crate_app
 from app.api.deps import RedisCache
-from quantflow.options.inputs import VolSurfaceInputs
+from quantflow.data.yahoo import Yahoo
 from quantflow.options.surface import VolSurfaceLoader
 from quantflow_tests.utils import load_fixture_dict
 
@@ -63,15 +63,15 @@ def client(app: FastAPI, clear_cache: None) -> Iterator[TestClient]:
 
 @pytest.fixture
 def vol_surface_loader() -> VolSurfaceLoader:
-    inputs = VolSurfaceInputs(**load_fixture_dict("volsurface_eth.json"))
-    loader = VolSurfaceLoader(
-        asset=inputs.asset,
-        quote_curve=inputs.quote_curve,
-        asset_curve=inputs.asset_curve,
-    )
-    for input in inputs.inputs:
-        loader.add(input)
-    return loader
+    # the SPX chain has matched call/put pairs, required by calibrate_curves
+    chain = load_fixture_dict("yahoo_spx.json.gz")
+
+    async def build() -> VolSurfaceLoader:
+        with patch.object(Yahoo, "option_chain", AsyncMock(return_value=chain)):
+            async with Yahoo() as cli:
+                return await cli.volatility_surface_loader("^SPX")
+
+    return asyncio.run(build())
 
 
 @pytest.fixture
@@ -231,6 +231,29 @@ def test_volatility_surface_cached(client: TestClient, mock_surface: AsyncMock) 
     assert cached_response.json() == response.json()
     # second call served from redis, so the loader is built only once
     assert mock_surface.await_count == 1
+
+
+def test_volatility_surface_curve_selection(
+    client: TestClient, mock_surface: AsyncMock
+) -> None:
+    response = client.get(
+        "/.api/volatility-surface?asset=ETH"
+        "&quote_curve=interpolated-cubic&asset_curve=nelson-siegel"
+    )
+    assert response.status_code == 200
+    data = response.json()
+    assert (
+        data["quote_curve"]["curve"]["curve_type"]
+        == "interpolated_monotonic_cubic_curve"
+    )
+    assert data["asset_curve"]["curve"]["curve_type"] == "nelson_siegel_curve"
+    # different curve selections are cached under different keys
+    response = client.get("/.api/volatility-surface?asset=ETH")
+    assert response.status_code == 200
+    data = response.json()
+    assert data["quote_curve"]["curve"]["curve_type"] == "cir_curve"
+    assert data["asset_curve"]["curve"]["curve_type"] == "nelson_siegel_curve"
+    assert mock_surface.await_count == 2
 
 
 def test_cointegration_endpoint(app: FastAPI, client: TestClient) -> None:

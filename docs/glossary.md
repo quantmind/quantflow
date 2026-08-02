@@ -224,12 +224,16 @@ Put-call parity is a no-arbitrage relationship between the prices of European ca
 and put options with the same strike $K$ and [time to maturity](#time-to-maturity-ttm).
 
 \begin{equation}
-    C - P = D_q \left(F - K\right)
+    C - P = D_q \left(F - K\right) = D_a S - D_q K
 \end{equation}
 
 where $D_q$ is the [discount factor](#discount-factor) of the quoting asset (generally a currency)
-at maturity and $F$ is the forward price
+at maturity and $F$ is the [forward](#forwards) price
 of the underlying asset at maturity.
+
+The second equality expresses the same relationship in terms of the spot price $S$.
+It follows from the forward formula $F = S D_a / D_q$, where $D_a$ is the
+[discount factor](#discount-factor) of the underlying asset at maturity.
 
 Denoting forward-space prices for calls and puts as:
 

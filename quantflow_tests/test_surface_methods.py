@@ -1,4 +1,4 @@
-"""Tests for VolCrossSection.disable_outliers and VolSurface.calibrate_forwards."""
+"""Tests for VolCrossSection.disable_outliers and VolSurface forward selection."""
 
 from __future__ import annotations
 
@@ -80,3 +80,33 @@ def test_disable_outliers_svi_pass_respects_threshold(vol_surface: VolSurface) -
     )
     after = sum(1 for _ in cross.option_securities(converged=True))
     assert after == before
+
+
+# ---------------------------------------------------------------------------
+# pricing_forward
+# ---------------------------------------------------------------------------
+
+
+def test_pricing_forward_defaults_to_market_forward(vol_surface: VolSurface) -> None:
+    for cross in vol_surface.maturities:
+        assert cross.parity_forward is None
+        assert cross.pricing_forward == cross.forward.mid
+
+
+def test_pricing_forward_prefers_parity_forward(vol_surface: VolSurface) -> None:
+    cross = vol_surface.maturities[0]
+    parity = cross.forward.mid + 1
+    updated = cross.model_copy(update=dict(parity_forward=parity))
+    assert updated.pricing_forward == parity
+
+
+def test_option_prices_use_pricing_forward(vol_surface: VolSurface) -> None:
+    for index, cross in enumerate(vol_surface.maturities):
+        for option in vol_surface.option_prices(index=index):
+            assert option.forward == cross.pricing_forward
+
+
+def test_term_structure_uses_pricing_forward(vol_surface: VolSurface) -> None:
+    frame = vol_surface.term_structure()
+    forwards = [cross.pricing_forward for cross in vol_surface.maturities]
+    assert list(frame["implied_forward"]) == forwards
