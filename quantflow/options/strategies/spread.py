@@ -12,13 +12,6 @@ from .base import Strategy, StrategyError, StrategyLeg, load_description
 
 
 class Spread(Strategy, frozen=True):
-    """Vertical spread: same option type, two strikes, same maturity.
-
-    Long the spread when quantity > 0 (debit), short when quantity < 0 (credit).
-    Call spread: long low strike, short high strike.
-    Put spread: long high strike, short low strike.
-    """
-
     description: ClassVar[str] = load_description("spread.md")
 
     @classmethod

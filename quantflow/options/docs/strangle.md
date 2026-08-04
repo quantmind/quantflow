@@ -11,7 +11,9 @@ A positive quantity is a long strangle (long vol). A negative quantity is a shor
 
 ## Greeks
 
-- Delta: near zero for log-symmetric strikes
+- Delta: near zero when the two legs carry equal and opposite delta, which is what quoting the
+  strikes by delta (for example a 25 delta put against a 25 delta call) gives directly. Strikes
+  placed symmetrically around the forward only approximate this.
 - Gamma: positive when long, negative when short
 - Vega: positive when long, negative when short; lower magnitude than a straddle for the same notional
 

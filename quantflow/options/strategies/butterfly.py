@@ -21,12 +21,6 @@ def _option_type_for_log_strike(mid_log_strike: float) -> OptionType:
 
 
 class Butterfly(Strategy, frozen=True):
-    """Three-strike strategy: long wings, short body.
-
-    Long butterfly when quantity > 0, short butterfly when quantity < 0.
-    Can be constructed with calls or puts, both are equivalent by put-call parity.
-    """
-
     description: ClassVar[str] = load_description("butterfly.md")
 
     @classmethod
