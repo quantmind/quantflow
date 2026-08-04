@@ -14,6 +14,7 @@ from typing_extensions import Annotated, Doc
 
 from quantflow.rates import (
     AnyYieldCurve,
+    InterpolatedMonotonicCubicCurve,
     NoDiscountCurve,
     Rate,
     YieldCurve,
@@ -447,7 +448,7 @@ class Strike(BaseModel, Generic[S]):
     )
 
     def put_call_parity(self) -> PutCallParity | None:
-        """Return a [PutCallParity][quantflow.rates.calibrator.PutCallParity] for this
+        """Return a [PutCallParity][quantflow.options.parity.PutCallParity] for this
         strike, or None if either the call or the put are not available."""
         if self.call is None or self.put is None:
             return None
@@ -761,6 +762,11 @@ class ForwardPricer(BaseModel, Generic[S]):
         default="",
         description="Name of the underlying asset",
     )
+    ref_date: datetime = Field(
+        default_factory=utcnow,
+        description="Reference date for pricing: time to maturity calculations "
+        "are measured from this date",
+    )
     spot: SpotPrice[S] | None = Field(
         default=None,
         description="Spot price of the underlying asset",
@@ -770,7 +776,7 @@ class ForwardPricer(BaseModel, Generic[S]):
         description="Discount curve for the quote",
     )
     asset_curve: AnyYieldCurve = Field(
-        default_factory=NoDiscountCurve,
+        default_factory=InterpolatedMonotonicCubicCurve,
         description="Discount curve for the asset",
     )
     tick_size_forwards: DecimalNumber | None = Field(
@@ -787,12 +793,6 @@ class ForwardPricer(BaseModel, Generic[S]):
             "by default it uses Act/Act"
         ),
     )
-
-    @property
-    def ref_date(self) -> datetime:
-        """Reference date for the volatility surface, taken as the earliest maturity
-        or the provided ref_date if it's earlier"""
-        return min(self.quote_curve.ref_date, self.asset_curve.ref_date)
 
     def spot_price(self) -> Decimal:
         """Get the spot price if it exists"""
@@ -1440,6 +1440,7 @@ class GenericVolSurfaceLoader(ForwardPricer[S], arbitrary_types_allowed=True):
             if section := loader._cross_section(forward):
                 maturities.append(section)
         return VolSurface(
+            ref_date=self.ref_date,
             asset=self.asset,
             spot=self.spot,
             maturities=tuple(maturities),
@@ -1505,7 +1506,7 @@ class GenericVolSurfaceLoader(ForwardPricer[S], arbitrary_types_allowed=True):
         self,
         *,
         quote_curve: Annotated[
-            type[YieldCurve] | YieldCurve | None,
+            type[YieldCurve] | None,
             Doc(
                 "YieldCurve type or instance to fit the quote currency discount "
                 "curve $D_q$. "
@@ -1513,7 +1514,7 @@ class GenericVolSurfaceLoader(ForwardPricer[S], arbitrary_types_allowed=True):
             ),
         ] = None,
         asset_curve: Annotated[
-            type[YieldCurve] | YieldCurve | None,
+            type[YieldCurve] | None,
             Doc(
                 "YieldCurve type or instance to fit the asset discount curve "
                 "$D_a$. "
@@ -1552,10 +1553,18 @@ class GenericVolSurfaceLoader(ForwardPricer[S], arbitrary_types_allowed=True):
 
         The selected curve models are fitted to those discount factors: a
         parametric model pools all maturities while an interpolated curve
-        passes through them. A curve without a calibrator, such as
+        passes through them. A quote curve without a calibrator, such as
         [NoDiscountCurve][quantflow.rates.no_discount.NoDiscountCurve], or a
-        None argument is treated as known: the quote curve is used as given
-        and the asset discount factors are derived from it.
+        None argument is treated as known and used as given: this is the
+        setup for exchanges that settle without discounting, such as Deribit.
+
+        The asset curve instead is always fitted, since put-call parity
+        defines it from the forwards and the quote curve. When its model
+        cannot be calibrated, for example a NoDiscountCurve, an
+        [InterpolatedMonotonicCubicCurve][quantflow.rates.interpolated.InterpolatedMonotonicCubicCurve]
+        is fitted instead: it passes exactly through its nodes, so the curve
+        implied forward reproduces the parity forward at every calibrated
+        maturity.
 
         The surface prices options off the parity forwards regardless of the
         curves, which only provide discounting and rates.
@@ -1583,11 +1592,9 @@ class GenericVolSurfaceLoader(ForwardPricer[S], arbitrary_types_allowed=True):
             quote_dfs.append(dq)
             forwards.append(forward)
         if not ttms:
-            raise ValueError("No parity forwards available to calibrate curves")
+            return
         ttm_arr = np.asarray(ttms)
-        quote_input = (
-            self._curve_calibrator(quote_curve) if quote_curve else self.quote_curve
-        )
+        quote_input = self._curve_calibrator(quote_curve or self.quote_curve)
         if isinstance(quote_input, YieldCurveCalibration):
             fitted_quote = quote_input.calibrate_df(ttm_arr, np.asarray(quote_dfs))
         else:
@@ -1595,13 +1602,11 @@ class GenericVolSurfaceLoader(ForwardPricer[S], arbitrary_types_allowed=True):
         asset_dfs = np.asarray(
             fitted_quote.discount_factor(ttm_arr), dtype=float
         ) * np.asarray(forwards)
-        asset_input = (
-            self._curve_calibrator(asset_curve) if asset_curve else self.asset_curve
-        )
+        asset_input = self._curve_calibrator(asset_curve or self.asset_curve)
         if isinstance(asset_input, YieldCurveCalibration):
             fitted_asset = asset_input.calibrate_df(ttm_arr, asset_dfs)
         else:
-            fitted_asset = asset_input
+            raise ValueError("Asset curve must be a calibratable YieldCurve")
         self.quote_curve = cast(AnyYieldCurve, fitted_quote)
         self.asset_curve = cast(AnyYieldCurve, fitted_asset)
 
@@ -1660,79 +1665,9 @@ class GenericVolSurfaceLoader(ForwardPricer[S], arbitrary_types_allowed=True):
         curve = (
             curve_type(ref_date=self.ref_date)
             if isinstance(curve_type, type)
-            else curve_type
+            else curve_type.model_copy(update=dict(ref_date=self.ref_date))
         )
         return curve.calibrator() or curve
-
-    def collect_put_call_parities(
-        self,
-        *,
-        max_pairs: Annotated[
-            int, Doc("Maximum number of put-call pairs to use per maturity")
-        ] = 10,
-    ) -> tuple[FloatArray, FloatArray, FloatArray]:
-        """Collect per-maturity continuously compounded rates from put-call parity."""
-        if not self.spot or self.spot.mid == ZERO:
-            raise ValueError("No spot price provided")
-        spot = self.spot.mid
-        ttms: list[FloatArray] = []
-        cp: list[FloatArray] = []
-        strikes: list[FloatArray] = []
-        ref_date = self.ref_date
-        for maturity, section in sorted(self.maturities.items()):
-            ttm = self.day_counter.dcf(ref_date, maturity)
-            if ttm <= 0:
-                continue
-            parities = section.put_call_parities(
-                spot,
-                ref_date=ref_date,
-                max_pairs=max_pairs,
-            )
-            regressand = parities.regressand()
-            if not regressand.size:
-                continue
-            ttms.append(np.full(regressand.shape, ttm, dtype=float))
-            cp.append(regressand)
-            strikes.append(parities.regressor())
-        if not cp:
-            raise ValueError("No put-call parity pairs available")
-        return (
-            np.concatenate(ttms),
-            np.concatenate(cp),
-            np.concatenate(strikes),
-        )
-
-    def implied_forward_term_structure(
-        self,
-        *,
-        max_pairs: Annotated[
-            int, Doc("Maximum number of put-call pairs to use per maturity")
-        ] = 10,
-    ) -> list[tuple[datetime, float, float]]:
-        """Return per-maturity implied forwards from put-call parity.
-
-        For each maturity, fits asset and quote discount factors from the most
-        liquid put-call pairs and returns the implied forward `spot * Da / Dq`.
-
-        Returns a list of `(maturity, ttm, forward)` tuples, one per maturity
-        for which a valid fit is available.
-        """
-        if not self.spot or self.spot.mid == ZERO:
-            raise ValueError("No spot price provided")
-        spot = self.spot.mid
-        ref_date = self.ref_date
-        result = []
-        for maturity, section in sorted(self.maturities.items()):
-            ttm = self.day_counter.dcf(ref_date, maturity)
-            if ttm <= 0:
-                continue
-            parities = section.put_call_parities(
-                spot, ref_date=ref_date, max_pairs=max_pairs
-            )
-            forward = parities.implied_forward()
-            if forward is not None:
-                result.append((maturity, ttm, forward))
-        return result
 
 
 class VolSurfaceLoader(GenericVolSurfaceLoader[DefaultVolSecurity]):
@@ -1787,6 +1722,7 @@ def surface_from_inputs(
     [VolSurfaceInputs][quantflow.options.inputs.VolSurfaceInputs] instance
     """
     loader = VolSurfaceLoader(
+        ref_date=min(inputs.quote_curve.ref_date, inputs.asset_curve.ref_date),
         asset=inputs.asset,
         quote_curve=inputs.quote_curve,
         asset_curve=inputs.asset_curve,

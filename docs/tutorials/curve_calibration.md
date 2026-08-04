@@ -201,17 +201,39 @@ lot, in opposite directions.
 
 **What the library does.**
 [calibrate_curves][quantflow.options.surface.GenericVolSurfaceLoader.calibrate_curves]
-never fits the two discount factors freely. It calibrates the forwards
-first, then estimates a single parameter per maturity, the quote discount
-factor, with the forward held fixed
-([quote_discount][quantflow.options.parity.PutCallParities.quote_discount]).
-The asset discount factor follows from the forward formula:
+never fits the two discount factors freely. The forwards are calibrated
+first and held fixed. With the forward known, put-call parity collapses to
+a single free parameter, the quote discount factor:
+
+\begin{equation}
+    C - P = D_q \left(F - K\right)
+\end{equation}
+
+[quote_discount][quantflow.options.parity.PutCallParities.quote_discount]
+estimates $D_q$ at each maturity by weighted least squares across the
+parity pairs, with the same inverse spread weights used for the forward.
+Fixing the forward removes the ill conditioning of the split: the slope is
+the only parameter left and the crossing no longer moves.
+
+For options traded on exchanges that settle without discounting, such as
+Deribit, the quote discount factor is not an estimate but a market
+convention: $D_q = 1$ at every maturity. In that case the quote curve is a
+[NoDiscountCurve][quantflow.rates.no_discount.NoDiscountCurve] and is kept
+as given: no fitting is required.
+
+The asset discount factor is never estimated independently. It follows
+from the forward formula:
 
 \begin{equation}
     D_a = D_q \frac{F}{S}
 \end{equation}
 
-The selected curve models are then fitted to those discount factors: a
+The asset curve is therefore always fitted to these discount factors, even
+when the quote curve is a no discount curve: the entire forward to spot
+basis is attributed to the asset leg, where it encodes the implied funding
+rate of the asset.
+
+The selected curve models are fitted to those discount factors: a
 parametric model pools all maturities while an interpolated curve passes
 through them. This guarantees that the curves are consistent with the parity
 forwards, and since the surface prices off the parity forwards directly, the

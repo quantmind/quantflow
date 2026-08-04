@@ -1,8 +1,8 @@
 """Tests for GenericVolSurfaceLoader calibration methods.
 
-Covers collect_put_call_parities, calibrate_curves, calibrate_spot, and
-implied_forward_term_structure using the SPX fixture (non-inverse, matched
-call/put pairs).
+Covers calibrate_curves, calibrate_spot, and calibrate_forwards using the
+SPX fixture (non-inverse, matched call/put pairs) and the BTC fixture
+(inverse options).
 """
 
 from __future__ import annotations
@@ -51,24 +51,6 @@ async def loader(yahoo_cli: Yahoo) -> VolSurfaceLoader:
     return await yahoo_cli.volatility_surface_loader("^SPX")
 
 
-async def test_collect_put_call_parities_shapes(loader: VolSurfaceLoader) -> None:
-    ttm, cp, strikes = loader.collect_put_call_parities()
-    assert ttm.shape == cp.shape == strikes.shape
-    assert len(ttm) > 0
-
-
-async def test_collect_put_call_parities_ttm_positive(loader: VolSurfaceLoader) -> None:
-    ttm, _cp, _strikes = loader.collect_put_call_parities()
-    assert (ttm > 0).all()
-
-
-async def test_collect_put_call_parities_strikes_positive(
-    loader: VolSurfaceLoader,
-) -> None:
-    _ttm, _cp, strikes = loader.collect_put_call_parities()
-    assert (strikes > 0).all()
-
-
 async def test_calibrate_spot_returns_positive_value(loader: VolSurfaceLoader) -> None:
     implied = loader.calibrate_spot()
     assert implied is not None
@@ -107,25 +89,29 @@ async def test_calibrate_curves_joint(loader: VolSurfaceLoader) -> None:
     assert isinstance(loader.quote_curve, NelsonSiegelCurve)
 
 
-async def test_calibrate_curves_both_none_is_noop(loader: VolSurfaceLoader) -> None:
-    original_asset = loader.asset_curve
-    original_quote = loader.quote_curve
+async def test_calibrate_curves_default_refits_curves(loader: VolSurfaceLoader) -> None:
+    # with no arguments the current curve models are refitted: the yahoo
+    # loader starts with interpolated quote and asset curves
     loader.calibrate_curves()
-    assert loader.asset_curve is original_asset
-    assert loader.quote_curve is original_quote
+    assert isinstance(loader.quote_curve, InterpolatedMonotonicCubicCurve)
+    assert loader.quote_curve.anchor_dates
+    assert isinstance(loader.asset_curve, InterpolatedMonotonicCubicCurve)
+    assert loader.asset_curve.anchor_dates
 
 
 async def test_calibrate_curves_no_discount_asset(loader: VolSurfaceLoader) -> None:
-    # a curve without a calibrator is treated as fixed
-    loader.calibrate_curves(quote_curve=NelsonSiegelCurve, asset_curve=NoDiscountCurve)
-    assert isinstance(loader.quote_curve, NelsonSiegelCurve)
-    assert isinstance(loader.asset_curve, NoDiscountCurve)
+    # the asset curve is always fitted, a model without a calibrator raises
+    with pytest.raises(ValueError):
+        loader.calibrate_curves(
+            quote_curve=NelsonSiegelCurve, asset_curve=NoDiscountCurve
+        )
 
 
-async def test_calibrate_curves_both_no_discount(loader: VolSurfaceLoader) -> None:
-    loader.calibrate_curves(quote_curve=NoDiscountCurve, asset_curve=NoDiscountCurve)
+async def test_calibrate_curves_no_discount_quote(loader: VolSurfaceLoader) -> None:
+    # a quote curve without a calibrator is kept as known
+    loader.calibrate_curves(quote_curve=NoDiscountCurve)
     assert isinstance(loader.quote_curve, NoDiscountCurve)
-    assert isinstance(loader.asset_curve, NoDiscountCurve)
+    assert isinstance(loader.asset_curve, InterpolatedMonotonicCubicCurve)
 
 
 async def test_calibrate_curves_joint_interpolated(loader: VolSurfaceLoader) -> None:
@@ -206,34 +192,3 @@ def test_calibrate_curves_reproduces_parity_forwards(
         assert section.parity_forward is not None
         curve_forward = float(btc_loader.forward(maturity))
         assert curve_forward == pytest.approx(float(section.parity_forward), rel=1e-6)
-
-
-async def test_implied_forward_term_structure_returns_entries(
-    loader: VolSurfaceLoader,
-) -> None:
-    ts = loader.implied_forward_term_structure()
-    assert len(ts) > 0
-
-
-async def test_implied_forward_term_structure_ttm_positive(
-    loader: VolSurfaceLoader,
-) -> None:
-    ts = loader.implied_forward_term_structure()
-    for _mat, ttm, _fwd in ts:
-        assert ttm > 0
-
-
-async def test_implied_forward_term_structure_forward_positive(
-    loader: VolSurfaceLoader,
-) -> None:
-    ts = loader.implied_forward_term_structure()
-    for _mat, _ttm, fwd in ts:
-        assert fwd > 0
-
-
-async def test_implied_forward_term_structure_increases_with_ttm(
-    loader: VolSurfaceLoader,
-) -> None:
-    ts = loader.implied_forward_term_structure()
-    ttms = [ttm for _mat, ttm, _fwd in ts]
-    assert ttms == sorted(ttms)

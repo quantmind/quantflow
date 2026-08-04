@@ -6,7 +6,7 @@ title: Volatility Surface
 
 Live implied volatility surface from market options data. Crypto assets (BTC, ETH) use the [Deribit volatility surface loader](https://quantflow.quantmind.com/api/data/deribit/#quantflow.data.deribit.Deribit.volatility_surface_loader); equities (SPY, AAPL, NVDA) use the [Yahoo Finance volatility surface loader](https://quantflow.quantmind.com/api/data/yahoo/#quantflow.data.yahoo.Yahoo.volatility_surface_loader).
 
-The forwards are calibrated from put call parity and price the options directly. The quote and asset discount curves are then derived from the calibrated forwards using the selected curve models: parametric (CIR, Nelson-Siegel, Vasicek), interpolated (no model, the curve passes through the observations), or no discounting at all.
+The forwards are calibrated from put call parity and price the options directly. The quote and asset discount curves are then derived from the calibrated forwards: the asset curve is an interpolated curve through the implied discount factors, while the quote curve is kept at no discounting for crypto assets, whose inverse options settle without discounting, and fitted as an interpolated curve for equity assets.
 
 ```js
 import {fetchJson} from "./lib/api.js";
@@ -16,31 +16,16 @@ import * as d3 from "npm:d3";
 ```
 
 ```js
-const curveOptions = new Map([
-  ["CIR", "cir"],
-  ["Nelson-Siegel", "nelson-siegel"],
-  ["Vasicek", "vasicek"],
-  ["Interpolated (linear)", "interpolated-linear"],
-  ["Interpolated (cubic)", "interpolated-cubic"],
-  ["No discount", "no-discount"],
-]);
-
 const assetInput = Inputs.select(["BTC", "ETH", "SPY", "AAPL", "NVDA"], {label: "Asset", value: "BTC"});
 const asset = Generators.input(assetInput);
-
-const quoteCurveInput = Inputs.select(curveOptions, {label: "Quote curve", value: "cir"});
-const quoteCurveModel = Generators.input(quoteCurveInput);
-
-const assetCurveInput = Inputs.select(curveOptions, {label: "Asset curve", value: "nelson-siegel"});
-const assetCurveModel = Generators.input(assetCurveInput);
 ```
 
 ```js
-display(html`<div style="display: flex; gap: 1rem; align-items: end; flex-wrap: wrap">${assetInput}${quoteCurveInput}${assetCurveInput}</div>`);
+display(html`<div style="display: flex; gap: 1rem; align-items: end; flex-wrap: wrap">${assetInput}</div>`);
 ```
 
 ```js
-const data = await fetchJson(`/.api/volatility-surface?asset=${asset}&quote_curve=${quoteCurveModel}&asset_curve=${assetCurveModel}`);
+const data = await fetchJson(`/.api/volatility-surface?asset=${asset}`);
 ```
 
 ```js

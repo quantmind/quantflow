@@ -148,22 +148,28 @@ F = S \frac{D_a}{D_q}
 [put_call_parities][quantflow.options.surface.VolCrossSectionLoader.put_call_parities]
 collects the most liquid pairs at each maturity, ranked by the bid-ask spread of the
 parity price, and
-[implied_forward][quantflow.options.parity.PutCallParities.implied_forward] fits the
+[calibrate_forward][quantflow.options.parity.PutCallParities.calibrate_forward] fits the
 regression and returns the implied forward.
 
 ### Discount curve calibration
 
 The
 [calibrate_curves][quantflow.options.surface.GenericVolSurfaceLoader.calibrate_curves]
-method fits smooth yield curves to the same put-call parity data across all
-maturities. It supports three modes:
+method builds the discount curves on top of the calibrated forwards. With the
+forward of each maturity held fixed, put-call parity identifies the quote
+discount factor $D_q$ as its only remaining parameter, and the asset discount
+factor follows from the forward formula $D_a = D_q F / S$.
 
-- **Both curves**: pass a [YieldCurve][quantflow.rates.yield_curve.YieldCurve] type for
-  both `quote_curve` and `asset_curve`. A single OLS regression per maturity identifies
-  $D_q$ and $D_a$ simultaneously from the slope and intercept.
-- **Asset curve only**: pass a type for `asset_curve` and leave `quote_curve` as `None`.
-  The existing `quote_curve` on the loader is treated as known and $D_a$ is computed
-  analytically from each put-call pair using the known $D_q$.
-- **Quote curve only**: pass a type for `quote_curve` and leave `asset_curve` as `None`.
-  The same simultaneous OLS is run but only the quote discount factors are used to fit
-  the curve.
+- **Quote curve**: pass a [YieldCurve][quantflow.rates.yield_curve.YieldCurve]
+  type for `quote_curve` to fit it to the per maturity quote discount factors.
+  Leave it as `None` to keep the current quote curve and treat it as known:
+  this is the setup for exchanges that settle without discounting, such as
+  Deribit, where the quote curve is a
+  [NoDiscountCurve][quantflow.rates.no_discount.NoDiscountCurve] with
+  $D_q = 1$ at every maturity.
+- **Asset curve**: always fitted to the discount factors $D_a = D_q F / S$. It
+  cannot be a no discount curve, since the parity forwards and the quote curve
+  define it.
+
+See the [curve calibration tutorial](curve_calibration.md) for how the
+forwards and the discount factor split are estimated.

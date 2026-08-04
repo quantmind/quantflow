@@ -19,12 +19,12 @@ Two discount curves are then derived from the calibrated forwards:
 - **quote_curve**: discount curve for the numeraire (USD for equity, crypto for inverse).
 - **asset_curve**: discount curve for the underlying asset.
 
-The curve model for each can be selected with the `quote_curve` and
-`asset_curve` query parameters. Parametric models (CIR, Nelson-Siegel,
-Vasicek) fit a small number of parameters, interpolated curves pass through
-the observations without any model, and `no-discount` fixes the curve to
-zero rates. The curves provide discounting and rates only; the pricing
-forwards come from parity regardless of the curve selection.
+The asset curve is always an interpolated curve fitted through the discount
+factors implied by the calibrated forwards. The quote curve is fixed at no
+discounting for crypto assets, whose inverse options settle without
+discounting, and fitted as an interpolated curve for equity assets. The
+curves provide discounting and rates only; the pricing forwards come from
+parity regardless.
 
 The forward curve and per-maturity implied forwards from put-call parity are also
 included, which are useful for detecting curve arbitrage or funding dislocations.
