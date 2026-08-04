@@ -13,7 +13,7 @@ from typing_extensions import Annotated, Doc
 
 from quantflow.options.inputs import DefaultVolSecurity, OptionType
 from quantflow.options.surface import VolSurfaceLoader
-from quantflow.rates.no_discount import NoDiscountCurve
+from quantflow.rates.interpolated import InterpolatedMonotonicCubicCurve
 from quantflow.utils.dates import as_utc, utcnow
 from quantflow.utils.numbers import to_decimal
 
@@ -141,15 +141,14 @@ class Yahoo(HttpxClient):
         quote = chain.get("quote") or {}
         if ref_date is None and (market_time := quote.get("regularMarketTime")):
             ref_date = datetime.fromtimestamp(market_time, tz=timezone.utc)
-        ref = ref_date or utcnow()
         loader = VolSurfaceLoader(
+            ref_date=ref_date or utcnow(),
             asset=symbol,
             exclude_volume=to_decimal(exclude_volume) if exclude_volume else None,
             exclude_open_interest=(
                 to_decimal(exclude_open_interest) if exclude_open_interest else None
             ),
-            quote_curve=NoDiscountCurve(ref_date=ref),
-            asset_curve=NoDiscountCurve(ref_date=ref),
+            quote_curve=InterpolatedMonotonicCubicCurve(),
         )
         bid = quote.get("bid") or quote.get("regularMarketPrice")
         ask = quote.get("ask") or quote.get("regularMarketPrice")

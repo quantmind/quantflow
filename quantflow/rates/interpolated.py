@@ -17,6 +17,7 @@ from quantflow.utils.numbers import DecimalNumber
 from quantflow.utils.types import FloatArray, FloatArrayLike, maybe_float
 
 from .calibration import YieldCurveCalibration
+from .interest_rate import ROUND_RATE
 from .yield_curve import YieldCurve
 
 _YEAR = 365.0 * 86400.0
@@ -221,7 +222,9 @@ class InterpolatedYieldCurveCalibration(YieldCurveCalibration[InterpolatedYieldC
         curve.anchor_dates = [
             ref + timedelta(seconds=float(t) * _YEAR) for t in unique_ttm
         ]
-        curve.anchor_rates = [Decimal(str(round(float(r), 10))) for r in mean_rates]
+        curve.anchor_rates = [
+            Decimal(str(round(float(r), ROUND_RATE))) for r in mean_rates
+        ]
         curve._ttm = unique_ttm
         curve._rates = mean_rates
         return curve

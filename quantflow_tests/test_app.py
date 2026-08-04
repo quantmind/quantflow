@@ -233,27 +233,22 @@ def test_volatility_surface_cached(client: TestClient, mock_surface: AsyncMock) 
     assert mock_surface.await_count == 1
 
 
-def test_volatility_surface_curve_selection(
-    client: TestClient, mock_surface: AsyncMock
-) -> None:
-    response = client.get(
-        "/.api/volatility-surface?asset=ETH"
-        "&quote_curve=interpolated-cubic&asset_curve=nelson-siegel"
-    )
+def test_volatility_surface_curves(client: TestClient, mock_surface: AsyncMock) -> None:
+    # the curves are forced by the backend: interpolated curves fitted from
+    # the parity forwards (the mock loader is equity style, so the quote
+    # curve is fitted too)
+    response = client.get("/.api/volatility-surface?asset=ETH")
     assert response.status_code == 200
     data = response.json()
     assert (
         data["quote_curve"]["curve"]["curve_type"]
         == "interpolated_monotonic_cubic_curve"
     )
-    assert data["asset_curve"]["curve"]["curve_type"] == "nelson_siegel_curve"
-    # different curve selections are cached under different keys
-    response = client.get("/.api/volatility-surface?asset=ETH")
-    assert response.status_code == 200
-    data = response.json()
-    assert data["quote_curve"]["curve"]["curve_type"] == "cir_curve"
-    assert data["asset_curve"]["curve"]["curve_type"] == "nelson_siegel_curve"
-    assert mock_surface.await_count == 2
+    assert (
+        data["asset_curve"]["curve"]["curve_type"]
+        == "interpolated_monotonic_cubic_curve"
+    )
+    assert mock_surface.await_count == 1
 
 
 def test_cointegration_endpoint(app: FastAPI, client: TestClient) -> None:

@@ -37,6 +37,7 @@ def _black_mid_usd(strike: float, call_put: int, ttm: float) -> Decimal:
 def _build_loader(ttm: float) -> VolSurfaceLoader:
     loader = VolSurfaceLoader(
         asset="TEST",
+        ref_date=REF_DATE,
         quote_curve=NoDiscountCurve(ref_date=REF_DATE),
         asset_curve=NoDiscountCurve(ref_date=REF_DATE),
     )

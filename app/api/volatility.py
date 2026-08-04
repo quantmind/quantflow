@@ -11,15 +11,6 @@ from quantflow.data.yahoo import Yahoo
 from quantflow.options.inputs import VolSurfaceInputs
 from quantflow.options.ssvi import SSVI
 from quantflow.options.surface import OptionInfo, VolSurfaceLoader
-from quantflow.rates import (
-    CIRCurve,
-    InterpolatedLinearCurve,
-    InterpolatedMonotonicCubicCurve,
-    NelsonSiegelCurve,
-    NoDiscountCurve,
-    VasicekCurve,
-    YieldCurve,
-)
 
 from .deps import RedisCache, RedisDep
 from .rates import YieldCurveResponse
@@ -29,16 +20,6 @@ volatility_router = APIRouter()
 DERIBIT_ASSETS = {"BTC", "ETH"}
 YAHOO_ASSETS = {"SPY", "AAPL", "NVDA"}
 ALL_ASSETS = sorted(DERIBIT_ASSETS) + sorted(YAHOO_ASSETS)
-
-CURVES: dict[str, type[YieldCurve]] = {
-    "cir": CIRCurve,
-    "nelson-siegel": NelsonSiegelCurve,
-    "vasicek": VasicekCurve,
-    "interpolated-linear": InterpolatedLinearCurve,
-    "interpolated-cubic": InterpolatedMonotonicCubicCurve,
-    "no-discount": NoDiscountCurve,
-}
-CURVE_NAMES = sorted(CURVES)
 
 
 class ForwardPoint(BaseModel):
@@ -86,31 +67,13 @@ async def volatility_surface(
         description="Asset symbol",
         enum=ALL_ASSETS,
     ),
-    quote_curve: str = Query(
-        "cir",
-        description=(
-            "Curve model calibrated from put-call parity for the quote "
-            "currency discount curve"
-        ),
-        enum=CURVE_NAMES,
-    ),
-    asset_curve: str = Query(
-        "nelson-siegel",
-        description=(
-            "Curve model calibrated from put-call parity for the asset "
-            "discount curve"
-        ),
-        enum=CURVE_NAMES,
-    ),
 ) -> VolSurfaceResponse:
     cache = RedisCache(
         redis=redis,
         Model=VolSurfaceResponse,
-        key=f"vol_surface:{asset}:{quote_curve}:{asset_curve}",
+        key=f"vol_surface:{asset}",
     )
-    return await cache.from_cache(
-        partial(_volatility_surface, asset, CURVES[quote_curve], CURVES[asset_curve])
-    )
+    return await cache.from_cache(partial(_volatility_surface, asset))
 
 
 def _curve_response(curve: Any, max_ttm: float) -> YieldCurveResponse:
@@ -143,14 +106,10 @@ def _forward_curve_response(
     return ForwardCurveResponse(ttm=ttm_grid, forward=forward)
 
 
-async def _volatility_surface(
-    asset: str,
-    quote_curve: type[YieldCurve],
-    asset_curve: type[YieldCurve],
-) -> VolSurfaceResponse:
+async def _volatility_surface(asset: str) -> VolSurfaceResponse:
     loader = await _load_surface(asset)
     parity_forwards = loader.calibrate_forwards()
-    loader.calibrate_curves(quote_curve=quote_curve, asset_curve=asset_curve)
+    loader.calibrate_curves()
     surface = loader.surface()
     surface.bs()
     surface.disable_outliers()

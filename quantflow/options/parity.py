@@ -5,19 +5,11 @@ from typing import Any, Self
 
 import numpy as np
 from pydantic import BaseModel, Field
-from scipy.optimize import lsq_linear
 from typing_extensions import Annotated, Doc
 
 from quantflow.utils.numbers import ZERO, Number, to_decimal
 from quantflow.utils.price import Price
 from quantflow.utils.types import FloatArray
-
-
-class DiscountPair(BaseModel, frozen=True):
-    asset_discount: float = Field(
-        description="Discount factor for the underlying asset"
-    )
-    quote_discount: float = Field(description="Discount factor for the option quote")
 
 
 class PutCallParity(BaseModel, frozen=True):
@@ -85,64 +77,6 @@ class PutCallParities(BaseModel, frozen=True):
         which is the strike price divided by the spot price.
         """
         return np.asarray([float(p.strike / self.spot) for p in self.parities])
-
-    def fit_discounts(
-        self,
-        dq: float | None = None,
-        da: float | None = None,
-        min_rate_q: float = 0.0,
-        min_rate_a: float = 0.0,
-    ) -> DiscountPair | None:
-        r"""Return the fitted discount factors, or None if the result is invalid.
-
-        Both direct and inverse options satisfy the same normalized equation
-
-        \begin{equation}
-            y = Da - K \frac{Dq}{S}
-        \end{equation}
-
-        where y = mid/S for direct and y = mid for inverse.
-
-        When both known values are None a full OLS is run via constrained least squares.
-        When one is provided the other is solved analytically as the mean over pairs.
-        Discount factors are bounded by D <= exp(-min_rate * ttm), so min_rate=0
-        enforces D <= 1 (non-negative rates).
-        """
-        if not self.parities:
-            return None
-        ys = self.regressand()
-        xs = self.regressor()
-        ttm = float(self.ttm)
-        max_dq = float(np.exp(-min_rate_q * ttm))
-        max_da = float(np.exp(-min_rate_a * ttm))
-        if dq is not None:
-            if da is not None:
-                return DiscountPair(asset_discount=da, quote_discount=dq)
-            da = float(np.mean(ys + dq * xs))
-        elif da is not None:
-            dq = float(np.mean((da - ys) / xs))
-        else:
-            A = np.column_stack([np.ones(len(xs)), -xs])
-            result = lsq_linear(A, ys, bounds=([0, 0], [max_da, max_dq]))
-            da, dq = float(result.x[0]), float(result.x[1])
-        if not (0 < dq <= max_dq and 0 < da <= max_da):
-            return None
-        return DiscountPair(asset_discount=da, quote_discount=dq)
-
-    def implied_forward(
-        self,
-        dq: float | None = None,
-        da: float | None = None,
-    ) -> float | None:
-        """Implied forward price from put-call parity regression.
-
-        Fits asset and quote discount factors from the put-call parity data and
-        returns `spot * Da / Dq`. Returns None if the fit is invalid.
-        """
-        discounts = self.fit_discounts(dq=dq, da=da)
-        if discounts is None:
-            return None
-        return float(self.spot) * discounts.asset_discount / discounts.quote_discount
 
     def weights(self) -> FloatArray:
         """Inverse bid-ask spread weights for the put-call parity regression.
@@ -269,14 +203,13 @@ class PutCallParities(BaseModel, frozen=True):
         sigma = straddle / (0.7979 * np.sqrt(float(self.ttm)))
         return float(np.clip(sigma, 0.05, 5.0))
 
-    def plot(
-        self,
-        dq: float | None = None,
-        da: float | None = None,
-        min_rate_q: float = 0.0,
-        min_rate_a: float = 0.0,
-    ) -> Any:
-        """Plot the normalized put-call parity data and the fitted regression line."""
+    def plot(self) -> Any:
+        """Plot the normalized put-call parity data and the fitted regression line.
+
+        The line is built from the calibrated forward
+        ([calibrate_forward][..calibrate_forward]) and the quote discount factor
+        estimated with the forward held fixed ([quote_discount][..quote_discount]).
+        """
         from quantflow.utils.plot import check_plotly
 
         check_plotly()
@@ -284,16 +217,18 @@ class PutCallParities(BaseModel, frozen=True):
 
         xs = self.regressor()
         ys = self.regressand()
-        discounts = self.fit_discounts(
-            dq=dq, da=da, min_rate_q=min_rate_q, min_rate_a=min_rate_a
-        )
         fig = go.Figure()
         fig.add_trace(
             go.Scatter(x=xs, y=ys, mode="markers", name="market", marker_size=10)
         )
-        if discounts is not None:
-            x_range = np.linspace(xs.min(), xs.max(), 100)
-            y_fit = discounts.asset_discount - discounts.quote_discount * x_range
-            fig.add_trace(go.Scatter(x=x_range, y=y_fit, mode="lines", name="fit"))
+        if (forward := self.calibrate_forward()) is not None:
+            f = forward / float(self.spot)
+            if (dq := self.quote_discount(f)) is not None:
+                x_range = np.linspace(xs.min(), xs.max(), 100)
+                fig.add_trace(
+                    go.Scatter(
+                        x=x_range, y=dq * (f - x_range), mode="lines", name="fit"
+                    )
+                )
         y_label = "c - p" if self.inverse else "(C - P) / S"
         return fig.update_layout(xaxis_title="K / S", yaxis_title=y_label)

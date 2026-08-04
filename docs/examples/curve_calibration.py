@@ -269,8 +269,9 @@ fig.write_image(
 )
 
 # figure 4: forward term structure, market futures against parity implied forwards
-term = loader.implied_forward_term_structure(max_pairs=100)
-implied = pd.DataFrame(term, columns=["maturity", "ttm", "forward"])
+parity_forwards = loader.calibrate_forwards(max_pairs=100)
+implied = pd.DataFrame(parity_forwards, columns=["maturity", "ttm", "forward"])
+implied["forward"] = implied["forward"].astype(float)
 futures = pd.DataFrame(
     dict(
         ttm=[c.ttm(ref_date) for c in surface.maturities],
@@ -319,13 +320,7 @@ for c in surface.maturities:
     slope, intercept = np.polyfit(k_pairs, cp_pairs, 1)
     rows.append(dict(ttm=c.ttm(ref_date), forward=-intercept / slope * spot))
 naive = pd.DataFrame(rows)
-parity_forwards = loader.calibrate_forwards()
-calibrated = pd.DataFrame(
-    dict(
-        ttm=[entry[1] for entry in parity_forwards],
-        forward=[float(entry[2]) for entry in parity_forwards],
-    )
-)
+calibrated = implied[["ttm", "forward"]]
 fig = go.Figure()
 for name, symbol, frame in (
     ("all pairs", "diamond", naive),
