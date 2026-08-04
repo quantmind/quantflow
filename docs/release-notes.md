@@ -6,6 +6,44 @@ below maps to a tagged release on
 pushed, the matching section is extracted by
 `.github/workflows/release.yml` and published as the GitHub Release body.
 
+## v1.2.0
+
+This release completes the discount curve and forward calibration work
+introduced in v1.1.0. The experimental curve calibration API has been
+simplified and part of it removed: see the **Breaking changes** section
+below.
+
+### Breaking changes
+
+- `VolSurface.calibrate_curves` accepts only yield curve model types for the
+  quote and asset legs, no longer curve instances. The asset curve is always
+  fitted from the parity forwards, falling back to an interpolated monotonic
+  cubic curve when the requested model cannot be calibrated
+  ([#92](https://github.com/quantmind/quantflow/pull/92)).
+- Removed the per-expiry OLS discount fitting API: the `DiscountPair` model
+  and the `PutCallParities.fit_discounts` and `implied_forward` methods.
+  Use `calibrate_forward` and `quote_discount` instead
+  ([#92](https://github.com/quantmind/quantflow/pull/92)).
+- Removed `VolSurface.collect_put_call_parities` and
+  `implied_forward_term_structure`. The surface reference date is now an
+  explicit `ref_date` field (defaulting to the current UTC time) rather than
+  a property derived from the curves
+  ([#92](https://github.com/quantmind/quantflow/pull/92)).
+
+### New features
+
+- The default quote and asset curves of the volatility surface are now
+  interpolated monotonic cubic curves calibrated from put-call parity; the
+  Deribit and Yahoo Finance loaders have been updated accordingly
+  ([#92](https://github.com/quantmind/quantflow/pull/92)).
+
+### Documentation and assets
+
+- Updated the curve calibration and volatility surface tutorials for the new
+  calibration API ([#92](https://github.com/quantmind/quantflow/pull/92)).
+
+[Full changelog](https://github.com/quantmind/quantflow/compare/v1.1.0...v1.2.0)
+
 ## v1.1.0
 
 This release introduces the eSSVI parametrisation of the implied volatility
