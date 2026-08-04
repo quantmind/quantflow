@@ -12,11 +12,6 @@ from .base import Strategy, StrategyError, StrategyLeg, load_description
 
 
 class CalendarSpread(Strategy, frozen=True):
-    """Same strike, same option type, two maturities.
-
-    Long the far maturity, short the near maturity when quantity > 0.
-    """
-
     description: ClassVar[str] = load_description("calendar_spread.md")
 
     @property

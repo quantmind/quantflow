@@ -12,11 +12,6 @@ from .base import Strategy, StrategyError, StrategyLeg, load_description
 
 
 class Strangle(Strategy, frozen=True):
-    """Call and put at different OTM strikes.
-
-    Long vol when quantity > 0, short vol when quantity < 0.
-    """
-
     description: ClassVar[str] = load_description("strangle.md")
 
     @classmethod

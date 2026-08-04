@@ -2,13 +2,16 @@ from datetime import datetime, timezone
 
 import pytest
 
+from quantflow.options.inputs import OptionType
 from quantflow.options.pricer import OptionPricer
 from quantflow.options.strategies import (
     Butterfly,
     CalendarSpread,
+    Ladder,
     Spread,
     Straddle,
     Strangle,
+    StrategyError,
 )
 from quantflow.sp.wiener import WienerProcess
 
@@ -109,3 +112,52 @@ def test_calendar_spread_put_above_forward(pricer: OptionPricer) -> None:
     )
     assert p.price > 0
     assert p.delta > 0
+
+
+def test_call_ladder(pricer: OptionPricer) -> None:
+    ladder = Ladder.call(100.0, 110.0, 120.0, MATURITY)
+    assert ladder.option_type is OptionType.CALL
+    assert [float(leg.quantity) for leg in ladder.legs] == [1.0, -1.0, -1.0]
+    assert [float(leg.meta.strike) for leg in ladder.legs] == [100.0, 110.0, 120.0]
+    # net short one option: short gamma when long the ladder
+    assert ladder.price(pricer, FORWARD, REF_DATE).gamma < 0
+    assert Ladder.description != ""
+
+
+def test_put_ladder(pricer: OptionPricer) -> None:
+    ladder = Ladder.put(80.0, 90.0, 100.0, MATURITY)
+    assert ladder.option_type is OptionType.PUT
+    # long leg first, at the high strike
+    assert [float(leg.quantity) for leg in ladder.legs] == [1.0, -1.0, -1.0]
+    assert [float(leg.meta.strike) for leg in ladder.legs] == [100.0, 90.0, 80.0]
+    assert ladder.price(pricer, FORWARD, REF_DATE).gamma < 0
+
+
+def test_call_ladder_one_by_two(pricer: OptionPricer) -> None:
+    # mid == high collapses the two short legs into one of twice the quantity
+    ladder = Ladder.call(100.0, 110.0, 110.0, MATURITY)
+    assert len(ladder.legs) == 2
+    assert [float(leg.quantity) for leg in ladder.legs] == [1.0, -2.0]
+    assert [float(leg.meta.strike) for leg in ladder.legs] == [100.0, 110.0]
+    assert ladder.price(pricer, FORWARD, REF_DATE).gamma < 0
+
+
+def test_put_ladder_one_by_two() -> None:
+    # low == mid collapses the two short legs into one of twice the quantity
+    ladder = Ladder.put(90.0, 90.0, 100.0, MATURITY)
+    assert len(ladder.legs) == 2
+    assert [float(leg.quantity) for leg in ladder.legs] == [1.0, -2.0]
+    assert [float(leg.meta.strike) for leg in ladder.legs] == [100.0, 90.0]
+
+
+def test_ladder_strike_ordering() -> None:
+    # a call ladder may repeat the two short strikes but not the long one
+    with pytest.raises(StrategyError):
+        Ladder.call(100.0, 100.0, 110.0, MATURITY)
+    with pytest.raises(StrategyError):
+        Ladder.call(100.0, 120.0, 110.0, MATURITY)
+    # a put ladder mirrors the constraint
+    with pytest.raises(StrategyError):
+        Ladder.put(90.0, 100.0, 100.0, MATURITY)
+    with pytest.raises(StrategyError):
+        Ladder.put(100.0, 90.0, 110.0, MATURITY)
