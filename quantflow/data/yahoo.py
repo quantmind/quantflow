@@ -40,6 +40,7 @@ class Yahoo(HttpxClient):
     ```python
     async with Yahoo() as yahoo:
         loader = await yahoo.volatility_surface_loader("AAPL")
+        loader.calibrate_curves()
         surface = loader.surface()
     ```
     """

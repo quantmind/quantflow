@@ -14,6 +14,8 @@ The central concept is the [discount factor](../../glossary.md#discount-factor) 
 
 The trivial [NoDiscountCurve][quantflow.rates.no_discount.NoDiscountCurve] implementation has zero rates, so its discount factor is always one.
 
+[AnyYieldCurve][quantflow.rates.AnyYieldCurve] is a discriminated union of all concrete curve models: use it for Pydantic fields that must accept any curve and round trip through JSON.
+
 **[Interpolated Curves](interpolated.md)** build the term structure directly from observed zero rates at a set of anchor dates. [InterpolatedLinearCurve][quantflow.rates.interpolated.InterpolatedLinearCurve] interpolates the zero rate piecewise linearly, while [InterpolatedMonotonicCubicCurve][quantflow.rates.interpolated.InterpolatedMonotonicCubicCurve] uses a shape-preserving cubic spline.
 
 **[CIRCurve](cir.md)** is a short-rate term-structure model derived from the Cox-Ingersoll-Ross process, with positive-rate dynamics and closed-form discount factors.

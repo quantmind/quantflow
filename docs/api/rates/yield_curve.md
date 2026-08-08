@@ -5,3 +5,6 @@
 
 
 ::: quantflow.rates.no_discount.NoDiscountCurve
+
+
+::: quantflow.rates.AnyYieldCurve

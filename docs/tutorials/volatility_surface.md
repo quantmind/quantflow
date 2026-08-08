@@ -34,6 +34,21 @@ Key parameters of `volatility_surface_loader`:
 
 ## Building the Surface
 
+Before creating the surface, calibrate the forwards and discount curves with
+[calibrate_curves][quantflow.options.surface.GenericVolSurfaceLoader.calibrate_curves]:
+
+```python
+loader.calibrate_curves()
+```
+
+This step infers the forward price of each maturity from put-call parity and fits
+the asset discount curve to the resulting discount factors. The surface prices
+options off these calibrated forwards: skipping the call leaves the surface with
+forwards taken from the raw futures quotes, which are often illiquid or stale.
+
+See [Extracting Forwards and Discount Factors](#extracting-forwards-and-discount-factors)
+below for how the calibration works.
+
 The loader holds the raw market data. Call
 [surface()][quantflow.options.surface.GenericVolSurfaceLoader.surface] to construct a
 [VolSurface][quantflow.options.surface.VolSurface]:

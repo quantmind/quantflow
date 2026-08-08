@@ -40,6 +40,16 @@ AnyYieldCurve = Annotated[
     ],
     Field(discriminator="curve_type"),
 ]
+"""Discriminated union of all concrete
+[YieldCurve][quantflow.rates.yield_curve.YieldCurve] implementations.
+
+Use this type for Pydantic fields that can hold any curve model, such as the
+quote and asset curves of a
+[VolSurface][quantflow.options.surface.VolSurface].
+
+The `curve_type` discriminator selects the concrete class during validation,
+so curves serialise to and from JSON without losing their type.
+"""
 
 YieldCurve.register_curve_types(
     NoDiscountCurve,
