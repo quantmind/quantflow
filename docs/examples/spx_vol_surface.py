@@ -6,6 +6,7 @@ from quantflow.data.yahoo import Yahoo
 
 chain = json.loads(gzip.decompress((FIXTURES / "yahoo_spx.json.gz").read_bytes()))
 loader = Yahoo.loader_from_chain(chain, exclude_volume=1)
+loader.calibrate_curves()
 surface = loader.surface()
 surface.bs()
 surface.disable_outliers()

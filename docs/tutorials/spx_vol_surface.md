@@ -16,7 +16,11 @@ the raw chain dictionary into a
 are non-inverse (quoted in USD) and Yahoo does not provide forwards, so each
 maturity's forward is recovered from put-call parity inside the loader.
 
-Once the loader has the data, [surface()][quantflow.options.surface.GenericVolSurfaceLoader.surface]
+Once the loader has the data,
+[calibrate_curves()][quantflow.options.surface.GenericVolSurfaceLoader.calibrate_curves]
+calibrates the parity forwards and fits the discount curves (see the
+[volatility surface tutorial](volatility_surface.md) for details). Then
+[surface()][quantflow.options.surface.GenericVolSurfaceLoader.surface]
 builds the [VolSurface][quantflow.options.surface.VolSurface],
 [bs()][quantflow.options.surface.VolSurface.bs] inverts each bid and ask
 through Black-Scholes, and
