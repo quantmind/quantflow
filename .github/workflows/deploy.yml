@@ -13,6 +13,7 @@ jobs:
       K8S_ENV: ${{ github.event.deployment.environment }}
       IMAGE_TAG: ${{ github.event.deployment.payload.tag }}
       METABLOCK_API_TOKEN: ${{ secrets.METABLOCK_API_TOKEN }}
+      METABLOCK_ORG_ID: ${{ secrets.METABLOCK_ORG_ID }}
       RUST_LOG: info
 
     steps:
@@ -53,9 +54,8 @@ jobs:
           --set image.tag=${IMAGE_TAG} \
           --wait
       - name: Update ingress configuration
-        uses: quantmind/metablock-ingress@v3
+        uses: quantmind/metablock-ingress@v2
         with:
-          token: ${{ secrets.METABLOCK_API_TOKEN }}
           space: quantmind
           path: dev/blocks
       - name: Update deployment status (success)
