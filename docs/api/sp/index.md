@@ -33,6 +33,7 @@ This page gives an overview of all stochastic processes available in the library
 | Process | Description |
 |---|---|
 | [Heston][quantflow.sp.heston.Heston] | Classical square-root stochastic volatility model |
+| [RoughHeston][quantflow.sp.rough_heston.RoughHeston] | Rough (fractional) Heston model with Hurst exponent H < 1/2 |
 | [HestonJ][quantflow.sp.heston.HestonJ] | Heston model with compound Poisson jumps |
 | [DoubleHeston][quantflow.sp.heston.DoubleHeston] | Two independent Heston variance processes |
 | [DoubleHestonJ][quantflow.sp.heston.DoubleHestonJ] | Double Heston with compound Poisson jumps on the first component |
