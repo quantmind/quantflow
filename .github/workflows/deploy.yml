@@ -16,6 +16,8 @@ jobs:
       METABLOCK_API_TOKEN: ${{ secrets.METABLOCK_API_TOKEN }}
       METABLOCK_ORG_ID: ${{ secrets.METABLOCK_ORG_ID }}
       RUST_LOG: info
+      # rops looks up the latest helm and helm-secrets releases on GitHub
+      GITHUB_TOKEN: ${{ secrets.TOKEN_DEPLOYMENT }}
 
     steps:
       - name: Update deployment status (in_progress)
@@ -48,6 +50,11 @@ jobs:
         uses: quantmind/rops/.github/actions/setup-rops@main
         env:
           GITHUB_TOKEN: ${{ secrets.TOKEN_DEPLOYMENT }}
+      # the CodeBuild runner image does not ship helm
+      - name: install helm
+        run: |
+          rops tools update helm
+          helm version
       - name: Install mozilla sops
         uses: mdgreenwald/mozilla-sops-action@v1.4.1
       - name: deploy quantflow
