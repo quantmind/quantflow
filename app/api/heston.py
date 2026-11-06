@@ -28,7 +28,7 @@ async def heston_vol_surface(
     model: str = Query(
         "jd",
         description="Model type",
-        enum=["jd", "hj"],
+        json_schema_extra={"enum": ["jd", "hj"]},
     ),
     vol: float = Query(0.4, description="Long term volatility", ge=0.1, le=0.8),
     sigma: float = Query(0.5, description="Vol of vol", ge=0.1, le=2.0),

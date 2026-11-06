@@ -65,7 +65,7 @@ async def volatility_surface(
     asset: str = Query(
         "BTC",
         description="Asset symbol",
-        enum=ALL_ASSETS,
+        json_schema_extra={"enum": ALL_ASSETS},
     ),
 ) -> VolSurfaceResponse:
     cache = RedisCache(

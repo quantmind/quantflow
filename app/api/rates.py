@@ -33,7 +33,7 @@ async def yield_curve(
     curve_type: str = Query(
         "nelson_siegel_curve",
         description="Type of curve to fit",
-        enum=list(YieldCurve.curve_types()),
+        json_schema_extra={"enum": list(YieldCurve.curve_types())},
     ),
     max_ttm: float | None = Query(
         None,
