@@ -4,10 +4,11 @@ on: deployment
 
 jobs:
   deploy:
-    runs-on: ubuntu-latest
-    # These permissions are needed for AWS GitHub's OIDC Token endpoint.
+    # the CodeBuild runner of the deploy workflow, defined in the codebuild
+    # stack of fluid-hft: it runs as the deploy role, so the job gets its AWS
+    # credentials from CodeBuild
+    runs-on: codebuild-quantmind-quantflow-deploy-${{ github.run_id }}-${{ github.run_attempt }}
     permissions:
-      id-token: write
       contents: read
     env:
       K8S_ENV: ${{ github.event.deployment.environment }}
@@ -34,11 +35,15 @@ jobs:
           repository: quantmind/metaplatform
           path: metaplatform
           token: ${{ secrets.TOKEN_DEPLOYMENT }}
-      - name: Configure AWS Credentials
-        uses: aws-actions/configure-aws-credentials@v2
+      # the Kubernetes API endpoint is private: the runner joins the tailnet
+      # for the length of the job and reaches it through the vpc-router
+      # Connector of the tailscale-connector chart in fluid-hft
+      - name: Join the tailnet
+        uses: tailscale/github-action@v3
         with:
-          role-to-assume: arn:aws:iam::337900243020:role/GithubActions
-          aws-region: eu-west-1
+          oauth-client-id: ${{ secrets.TS_OAUTH_CLIENT_ID }}
+          oauth-secret: ${{ secrets.TS_OAUTH_SECRET }}
+          tags: tag:ci
       - name: install rops
         uses: quantmind/rops/.github/actions/setup-rops@main
         env:
@@ -58,6 +63,15 @@ jobs:
         with:
           space: quantmind
           path: dev/blocks
+      # tailscaled keeps running after the job, and a CodeBuild build only
+      # ends once every process in it has exited, so stop it, even when an
+      # earlier step failed. Logging out also removes the runner from the
+      # tailnet at once.
+      - name: Leave the tailnet
+        if: always()
+        run: |
+          sudo tailscale logout || true
+          sudo pkill tailscaled || true
       - name: Update deployment status (success)
         if: success()
         uses: chrnorm/deployment-status@v2
